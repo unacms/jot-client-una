@@ -20,6 +20,8 @@ More details about web push notifications setup you may find here for [**```http
 
 4. Fill appropriate fields in Messenger settings with OneSignal options values.
 
-If you setup **Jot Server**(https://github.com/unaio/jot-server) on your own server, you should fill ```Server URL for messenger``` option with your own server's url and port number. (**Example: http://localhost:5443**)
+If you setup **Jot Server**(https://github.com/unaio/jot-server) on your own server, you should fill 
+```Server URL for messenger```
+option with your own server's url and port number. (**Example: http://localhost:5443**)
 
 Now **Jot Messenger** completely installed, enjoy :) 

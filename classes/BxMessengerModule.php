@@ -127,7 +127,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	* Send function occurs when member posts a message
 	* @return array json result
 	*/
-	function actionSend(){	   
+	public function actionSend(){	   
 		$sUrl =	$sTitle = '';
 		$sMessage = trim(bx_get('message'));
 		$iLotId = (int)bx_get('lot');	   
@@ -204,7 +204,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	* Loads messages for  specified lot(conversation)
 	* @return array with json
 	*/
-	function actionLoadJots(){	   
+	public function actionLoadJots(){	   
 		if (!$this -> isLogged())
 			return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 	   
@@ -225,7 +225,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	* Search for Lots by keywords in the right side block
 	* @return array with json 
 	*/
-	function actionSearch(){	   
+	public function actionSearch(){	   
 		if (!$this -> isLogged())
 			return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 	   
@@ -274,7 +274,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	* Loads messages for  lot(conversation) (when member wants to view history or get new messages from participants)
 	* @return array with json
 	*/
-	function actionUpdate(){	   
+	public function actionUpdate(){	   
 		if (!$this -> isLogged())
 			return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 			   
@@ -438,7 +438,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	* Returns number of unread messages for specified lot for logged member
 	* @return int
 	*/   
-	function serviceGetNewMessagesNum(){   
+	public function serviceGetNewMessagesNum(){   
 		if (!$this -> isLogged()) return 0;
 		return $this -> _oDb -> getNewMessagesNum($this -> _iUserId);
 	}
@@ -514,7 +514,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	* Creates template with member's avatar, name and etc... It is used when member posts a message to add message to member history immediately
 	* @return json
 	*/
-	function actionLoadMembersTemplate(){   
+	public function actionLoadMembersTemplate(){   
 		if (!$this -> isLogged()) return '';	   
 		echoJson(array('data' => $this -> _oTemplate -> getMembersJotTemplate($this -> _iUserId)));
 	}
@@ -525,7 +525,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	 * @return boolean
 	*/
    
-	function serviceDeleteHistoryByAuthor($oAlert){	   
+	public function serviceDeleteHistoryByAuthor($oAlert){	   
 		return $oAlert -> iObject ? $this -> _oDb -> deleteProfileInfo($oAlert -> iObject) : false;
 	}
 

@@ -1,5 +1,6 @@
 <img src="https://user-images.githubusercontent.com/22210428/27619378-391220cc-5c05-11e7-86ee-21edd7404298.png" width="300"> 
-## Jot Messenger
+
+# Jot Messenger
 
 [![Github All Releases](https://img.shields.io/github/downloads/unaio/jot-client-una/total.svg)](https://github.com/unaio/jot-client-una)
 

@@ -1,8 +1,8 @@
 # Jot Messenger
 
-```Jot Messenger``` module allows members to be in touch, communicate, instantly get to know about new messages, create private groups with friends, single talks, manually edit participants list and to add messenger block to different pages of the site.
+```Jot Messenger``` app for UNA is a real-time private messenger as well as a public communication platform. Jot allows members to create private talks, group talks and participate in embedded conversaitons integrated with other UNA apps.
 
-**Messenger** requires the [Jot Server](https://github.com/unaio/jot-server) and if you don't have your own server we provide you with our own as default one for your site. **Jot Messenger** allows to send push notifications to members about new messages and to have this ability you should create account on OneSignal.com
+**Jor Messenger** requires the **[Jot Server]**(https://github.com/unaio/jot-server) and if you don't have your own server we provide you with our own as default one for your site. **Jot Messenger** sipports push notifications via OneSignal platform. 
 
 How to install messenger:
 1) You should go to ```UNA Studio -> Apps``` area, download **Messenger** module and install it.

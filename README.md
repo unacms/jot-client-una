@@ -1,5 +1,7 @@
 # Jot Messenger
 
+[![Github All Releases](https://img.shields.io/github/downloads/atom/atom/total.svg)]()
+
 ```Jot Messenger``` app for UNA is a real-time private messenger as well as a public communication platform. Jot allows members to create private talks, group talks and participate in embedded conversaitons integrated with other UNA apps.
 
 **Jot Messenger** requires the **[Jot Server](https://github.com/unaio/jot-server)**. **Jot Messenger** supports push notifications via OneSignal platform. 

@@ -17,6 +17,7 @@ var oMessenger = (function($){
 		
 		//list of selectors
 		this.sJotsBlock = '.bx-messenger-block.jots',
+		this.sMessangerParentBox = '.bx-messenger-post-box',
 		this.sMessangerBox = '#bx-messenger-message-box',
 		this.sSendButton = '.bx-messenger-post-box-send-button > button',
 		this.sTalkBlock = '.bx-messenger-conversation-block',
@@ -26,7 +27,7 @@ var oMessenger = (function($){
 		this.sTalkListJotSelector = this.sTalkList + ' ' + this.sJot,
 		this.sItemsList = '.bx-messanger-items-list',
 		this.sSendArea = '.bx-messenger-text-box',
-		this.sChatInfoBlock = '.bx-messenger-block-info',
+		this.sJotMessage = '.bx-messenger-jots-message',
 		this.sLotInfo = '.bx-messenger-jots-snip-info',
 		this.sLotsListBlock = '.bx-messanger-items-list',
 		this.sLotSelector = '.bx-messenger-jots-snip',
@@ -35,18 +36,28 @@ var oMessenger = (function($){
 		this.sUserSelectorBlock = '#bx-messenger-add-users',
 		this.sUserSelector = this.sUserSelectorBlock + ' input[name="users[]"]',
 		this.sUserSelectorInput = '#bx-messenger-add-users-input',
+		this.sInputAreaDisabled = 'bx-messenger-post-box-dsabled',
 		this.sActiveLotClass = 'active',
 		this.sUnreadLotClass = 'unread-lot',
 		this.sStatus = '.bx-messenger-status';
 		this.sBubble = '.bubble',
+		this.sJotIcons = '.bx-messenger-jots-icons',
 		this.sTypingArea = '.bx-messenger-conversations-typing span',
-		this.sTypingAreaParent = '#bx-messenger-typing',
-		
+		this.sConnectingArea = '.bx-messenger-info-area-connecting',
+		this.sConnectionFailedArea = '.bx-messenger-info-area-connect-failed',
+		this.sInfoArea = '#bx-messenger-info-area',
+		this.aBorderSelectors = {
+									'border': 'bx-messenger-active-border', 
+									'none': 'bx-messenger-active-border-none', 
+									'bottom': 'bx-messenger-active-border-bottom',
+								},		
 		//globa class options
 		this.oUsersTemplate	= null,
+		this.sJotUrl = sUrlRoot + 'm/messenger/archive/',
+		this.iAttachmentUpdate = false,
 		this.iTimer = null,
 		this.iMaxLength = (oOptions && oOptions.max) || 0,
-		this.iStatus = 1, // online
+		this.iStatus = document.hasFocus() ? 1 : 2, // 1- online, 2-away
 		this.iScrollDownSpeed = 1500;
 		this.iHideUnreadBadge = 1000;
 		this.iRunSearchInterval = 500, // seconds
@@ -54,7 +65,9 @@ var oMessenger = (function($){
 		this.iMinTimeBeforeToStartLoadingPrev = 500, // 2 seconds before to start loading history
 		this.iTypingUsersTitleHide = 1000, //hide typing users div when users stop typing
 		this.iLoadTimout = 0,
-		this.iFilterType = 0,		
+		this.iFilterType = 0,
+		this.bActiveConnect = true,
+		this.iPanding = false, // don't update jots while prevous update is not finished yet
 		this.aUsers = [],
 		this.soundFile = 'modules/boonex/messenger/data/notify.wav'; //beep file, occurs when message received
 		
@@ -94,6 +107,12 @@ var oMessenger = (function($){
 			if (this.emojiPicker != undefined)				
 				this.emojiPicker.discover();	  		
 			
+			if (!_this.oRTWSF.isInitialized()){
+				this.blockSendMessages(true);				
+				return;
+			}
+			
+			
 			$(this.sSendArea).on('keydown', function(oEvent){
 				var iKeyCode = oEvent.keyCode || oEvent.which;		
 							
@@ -126,19 +145,28 @@ var oMessenger = (function($){
 					clearTimeout(_this.iLoadTimout);				
 			});	
 			
-			
-			$(window).on('beforeunload', function(e){
-				if (_this.oRTWSF != undefined)
-						_this.oRTWSF.end({
-											user_id:oOptions.user_id
-										 });
-			});
-			
-			/* Init users Jot template  begin */
-				this.loadMembersTemplate();
-			/* Init users Jot template  end */
-			
-			_this.updateScrollPosition('bottom');			
+			this.initJotIcons();
+			this.updateScrollPosition('bottom');
+	}
+	
+	oMessenger.prototype.blockSendMessages = function(bBlock){
+		if (bBlock != undefined)
+			this.bActiveConnect = !bBlock;
+		
+		if (!this.bActiveConnect && !$(this.sMessangerParentBox).hasClass(this.sInputAreaDisabled))
+			$(this.sMessangerParentBox).addClass(this.sInputAreaDisabled);
+		
+		if (this.bActiveConnect)
+			$(this.sMessangerParentBox).removeClass(this.sInputAreaDisabled);
+	}
+	
+	oMessenger.prototype.initJotIcons = function(){
+		var _this = this;
+		$(this.sJot).mouseenter(function(){
+				$(_this.sJotIcons, this).fadeIn();
+			}).mouseleave(function(){
+				$(_this.sJotIcons, this).fadeOut();
+			});			
 	}
 	
 	/**
@@ -184,7 +212,7 @@ var oMessenger = (function($){
 	*/
 	oMessenger.prototype.searchByItems = function(iType, sText){
 		var _this = this,
-			iFilterType	= iType || this.iFilterType;			
+			iFilterType	= iType != undefined ? iType : this.iFilterType;			
 		
 		clearTimeout(_this.iTimer);		
 		this.iTimer = setTimeout(function() {
@@ -223,12 +251,15 @@ var oMessenger = (function($){
 					_this.updateScrollPosition('bottom');
 					_this.initUsersSelector(oParams.lot !== undefined ? 'edit' : '');
 					
-					if (_this.oJotWindowBuilder != undefined) _this.oJotWindowBuilder.changeColumn();
+					if (_this.oJotWindowBuilder != undefined) 
+						_this.oJotWindowBuilder.changeColumn('right');
 				}
+				
+				_this.blockSendMessages();				
 		}, 'json');	
 	}
 	
-	oMessenger.prototype.onSaveParticipantsList = function(iLotId){
+	oMessenger.prototype.saveParticipantsList = function(iLotId){
 		var _this = this;
 		if (iLotId)
 				$.post('modules/?r=messenger/save_lots_parts', {lot:iLotId, participants:_this.getPatricipantsList()}, function(oData){
@@ -244,7 +275,7 @@ var oMessenger = (function($){
 				}, 'json');
 	}
 	
-	oMessenger.prototype.onLeaveLot = function(iLotId){
+	oMessenger.prototype.leaveLot = function(iLotId){
 		var _this = this;
 		if (iLotId)
 			$.post('modules/?r=messenger/leave', {lot:iLotId}, function(oData){
@@ -257,22 +288,15 @@ var oMessenger = (function($){
 					}, 'json');
 	}
 	
-	oMessenger.prototype.onMuteLot = function(iLotId){
+	oMessenger.prototype.muteLot = function(iLotId){
 		var _this = this;
 		$.post('modules/?r=messenger/mute', {lot:iLotId}, function(oData){
 				if (parseInt(oData.code) == 1) 
-					window.location.reload();
-
-				if (!parseInt(oData.code)){
-					if ($(_this.sChatInfoBlock + ' i.bell-slash-o').length)
-						$(_this.sChatInfoBlock + ' i.bell-slash-o').removeClass('bell-slash-o').addClass('bell-o');
-					else
-						$(_this.sChatInfoBlock + ' i.bell-o').removeClass('bell-o').addClass('bell-slash-o');								
-				}
-			}, 'json');
+						window.location.reload();
+				}, 'json');
 	}
 	
-	oMessenger.prototype.onDeleteLot = function(iLotId){
+	oMessenger.prototype.deleteLot = function(iLotId){
 		var _this = this;
 		if (iLotId)
 				$.post('modules/?r=messenger/delete', {lot:iLotId}, function(oData){						
@@ -287,8 +311,105 @@ var oMessenger = (function($){
 						alert(oData.message);
 						
 				}, 'json');
-	}	
+	}
+
+	oMessenger.prototype.deleteJot = function(oObject){
+		var oJot = $(oObject).parents(this.sJot),
+			iJotId = oJot.data('id') || 0;
+		
+		if (iJotId && confirm(_t('_bx_messenger_remove_jot_confirm')))
+			$.post('modules/?r=messenger/delete_jot', {jot:iJotId}, function(oData){						
+					if (!parseInt(oData.code)) 
+							oJot.fadeOut().remove();
+				}, 'json');
+	}
 	
+	oMessenger.prototype.copyJotLink = function(oObject){
+		var _this = this,
+			iJotId = $(oObject).parents(_this.sJot).data('id') || 0,
+			$oInput = $('<input>');
+			
+			if (iJotId){
+				$('body').append($oInput);
+				$oInput.val(_this.sJotUrl + iJotId).select();
+				document.execCommand("copy");
+				$oInput.remove();
+			}
+	}
+
+	/**
+	* Convert plan text links/emails to urls, mailto
+	*@param string sText text of the message
+	*/
+	$.fn.linkify = function(){		
+		var sUrlPattern = /\b(?:https?):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim,
+		// www, http, https
+			sPUrlPattern = /(^|[^\/])(www\.[\S]+(\b|$))/gim,
+		// Email addresses
+			sEmailPattern = /[\w.]+@[a-zA-Z_-]+?(?:\.[a-zA-Z]{2,6})+/gim;
+			
+		var sUrl = '',
+			oJot = $(_oMessenger.sJotMessage, this).get(0),
+			sText = $(oJot).text()
+				.replace(sUrlPattern, function(str){
+					sUrl = str;
+					return '<a href="' + str + '">' + str + '</a>';
+				})
+				.replace(sPUrlPattern, function(str, p1, p2){
+					sUrl = 'http://' + p2;
+					return p1 + '<a href="' + p2 + '">' + p2 + '</a>'
+				})
+				.replace(sEmailPattern, '<a href="mailto:$&">$&</a>');
+		
+		$(oJot).html(sText);
+		if (sUrl.length)
+			$(oJot).attacheLinkContent(sUrl);
+		
+		return this;
+	}
+	
+	/**
+	* Conver plan text links, mailto to urls
+	*@param string sText text of the message
+	*/
+	$.fn.attacheLinkContent = function(sUrl){
+		var _this = this;
+		_oMessenger.iAttachmentUpdate = true;
+		$.post('modules/?r=messenger/parse_link', {link:sUrl, jot_id:$(_this).parents(_oMessenger.sJot).data('id')}, function(oData){
+				if (!parseInt(oData['code'])){
+					$(_this).parent().append(oData['html']);
+					_oMessenger.broadcastMessage();					
+					_oMessenger.updateScrollPosition('bottom');
+				}
+				_oMessenger.iAttachmentUpdate = false;
+			},
+			'json');
+			
+		return this;
+	}
+	
+	/**
+	* Select lot in left side column when member clicks on it
+	*@param object el selected lot
+	*/
+	oMessenger.prototype.selectLotEmit = function(el){
+		$(this.sItemsList).
+				find('.' + this.aBorderSelectors['border'] + ', .' + this.aBorderSelectors['none'] + ', .' + this.aBorderSelectors['bottom']).
+				removeClass(this.aBorderSelectors['border'] + ' ' + this.aBorderSelectors['none'] + ' ' + this.aBorderSelectors['bottom']);
+				
+		if ($(el).prev().length == 0)
+			$(el).children('div').addClass(this.aBorderSelectors['bottom']);
+		else
+		{	
+			$(el).children('div').addClass(this.aBorderSelectors['border']).end().
+				prev().children('div').addClass(this.aBorderSelectors['none']);
+		}
+		
+		$(el).addClass(this.sActiveLotClass).siblings().removeClass(this.sActiveLotClass).end().
+				find(this.sLotInfo).removeClass(this.sUnreadLotClass).end().
+				find(this.sBubble).fadeOut(this.iHideUnreadBadge).end();
+	}
+		
 	/**
 	* Load history for selected lot
 	*@param int iLotId lot id
@@ -298,22 +419,20 @@ var oMessenger = (function($){
 		var _this = this;
 		
 		if (this.isActiveLot(iLotId) && _this.oJotWindowBuilder != undefined && !this.oJotWindowBuilder.isMobile()) return ;
+	
+		this.selectLotEmit(el);
 		
 		bx_loading($(this.sMainTalkBlock), true);
 		$.post('modules/?r=messenger/load_talk', {id:iLotId}, function(oData){
 			bx_loading($(_this.sMainTalkBlock), false);
 				if (parseInt(oData.code) == 1) 
-							window.location.reload();
+						window.location.reload();
 				else
 				if (!parseInt(oData.code)){
 					$(_this.sJotsBlock).parent().html(oData.html).fadeIn(function(){
 						if (_this.oJotWindowBuilder != undefined) 
 								_this.oJotWindowBuilder.changeColumn();							
 					}).bxTime();
-								
-					$(el).addClass(_this.sActiveLotClass).siblings().removeClass(_this.sActiveLotClass).end().
-							find(_this.sLotInfo).removeClass(_this.sUnreadLotClass).end().
-							find(_this.sBubble).fadeOut(_this.iHideUnreadBadge).end();
 							
 					
 					/*  copy current update member status to the top of the chat */
@@ -331,7 +450,8 @@ var oMessenger = (function($){
 					if (_this.oJotWindowBuilder != undefined && _this.oJotWindowBuilder.isMobile()) 
 							_this.correctUserStatus();
 					
-					_this.updateScrollPosition('bottom');				
+					_this.updateScrollPosition('bottom');
+					_this.blockSendMessages();
 				}
 		}, 'json');	
 	}	
@@ -391,13 +511,19 @@ var oMessenger = (function($){
 		var oMessage = _this.oUsersTemplate.clone().
 						attr('data-tmp', oParams.tmp_id). 
 						find('time').attr('datetime', msgTime.toISOString()).end(). 
-						find('.bx-messenger-jots-message').text(oParams.message).addClass('new').end().
+						find(_this.sJotMessage).text(oParams.message).addClass('new').end().
 						fadeTo(100, 0.1).fadeTo(200, 1.0).
-						bxTime();	
+						bxTime();
+		
 		
 		// append content of the message to history page
-		$(_this.sTalkList).append(oMessage);
+		if ($('.bx-msg-box-container', _this.sTalkList).length)
+				$('.bx-msg-box-container', _this.sTalkList).remove();
+			
+		$(_this.sTalkList).append(oMessage); $(_this.sTalkList).append(oMessage);
 		$(_this.sSendArea).html('');
+		
+		_this.initJotIcons();
 		
 		_this.updateScrollPosition('bottom');		
 
@@ -413,18 +539,24 @@ var oMessenger = (function($){
 				}
 
 				if (parseInt(oData.jot_id) &&  oData.tmp_id != undefined)
-					$(_this.sTalkList).find('[data-tmp="' + oData.tmp_id + '"]').attr('data-id', oData.jot_id);			
-
-				if (_this.oRTWSF != undefined)
-					_this.oRTWSF.message({
-											lot: _this.oSettings.lot, 
-											name: _this.oSettings.name,
-											user_id: _this.oSettings.user_id,
-										});
+					$(_this.sTalkList).find('[data-tmp="' + oData.tmp_id + '"]').attr('data-id', oData.jot_id).linkify();
+				
+				if (!_this.iAttachmentUpdate)
+						_this.broadcastMessage();
+				
 				}
 			}, 'json');			
 			
 	}		
+	
+	oMessenger.prototype.broadcastMessage = function(){
+		if (this.oRTWSF != undefined)
+				this.oRTWSF.message({
+										lot: this.oSettings.lot, 
+										name: this.oSettings.name,
+										user_id: this.oSettings.user_id
+									});
+	}
 	
 	/**
 	* Get all participants from users selector area
@@ -486,15 +618,50 @@ var oMessenger = (function($){
 							this.aUsers.push(sName);
 			
 			$(this.sTypingArea).text(this.aUsers.join(','));			
-			$(this.sTypingAreaParent).fadeIn();
+			$(this.sInfoArea).fadeIn();
 		}
 		
 		clearTimeout(this.iTimer);	
 		this.iTimer = setTimeout(function(){
-			$(_this.sTypingAreaParent).fadeOut().find(_this.sTypingArea).html('');
+			$(_this.sInfoArea).fadeOut().find(_this.sTypingArea).html('');
 			_this.aUsers = [];
 		},_this.iTypingUsersTitleHide);				
 	};
+	
+	oMessenger.prototype.onReconnecting = function(oData) {	
+		var _this = this;
+			
+		$(this.sInfoArea).fadeIn();
+		$(this.sTypingArea).parent().hide();
+		$(this.sConnectingArea).show();	
+		$(' > span', _this.sConnectingArea).html('');
+		
+		this.blockSendMessages(true);		
+		clearInterval(this.iTimer);	
+
+		this.iTimer = setInterval(function(){
+			var sHTML = $(' > span', _this.sConnectingArea).html();
+			sHTML += '.';
+			$(' > span', _this.sConnectingArea).html(sHTML);
+		}, 1000);		
+	};
+	
+	oMessenger.prototype.onReconnected = function(oData) {	
+		$(this.sConnectingArea).hide();
+		$(this.sInfoArea).fadeOut();
+		$(this.sTypingArea).parent().show();
+		
+		clearInterval(this.iTimer);
+		
+		this.blockSendMessages(false);
+	};
+	
+	oMessenger.prototype.onReconnectFailed = function(oData) {	
+		$(this.sConnectingArea).hide();
+		$(this.sConnectionFailedArea).fadeIn();
+		
+		clearInterval(this.iTimer);
+	};	
 	
 	/**
 	* Check if specified lot is currntly active
@@ -576,9 +743,14 @@ var oMessenger = (function($){
 			oObjects = $(this.sTalkListJotSelector),
 			iStart = sShow == 'new' ? oObjects.last().data('id') : oObjects.first().data('id');
 		
+			if (_this.iPanding)
+				return;
+			
 			if (sLoad == 'prev')
-			   bx_loading($(this.sTalkBlock), true);		   
+			   bx_loading($(this.sTalkBlock), true);	   
 		   
+		    _this.iPanding = true;
+			
 			$.post('modules/?r=messenger/update', {url: this.oSettings.url, type: this.oSettings.type, start: iStart, lot: this.oSettings.lot, load:sShow}, 
 			function(oData){
 				var oList = $(_this.sTalkList);
@@ -605,7 +777,11 @@ var oMessenger = (function($){
 							sShow == 'new' ? 'slow' : '',
 							sShow == 'new' ? null : $(oObjects.first())
 						);
+						
+						_this.initJotIcons();
 				}
+				
+				_this.iPanding = false;
 				
 				if (sLoad == 'prev'){
 					bx_loading($(_this.sTalkBlock), false);					
@@ -660,7 +836,7 @@ var oMessenger = (function($){
 	};
 	
 	/**
-	* Retrns object with public methods 
+	* Returns object with public methods 
 	*/
 	return {
 		/**
@@ -673,9 +849,20 @@ var oMessenger = (function($){
 				
 			_oMessenger = new oMessenger(oOptions);
 			
+			/* Init users Jot template  begin */
+			_oMessenger.loadMembersTemplate();
+			/* Init users Jot template  end */
+			
 			/* Init sockets settings begin*/	
-			if (_oMessenger.oRTWSF != undefined){	
+			if (_oMessenger.oRTWSF != undefined && _oMessenger.oRTWSF.isInitialized()){
 
+				$(window).on('beforeunload', function(){
+					if (_oMessenger.oRTWSF != undefined)
+							_oMessenger.oRTWSF.end({
+												user_id:oOptions.user_id
+											 });
+				});
+				
 				_oMessenger.oRTWSF.onTyping = function(oData){
 					_this.onTyping(oData);
 				};		
@@ -691,15 +878,23 @@ var oMessenger = (function($){
 				_oMessenger.oRTWSF.onServerResponse = function(oData){					
 					_this.onServerResponse(oData);
 				};				
+		
+				_oMessenger.oRTWSF.onReconnecting = function(oData){					
+					_oMessenger.onReconnecting(oData);
+				};
+
+				_oMessenger.oRTWSF.onReconnected = function(oData){					
+					_oMessenger.onReconnected(oData);
+				};
+				
+				_oMessenger.oRTWSF.onReconnectFailed = function(oData){					
+					_oMessenger.onReconnectFailed(oData);
+				};
 				
 				_oMessenger.oRTWSF.getSettings = function(){
 					return $.extend({status:_oMessenger.iStatus}, _oMessenger.oSettings);
-				};
+				};				
 				
-				_oMessenger.oRTWSF.initSettings({
-					user_id	:oOptions.user_id, 
-					status	:1
-				});
 			}else{
 				console.log('Real-time frameworks was not initialized');
 				return false;
@@ -713,37 +908,41 @@ var oMessenger = (function($){
 		*@param object oOptions options
 		*/
 		initJotSettings: function(oOptions){
-			this.init()
 			_oMessenger.initJotSettings(oOptions);			
 		},
 		initMessengerPage:function(iProfileId, oMessenger){
-			this.init();
-			
 			_oMessenger.oJotWindowBuilder = oMessenger || window.oJotWindowBuilder;
 			
 			if (typeof oMessengerMemberStatus !== 'undefined'){
 				oMessengerMemberStatus.init(function(iStatus){
 					_oMessenger.iStatus = iStatus;
-					if (_oMessenger.oRTWSF != undefined)
-						this.oRTWSF.updateStatus({
+					if (typeof _oMessenger.oRTWSF !== "undefined")
+						_oMessenger.oRTWSF.updateStatus({
 											user_id:_oMessenger.oSettings.user_id,
 											status:iStatus,
 										 });
 					});
 			}
 		
-			if (_oMessenger.oJotWindowBuilder != undefined){
-				if (!_oMessenger.oJotWindowBuilder.isMobile()){
-					if ($(_oMessenger.sLotsListSelector).length > 0 && !iProfileId) 
-						$(_oMessenger.sLotsListSelector).first().click();
-					else 
-						_oMessenger.createLot({user:iProfileId});
-				  }			
-
-				$(window).resize(function(){
-					_oMessenger.oJotWindowBuilder.resizeWindow();
+			if (typeof _oMessenger.oJotWindowBuilder !== "undefined"){		
+				$(window).on('load resize', function(e){
+						if (e.type == 'load'){
+								if(iProfileId || $(_oMessenger.sLotsListSelector).length == 0) 
+									_oMessenger.createLot({user:iProfileId});
+								else
+								if (!_oMessenger.oJotWindowBuilder.isMobile() && $(_oMessenger.sLotsListSelector).length > 0)
+									$(_oMessenger.sLotsListSelector).first().click();						
+						}
+						
+						_oMessenger.oJotWindowBuilder.resizeWindow();
 				});
-				_oMessenger.oJotWindowBuilder.resizeWindow();
+
+				_oMessenger.oJotWindowBuilder.loadRightColumn = function(){
+					if ($(_oMessenger.sLotsListSelector).length > 0)
+						$(_oMessenger.sLotsListSelector).first().click();
+					else
+						_oMessenger.createLot();
+				};
 			}
 			else{
 				console.log('Page Builder was not initialized');
@@ -764,24 +963,30 @@ var oMessenger = (function($){
 			return this;
 		},	
 		onSaveParticipantsList:function(iLotId){ 
-			_oMessenger.onSaveParticipantsList(iLotId);
+			_oMessenger.saveParticipantsList(iLotId);
 			return this;
 		},
 		onLeaveLot: function(iLotId) {
-			_oMessenger.onLeaveLot(iLotId);
+			_oMessenger.leaveLot(iLotId);
 			return this;
 		},	
 		onMuteLot: function(iLotId){
-			_oMessenger.onMuteLot(iLotId);
+			_oMessenger.muteLot(iLotId);
 			return this;
 		},
 		onDeleteLot: function(iLotId){ 
-			_oMessenger.onDeleteLot(iLotId);
+			_oMessenger.deleteLot(iLotId);
 			return this;
 		},
-		showLotsByType: function(iLotId){
-			_oMessenger.searchByItems(iLotId);
+		showLotsByType: function(iType){
+			_oMessenger.searchByItems(iType);
 			return this;
+		},
+		onDeleteJot:function(oObject){
+			_oMessenger.deleteJot(oObject);
+		},
+		onCopyJotLink:function(oObject){
+			_oMessenger.copyJotLink(oObject);
 		},
 		/**
 		* Methods below occur when messenger gets data from the server

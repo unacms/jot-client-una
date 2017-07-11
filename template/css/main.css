@@ -23,7 +23,7 @@ div.bx-messenger-post-box{
 	padding:0.6rem;
 	min-height:2rem;
 	display:table;	
-    box-sizing: border-box;
+	box-sizing: border-box;
 }
 
 div.bx-messenger-post-box .bx-form-input-wrapper{
@@ -44,13 +44,12 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box {
 	max-height:10rem;
 }
 
-.bx-messenger-post-box .bx-messenger-content-holder{
-	color:rgba(0,0,0,0.3);
+.bx-messenger-post-box-dsabled{
+	background-color:rgba(0,0,0,0.05);
 	-moz-user-select: none;
-    cursor: text;
-    pointer-events: none;
+	cursor: text;
+	pointer-events: none;
 	top:0px;
-    position: absolute;
 }
 
 .bx-messenger-post-box .bx-messenger-post-box-send-button{
@@ -64,7 +63,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box {
 
 .bx-messenger-post-box .bx-messenger-post-box-send-button button.bx-btn{
 	height: 1.5rem;
-    line-height: 1.5rem;
+	line-height: 1.5rem;
 	font-size:0.9rem;
 	z-index:1000;
 	margin-bottom:5px;
@@ -77,11 +76,11 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box {
 }
 
 .pc-holder {
-    border: 0 none;
-    border-radius: 2px;
-    display: inline-block;
-    overflow: hidden;
-    padding: 0.3rem 0.7rem;
+	border: 0 none;
+	border-radius: 2px;
+	display: inline-block;
+	overflow: hidden;
+	padding: 0.3rem 0.7rem;
 	position:relative;
 }
 
@@ -96,9 +95,13 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box {
 	position:relative;
 	height:auto;
 	display:table;
-	border-spacing:0.9rem;
-	border-collapse:separate;
 	width:100%;
+	margin-bottom:1rem;
+}
+
+.bx-messenger-conversations div.bx-messenger-jots:last-child .bx-messenger-jots-avatars,
+.bx-messenger-conversations div.bx-messenger-jots:last-child .bx-messenger-jots-info{
+	border:none;
 }
 
 .bx-messenger-conversations .bx-messenger-jots-snip:hover {
@@ -112,7 +115,15 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box {
 .bx-messenger-block .bx-db-header{
 	text-align:center;
 	position:relative;
-}	
+	height:2.5rem;
+}
+
+#bx-menu-db-menu-settings{
+	position: absolute; 
+	top: 3rem; 
+	left: 0px; 
+	display: none;
+}
 
 .bx-messenger-block .bx-messenger-right-menu-item{
 	width:auto;
@@ -132,7 +143,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box {
 	overflow:hidden;	
 	min-height:50px;	
 	display:table-row;
-	width:auto;
+	width:auto;	
 }
 
 .bx-messenger-jots-avatars{
@@ -142,12 +153,17 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box {
 	text-align:center;	
 	position:relative;
 	display:table-cell;
+	border-bottom:1px solid rgba(219,233,249, 0.5);
+	padding:0.8rem;
 }
 
 .bx-messenger-jots-info{
 	display: table-cell;
-    vertical-align: top;
+	vertical-align: top;
 	width:auto;	
+	border-bottom:1px solid rgba(219,233,249, 0.5);
+	padding-bottom:0.8rem;
+	padding-top:0.8rem;
 }
 
 .bx-messenger-jots-info span{
@@ -161,7 +177,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box {
 
 .bx-messenger-jots-title{
 	position: relative;
-    width: 100%;
+	width: 100%;
 	padding-bottom:0.1rem;
 	display:inline-block;
 }
@@ -175,7 +191,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box {
 
 .bx-messenger-jots-message{
 	position:relative;
-	word-break:break-word;
+	word-break:break-all;
 	overflow:hidden;	
 }
 
@@ -197,22 +213,56 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box {
 }*/
 
 .bx-messenger-conversations-typing{
-	display: inline-block;
-    margin-left: 1%;
-    opacity: 0.8;
-    position: relative;
+	display: inline-block;	
+	opacity: 0.8;
+	position: relative;
 }
 
 .bx-messenger-conversations-typing span{
-	margin-right:0.25rem;	
+	margin-right:0.25rem;
+	margin-left:0.3rem;	
 }
 
-#bx-messenger-typing{
+#bx-messenger-info-area{
 	width:100%;
 	overflow:hidden;
 	position:absolute;
 	bottom:0px;
 	display:none;
+	padding:0.3rem;
+}
+
+#bx-messenger-info-area .bx-messenger-conversations-typing:before{
+	font-family: 'sys-user';
+	content: "\f27b";
+	margin-left: 1rem;
+    font-size: 0.8rem;
+}
+
+#bx-messenger-info-area .bx-messenger-info-area-connecting{
+	display:none;	
+}
+
+#bx-messenger-info-area .bx-messenger-info-area-connecting span{
+	margin-left:0.3rem;
+}
+
+#bx-messenger-info-area .bx-messenger-info-area-connecting:before{
+	font-family: 'sys-user';
+	content: "\f1e6";
+	margin-left: 1rem;
+    font-size: 0.8rem;
+}
+
+#bx-messenger-info-area .bx-messenger-info-area-connect-failed{
+	display:none;
+}
+
+#bx-messenger-info-area .bx-messenger-info-area-connect-failed:before{
+	font-family: 'sys-user';
+	content: "\f06a";
+	margin-left: 1rem;
+    font-size: 0.8rem;
 }
 
 .bx-messenger-block-info{
@@ -259,7 +309,6 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box {
 
 .bx-messenger-table-wrapper  .bx-messenger-table-wrapper-rows .cell{
 	display:table-cell;
-	/*overflow:hidden;*/
 	position:relative;
 	width:100%;
 	height:100%;
@@ -270,9 +319,6 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box {
 	overflow:auto;
 }
 
-.bx-messenger-table-wrapper div.bx-messenger-table-wrapper-rows:nth-child(2) .cell{
-	height:60px;
-}
 .bx-messenger-block .bx-def-hr{
 	border:none;
 	border-top: 1px solid rgba(40, 60, 80, 0.1);
@@ -288,7 +334,6 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box {
 	float:left;
 	position:relative;
 	max-height:2.3rem;
-	overflow:hidden;
 	margin-right:1rem;
 }
 
@@ -301,27 +346,81 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box {
 	line-height:1.4rem;
 	height:1.4rem;
 	font-weight:bold;
+	overflow:hidden;
 }
 
 .bx-messenger-participants-usernames div.status{
-	line-height:0.8rem;
-	height:0.8rem;
-	font-size:0.7rem;
+	line-height:1.4rem;
+	height:1.4rem;
+	font-size:0.8rem;
 	font-weight:normal;
 }
 
- 
+.bx-messenger-participants-usernames div.participants{
+	line-height:1.1rem;
+	height:1.1rem;
+	font-size:1rem;
+}
+
+span.bx-messenger-jots-icons {
+	position:relative;
+	margin-left:1rem;
+	display:none;
+}
+
+span.bx-messenger-jots-icons.active {
+	display:inline;
+}
+
+span.bx-messenger-jots-icons a{
+	text-decoration:none;
+	font-size:0.9rem;
+	margin-right:0.5rem;
+}
+
+div.bx-messenger-attachment {
+	overflow: hidden;
+    position: relative;
+    margin: 0.5rem;
+	width:auto;
+	border-left: 2px solid rgba(0,0,0,0.1);
+    padding-left: 0.3rem;
+}
+
+div.bx-messenger-attachment-header span.bx-messenger-attachment-author-icon img{
+	width:1rem;
+	height:1rem;
+	top: 4px;
+    position: relative;	
+}
+
+div.bx-messenger-attachment div.bx-messenger-attachment-author-message{
+	position: relative;
+	margin-top: 0.5rem;
+	margin-bottom: 0.5rem;
+	opacity: 1;	
+}
+
+div.bx-messenger-attachment-footer{
+	text-transform:lowercase;
+}
+
+div.bx-messenger-attachment-footer span.type{
+	border-right:1px solid rgba(0,0,0,0.1);	
+	padding-right:0.2rem;
+}
 
 @media (max-width:720px){
 	.bx-messenger-participants-usernames .status{
 		display:none;
 	}
-	.bx-db-header .bx-db-title{
-		margin-top:0.4rem;
-		margin-bottom:0.4rem;
-		margin-right:0.5rem;
+	
+	.bx-messenger-block .bx-db-header{
+		min-height:2.5rem;
+		height:auto;
 	}
+	
 	.bx-messenger-block .bx-db-header .bx-db-title{
-		max-width:75%;
+		max-width:70%;
 	}
 }

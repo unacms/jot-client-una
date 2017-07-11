@@ -110,6 +110,11 @@ class BxMessengerModule extends BxBaseModTextModule
 		$this->_oTemplate->setPageContent ('page_main_code', $s);
 		$this->_oTemplate->getPageCode();
 	}
+	
+	public function actionArchive($iJotId)
+	{
+		$this -> actionMain();
+	}
    
 	/**
 	* Create List of participants received from request (POST, GET)
@@ -193,9 +198,9 @@ class BxMessengerModule extends BxBaseModTextModule
 		if (!$this -> isLogged() || !$iId || !$this -> _oDb -> isParticipant($iId, $this -> _iUserId)){
 			return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 		};
-	   
-		$this -> _oDb -> readAllMessages($iId, $this -> _iUserId);
+	   		
 		$sContent = $this -> _oTemplate -> getTalkBlock($this -> _iUserId, $iId);
+		$this -> _oDb -> readAllMessages($iId, $this -> _iUserId);
 	   
 		echoJson(array('code' => 0, 'html' =>  $sContent));
 	}
@@ -296,7 +301,7 @@ class BxMessengerModule extends BxBaseModTextModule
 		if ($sUrl)
 			$sUrl = bx_get('url') ? $this -> getPreparedUrl(bx_get('url')) : '';
 				   
-		$sContent = $this -> _oTemplate -> getJotsOfLot($this -> _iUserId, $iLotId, $sUrl, $iStart, $sLoad);
+		$sContent = $this -> _oTemplate -> getJotsOfLot($this -> _iUserId, $iLotId, $sUrl, $iStart, $sLoad, ($sLoad != 'new' ? $this -> _oConfig -> CNF['MAX_JOTS_LOAD_HISTORY'] : 0));
 	   
 		$aResult = array('code' => 1);
 		if (!$sContent)
@@ -393,6 +398,24 @@ class BxMessengerModule extends BxBaseModTextModule
 
 		if ($this -> _oDb -> deleteLot($iLotId))
 				$aResult = array('message' => _t('_bx_messenger_delete_success'), 'code' => 0);
+		   
+		echoJson($aResult);
+	}
+	
+	/**
+	* Removes specefied jot
+	* @return array with json
+	*/
+	public function actionDeleteJot(){
+		$iJotId = bx_get('jot');	   
+		$aResult = array('code' => 1);
+
+		if (!$iJotId || !(isAdmin() || $this -> _oDb -> isAuthor($iJotId, $this -> _iUserId, false))){
+			return echoJson($aResult);
+		}
+		
+		if ($this -> _oDb -> deleteJot($iJotId))
+			$aResult = array('code' => 0);
 		   
 		echoJson($aResult);
 	}
@@ -523,12 +546,32 @@ class BxMessengerModule extends BxBaseModTextModule
 	 * Delete all content by profile ID
 	 * @param object oAlert
 	 * @return boolean
-	*/
-   
+	*/   
 	public function serviceDeleteHistoryByAuthor($oAlert){	   
-		return $oAlert -> iObject ? $this -> _oDb -> deleteProfileInfo($oAlert -> iObject) : false;
+		return $oAlert -> iObject && $oAlert -> aExtras['delete_with_content'] ?
+				$this -> _oDb -> deleteProfileInfo($oAlert -> iObject) : false;
 	}
 
+	/**
+	 * parse link from the message
+	 * @param object oAlert
+	 * @return json
+	*/
+	public function actionParseLink(){
+		$sUrl = bx_get('link');
+		$iJotId = (int)bx_get('jot_id');
+		
+		$aUrl = $this -> _oConfig -> isJotLink($sUrl);		
+		if (!empty($aUrl)){
+			$sHTML = $this -> _oTemplate -> getJotAsAttachment($aUrl['id']);
+			if ($sHTML){
+				$this -> _oDb -> addAttachment($iJotId, $aUrl['url']);
+				return echoJson(array('code' => 0, 'html' => $sHTML));
+			}
+		}
+		
+		echoJson(array('code' => 1));
+	}
 }
 
 /** @} */

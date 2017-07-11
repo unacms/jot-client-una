@@ -6,11 +6,22 @@
 		<div class="bx-messenger-jots-info">			
 			<div class="bx-messenger-jots-title bx-def-font-middle bx-def-font-semibold">
 				__title__
+					<span  class="bx-messenger-jots-icons">
+						<bx_if:delete>
+							<a href="javascript:void(0);" title="<bx_text:_bx_messenger_remove_jot />" onclick="oMessenger.onDeleteJot(this);">
+								<i class="sys-icon close"></i>
+							</a>
+						</bx_if:delete>
+							<a href="javascript:void(0);" title="<bx_text:_bx_messenger_share_jot />" onclick="oMessenger.onCopyJotLink(this);">
+								<i class="sys-icon share"></i>
+							</a>
+					</span>				
 				<span class="bx-def-font-light bx-def-font-small">__time__</span>
 			</div>			
 			<div class="bx-messenger-jots-message bx-def-font-middle bx-def-font-light">
 				__message__
-			</div>	
+			</div>
+				__attachment__
 		</div>
 	</div>
 </bx_repeat:jots>

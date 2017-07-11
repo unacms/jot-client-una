@@ -48,6 +48,8 @@ class BxMessengerConfig extends BxBaseModTextConfig
             'FIELD_MESSAGE_ID' => 'id',
 			'FIELD_MESSAGE_ADDED' => 'created',
 			'FIELD_MESSAGE_NEW_FOR' => 'new_for',
+			'FIELD_MESSAGE_AT_TYPE' => 'attachment_type',
+			'FIELD_MESSAGE_AT' => 'attachment',
 
 			// lots types table fields
             'FIELD_TYPE_ID' => 'id',
@@ -100,8 +102,17 @@ class BxMessengerConfig extends BxBaseModTextConfig
        
     }
 	
-	function getTalkType($sModule = ''){
+	public function getTalkType($sModule = ''){
 		return $sModule && isset($this->CNF['PARAM_MODULE_TYPES'][$sModule]) ? $this->CNF['PARAM_MODULE_TYPES'][$sModule] : BX_IM_TYPE_PUBLIC; 
+	}
+	
+	public function isJotLink($sUrl){
+		$aResult = array();
+		$sJotPattern = '/^'. preg_replace(array('/\./', '/\//'), array('\.', '\/'), BX_DOL_URL_ROOT) . '.*\/archive\/(\d+)/i';
+		if (preg_match($sJotPattern, $sUrl, $aMatches) && intval($aMatches[1]))
+			$aResult = array('url' => $aMatches[0], 'id' => $aMatches[1]);
+		
+		return $aResult;
 	}	
 }
 

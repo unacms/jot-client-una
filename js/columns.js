@@ -15,11 +15,11 @@
 var oJotWindowBuilder = (function(){
 	var _oPrivate = {
 				sLeftAreaName: '.bx-messanger-items-list',
+				sLotSelector: '.bx-messenger-jots-snip',
 				sRightAreaName: '.bx-messenger-main-block', //left column of the body without header
 				sLeftTopBlockArea: '#bx-messangger-block-head',
 				sBothColumnsParent: '.bx-layout-row',
 				sInfoUsersArea: '.bx-messenger-top-user-info',
-				sChatInfoBlock: '.bx-messenger-block-info',
 				sBlockHeaderArea: '.bx-messenger-block > .bx-db-header',
 				sToolbar: '#bx-toolbar',
 				oLeftCol: null,
@@ -39,43 +39,39 @@ var oJotWindowBuilder = (function(){
 				
 				updateRightHeight:function(){
 						this.iRightAreaHeight = $(this.sInfoUsersArea).length ? $(this.sInfoUsersArea).outerHeight() : $(this.sBlockHeaderArea).outerHeight();	
-												
+
 						if (this.iRightAreaHeight == null) return ;
-						
-						if ($(this.sChatInfoBlock).length && this.iRightAreaHeight != null)
-								this.iRightAreaHeight = this.iRightAreaHeight + $(this.sChatInfoBlock).outerHeight();
-				
+					
 						$(this.sRightAreaName).height(this.iMainAreaHeight - this.iRightAreaHeight);
 				},
 					
 				init:function(){
 						var iParent = $(this.sBothColumnsParent).width();
 						
-						if (this.oLeftCol !== null || this.oRightCol !== null) return ;
+						if (this.oLeftCol != null || this.oRightCol != null) return ;
 						
 						this.oLeftCol = $(this.sBothColumnsParent + ' > div').first();
 						this.oRightCol = $(this.sBothColumnsParent + ' > div').last();
 						
 						this.iLeftSize = this.oLeftCol.outerWidth()*100/iParent + '%' || this.iLeftSize;
 						this.iRightSize = this.oRightCol.outerWidth()*100/iParent + '%' || this.iRightSize;	
-					
-						if (this.isMobile())
-								this.sActiveType = 'left';						
-					
-					},
+				},
 				isMobile:function(){
 						return $(window).width() <= 720;						
 					},
 			
-				changeColumn:function(){
+				changeColumn:function(sSide){
 						this.init();
-						if (this.sActiveType == 'both'){ 
-							if (this.isMobile())
-									this.sActiveType = 'left';	
-						}			
+						
+						if (this.isMobile()){
+							if (sSide)
+								this.sActiveType = sSide;
+							else	
+								this.sActiveType = this.sActiveType == 'left' ? 'right' : 'left';	
+						}	
 						else
-							this.sActiveType = 'right';
-
+							this.sActiveType = 'both';
+					
 						this.resizeColumns();	
 					},
 				activateLeft:function(){					
@@ -90,20 +86,27 @@ var oJotWindowBuilder = (function(){
 					},
 					
 				activateBoth:function(){
+						if (!parseInt(this.iRightSize) || !parseInt(this.iLeftSize) || (parseInt(this.iRightSize) == 100 && parseInt(this.iRightSize) == 100)){
+							this.iLeftSize = '30%';
+							this.iRightSize = '70%';
+							if (!parseInt(this.iRightSize))
+									oJotWindowBuilder.loadRightColumn();
+						}	
+						
 						this.oLeftCol.width(this.iLeftSize).fadeIn('slow');						
 						this.oRightCol.width(this.iRightSize).fadeIn('slow');
-						
+											
 						this.updateLeftHeight();
 						this.updateRightHeight();
 					},
 				onResizeWindow:function(){
-						 this.init();
-						 
+						this.init();
+				 
 						 if (this.isMobile())
-							 this.sActiveType = this.sActiveType == 'both' ? this.sActiveType = 'left' : this.sActiveType;
+								this.sActiveType = this.sActiveType == 'both' ? 'left' : this.sActiveType;
 						 else 
 							 this.sActiveType = 'both';
-					
+
 						this.iMainAreaHeight = $(window).height() - $(this.sToolbar).outerHeight();						
 						this.resizeColumns();
 					},
@@ -118,17 +121,20 @@ var oJotWindowBuilder = (function(){
 		};
 		
 	return {
-			resizeWindow:function(){				
+			resizeWindow:function(){
 				 clearTimeout(_oPrivate.iResizeTimeout);
 				_oPrivate.iResizeTimeout = setTimeout(
-														function(){
-																	_oPrivate.onResizeWindow()
-																  }, 300);
+														function()
+														{
+															_oPrivate.onResizeWindow()
+														}, 300);
 			},
-			changeColumn:function(){
-				_oPrivate.changeColumn();
+			changeColumn:function(sSide){
+				_oPrivate.changeColumn(sSide);
 			},
-			
+			loadRightColumn:function(){
+				console.log('Occurs when resizing window and right column is empty. Overwrite it in class owner.');
+			},			
 			isMobile:function(){
 				return _oPrivate.isMobile();
 			}

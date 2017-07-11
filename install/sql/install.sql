@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_jots` (
    `message` blob NOT NULL,
    `created` int(11) NOT NULL default '0',
    `user_id` int(11) unsigned NOT NULL default '0',
+   `attachment_type` varchar(255) NOT NULL default '',
+   `attachment` text NOT NULL default '',
    `new_for` text NOT NULL default '',
    PRIMARY KEY (`id`),
    KEY `lot_id` (`lot_id`)   

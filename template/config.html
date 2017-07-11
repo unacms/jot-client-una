@@ -39,11 +39,12 @@
 	/*  One Signal Push Notifications Init End */				
 	</bx_if:onsignal>
 	
-	if (oRTWSF != undefined)
+	if (oRTWSF != undefined){
 			oRTWSF.init({
 				server:'__server_url__',
 				ip:'__ip__'
 			});
+	}
 		
 	oMessenger.init({
 				emoji:{
@@ -57,7 +58,10 @@
 				max:__message_length__				
 	});
 	
-	window.aDolLang['_bx_messenger_online'] = '__online__';
-	window.aDolLang['_bx_messenger_offline'] = '__offline__';
-	window.aDolLang['_bx_messenger_away'] = '__away__';	
+	window.aDolLang	=	{
+							'_bx_messenger_online':'__online__',
+							'_bx_messenger_offline':'__offline__',
+							'_bx_messenger_away':'__away__',
+							'_bx_messenger_remove_jot_confirm':'__jot_remove_confirm__',
+						}
 </script>

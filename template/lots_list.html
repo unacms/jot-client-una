@@ -13,23 +13,19 @@
 					</ul>
 		</div>
 		<div class="bx-db-menu left">				
-			<div class="bx-db-menu-tab bx-db-menu-tab-btn">
-				<a href="javascript:void(0);" onclick="bx_menu_slide('#bx-menu-db-menu', this)" class="bx-def-margin-sec-left">
-							<i class="sys-icon bars"></i>						
-				</a>
-			</div>
+			<a href="javascript:void(0);" onclick="bx_menu_slide('#bx-menu-db-menu', this)">
+				<i class="sys-icon bars"></i>
+			</a>			
 		</div>	
 		<div class="bx-db-title bx-def-font-h3"><bx_text:_bx_messenger_page_inbox_block_title /></div>
 		<div class="bx-db-menu">			
-			<div class="bx-db-menu-tab bx-db-menu-tab-btn">
-				<a href="javascript:void(0);" onclick="oMessenger.createLot();">
-					<i class="sys-icon  pencil-square-o"></i>
-				</a>
-			</div>
+			<a href="javascript:void(0);" onclick="oMessenger.createLot();">
+				<i class="sys-icon  pencil-square-o"></i>
+			</a>
 		</div>		
 	</div>
     <div class="bx-db-divider bx-def-hr"></div>
-	<div class="bx-form-value bx-form-input-wrapper bx-form-input-wrapper-text bx-messenger-border">
+	<div class="bx-form-input-wrapper bx-form-input-wrapper-text bx-messenger-border">
 		<input id="items" onkeyup="oMessenger.searchByItems(this.value);" name="items" class="bx-def-font-inputs bx-form-input-text col-gray" type="text" placeholder="<bx_text:_bx_messenger_title_search />">
 	</div>
 </div>
@@ -41,6 +37,6 @@
 </div>
 <script type="text/javascript">	
 	$(document).ready(function(){		
-			oMessenger.initMessengerPage(__profile__, oJotWindowBuilder);
+		oMessenger.initMessengerPage(__profile__, oJotWindowBuilder);
 	});
 </script>

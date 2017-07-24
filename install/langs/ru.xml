@@ -35,7 +35,7 @@
     <string name="_bx_messenger_menu_home"><![CDATA[Назад]]></string>
     <string name="_bx_messenger_typing_message"><![CDATA[пишет сообщение...]]></string>
     <string name="_bx_messenger_push_message_title"><![CDATA[Сообщение от {0}]]></string>   
-    <string name="_bx_messenger_is_push_enabled"><![CDATA[Активировать OneSingle пуш нотификацию]]></string>
+    <string name="_bx_messenger_is_push_enabled"><![CDATA[Активировать OneSignal пуш нотификацию]]></string>
     <string name="_bx_messenger_push_app_id"><![CDATA[OneSignal App ID]]></string>
     <string name="_bx_messenger_push_rest_api"><![CDATA[REST API Key]]></string>
     <string name="_bx_messenger_linked_title"><![CDATA[Страница: {0}]]></string>
@@ -92,5 +92,5 @@
 	<string name="_bx_messenger_lot_title_participants_number"><![CDATA[{0} участников]]></string>
 	<string name="_bx_messenger_server_is_not_installed"><![CDATA[Пожалуйста, укажите данные сервера для правильной работы чата]]></string>
 	<string name="_bx_messenger_reconnecting_message"><![CDATA[Подключение]]></string>
-	<string name="_bx_messenger_reconnecting_failed"><![CDATA[Связь потеряна]]></string>	
+	<string name="_bx_messenger_reconnecting_failed"><![CDATA[Связь потеряна]]></string>
 </resources>

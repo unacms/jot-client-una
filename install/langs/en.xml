@@ -55,8 +55,8 @@
 	<string name="_bx_messenger_lots_private_lot_info"><![CDATA[Open for anyone who access to {0}]]></string>
 	<string name="_bx_messenger_lots_private_page"><![CDATA[{0} page]]></string>
 	<string name="_bx_messenger_lots_private_lot"><![CDATA[Private talk]]></string>
-	<string name="_bx_messenger_lots_class_friends"><![CDATA[All My Friends]]></string>
-	<string name="_bx_messenger_lots_class_my_members"><![CDATA[Shoutbox]]></string>
+	<string name="_bx_messenger_lots_class_friends"><![CDATA[Shoutbox]]></string>
+	<string name="_bx_messenger_lots_class_my_members"><![CDATA[All My Friends]]></string>
 	<string name="_bx_messenger_save_part_list"><![CDATA[Save]]></string>
 	<string name="_bx_messenger_save_part_failed"><![CDATA[Participant list can not be empty!]]></string>
 	<string name="_bx_messenger_save_part_success"><![CDATA[Participants list was successfully updated!]]></string>

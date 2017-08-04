@@ -54,8 +54,8 @@
     <string name="_bx_messenger_lots_private_lot_info"><![CDATA[Открыт для всех у кого есть доступ к {0}]]></string>
     <string name="_bx_messenger_lots_private_page"><![CDATA[{0} страницы]]></string>
     <string name="_bx_messenger_lots_private_lot"><![CDATA[Приватный разговор]]></string>
-    <string name="_bx_messenger_lots_class_friends"><![CDATA[Мои друзья]]></string>
-    <string name="_bx_messenger_lots_class_my_members"><![CDATA[Кричалка]]></string>
+    <string name="_bx_messenger_lots_class_friends"><![CDATA[Кричалка]]></string>
+    <string name="_bx_messenger_lots_class_my_members"><![CDATA[Мои друзья]]></string>
     <string name="_bx_messenger_save_part_list"><![CDATA[Сохранить]]></string>
     <string name="_bx_messenger_save_part_failed"><![CDATA[Список участников не может быть пуст!]]></string>
     <string name="_bx_messenger_save_part_success"><![CDATA[Списко участников был успешно обнавлён!]]></string>

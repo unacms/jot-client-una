@@ -378,13 +378,22 @@ span.bx-messenger-jots-icons a{
 	margin-right:0.5rem;
 }
 
-div.bx-messenger-attachment {
+
+div.bx-messenger-attachment,
+.bx-messenger-jots-message > div {
 	overflow: hidden;
     position: relative;
     margin: 0.5rem;
 	width:auto;
 	border-left: 2px solid rgba(0,0,0,0.1);
     padding-left: 0.3rem;
+}
+
+.bx-messenger-jots-message div{
+	margin-left:0.5rem;
+	max-width:50%;
+	height:auto;
+	overflow:visible;
 }
 
 div.bx-messenger-attachment-header span.bx-messenger-attachment-author-icon img{

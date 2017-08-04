@@ -113,7 +113,37 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			$aResult = array('url' => $aMatches[0], 'id' => $aMatches[1]);
 		
 		return $aResult;
-	}	
+	}
+	
+	public function bx_linkify($sText, $sAttrs = '', $bHtmlSpecialChars = false){
+		if ($bHtmlSpecialChars)
+			$sText = htmlspecialchars($sText, ENT_NOQUOTES, 'UTF-8');
+
+		$sRe = "@\b((https?://)|(www\.))(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@";
+		preg_match_all($sRe, $sText, $aMatches, PREG_OFFSET_CAPTURE);
+
+		$aMatches = $aMatches[0];
+
+		if ($i = count($aMatches))
+			$bAddNofollow = getParam('sys_add_nofollow') == 'on';
+
+		while ($i--)
+		{
+			$url = $aMatches[$i][0];
+			if (!preg_match('@^https?://@', $url))
+				$url = 'http://'.$url;
+
+			if (strncmp(BX_DOL_URL_ROOT, $url, strlen(BX_DOL_URL_ROOT)) !== 0) {
+				$sAttrs .= ' target="_blank" ';
+				if ($bAddNofollow)
+					$sAttrs .= ' rel="nofollow" ';
+			}
+
+			$sText = substr_replace($sText, '<a ' . (!$this -> isJotLink($url) ? $sAttrs : '') . ' href="'.$url.'">'.$aMatches[$i][0].'</a>', $aMatches[$i][1], strlen($aMatches[$i][0]));
+		}
+
+		return $sText;
+	}
 }
 
 /** @} */

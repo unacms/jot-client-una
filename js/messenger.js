@@ -353,18 +353,18 @@ var oMessenger = (function($){
 			sText = $(oJot).text()
 				.replace(sUrlPattern, function(str){
 					sUrl = str;
-					return '<a href="' + str + '">' + str + '</a>';
+					return '<a class="bx-link" href="' + str + '">' + str + '</a>';
 				})
 				.replace(sPUrlPattern, function(str, p1, p2){
 					sUrl = 'http://' + p2;
-					return p1 + '<a href="' + p2 + '">' + p2 + '</a>'
+					return p1 + '<a class="bx-link" href="' + p2 + '">' + p2 + '</a>'
 				})
 				.replace(sEmailPattern, '<a href="mailto:$&">$&</a>');
 		
 		$(oJot).html(sText);
 		if (sUrl.length)
-			$(oJot).attacheLinkContent(sUrl);
-		
+			$(oJot).attacheLinkContent(sUrl);			
+				
 		return this;
 	}
 	
@@ -381,7 +381,13 @@ var oMessenger = (function($){
 					_oMessenger.broadcastMessage();					
 					_oMessenger.updateScrollPosition('bottom');
 				}
-				_oMessenger.iAttachmentUpdate = false;
+				else
+				{
+					// embedly/iframly links
+					$('a.bx-link').dolConverLinks();
+				}
+				
+				_oMessenger.iAttachmentUpdate = false;				
 			},
 			'json');
 			
@@ -450,8 +456,11 @@ var oMessenger = (function($){
 					if (_this.oJotWindowBuilder != undefined && _this.oJotWindowBuilder.isMobile()) 
 							_this.correctUserStatus();
 					
+					// embedly/iframly links
+					$('a.bx-link').dolConverLinks();
+					
 					_this.updateScrollPosition('bottom');
-					_this.blockSendMessages();
+					_this.blockSendMessages();					
 				}
 		}, 'json');	
 	}	
@@ -515,17 +524,15 @@ var oMessenger = (function($){
 						fadeTo(100, 0.1).fadeTo(200, 1.0).
 						bxTime();
 		
-		
+				
 		// append content of the message to history page
 		if ($('.bx-msg-box-container', _this.sTalkList).length)
 				$('.bx-msg-box-container', _this.sTalkList).remove();
 			
-		$(_this.sTalkList).append(oMessage); $(_this.sTalkList).append(oMessage);
+		$(_this.sTalkList).append(oMessage);		
 		$(_this.sSendArea).html('');
-		
+				
 		_this.initJotIcons();
-		
-		_this.updateScrollPosition('bottom');		
 
 		// save message to the server and broadcast to all participants
 		$.post('modules/?r=messenger/send', oParams, function(oData){
@@ -545,8 +552,9 @@ var oMessenger = (function($){
 						_this.broadcastMessage();
 				
 				}
-			}, 'json');			
+			}, 'json');
 			
+		_this.updateScrollPosition('bottom');			
 	}		
 	
 	oMessenger.prototype.broadcastMessage = function(){
@@ -771,13 +779,16 @@ var oMessenger = (function($){
 						oList.find(_this.sJot + ':hidden').fadeIn(function(){
 								$(this).css('display', 'table-row');
 						}).bxTime();
-									 
+						
+						// embedly/iframly links
+						$('a.bx-link').dolConverLinks();
+						
 						_this.updateScrollPosition(
 							sShow == 'new' ? 'bottom' : 'position', 
 							sShow == 'new' ? 'slow' : '',
 							sShow == 'new' ? null : $(oObjects.first())
 						);
-						
+								
 						_this.initJotIcons();
 				}
 				

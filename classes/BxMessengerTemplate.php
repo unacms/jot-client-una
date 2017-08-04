@@ -135,7 +135,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			$oProfile = $this -> getObjectUser($aParticipantsList[0]);
 			
 			if ($oProfile){ 
-				$bOnline = $oProfile -> isOnline();
+				$bOnline = method_exists($oProfile, 'isOnline') ? $oProfile -> isOnline(): false;
 				$aNickNames['bx_repeat:users'][] = array(
 										'profile_username' => $oProfile -> getUrl(),
 										'username' =>  $oProfile -> getDisplayName(),
@@ -314,7 +314,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			
 			$sStatus = '';				
 			if ($iParticipantsCount == 1 && $oProfile && empty($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']]))
-				$sStatus = $oProfile-> isOnline() ? 
+				$sStatus = (method_exists($oProfile, 'isOnline') ? $oProfile -> isOnline() : false) ? 
 					$this -> getOnlineStatus($oProfile-> id(), 1) : 
 					$this -> getOnlineStatus($oProfile-> id(), 0) ;
 			else	
@@ -411,7 +411,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						'url' => $oProfile->getUrl(),
 						'thumb' => $oProfile->getThumb(),
 						'id' => $aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']],
-						'message' => nl2br(bx_linkify($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE']])),
+						'message' => nl2br($this -> _oConfig -> bx_linkify($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE']], 'class="bx-link"')),
 						'attachment' => !empty($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT']]) ? 
 												$this -> getJotAsAttachment($this -> _oConfig -> isJotLink($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT']])['id']) 
 												: '',

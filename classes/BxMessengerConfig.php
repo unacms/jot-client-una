@@ -71,8 +71,8 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'PARAM_PUBLIC' => FALSE,
 			'PARAM_ICONS_NUMBER' => 3,
 			'PARAM_MODULE_TYPES' => array(
-											'bx_groups' => 'groups',
-											'bx_events' => 'events'
+											'bx_groups' => BX_IM_TYPE_GROUPS,
+											'bx_events' => BX_IM_TYPE_EVENTS
 										),
             // objects
             'OBJECT_STORAGE' => '',

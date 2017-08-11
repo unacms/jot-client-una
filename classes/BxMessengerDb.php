@@ -62,7 +62,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@return array lot info
 	*/
 	public function getLotByIdOrUrl($iId, $sUrl, $iAuthorId = 0){
-		if ($iId && $iAuthorId && $this -> isParticipant($iId,  $iAuthorId)) 
+		if ($iId)
 			return $this -> getLotInfoById($iId);
 		
 		if ($sUrl) 

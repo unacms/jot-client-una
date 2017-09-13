@@ -23,29 +23,46 @@
 	</div>
 	<div class="bx-messenger-table-wrapper-rows">
 		<div class="cell">
-			<div class="bx-def-hr"></div>
+			<!--<div class="bx-def-hr"></div>-->
 			  <div class="bx-messenger-post-box"> <!-- bx-clearfix-->
-					<div class="bx-form-input-wrapper bx-form-input-wrapper-text">		
+					<div class="bx-messenger-post-box-set">
+						<div class="bx-messenger-post-box-send-actions">
+						<ul>	
+							<li>
+								<a id="smiles" title="<bx_text:_bx_messenger_post_emoji />"></a>
+							</li>
+							<li>
+								<a title="<bx_text:_bx_messenger_post_attache_files />" onclick="oMessenger.showPopForm();">
+									<i data-feather="paperclip"></i>																
+								</a>
+							</li>
+							<li>
+								<a title="<bx_text:_bx_messenger_post_view_actions />" id = "bx-messenger-send-area-menu">
+									<i data-feather="plus"></i>
+								</a>
+							</li>
+						</ul>
+						</div>
 						<div class="bx-messenger-post-box-send-area">
 							<div id="bx-messenger-message-box" contenteditable="true" placeholder="__place_holder__" class="bx-def-font-inputs bx-form-input-text bx-messenger-text-box" data-emojiable="true" data-type="__type__"></div>
-					</div>
-					<div class="bx-messenger-post-box-send-button">
-						<button type="button" value="<bx_text:_bx_messenger_post_button_title />" name="send" class="bx-def-font-inputs bx-form-input-submit bx-btn">
-							<bx_text:_bx_messenger_post_button_title />
-						</button>
-					</div>
-				</div>
+						</div>											
+						<div class="bx-messenger-post-box-send-button">
+							<a id="send-button" title="<bx_text:_bx_messenger_post_button_title />">
+								<i data-feather="arrow-up"></i>
+							</a>
+						</div>
+					</div>					
 			</div>
 		</div>
 	</div>
 </div>
 <script type="text/javascript">
-$(function(){
-	oMessenger.initJotSettings({
-		'type'	:__type__,
-		'url'	:'__url__',
-		'lot'	:__id__,
-		'name'	:'__name__'
+	$(function(){
+		oMessenger.initJotSettings({
+			'type'	:__type__,
+			'url'	:'__url__',
+			'lot'	:__id__,
+			'name'	:'__name__'
+		});
 	});
-});	
 </script>

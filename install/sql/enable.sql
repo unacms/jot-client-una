@@ -21,7 +21,8 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_push_short_name', '', @iCategId, '_bx_messenger_push_short_name', 'digit', '', '', '', 8),
 ('bx_messenger_push_safari_id', '', @iCategId, '_bx_messenger_push_safari_id', 'digit', '', '', '', 9),
 ('bx_messenger_typing_smiles', '', @iCategId, '_bx_messenger_typing_smiles', 'checkbox', '', '', '', 10),
-('bx_messenger_server_url', '', @iCategId, '_bx_messenger_server_url', 'digit', '', '', '', 11);
+('bx_messenger_server_url', '', @iCategId, '_bx_messenger_server_url', 'digit', '', '', '', 11),
+('bx_messenger_max_files_send', '5', @iCategId, '_bx_messenger_max_files_upload', 'digit', '', '', '', 12);
 
 -- MENU: notifications
 SET @iMIOrder = (SELECT IFNULL(MAX(`order`), 0) FROM `sys_menu_items` WHERE `set_name` = 'sys_account_notifications' AND `order` < 9999);

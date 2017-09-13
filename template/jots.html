@@ -5,18 +5,21 @@
 		</div>
 		<div class="bx-messenger-jots-info">			
 			<div class="bx-messenger-jots-title bx-def-font-middle bx-def-font-semibold">
-				__title__
-					<span  class="bx-messenger-jots-icons">
-						<bx_if:delete>
-							<a href="javascript:void(0);" title="<bx_text:_bx_messenger_remove_jot />" onclick="oMessenger.onDeleteJot(this);">
-								<i class="sys-icon close"></i>
-							</a>
-						</bx_if:delete>
+				<div class="title">__title__</div>
+				<div class="bx-messenger-jots-actions-list">
+					<i data-feather="more-horizontal"></i>
+						<div class="bx-messenger-jots-icons">					
+							<bx_if:delete>
+								<a href="javascript:void(0);" title="<bx_text:_bx_messenger_remove_jot />" onclick="oMessenger.onDeleteJot(this);">
+									<i data-feather="delete"></i>
+								</a>
+							</bx_if:delete>
 							<a href="javascript:void(0);" title="<bx_text:_bx_messenger_share_jot />" onclick="oMessenger.onCopyJotLink(this);">
-								<i class="sys-icon share"></i>
+								<i data-feather="copy"></i>
 							</a>
-					</span>				
-				<span class="bx-def-font-light bx-def-font-small">__time__</span>
+						</div>
+				</div>
+				<div class="bx-def-font-light bx-def-font-small time">__time__</div>
 			</div>			
 			<div class="bx-messenger-jots-message bx-def-font-middle bx-def-font-light">
 				__message__

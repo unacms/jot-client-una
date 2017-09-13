@@ -8,6 +8,8 @@
  *
  * @{
  */
+ 
+require_once('BxMessengerStorage.php');
 
 define('BX_IM_TYPE_PUBLIC', 1);
 define('BX_IM_TYPE_PRIVATE', 2);
@@ -16,6 +18,8 @@ define('BX_IM_TYPE_GROUPS', 4);
 define('BX_IM_TYPE_EVENTS', 5);
 define('BX_IM_EMPTY_URL', '');
 define('BX_IM_EMPTY', 0);
+define('BX_ATT_TYPE_FILES', 'files');
+define('BX_ATT_TYPE_REPOST', 'repost');
 
 /**
  * Messenger module
@@ -138,10 +142,14 @@ class BxMessengerModule extends BxBaseModTextModule
 		$iLotId = (int)bx_get('lot');	   
 		$iType = bx_get('type');
 		$iTmpId = bx_get('tmp_id');
+		$aFiles = bx_get('files');
 
-		if (!$this -> isLogged() || !$sMessage){
+		if (!$this -> isLogged()){
 			return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_only_for_logged')));
 		};
+		
+		if (!$sMessage && empty($aFiles))
+			return echoJson(array('code' => 2, 'message' => _t('_bx_messenger_send_message_no_data')));
 	   
 		$iType = $this -> _oDb -> isLotType($iType) ? $iType : BX_IM_TYPE_PUBLIC;	   
 		if ($iType != BX_IM_TYPE_PRIVATE){
@@ -152,21 +160,21 @@ class BxMessengerModule extends BxBaseModTextModule
 		// prepare participants list
 		$aParticipants = $this -> getParticipantsList(bx_get('participants'));	   
 		if (!$iLotId && empty($aParticipants) && $iType == BX_IM_TYPE_PRIVATE)
-			return echoJson(array('code' => 1));
+			return echoJson(array('code' => 2, 'message' => _t('_bx_messenger_send_message_no_data')));
 	   
-		if ($sMessage){		   
-			$sMessage = html2txt($sMessage, '<br>');
+		if ($sMessage)
+		{
 			$sMessage = preg_replace('/\<br(\s*)?\/?\>/i', "\n", $sMessage);
-			$sMessage = strmaxtextlen($sMessage, $this->_oConfig-> CNF['MAX_SEND_SYMBOLS']);		   
-
-			 if ($iType != BX_IM_TYPE_PRIVATE && $sUrl)
+			$sMessage = htmlspecialchars_adv($sMessage);
+			$sMessage = BxTemplFunctions::getInstance()->getStringWithLimitedLength($sMessage, (int)$this->_oConfig-> CNF['MAX_SEND_SYMBOLS']);
+			
+			if ($iType != BX_IM_TYPE_PRIVATE && $sUrl)
 					$sUrl = $this -> getPreparedUrl($sUrl);
 		   
-		} else
-			return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_no_data')));
-	   
+		}	
+
 		$aResult = array('code' => 0);
-		if ($sMessage && ($iId = $this -> _oDb -> saveMessage(array(
+		if (($sMessage || !empty($aFiles)) && ($iId = $this -> _oDb -> saveMessage(array(
 												'message'	=> $sMessage,
 												'type'		=> $iType,
 												'member_id' => $this -> _iUserId,
@@ -175,14 +183,32 @@ class BxMessengerModule extends BxBaseModTextModule
 												'lot' => $iLotId
 											), $aParticipants))){
 		   
-			if (!$iLotId)
-					$aResult['lot_id'] = $this -> _oDb -> getLotByJotId($iId);
-		   
+		if (!$iLotId)
+			$aResult['lot_id'] = $this -> _oDb -> getLotByJotId($iId);
+			
+		if (!empty($aFiles)){
+			$oStorage = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE']);
+			$aFilesNames = array();
+				foreach($aFiles as $iKey => $sName){
+					$iFile = $oStorage -> storeFileFromPath(BX_DIRECTORY_PATH_TMP . $sName, $iType == BX_IM_TYPE_PRIVATE, $this -> _iUserId, (int)$iId);					
+					if ($iFile){
+						$oStorage -> afterUploadCleanup($iFile, $this -> _iUserId);
+						$this -> _oDb -> updateFiles($iFile, $this->_oConfig-> CNF['FIELD_ST_JOT'], $iId);
+						$aFilesNames[] = $sName;
+					}
+					else 
+						$aResult = array('code' => 2, 'message' => $oStorage->getErrorString());
+				}
+				
+				if (!empty($aFilesNames))
+					$this -> _oDb -> addAttachment($iId, implode(',', $aFilesNames), BX_ATT_TYPE_FILES);
+			}
+			
 			$aResult['jot_id'] =  $iId;
 			$aResult['tmp_id'] =  $iTmpId;		   
 		}
 		else
-			$aResult = array('code' => 1, 'message' => _t('_bx_messenger_send_message_save_error'));
+			$aResult = array('code' => 2, 'message' => _t('_bx_messenger_send_message_save_error'));
 	   
 		BxDolSession::getInstance()-> exists($this -> _iUserId);			   
 		echoJson($aResult);
@@ -236,8 +262,9 @@ class BxMessengerModule extends BxBaseModTextModule
 	   
 		$sParam = bx_get('param');
 		$iType = bx_get('type');
+		$iStarred = bx_get('starred');
 	   
-		$aMyLots = $this -> _oDb -> getMyLots($this -> _iUserId, $iType, $sParam);
+		$aMyLots = $this -> _oDb -> getMyLots($this -> _iUserId, $iType, $sParam, BX_IM_EMPTY, BX_IM_EMPTY, $iStarred);
 		if (empty($aMyLots))
 				$sContent  = MsgBox(_t('_bx_messenger_txt_msg_no_results'));
 			else	   
@@ -259,8 +286,8 @@ class BxMessengerModule extends BxBaseModTextModule
 		if (!$this -> isLogged() || !$iLotId)
 				return echoJson(array('code' => 1, 'html' => ''));
 	   
-		$aMyLots = $this -> _oDb -> getMyLots($this -> _iUserId, 0, '', false, $iLotId);
-		$sContent = $this -> _oTemplate -> getLotsPreview($this -> _iUserId, $aMyLots);			   
+		$aMyLots = $this -> _oDb -> getMyLots($this -> _iUserId, BX_IM_EMPTY, BX_IM_EMPTY, BX_IM_EMPTY, $iLotId);
+		$sContent = $this -> _oTemplate -> getLotsPreview($this -> _iUserId, $aMyLots, true);			   
 		echoJson(array('code' => 0, 'html' =>  $sContent));	   
 	}
    
@@ -419,6 +446,36 @@ class BxMessengerModule extends BxBaseModTextModule
 		   
 		echoJson($aResult);
 	}
+	
+	/**
+	* Removes specefied jot
+	* @return array with json
+	*/
+	public function actionDeleteFile(){
+		$iFileId = bx_get('id');	   
+		$aResult = array('code' => 1, 'message' => _t('_bx_messenger_post_file_not_found'));
+		if (!$iFileId)
+			return echoJson($aResult);
+		 
+		$oStorage = BxDolStorage::getObjectInstance($this -> _oConfig -> CNF['OBJECT_STORAGE']);
+		$aFile = $oStorage -> getFile($iFileId);
+		
+		if ($aFile[$this -> _oConfig -> CNF['FIELD_ST_AUTHOR']] != $this -> _iUserId && !isAdmin())
+			return echoJson($aResult);
+		
+		if ($oStorage -> deleteFile($iFileId, $this -> _iUserId)){
+			$aResult = array('code' => 0);
+			
+			$aJotInfo = $this -> _oDb -> getJotById($aFile[$this -> _oConfig -> CNF['FIELD_ST_JOT']]);
+			$aJotfiles = $this -> _oDb -> getJotFiles($aFile[$this -> _oConfig -> CNF['FIELD_ST_JOT']]);			
+			
+			if (count($aJotfiles) == 0 && !$aJotInfo[$this -> _oConfig -> CNF['FIELD_MESSAGE']] && $this -> _oDb -> deleteJot($aJotInfo[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']])){
+				$aResult['empty_jot'] = 1;
+			}
+		}
+
+		echoJson($aResult);
+	}
  
 	  /**
 	* Remove member from participants list
@@ -446,15 +503,23 @@ class BxMessengerModule extends BxBaseModTextModule
 	public function actionMute(){
 		$iLotId = bx_get('lot');	   
 
-		$aResult = array('code' => 1);   
-		if (!$iLotId || !$this -> _oDb -> isParticipant($iLotId, $this -> _iUserId)){
-			return echoJson($aResult);
+		if ($iLotId && $this -> _oDb -> isParticipant($iLotId, $this -> _iUserId)){
+			$bMuted = $this -> _oDb -> muteLot($iLotId, $this -> _iUserId);
+			return echoJson(array('code' => $bMuted, 'title' => $bMuted ? _t('_bx_messenger_lots_menu_mute_info_on') : _t('_bx_messenger_lots_menu_mute_info_off')));
 		}
+	}
+	
+	/**
+	* Mark lot with star
+	* @return array with json
+	*/
+	public function actionStar(){
+		$iLotId = bx_get('lot');	   
 
-		if ($this -> _oDb -> muteLot($iLotId, $this -> _iUserId))
-					$aResult = array('code' => 0);
-		   
-		echoJson($aResult);
+		if ($iLotId && $this -> _oDb -> isParticipant($iLotId, $this -> _iUserId)){
+			$bStar = $this -> _oDb -> starLot($iLotId, $this -> _iUserId);
+			return echoJson(array('code' => $bStar, 'title' => !$bStar ? _t('_bx_messenger_lots_menu_star_on') : _t('_bx_messenger_lots_menu_star_off')));
+		}
 	}
 
 	/**
@@ -486,9 +551,15 @@ class BxMessengerModule extends BxBaseModTextModule
 		$sLanguage = $oLanguage->getCurrentLangName(false);
 
 		$aLatestJot = $this -> _oDb -> getLatestJot($iLotId, $this -> _iUserId);
+		$sMessage = $aLatestJot[$this -> _oConfig -> CNF['FIELD_MESSAGE']];
+		if ($sMessage)
+			$sMessage = BxTemplFunctions::getInstance()->getStringWithLimitedLength(html_entity_decode($sMessage), (int)$this->_oConfig->CNF['PARAM_PUSH_NOTIFICATIONS_DEFAULT_SYMBOLS_NUM']);
 
+		if (!$sMessage && $aLatestJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
+				$sMessage = _t('_bx_messenger_attached_files_message', $this -> _oDb -> getJotFiles($aLatestJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']], true));
+												
 		$aContent = array(
-			 $sLanguage => strmaxtextlen($aLatestJot[$this -> _oConfig -> CNF['FIELD_MESSAGE']], (int)$this->_oConfig->CNF['PARAM_PUSH_NOTIFICATIONS_DEFAULT_SYMBOLS_NUM'])
+			 $sLanguage => $sMessage
 		);	   
 
 		$oProfile = BxDolProfile::getInstance($this -> _iUserId);						   
@@ -553,7 +624,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	}
 
 	/**
-	 * parse link from the message
+	 * Parse jot's link (repost)
 	 * @param object oAlert
 	 * @return json
 	*/
@@ -571,6 +642,131 @@ class BxMessengerModule extends BxBaseModTextModule
 		}
 		
 		echoJson(array('code' => 1));
+	}
+	
+	/**
+	 * Parses link from the message
+	 * @param object oAlert
+	 * @return json
+	*/
+	public function actionGetAttachment(){
+		$iJotId = (int)bx_get('jot_id');
+		
+		if ($iJotId){
+			$aJot = $this -> _oDb -> getJotById($iJotId);			
+			if ($this -> _oDb -> isParticipant($aJot[$this->_oConfig-> CNF['FIELD_MESSAGE_FK']], $this -> _iUserId)){
+				$sHTML = $this -> _oTemplate -> getAttachment($aJot);
+				if ($sHTML)
+					return echoJson(array('code' => 0, 'html' => $sHTML));
+			}
+		}
+		
+		
+		echoJson(array('code' => 1));
+	}
+	
+	public function actionGetUploadFilesForm(){
+		header('Content-type: text/html; charset=utf-8');
+		echo $this -> _oTemplate-> getFilesUploadingForm($this -> _iUserId);
+		exit;		
+	}
+	
+	public function actionUploadTempFile(){		
+		$oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);		
+		if (!$oStorage){
+			echo 0;
+			exit;
+		}
+		
+		if (!empty($_FILES) && $_FILES['file'] && $oStorage -> isValidFileExt($_FILES['file']['name'])){ 
+			$sTempFile = $_FILES['file']['tmp_name'];
+			$sTargetFile =  BX_DIRECTORY_PATH_TMP . $_FILES['file']['name']; 
+			move_uploaded_file($sTempFile, $sTargetFile);
+		}		
+	}
+	
+	public function actionIsValidFile(){		
+		$oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);		
+		if (!$oStorage)
+			return echoJson(array('code' => 1));
+
+		$sFileName = bx_get('name');
+		if ($sFileName && (int)$oStorage -> isValidFileExt($sFileName)){			
+			$sIconFile = $oStorage -> getFontIconNameByFileName($sFileName);
+			return echoJson(array('code' => 0, 'thumbnail' => $sIconFile ? $sIconFile : '', 'is_image' => (int)$oStorage -> isImageExt($sFileName)));
+		}
+					
+		echoJson(array('code' => 1));		
+	}
+	
+		
+	public function actionDownloadFile($iFileId){		
+		$aResult = array('code' => 1, 'message' => _t('_bx_messenger_post_file_not_found'));
+		if (!$iFileId)
+			return echoJson($aResult);
+		 
+		$aFile = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE'])->getFile((int)$iFileId);
+		$sFileName = BX_DIRECTORY_STORAGE . $this->_oConfig-> CNF['OBJECT_STORAGE'] . '/' . $aFile['path'];
+		if (!empty($aFile) && file_exists(BX_DIRECTORY_STORAGE . $this->_oConfig-> CNF['OBJECT_STORAGE'] . '/' . $aFile['path'])){
+			header('Content-Description: File Transfer');
+			header('Content-Type: application/force-download');
+			header("Content-Disposition: attachment; filename=\"" . $aFile['file_name'] . "\";");
+			header('Content-Transfer-Encoding: binary');
+			header('Expires: 0');
+			header('Cache-Control: must-revalidate');
+			header('Pragma: public');
+			header('Content-Length: ' . $aFile['size']);
+			ob_clean();
+			flush();
+			readfile($sFileName);
+			exit;			
+		}
+		echoJson($aResult);
+	}
+	
+	function actionRemoveTemporaryFile(){
+		if (!bx_get('name')) return false;
+		return @unlink(BX_DIRECTORY_PATH_TMP . bx_get('name'));
+	}	
+	
+	/**
+	* Returns big image for popup whem member click on small icon in talk history
+	*@param int $iStorageId file id
+	*@param int $iWidth widht of the window
+	*@param int $iHeight height of the window
+	*/
+	function actionGetBigImage($iStorageId, $iWidth, $iHeight){
+		if (!$iStorageId) return '';
+		
+		$iWidth = (int)$iWidth * 0.9;
+		$iHeight = (int)$iHeight * 0.9;
+		
+		$aFile = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE'])->getFile((int)$iStorageId);
+		$sImagePath = BX_DIRECTORY_STORAGE . $this->_oConfig-> CNF['OBJECT_STORAGE'] . '/' . $aFile['path'];
+		
+		if (!empty($aFile) && file_exists($sImagePath))
+		{
+			$aInfo = getimagesize($sImagePath);
+			
+			if ($aInfo[0] <= $iWidth && $aInfo[1] <= $iHeight){
+				$iWidth = (int)$aInfo[0];
+				$iHeight = (int)$aInfo[1];
+			}
+			else
+			{
+				$fImageRatio = (int)$aInfo[0]/(int)$aInfo[1];
+				$fXRatio = $aInfo[0]/$iWidth;
+				$fYRatio = $aInfo[1]/$iHeight;
+		
+				if ($fXRatio > $fYRatio)
+					$iHeight = 'auto';
+				else
+					$iWidth = 'auto';
+			}			
+		}
+						
+		echo '<img width=' . $iWidth . ' height=' . $iHeight . ' src="' . BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE'])->getFileUrlById((int)$iStorageId) . '" />';
+		exit;
 	}
 }
 

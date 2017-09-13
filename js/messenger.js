@@ -19,7 +19,7 @@ var oMessenger = (function($){
 		this.sJotsBlock = '.bx-messenger-block.jots',
 		this.sMessangerParentBox = '.bx-messenger-post-box',
 		this.sMessangerBox = '#bx-messenger-message-box',
-		this.sSendButton = '.bx-messenger-post-box-send-button > button',
+		this.sSendButton = '.bx-messenger-post-box-send-button > a',
 		this.sTalkBlock = '.bx-messenger-conversation-block',
 		this.sMainTalkBlock = '.bx-messenger-main-block',
 		this.sTalkList = '.bx-messenger-conversations',
@@ -41,16 +41,14 @@ var oMessenger = (function($){
 		this.sUnreadLotClass = 'unread-lot',
 		this.sStatus = '.bx-messenger-status';
 		this.sBubble = '.bubble',
-		this.sJotIcons = '.bx-messenger-jots-icons',
+		this.sJotIcons = '.bx-messenger-jots-actions-list',
 		this.sTypingArea = '.bx-messenger-conversations-typing span',
 		this.sConnectingArea = '.bx-messenger-info-area-connecting',
 		this.sConnectionFailedArea = '.bx-messenger-info-area-connect-failed',
 		this.sInfoArea = '#bx-messenger-info-area',
-		this.aBorderSelectors = {
-									'border': 'bx-messenger-active-border', 
-									'none': 'bx-messenger-active-border-none', 
-									'bottom': 'bx-messenger-active-border-bottom',
-								},		
+		this.sSendAreaMenuIcons = '#bx-messenger-send-area-menu',
+		this.sAddFilesFormComments = '#bx-messenger-files-upload-comment',
+		this.sAddFilesForm = '#bx-messenger-files-uploader',
 		//globa class options
 		this.oUsersTemplate	= null,
 		this.sJotUrl = sUrlRoot + 'm/messenger/archive/',
@@ -58,6 +56,7 @@ var oMessenger = (function($){
 		this.iTimer = null,
 		this.iMaxLength = (oOptions && oOptions.max) || 0,
 		this.iStatus = document.hasFocus() ? 1 : 2, // 1- online, 2-away
+		this.iActionsButtonWidth = '2.25';
 		this.iScrollDownSpeed = 1500;
 		this.iHideUnreadBadge = 1000;
 		this.iRunSearchInterval = 500, // seconds
@@ -66,7 +65,8 @@ var oMessenger = (function($){
 		this.iTypingUsersTitleHide = 1000, //hide typing users div when users stop typing
 		this.iLoadTimout = 0,
 		this.iFilterType = 0,
-		this.bActiveConnect = true,
+		this.iStarredTalks = false,
+		this.bActiveConnect = true,		
 		this.iPanding = false, // don't update jots while prevous update is not finished yet
 		this.aUsers = [],
 		this.soundFile = 'modules/boonex/messenger/data/notify.wav'; //beep file, occurs when message received
@@ -96,7 +96,9 @@ var oMessenger = (function($){
 	*/
 	oMessenger.prototype.initJotSettings = function(oOptions){		
 		var	_this = this;
-			oMessageBox = $(this.sMessangerBox);
+			oMessageBox = $(this.sMessangerBox),
+			oActionsSiblings = {};
+			
 			
 			this.oSettings.url = oOptions.url || window.location.href,
 			this.oSettings.type = oOptions.type || this.oSettings.type,
@@ -112,7 +114,7 @@ var oMessenger = (function($){
 				return;
 			}
 			
-			
+			// send message area init
 			$(this.sSendArea).on('keydown', function(oEvent){
 				var iKeyCode = oEvent.keyCode || oEvent.which;		
 							
@@ -134,7 +136,9 @@ var oMessenger = (function($){
 				_this.sendMessage(oMessageBox.val());
 				oMessageBox.val('');
 			});
-				
+			
+			
+			// start to load history depens on scrolling position
 			$(_this.sTalkBlock).scroll(function(){
 				if ($(this).scrollTop() <= _this.iMinHeightToStartLoading){
 					_this.iLoadTimout = setTimeout(function(){
@@ -142,11 +146,71 @@ var oMessenger = (function($){
 					}, _this.iMinTimeBeforeToStartLoadingPrev);
 				}
 				else
-					clearTimeout(_this.iLoadTimout);				
+					clearTimeout(_this.iLoadTimout);							
 			});	
+						
+			this.updateSendAreaButtons();
+			this.initJotIcons(this.sTalkList);
+			this.updateScrollPosition('bottom');			
 			
-			this.initJotIcons();
-			this.updateScrollPosition('bottom');
+			// hide buttons on outside click
+			$(_this.sTalkBlock + ',' + _this.sSendArea).on('click', function(){				
+				_this.triggerSendAreaButtons(true);	
+			});
+			
+			// show buttons on "+" icon click
+			$(_this.sSendAreaMenuIcons).click( function(){				
+				_this.triggerSendAreaButtons(false);
+			});
+		
+			/* Init SVG Icons*/
+			feather.replace();
+	}
+	
+	
+	/**
+	* Init send message area buttons
+	*/
+	oMessenger.prototype.updateSendAreaButtons = function(){
+		var _this = this,			
+			oSmile = $(_this.sSendAreaMenuIcons).parents('ul').find('a#smiles').parent(),
+			bSmile = oSmile.data('hide');
+
+		if (typeof bSmile !== 'undefined' && ((_this.isMobile() && !!bSmile) || (!_this.isMobile() && !!!bSmile)))
+			return;
+		
+		oSmile.data('hide', _this.isMobile());	
+	}
+	
+	oMessenger.prototype.triggerSendAreaButtons = function(bHide){
+		var _this = this,
+			oParent = $(_this.sSendAreaMenuIcons).parent(),
+		oSiblings = oParent.prevAll().filter(
+						function(){
+							return !!!$(this).data('hide');
+						});
+			
+		if (!oSiblings.length)
+			return;
+					
+		if (bHide){
+			oSiblings.hide();
+			oParent.fadeIn();
+		}
+			
+		oParent.parents('ul').parent().
+			animate(
+					{
+						'width': !bHide ? oSiblings.length * _this.iActionsButtonWidth + 'rem' : _this.iActionsButtonWidth + 'rem'
+					}, 500, 
+					function()
+					{
+						if (!bHide)
+						{
+							oParent.hide();
+							oSiblings.css('display', 'inline');							
+						}
+					});	
 	}
 	
 	oMessenger.prototype.blockSendMessages = function(bBlock){
@@ -160,13 +224,40 @@ var oMessenger = (function($){
 			$(this.sMessangerParentBox).removeClass(this.sInputAreaDisabled);
 	}
 	
-	oMessenger.prototype.initJotIcons = function(){
+	oMessenger.prototype.isMobile = function(){
+		return $(window).width() <= 720;
+	}
+	
+	oMessenger.prototype.initJotIcons = function(oParent){
 		var _this = this;
-		$(this.sJot).mouseenter(function(){
-				$(_this.sJotIcons, this).fadeIn();
-			}).mouseleave(function(){
-				$(_this.sJotIcons, this).fadeOut();
+		
+		if (!_this.isMobile())
+			$(_this.sJotIcons, oParent).hover(
+				function(){
+					$('> div', this).fadeIn();
+				},
+				function(){
+					$('> div', this).hide();
+				}
+			);
+		else
+		{
+			$(_this.sJotIcons, oParent).on('click', function(){
+				$(_this.sJotIcons + '> div').hide();
+				$('> div', this).fadeIn();
+				return false;
 			});			
+		}
+		
+	
+		$(_this.sTalkBlock).on('scroll click', function(e){
+			$(_this.sJotIcons + '> div').hide();		
+		});
+			
+		$(_this.sJotIcons + ' > div a', oParent).click(function(){
+			$(this).parent().hide();
+			return false;
+		});
 	}
 	
 	/**
@@ -212,22 +303,29 @@ var oMessenger = (function($){
 	*/
 	oMessenger.prototype.searchByItems = function(iType, sText){
 		var _this = this,
-			iFilterType	= iType != undefined ? iType : this.iFilterType;			
-		
-		clearTimeout(_this.iTimer);		
-		this.iTimer = setTimeout(function() {
-			bx_loading($(_this.sItemsList), true);
-			$.get('modules/?r=messenger/search', {param:sText || '', type:iFilterType}, 
-					function(oData){
-						if (parseInt(oData.code) == 1) 
-							window.location.reload();
-						else
-						if (!parseInt(oData.code)){					
-									$(_this.sItemsList).html(oData.html).fadeIn();
-									_this.iFilterType = iFilterType;								
-								}
-							}, 'json');	
-		}, _this.iRunSearchInterval);	
+			iFilterType	= iType != undefined ? iType : this.iFilterType,
+			searchFunction = function()
+							{
+								bx_loading($(_this.sItemsList), true);
+									$.get('modules/?r=messenger/search', {param:sText || '', type:iFilterType, starred: +_this.iStarredTalks}, 
+										function(oData)
+										{
+											if (parseInt(oData.code) == 1) 
+												window.location.reload();
+											else
+											if (!parseInt(oData.code)){					
+													$(_this.sItemsList).html(oData.html).fadeIn();
+													_this.iFilterType = iFilterType;								
+												}
+										}, 'json');	
+							};
+
+		if (typeof iType !== 'undefined' || typeof sText !== 'undefined'){
+			clearTimeout(_this.iTimer);	
+			this.iTimer = setTimeout(searchFunction, _this.iRunSearchInterval);	
+		}
+		else
+			searchFunction();
 	}
 	
 	/**
@@ -288,14 +386,32 @@ var oMessenger = (function($){
 					}, 'json');
 	}
 	
-	oMessenger.prototype.muteLot = function(iLotId){
-		var _this = this;
+	oMessenger.prototype.muteLot = function(iLotId, oEl){
+		var _this = this,
+			iVal = parseInt($(oEl).data('value'));
+		
+		$(oEl).html(!iVal ? feather.toSvg('bell-off') : feather.toSvg('bell'));
+		$(oEl).data('value', +!iVal);
+		
 		$.post('modules/?r=messenger/mute', {lot:iLotId}, function(oData){
-				if (parseInt(oData.code) == 1) 
-						window.location.reload();
-				}, 'json');
+				if (typeof oData.code !== 'undefined')
+					$(oEl).attr('title', oData.title);
+		}, 'json');
 	}
 	
+	oMessenger.prototype.starLot = function(iLotId, oEl){
+		var _this = this,
+			sColor = !parseInt($(oEl).data('value')) ? $(oEl).data('color') : 'none',
+			iVal = parseInt($(oEl).data('value'));
+		
+		$('svg', oEl).attr({'fill': sColor, 'color': sColor});
+		$(oEl).data('value', +!iVal);
+		$.post('modules/?r=messenger/star', {lot:iLotId}, function(oData){
+					if (typeof oData.code !== 'undefined')
+						$(oEl).attr('title', oData.title);
+				}, 'json');
+	}
+
 	oMessenger.prototype.deleteLot = function(iLotId){
 		var _this = this;
 		if (iLotId)
@@ -305,7 +421,9 @@ var oMessenger = (function($){
 		
 						if (!parseInt(oData.code)){
 							_this.searchByItems();
-							_this.loadDefaultData();
+							
+							if ($(_this.sLotsListSelector).length > 0)
+									$(_this.sLotsListSelector).first().click();
 						}
 						
 						alert(oData.message);
@@ -320,7 +438,9 @@ var oMessenger = (function($){
 		if (iJotId && confirm(_t('_bx_messenger_remove_jot_confirm')))
 			$.post('modules/?r=messenger/delete_jot', {jot:iJotId}, function(oData){						
 					if (!parseInt(oData.code)) 
-							oJot.fadeOut().remove();
+							oJot.fadeOut('slow', function(){
+								$(this).remove();
+							})
 				}, 'json');
 	}
 	
@@ -369,25 +489,59 @@ var oMessenger = (function($){
 	}
 	
 	/**
-	* Conver plan text links, mailto to urls
-	*@param string sText text of the message
+	* Add attachment for the urls
+	*@param string sUrl internal or external link
+	*@return object this
 	*/
 	$.fn.attacheLinkContent = function(sUrl){
 		var _this = this;
 		_oMessenger.iAttachmentUpdate = true;
 		$.post('modules/?r=messenger/parse_link', {link:sUrl, jot_id:$(_this).parents(_oMessenger.sJot).data('id')}, function(oData){
-				if (!parseInt(oData['code'])){
-					$(_this).parent().append(oData['html']);
-					_oMessenger.broadcastMessage();					
-					_oMessenger.updateScrollPosition('bottom');
-				}
+				if (!parseInt(oData['code']))
+					$(_this).parent().append(oData['html']);					
 				else
 				{
 					// embedly/iframly links
 					$('a.bx-link').dolConverLinks();
 				}
 				
+				_oMessenger.broadcastMessage();
+				_oMessenger.updateScrollPosition('bottom');
+				
 				_oMessenger.iAttachmentUpdate = false;				
+			},
+			'json');
+			
+		return this;
+	}
+	
+	/**
+	* Add attachment to the message
+	*@param string sUrl internal or external link
+	*@return object this
+	*/
+	oMessenger.prototype.attacheFiles = function(iJotId){
+		var _this = this;
+		
+		_this.iAttachmentUpdate = true;
+		$.post('modules/?r=messenger/get_attachment', {jot_id:iJotId}, function(oData){
+				if (!parseInt(oData['code'])){
+					$(_this.sJotMessage, '[data-id="' + iJotId + '"]').after(
+						$(oData['html']).find('img').load(
+							function()
+							{
+								_this.updateScrollPosition('bottom');
+							}
+						).end());
+						
+					/* Init SVG Icons*/
+					feather.replace();
+					
+					_this.initJotIcons('[data-id="' + iJotId + '"]');						
+					_this.broadcastMessage();
+				}
+				
+				_this.iAttachmentUpdate = false;				
 			},
 			'json');
 			
@@ -398,19 +552,7 @@ var oMessenger = (function($){
 	* Select lot in left side column when member clicks on it
 	*@param object el selected lot
 	*/
-	oMessenger.prototype.selectLotEmit = function(el){
-		$(this.sItemsList).
-				find('.' + this.aBorderSelectors['border'] + ', .' + this.aBorderSelectors['none'] + ', .' + this.aBorderSelectors['bottom']).
-				removeClass(this.aBorderSelectors['border'] + ' ' + this.aBorderSelectors['none'] + ' ' + this.aBorderSelectors['bottom']);
-				
-		if ($(el).prev().length == 0)
-			$(el).children('div').addClass(this.aBorderSelectors['bottom']);
-		else
-		{	
-			$(el).children('div').addClass(this.aBorderSelectors['border']).end().
-				prev().children('div').addClass(this.aBorderSelectors['none']);
-		}
-		
+	oMessenger.prototype.selectLotEmit = function(el){		
 		$(el).addClass(this.sActiveLotClass).siblings().removeClass(this.sActiveLotClass).end().
 				find(this.sLotInfo).removeClass(this.sUnreadLotClass).end().
 				find(this.sBubble).fadeOut(this.iHideUnreadBadge).end();
@@ -424,7 +566,7 @@ var oMessenger = (function($){
 	oMessenger.prototype.loadTalk = function(iLotId, el){
 		var _this = this;
 		
-		if (this.isActiveLot(iLotId) && _this.oJotWindowBuilder != undefined && !this.oJotWindowBuilder.isMobile()) return ;
+		if (this.isActiveLot(iLotId) && !this.isMobile()) return ;
 	
 		this.selectLotEmit(el);
 		
@@ -453,7 +595,7 @@ var oMessenger = (function($){
 						}
 					}
 					
-					if (_this.oJotWindowBuilder != undefined && _this.oJotWindowBuilder.isMobile()) 
+					if (_this.isMobile()) 
 							_this.correctUserStatus();
 					
 					// embedly/iframly links
@@ -485,13 +627,8 @@ var oMessenger = (function($){
 					window.location.reload();
 						
 			if (!parseInt(oData.code)){			
-					
 					$(_this.sMainTalkBlock).html(oData.html).fadeIn().bxTime();
-					
 					_this.updateScrollPosition('bottom');					
-					
-					if (_this.oJotWindowBuilder != undefined) 
-							_this.oJotWindowBuilder.changeColumn();
 				}
 		}, 'json');	
 	}
@@ -503,58 +640,89 @@ var oMessenger = (function($){
 	/**
 	* Main send message function, occurs when member send message
 	*/
-	oMessenger.prototype.sendMessage = function(sMessage){
+	oMessenger.prototype.sendMessage = function(sMessage, aFiles, fCallBack){
 		var _this = this, 
 			oParams = this.oSettings,
 			msgTime = new Date();
 		
-		oParams.message = $.trim(sMessage);
-		oParams.participants = _this.getPatricipantsList();		
-		oParams.tmp_id = msgTime.getTime();
-		
-			if (!oParams.message.length) return;
+		if (typeof aFiles !== 'undefined' && aFiles.length)
+			oParams.files = aFiles;
 		else
-			if (oParams.message.length > this.iMaxLength) 
-				oParams.message = oParams.message.substr(0, this.iMaxLength);
-
-		var oMessage = _this.oUsersTemplate.clone().
-						attr('data-tmp', oParams.tmp_id). 
-						find('time').attr('datetime', msgTime.toISOString()).end(). 
-						find(_this.sJotMessage).text(oParams.message).addClass('new').end().
-						fadeTo(100, 0.1).fadeTo(200, 1.0).
-						bxTime();
+			oParams.files = undefined;
 		
-				
-		// append content of the message to history page
+		oParams.participants = _this.getPatricipantsList();		
+		if (!oParams.lot && !oParams.participants.length)
+			return;
+		
+		if (!(sMessage.length && $.trim(sMessage).length) && typeof oParams.files == 'undefined')
+			return;
+		
+		oParams.tmp_id = msgTime.getTime();
+
+		// remove MSG (if it exists) from clean history page
 		if ($('.bx-msg-box-container', _this.sTalkList).length)
-				$('.bx-msg-box-container', _this.sTalkList).remove();
+				$('.bx-msg-box-container', _this.sTalkList).remove();	
+
+		oParams.message = $.trim(sMessage);		
+		if (oParams.message.length > this.iMaxLength) 
+			oParams.message = oParams.message.substr(0, this.iMaxLength);
+
+		if (oParams.message || typeof oParams.files !== 'undefined'){
+			var sTmpMessage = $('<div>').text(oParams.message).html(); // convert HTML to valid text with tags
+			// append content of the message to the history page
+			$(_this.sTalkList).append(
+									_this.oUsersTemplate.clone().
+									attr('data-tmp', oParams.tmp_id). 
+									find('time').attr('datetime', msgTime.toISOString()).end(). 
+									find(_this.sJotMessage).text(sTmpMessage).addClass('new').end().
+									bxTime()
+								);
 			
-		$(_this.sTalkList).append(oMessage);		
-		$(_this.sSendArea).html('');
-				
-		_this.initJotIcons();
-
-		// save message to the server and broadcast to all participants
+			_this.initJotIcons('[data-tmp="' + oParams.tmp_id + '"]');			
+			$(_this.sSendArea).html('');			
+			
+			/* Init SVG Icons*/
+			feather.replace();
+		}
+		
+		// save message to database and broadcast to all participants
 		$.post('modules/?r=messenger/send', oParams, function(oData){
-			if (parseInt(oData.code) == 1) 
-					window.location.reload();
-				
-			if (!parseInt(oData.code)){
-				if (oData.lot_id != undefined){
-					_this.oSettings.lot = parseInt(oData.lot_id);
-					_this.searchByItems();
-				}
-
-				if (parseInt(oData.jot_id) &&  oData.tmp_id != undefined)
-					$(_this.sTalkList).find('[data-tmp="' + oData.tmp_id + '"]').attr('data-id', oData.jot_id).linkify();
-				
-				if (!_this.iAttachmentUpdate)
-						_this.broadcastMessage();
-				
-				}
+				switch(parseInt(oData.code))
+				{
+					case 0:
+						var iJotId = parseInt(oData.jot_id);
+											
+						if (iJotId)
+						{
+							if (typeof oData.lot_id !== 'undefined')
+								_this.oSettings.lot = parseInt(oData.lot_id);
+												
+							if (typeof oData.tmp_id != 'undefined')
+								$(_this.sTalkList).
+									find('[data-tmp="' + oData.tmp_id + '"]').
+									attr('data-id', oData.jot_id).linkify();
+									
+							if (typeof oParams.files !== 'undefined')
+								_this.attacheFiles(iJotId);
+							
+						}
+						
+						if (!_this.iAttachmentUpdate)
+							_this.broadcastMessage();
+						
+						break;					
+					case 1:
+						window.location.reload();
+						break;
+					default:
+						alert(oData.message);
+				}			
+					if (typeof fCallBack == 'function')
+						fCallBack();
 			}, 'json');
 			
-		_this.updateScrollPosition('bottom');			
+		_this.updateScrollPosition('bottom');		
+		return true;	
 	}		
 	
 	oMessenger.prototype.broadcastMessage = function(){
@@ -595,7 +763,7 @@ var oMessenger = (function($){
 			lot = parseInt(oData.lot), 
 			oLot = $('div[data-lot=' + lot + ']'),
 			oNewLot = undefined;
-			
+		
 		$.get('modules/?r=messenger/update_lot_brief', {lot_id: lot}, 
 						function(oData){
 									if (!parseInt(oData.code)){					
@@ -604,12 +772,13 @@ var oMessenger = (function($){
 												if (!oLot.is(':first-child'))
 														oLot.fadeOut('slow', function(){					
 															oLot.remove();
-															$(_this.sLotsListBlock).prepend(oNewLot).fadeIn('slow');
+															$(_this.sLotsListBlock).prepend($(oNewLot).bxTime()).fadeIn('slow');
 														});	
 												else
-													oLot.replaceWith(oNewLot);													
+													oLot.replaceWith($(oNewLot).bxTime()).bxTime();
 											}			
 									}
+									
 								}, 'json');
 	}
 	
@@ -688,7 +857,8 @@ var oMessenger = (function($){
 		var _this = this;
 		$.post('modules/?r=messenger/find_lot', {participants:this.getPatricipantsList()}, 
 			function(oData){
-					_this.loadJotsForLot(parseInt(oData.lotId));
+				_this.oJotWindowBuilder.resizeWindow();
+				_this.loadJotsForLot(parseInt(oData.lotId));				
 			}, 
 		'json');
 	}
@@ -757,27 +927,30 @@ var oMessenger = (function($){
 			if (sLoad == 'prev')
 			   bx_loading($(this.sTalkBlock), true);	   
 		   
-		    _this.iPanding = true;
+			_this.iPanding = true;
 			
 			$.post('modules/?r=messenger/update', {url: this.oSettings.url, type: this.oSettings.type, start: iStart, lot: this.oSettings.lot, load:sShow}, 
 			function(oData){
 				var oList = $(_this.sTalkList);
 				
 				if (!parseInt(oData.code)){
-						if (iStart == undefined) oList.html('');
+						if (iStart == undefined) 
+							oList.html('');
 								
 						if (sShow == 'new'){
 							$(oData.html).filter(_this.sJot).each(function(){								
 								if ($('div[data-id="' + $(this).data('id') + '"]', oList).length !== 0)
 									$(this).remove();									
-							}).appendTo(oList);						
-							_this.beep();														
+							}).appendTo(oList);
+							
+							_this.beep();							
 						}	
 						else 
 							oList.prepend(oData.html);							
-								
+						
 						oList.find(_this.sJot + ':hidden').fadeIn(function(){
 								$(this).css('display', 'table-row');
+								_this.initJotIcons(this);
 						}).bxTime();
 						
 						// embedly/iframly links
@@ -788,8 +961,9 @@ var oMessenger = (function($){
 							sShow == 'new' ? 'slow' : '',
 							sShow == 'new' ? null : $(oObjects.first())
 						);
-								
-						_this.initJotIcons();
+						
+						/* Init SVG Icons*/
+						feather.replace();			
 				}
 				
 				_this.iPanding = false;
@@ -813,11 +987,12 @@ var oMessenger = (function($){
 								source: 'modules/?r=messenger/get_auto_complete',
 								minLength: 1,
 								width: 250,
+								autoFocus: true,
 								select: function(e, ui) {
 															$(this).val(ui.item.value);
 															$(this).trigger('selectuser', ui.item);
 															e.preventDefault();
-														}	      
+														}
 							}).on({
 								keyup : function(e, ui) {
 									  if(/(188|13)/.test(e.which)) 
@@ -835,12 +1010,12 @@ var oMessenger = (function($){
 									  
 									  $(this).show().val('').focus();
 								}
-							}).focus();
+							});
 			
 			$(_this.sUserSelectorBlock).on('click', 'b', function(){
 					$(this).remove();					
 					if (bMode != 'edit')
-							_this.findLotByParticipantsList();
+						_this.findLotByParticipantsList();
 					
 					$(_this.sUserSelectorInput).focus();
 			});
@@ -863,7 +1038,7 @@ var oMessenger = (function($){
 			/* Init users Jot template  begin */
 			_oMessenger.loadMembersTemplate();
 			/* Init users Jot template  end */
-			
+									
 			/* Init sockets settings begin*/	
 			if (_oMessenger.oRTWSF != undefined && _oMessenger.oRTWSF.isInitialized()){
 
@@ -919,10 +1094,32 @@ var oMessenger = (function($){
 		*@param object oOptions options
 		*/
 		initJotSettings: function(oOptions){
-			_oMessenger.initJotSettings(oOptions);			
+			var _this = this;
+			_oMessenger.initJotSettings(oOptions);
+			
+			$(document).on('dragenter dragover drop', function (e){
+				e.stopPropagation();
+				e.preventDefault();
+			});
+			
+			$(_oMessenger.sTalkList + ',' + _oMessenger.sMessangerParentBox).on('drop', function (e){
+				var files = e.originalEvent.dataTransfer.files;
+				e.preventDefault();
+							
+				if (files.length)
+					_this.showPopForm(undefined, function(){
+						AqbDropZone.handleFiles(files);
+					});
+			});			
 		},
-		initMessengerPage:function(iProfileId, oMessenger){
-			_oMessenger.oJotWindowBuilder = oMessenger || window.oJotWindowBuilder;
+		
+		/**
+		* Init settings, occurs when member opens the main messenger page
+		*@param int iProfileId if profile id oà the person whom to talk 
+		*@param object oBuilder page builder class
+		*/
+		initMessengerPage:function(iProfileId, oBuilder){
+			_oMessenger.oJotWindowBuilder = oBuilder || window.oJotWindowBuilder;
 			
 			if (typeof oMessengerMemberStatus !== 'undefined'){
 				oMessengerMemberStatus.init(function(iStatus){
@@ -941,11 +1138,13 @@ var oMessenger = (function($){
 								if(iProfileId || $(_oMessenger.sLotsListSelector).length == 0) 
 									_oMessenger.createLot({user:iProfileId});
 								else
-								if (!_oMessenger.oJotWindowBuilder.isMobile() && $(_oMessenger.sLotsListSelector).length > 0)
-									$(_oMessenger.sLotsListSelector).first().click();						
+								if (!_oMessenger.isMobile() && $(_oMessenger.sLotsListSelector).length > 0)
+									$(_oMessenger.sLotsListSelector).first().click();
 						}
-						
-						_oMessenger.oJotWindowBuilder.resizeWindow();
+						else 
+							_oMessenger.updateSendAreaButtons();
+					
+					_oMessenger.oJotWindowBuilder.resizeWindow();
 				});
 
 				_oMessenger.oJotWindowBuilder.loadRightColumn = function(){
@@ -955,9 +1154,13 @@ var oMessenger = (function($){
 						_oMessenger.createLot();
 				};
 			}
-			else{
+			else
+			{
 				console.log('Page Builder was not initialized');
 			}
+			
+			/* Init SVG Icons*/
+			feather.replace();
 		},
 		
 		// init public methods
@@ -981,8 +1184,12 @@ var oMessenger = (function($){
 			_oMessenger.leaveLot(iLotId);
 			return this;
 		},	
-		onMuteLot: function(iLotId){
-			_oMessenger.muteLot(iLotId);
+		onMuteLot: function(iLotId, oEl){
+			_oMessenger.muteLot(iLotId, oEl);
+			return this;
+		},
+		onStarLot: function(iLotId, oEl){
+			_oMessenger.starLot(iLotId, oEl);
 			return this;
 		},
 		onDeleteLot: function(iLotId){ 
@@ -1018,10 +1225,143 @@ var oMessenger = (function($){
 		onServerResponse: function(oData){
 			_oMessenger.sendPushNotification(oData);			
 			return this;
-		}
+		},
 		
+		/**
+		* Sends uploaded files to the talk
+		*@param object oDropZone dropzone plugin object
+		*/
+		onSendFiles: function(oDropZone){
+			var aFiles = [],
+				sMessage = $(_oMessenger.sAddFilesFormComments).text();
+			
+			oDropZone.getAcceptedFiles().map(function(oFile){
+				aFiles.push(oFile.name);
+			});
+			
+			if (aFiles.length)
+			{				
+				if (_oMessenger.sendMessage(sMessage, aFiles, 
+					function(){
+						oDropZone.removeAllFiles();
+						$(_oMessenger.sAddFilesFormComments).html('');
+					}))
+				{
+					$(_oMessenger.sAddFilesForm).dolPopupHide({});
+				}
+			}
+			else
+				oDropZone.hiddenFileInput.click();
+			
+		},
+		
+		/**
+		* Creates form for files uploading in popup
+		*@param string sUrl link, if not specify default one will be used
+		*@param function fCallback callback function,  executes on window show
+		*/		
+		showPopForm: function (sUrl, fCallback) {
+			var _this = this,
+				sUrl = 'modules/?r=messenger/' + (sUrl || 'get_upload_files_form'),
+				sText = $(_oMessenger.sMessangerBox).val();
+
+			$(window).dolPopupAjax({
+				url: sUrl,
+				id: {force: true, value: _oMessenger.sAddFilesForm.substr(1)},
+				onShow: function() {
+					$(_oMessenger.sAddFilesForm + ' .bx-popup-element-close').click(function() {
+						$(_oMessenger.sAddFilesForm + ' .bx-btn.close').click();
+					});
+					
+					if (typeof fCallback == 'function'){
+						fCallback();
+					}
+					
+					if (sText.length)
+					{
+						$(_oMessenger.sAddFilesFormComments).text(sText);
+					}
+				},				
+				closeElement: true,
+				closeOnOuterClick: false
+			});
+		},
+		
+		/**
+		* Executes on files uploading window close 
+		*@param string sMessage confirmation message
+		*@param int iFilesNumber files number
+		*/				
+		onCloseUploadingForm:function(sMessage, iFilesNumber){
+			if (!iFilesNumber || (iFilesNumber && confirm(sMessage)))
+			{
+				$(_oMessenger.sAddFilesFormComments).html('');
+				$(_oMessenger.sAddFilesForm).dolPopupHide();
+				return true;
+			}
+						
+			return false;
+		},
+		
+		/**
+		* Occurs on image click, allows to make image bigger in popup.
+		*@param int iId image file id
+		*/	
+		zoomImage:function(iId){						
+			$(window).dolPopupAjax({
+				url: 'modules/?r=messenger/get_big_image/' + iId + '/' + $(window).width() + '/' + $(window).height(),
+				id: {force: true, value: 'bx-messenger-big-img'},
+				top:'0px',
+				left:'0px',			
+				onBeforeShow: function() {
+					$('#bx-messenger-big-img, #bx-messenger-big-img .bx-popup-element-close, #bx-messenger-big-img img, #bx-popup-fog').click(function() {
+						$('#bx-messenger-big-img').dolPopupHide().remove();
+					});					
+				},
+				closeElement: true
+			});
+		},
+		
+		/**
+		* Show only marked as important lot
+		*@param object oEl 
+		*/
+		showStarred:function(oEl){
+			var sColor = $(oEl).data('color');
+
+			if (!_oMessenger.iStarredTalks && sColor)
+				$('svg', oEl).attr({'fill':sColor, 'color':sColor});
+			else
+				$('svg', oEl).attr({'fill':'none', 'color':'none'});
+			
+			_oMessenger.iStarredTalks = !_oMessenger.iStarredTalks;
+			this.searchByItems($('#items').val());			
+		},
+		
+		removeFile:function(oEl, id){
+			$.get('modules/?r=messenger/delete_file', {id: id}, function(oData){
+				if (!parseInt(oData.code)){
+					if (!oData.empty_jot)
+						$(oEl).parents('.delete').parent().fadeOut('slow', function(){
+							$(this).remove();
+						});
+					else
+						$(oEl).parents(_oMessenger.sJot).fadeOut('slow', function(){
+							$(this).remove();
+						});
+				} 
+				else
+					alert(oData.message);
+			}, 'json');
+		},
+		
+		downloadFile:function(iFileId){
+			$.get('modules/?r=messenger/download_file/' + iFileId, {id: iFileId}, function(oData){
+				if (parseInt(oData.code))
+					alert(oData.message);
+			});
+		}
 	}
-	
 })(jQuery);
 
 /** @} */

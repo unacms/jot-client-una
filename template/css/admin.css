@@ -3,7 +3,7 @@
 	padding-top:10px;
 	padding-bottom:10px;	
 	background-color:rgba(0, 0, 0, 0);
-	border-bottom:1px solid rgba(219,233,249, 0.5);
+	border-bottom:1px solid #d7e9fb;
 }
 
 .bx-messenger-border input{
@@ -36,7 +36,7 @@
 }
 
 .bx-messanger-tags-main-list .bx-def-color-bg-hl-even{
-	border-top:1px solid rgba(40, 60, 80, 0.1);
+	border-top:1px solid #d7e9fb;
 }
 
 .bx-messanger-tags-main{
@@ -115,9 +115,13 @@ div.bx-messenger-lots-menu ul li a.active{
 
 #bx-content-main .bx-def-padding-sec-left .bx-def-border-block{
   /*border-left:1px;*/
-	border-left:1px solid rgba(40, 60, 80, 0.05);
+	border-left:1px solid #d7e9fb;
 	-webkit-background-clip: padding-box;
 	background-clip: padding-box;
+}
+.bx-messenger-block.bx-def-border-block
+{
+	border-right:1px solid #d7e9fb;
 }
 
 .bx-messenger-friends-list{
@@ -188,7 +192,6 @@ div.bx-messenger-lots-menu ul li a.active{
    margin-left:0.1rem;
 }
 
-
 .bx-messenger-main-block{
 	overflow:auto;
 	position:relative;
@@ -216,14 +219,14 @@ div.bx-messenger-lots-menu ul li a.active{
 	text-align:center;	
 	position:relative;
 	display:table-cell;
-	border-bottom:1px solid rgba(219,233,249, 0.5);
+	/*border-bottom:1px solid rgba(219,233,249, 0.5);*/
 }
 
 .bx-messenger-jots-snip-info{
 	display: table-cell;
 	vertical-align: top;
 	width:100%;
-	border-bottom:1px solid rgba(219,233,249,0.5);
+	/*border-bottom:1px solid rgba(219,233,249,0.5);*/
 }
 
 .bx-messenger-jots-snip-info span{
@@ -242,13 +245,6 @@ div.bx-messenger-lots-menu ul li a.active{
 	display:inline-block;
 }
 
-.bx-messenger-jots-snip-title span{
-	right:0.5rem;
-	top:0px;
-	font-weight:normal;
-	position:absolute;
-}
-
 .bx-messenger-jots-snip-message{
 	position:relative;
 }
@@ -260,17 +256,7 @@ div.bx-messenger-lots-menu ul li a.active{
 .bx-messenger-jots-snip.active{
 	background-color:rgba(0,0,0,0.03);	
 }
-.bx-messenger-active-border-none{
-	border-bottom:0px;
-}
-.bx-messenger-active-border{
-	border-bottom:1px solid rgba(219,233,249, 1);
-	border-top:1px solid rgba(219,233,249, 1);
-}
-.bx-messenger-active-border-bottom{
-	border-bottom:1px solid rgba(219,233,249, 1);	
-}
-	
+
 .bx-messenger-jots-snip-avatars-list{
 	position:relative;
 	overflow: hidden;
@@ -284,7 +270,7 @@ div.bx-messenger-lots-menu ul li a.active{
 	float: left;
 	overflow: hidden;
 	line-height: 3rem;
-    height: 3rem;
+	height: 3rem;
 }
 
 .bx-messenger-jots-snip-avatars-list div:first-child{

@@ -58,7 +58,7 @@ var oJotWindowBuilder = (function(){
 				},
 				isMobile:function(){
 						return $(window).width() <= 720;						
-					},
+				},
 			
 				changeColumn:function(sSide){
 						this.init();

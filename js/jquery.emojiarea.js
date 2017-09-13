@@ -414,8 +414,11 @@
         editorDiv.scrollTop(editorDiv[0].scrollHeight);
       });
     }
-
-    $textarea.after("<i class='emoji-picker-icon emoji-picker " + this.options.popupButtonClasses + "' data-id='" + id + "' data-type='picker'></i>");
+   
+   $('#smiles').html('<svg width="24" height="24" viewBox="0 0 23 21" xmlns="http://www.w3.org/2000/svg" class="emoji-picker-icon emoji-picker' + this.options.popupButtonClasses + '" data-id="' + id + '" data-type="picker">' +
+	'<g transform="translate(1 1)" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="10"/>' + 
+	'<path d="M8 9V7M12 9V7M4.505 11c0 2.58 2.425 4.67 5.417 4.67S15.34 13.58 15.34 11"/></g></svg>' +
+	'</svg>');
 
     $textarea.hide().after(this.$editor);
     this.setup();
@@ -782,7 +785,7 @@
     
 	$(this.$menu).css('z-index', ++EmojiMenu.menuZIndexcss);
     
-	this.$menu.css({top:-this.$menu.height() - 10}).show("fast");
+	this.$menu.css({left:-$('.bx-messenger-post-box-send-actions').width(), top:-this.$menu.height() - 10}).show("fast");
 
     if (!this.currentCategory) {
       this.load(0);

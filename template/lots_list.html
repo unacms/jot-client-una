@@ -1,32 +1,21 @@
 <div class="bx-messenger-block bx-messenger-block-lots bx-def-color-bg-block bx-def-border-block">
 <div id="bx-messangger-block-head">
     <div class="bx-db-header">
-		<div id="bx-menu-db-menu" class="bx-popup-wrapper bx-popup-slide-wrapper bx-def-z-index-front bx-def-border-bottom bx-def-border-top bx-def-padding bx-def-box-sizing" style="position: absolute; top: 46px; left: 0px; display: none;">
-					<ul class="bx-menu-inter-vert">
-						<bx_repeat:menu>
-							<li class="bx-menu-inter-pas bx-def-round-corners bx-def-color-bg-hl-hover ">
-								<a class="" href="javascript:void(0);" onclick="oMessenger.showLotsByType(__type__)">
-									<div class="bx-def-padding-left bx-def-padding-sec-right bx-def-padding-sec-topbottom">__menu_title__ <b>__count__</b></div>
-								</a>
-							</li>
-						</bx_repeat:menu>						
-					</ul>
-		</div>
 		<div class="bx-db-menu left">				
-			<a href="javascript:void(0);" onclick="bx_menu_slide('#bx-menu-db-menu', this)">
-				<i class="sys-icon bars"></i>
+			<a href="javascript:void(0);" onclick="oMessenger.showStarred(this);" data-color="__star_color__" title="__star_title__">
+				<i data-feather="__star_icon__"></i>
 			</a>			
 		</div>	
 		<div class="bx-db-title bx-def-font-h3"><bx_text:_bx_messenger_page_inbox_block_title /></div>
 		<div class="bx-db-menu">			
-			<a href="javascript:void(0);" onclick="oMessenger.createLot();">
-				<i class="sys-icon  pencil-square-o"></i>
-			</a>
-		</div>		
+				<a href="javascript:void(0);" onclick="oMessenger.createLot();" title="__create_lot_title__">
+					<i data-feather="edit"></i>
+				</a>			
+		</div>
 	</div>
     <div class="bx-db-divider bx-def-hr"></div>
 	<div class="bx-form-input-wrapper bx-form-input-wrapper-text bx-messenger-border">
-		<input id="items" onkeyup="oMessenger.searchByItems(this.value);" name="items" class="bx-def-font-inputs bx-form-input-text col-gray" type="text" placeholder="<bx_text:_bx_messenger_title_search />">
+		<input id="items" title="__search_for_title__" onkeyup="oMessenger.searchByItems(this.value);" name="items" class="bx-def-font-inputs bx-form-input-text col-gray" type="text" placeholder="<bx_text:_bx_messenger_title_search />">
 	</div>
 </div>
    <div class="bx-db-content bx-clearfix">

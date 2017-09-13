@@ -2,10 +2,8 @@
 	<bx_if:find_participants>	
 		<div class="bx-form-value bx-db-header bx-messenger-right-column">
 			<div class="bx-messenger-hide-mobile bx-db-menu left">
-				<a href="javascript:void(0);" onclick="$('.bx-layout-row .bx-layout-col').first().fadeIn().end().last().hide();">
-					<i class="sys-icon angle-left">
-						<bx_text:_bx_messenger_menu_home />
-					</i>
+				<a href="javascript:void(0);" onclick="oJotWindowBuilder.changeColumn();" title="__back_title__" >
+					<i data-feather="chevron-left"></i>
 				</a>
 			</div>
 			<div class="bx-form-input-autotoken bx-def-font-inputs bx-def-padding-thd" id="bx-messenger-add-users">
@@ -23,7 +21,7 @@
 			</div>
 		</div>
 	</bx_if:find_participants>
-	<bx_if:user_info>	
+	<bx_if:user_info>
 		<div class="bx-messenger-top-user-info" data-user-id="__profile_id__">
 			<bx_repeat:users>
 				<div class="bx-base-pofile-unit bx-def-unit bx-def-padding">

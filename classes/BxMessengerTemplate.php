@@ -24,13 +24,13 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@param string $sMode 
 	*/
 	public function loadCssJs($sMode = 'all'){
-		$aCss = array('main.css', 'emoji.css');
-		$aJs = array('primus.js', 'connect.js', 'messenger.js', 'config.js', 'util.js', 'jquery.emojiarea.js', 'emoji-picker.js', 'status.js'); 
+		$aCss = array('main.css', 'emoji.css', 'dropzone.css');
+		$aJs = array('primus.js', 'connect.js', 'messenger.js', 'config.js', 'util.js', 'jquery.emojiarea.js', 'emoji-picker.js', 'status.js', 'dropzone.js', 'feather.min.js'); 
 		
 		if ($this->_oConfig-> CNF['IS_PUSH_ENABLED'])
 			array_push($aJs, 'https://cdn.onesignal.com/sdks/OneSignalSDK.js');
 		
-		if ($sMode == 'all'){			
+		if ($sMode == 'all'){
 			array_push($aCss, 'admin.css', 'messenger.css');
 			array_push($aJs, 'columns.js');
 		}	
@@ -54,7 +54,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'id'	  => 0,
 			'name'	  => '',
 			'user_id' => $iProfileId, 
-			'type' => $iType,
+			'type' => $iType			
 		);
 		
 		$oProfile = $this -> getObjectUser($aParams['user_id']);
@@ -102,18 +102,31 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
 
 		$aMenu[] = array('name' => _t("_bx_messenger_lots_menu_leave"), 'title' => '', 'action' => "if (confirm('" . bx_js_string(_t('_bx_messenger_leave_chat_confirm')) . "')) oMessenger.onLeaveLot($iLotId);");
-		$aMenu[] = array('name' => _t("_bx_messenger_lots_menu_mute"), 'title' => _t('_bx_messenger_lots_menu_mute_info'), 'action' => "oMessenger.onMuteLot({$iLotId})");
 		
 		$iUnreadLotsJots = $this -> _oDb -> getUnreadJotsMessagesCount($iProfileId, $iLotId);		
+		$bIsMuted = $this -> _oDb -> isMuted($iLotId, $iProfileId);
+		$bIsStarred = $this -> _oDb -> isStarred($iLotId, $iProfileId);
+		
 		return $this -> parseHtmlByName('talk.html', array(
 				'bx_repeat:settings' => $aMenu,
-				'back_count' => $iUnreadLotsJots ? $iUnreadLotsJots : _t('_bx_messenger_menu_home'),
+				'back_count' => $iUnreadLotsJots ? $iUnreadLotsJots : '',
+				'mute' => (int)$bIsMuted,
+				'mute_title' => bx_js_string( $bIsMuted ? _t('_bx_messenger_lots_menu_mute_info_on') : _t('_bx_messenger_lots_menu_mute_info_off')),
+				'settings_title' => _t('_bx_messenger_lots_menu_settings_title'),
+				'star_title' => bx_js_string( !$bIsStarred ? _t('_bx_messenger_lots_menu_star_on') : _t('_bx_messenger_lots_menu_star_off')),
+				'star' => (int)$bIsStarred,
+				'star_color' => $bIsStarred ? $this -> _oConfig -> CNF['STAR_BACKGROUND_COLOR']: 'none',
+				'star_fill_color' => $this -> _oConfig -> CNF['STAR_BACKGROUND_COLOR'],
+				'back_title' => bx_js_string(_t('_bx_messenger_lots_menu_back_title')),
+				'id' => $iLotId,
+				'bell_icon' => $bIsMuted ? $this -> _oConfig -> CNF['BELL_ICON_OFF'] : $this -> _oConfig -> CNF['BELL_ICON_ON'],
+				'star_icon' => $this -> _oConfig -> CNF['STAR_ICON'],			
 				'title' => $sTitle,
 				'post_area' => !$bShowMessanger && empty($aLotInfo) ?
 								MsgBox(_t('_bx_messenger_txt_msg_no_results')) : 
 								$this-> getPostBoxWithHistory($iProfileId, $iLotId, $iType, MsgBox(_t('_bx_messenger_what_do_think')))
 		));
-	}
+	}	
 	
 	/**
 	* Create top of the block with participants names and statuses
@@ -131,16 +144,18 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$iCount = count($aParticipantsList);
 		$aParticipantsList = array_slice($aParticipantsList, 0, $this -> _oConfig -> CNF['PARAM_ICONS_NUMBER']); 
 	
-		if (count($aParticipantsList) == 1){
+		if (count($aParticipantsList) == 1)
+		{
 			$oProfile = $this -> getObjectUser($aParticipantsList[0]);
 			
-			if ($oProfile){ 
+			if ($oProfile)
+			{				
 				$bOnline = method_exists($oProfile, 'isOnline') ? $oProfile -> isOnline(): false;
 				$aNickNames['bx_repeat:users'][] = array(
 										'profile_username' => $oProfile -> getUrl(),
 										'username' =>  $oProfile -> getDisplayName(),
 										'status' => ($bOnline ? 
-													$this -> getOnlineStatus($oProfile-> id(), 1) : 
+													$this -> getOnlineStatus($oProfile-> id(), 1):
 													$this -> getOnlineStatus($oProfile-> id(), 0)),
 										'time_desc' => ($bOnline ? _t('_bx_messenger_online') : bx_time_js($this -> _oDb -> lastOnline($oProfile-> id()), BX_FORMAT_DATE))
 									  );	
@@ -149,20 +164,21 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		}
 		else
 		{
-			foreach($aParticipantsList as $iParticipant){				
-				$oProfile = $this -> getObjectUser($iParticipant);			
-				if ($oProfile) 
-					$aNickNames[] = '<a href="' . $oProfile -> getUrl() . '">' . $oProfile->getDisplayName() . '</a>';			
+			foreach($aParticipantsList as $iParticipant)
+			{			
+				$oProfile = $this -> getObjectUser($iParticipant);
+				if ($oProfile)
+					$aNickNames[] = $oProfile->getDisplayName();//'<a href="' . $oProfile -> getUrl() . '">' . $oProfile->getDisplayName() . '</a>';
 			}
 			
-			$sCode = $this -> parseHtmlByName('simple_usernames.html', array('usernames' => implode(', ', $aNickNames), 'number' => _t('_bx_messenger_lot_title_participants_number', $iCount)));
+			$sCode = $this -> parseHtmlByName('simple_usernames.html', array('usernames' => implode(', ', $aNickNames) . ' ' . _t('_bx_messenger_lot_title_participants_number', $iCount - (int)$this -> _oConfig -> CNF['PARAM_ICONS_NUMBER'])));
 		}
 		
 		return $sCode;
 	}
 
 	/**
-	* New Conversation area with top and send area (right side block of the main window)
+	* New conversation area with top and send area (right side block of the main window)
 	*@param int $iProfileId logget member id
 	*@param int $iLotId id of conversation. It can be empty if new talk
 	*@param boolean $bFirstTime create private talk window with participants selector at the top
@@ -202,12 +218,13 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
 		$aVars = array('bx_if:find_participants' =>	array(
 															'condition' => !$bFirstTime && $iProfileId == BX_IM_EMPTY,
+															'back_title' => bx_js_string(_t('_bx_messenger_lots_menu_back_title')),
 															'content' => array(
 																'bx_repeat:participants_list' => $aParticipants,
 																'bx_if:edit_mode' => 
 																					array(
 																						'condition' => $iLotId && $this -> _oDb -> isAuthor($iLotId, $iViewer),
-																							'content' => array(
+																						'content' => array(
 																												'lot' => $iLotId,																									
 																												)
 																					),																							
@@ -276,15 +293,14 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$iSymbolsMax = $this->_oConfig-> CNF['MAX_PREV_JOTS_SYMBOLS'];
 			
 		foreach($aLots as $iKey => $aLot){
-			$aParticipantsList = $this -> _oDb -> getParticipantsList($aLot[$this -> _oConfig -> CNF['FIELD_ID']]);
+			$aParticipantsList = $this -> _oDb -> getParticipantsList($aLot[$this -> _oConfig -> CNF['FIELD_ID']], true, $iProfileId);
+			
+			$iParticipantsCount = count($aParticipantsList);
 			$aParticipantsList = array_slice($aParticipantsList, 0, $this -> _oConfig -> CNF['PARAM_ICONS_NUMBER']); 
 				
 			$aVars['bx_repeat:avatars'] = array();
 			$aNickNames = array();
-			$iParticipantsCount = count($aParticipantsList);
 			foreach($aParticipantsList as $iParticipant){				
-				if ($iProfileId == $iParticipant && $iParticipantsCount != 1) continue;
-				
 				$oProfile = $this -> getObjectUser($iParticipant);
 				if ($oProfile) {
 					$aVars['bx_repeat:avatars'][] = array(
@@ -298,52 +314,61 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			
 			if (empty($aNickNames)) continue;
 
-			$iParticipantsCount = count($aNickNames);			
 			if (!empty($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']]))
-			{
-				$sTitle = _t($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']]);	
-				$sTitle = strmaxtextlen($sTitle, $bShowTime ? 15 : 30);
-			}
+				$sTitle = _t($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']]);				
 			else
 			{ 
 				if ($iParticipantsCount > 3)
-					$sTitle = implode(', ', array_slice($aNickNames, 0, 3)) . '...';
+					$sTitle = implode(', ', array_slice($aNickNames, 0, $this -> _oConfig -> CNF['PARAM_ICONS_NUMBER'])) . '...';
 				else
 					$sTitle = implode(', ', $aNickNames);
 			}	
 			
-			$sStatus = '';				
-			if ($iParticipantsCount == 1 && $oProfile && empty($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']]))
+			$sStatus = '';
+			if ($iParticipantsCount == 1 && $oProfile && empty($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']])){
 				$sStatus = (method_exists($oProfile, 'isOnline') ? $oProfile -> isOnline() : false) ? 
 					$this -> getOnlineStatus($oProfile-> id(), 1) : 
 					$this -> getOnlineStatus($oProfile-> id(), 0) ;
+			}
 			else	
-				$sStatus = '<div class="bx-messenger-status count">' . $iParticipantsCount . '</div>';
+				$sStatus = '<div class="status">' . $iParticipantsCount .'</div>';
 	
-			$sTitle = $sStatus . $sTitle;
 			
-			$aLatestJots = $this -> _oDb -> getLatestJot($aLot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']]);			
+			$aVars[$this -> _oConfig -> CNF['FIELD_ID']] = $aLot[$this -> _oConfig -> CNF['FIELD_ID']];
+			$aVars[$this -> _oConfig -> CNF['FIELD_TITLE']] = $sTitle;			
+			$aVars['status'] = $sStatus;			
 			
-			$sMessage = '';
-			if (isset($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE']]))
-					$sMessage = $aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE']];			
+			$aLatestJots = $this -> _oDb -> getLatestJot($aLot[$this -> _oConfig -> CNF['FIELD_ID']]);			
 			
-			$aVars[$this -> _oConfig -> CNF['FIELD_MESSAGE']] = strmaxtextlen($sMessage, $iSymbolsMax);
-			$aVars[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']] = $aLot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']];			
-			$aVars[$this -> _oConfig -> CNF['FIELD_TITLE']] = $sTitle;
-			
-			$aVars['sender_username'] = '';
-			if ($oSender = $this -> getObjectUser($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_AUTHOR']]))
-				$aVars['sender_username'] = $oSender -> id() == $iProfileId? _t('_bx_messenger_you_username_title') : $oSender -> getDisplayName();
+			$iTime = bx_time_js($aLot[$this -> _oConfig -> CNF['FIELD_ADDED']], BX_FORMAT_DATE);
+			if (!empty($aLatestJots))
+			{
+				$sMessage = '';
+				if (isset($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE']]))
+				{
+					$sMessage = $aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE']];
+					$sMessage = BxTemplFunctions::getInstance()->getStringWithLimitedLength($sMessage, $iSymbolsMax, true);
+				}
+				
+				if (!$sMessage && $aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
+					$sMessage = _t('_bx_messenger_attached_files_message', $this -> _oDb -> getJotFiles($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']], true));
+								
+				$aVars[$this -> _oConfig -> CNF['FIELD_MESSAGE']] = $sMessage;
+				
+				$aVars['sender_username'] = '';
+				if ($oSender = $this -> getObjectUser($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_AUTHOR']]))
+					$aVars['sender_username'] = $oSender -> id() == $iProfileId? _t('_bx_messenger_you_username_title') : $oSender -> getDisplayName();
+				
+				$iTime = bx_time_js($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_DATE);
+			}
 			
 			$aVars['class'] = (int)$aLot['unread_num'] ? 'unread-lot' : '';
 			$aVars['bubble_class'] = (int)$aLot['unread_num'] ? '' : 'hidden';
 			$aVars['count'] = (int)$aLot['unread_num'] ? (int)$aLot['unread_num'] : 0;		
-			
 			$aVars['bx_if:show_time'] = array(
 												'condition' => $bShowTime,
 												'content' => array(
-														'time' => bx_time_js($aLot[$this -> _oConfig -> CNF['FIELD_ADDED']], BX_FORMAT_DATE)
+														'time' => $iTime
 													)
 												);			
 			
@@ -399,7 +424,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				
 		$aJots = $this -> _oDb -> getJotsByLotId($aLotInfo[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']], $iStart, $sLoad, $iLimit); 
 		if (empty($aJots))
-						return '';
+			return '';
 					
 		$aVars['bx_repeat:jots'] = array(); 
 		foreach($aJots as $iKey => $aJot){
@@ -407,14 +432,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				if ($oProfile) {
 					$aVars['bx_repeat:jots'][] = array(
 						'title' => $oProfile->getDisplayName(),
-						'time' => bx_time_js($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_TIME),
+						'time' => bx_time_js($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_DATE_TIME),
 						'url' => $oProfile->getUrl(),
 						'thumb' => $oProfile->getThumb(),
 						'id' => $aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']],
 						'message' => nl2br($this -> _oConfig -> bx_linkify($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE']], 'class="bx-link"')),
-						'attachment' => !empty($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT']]) ? 
-												$this -> getJotAsAttachment($this -> _oConfig -> isJotLink($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT']])['id']) 
-												: '',
+						'attachment' => !empty($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']]) ? $this -> getAttachment($aJot) : '',
 						'display' => !$bDisplay ? 'style="display:none;"' : '',
 						'bx_if:delete' => array(
 												'condition' => isAdmin() || $aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AUTHOR']] == $iProfileId,
@@ -437,17 +460,22 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		
 		$aMyLots = $this -> _oDb -> getMyLots($iProfileId);	
 		if (!empty($aMyLots))
-				$sContent = $this -> getLotsPreview($iProfileId, $aMyLots);
+				$sContent = $this -> getLotsPreview($iProfileId, $aMyLots, true);
 		else 
 				$sContent = $this -> getFriendsList();
 
 		$aMyLotsTypes = $this -> _oDb -> getMemberLotsTypes($iProfileId);		
 		$aVars = array(
 			'items' => $sContent,
+			'create_lot_title' => bx_js_string(_t('_bx_messenger_lots_menu_create_lot_title')),
+			'star_title' => bx_js_string(_t('_bx_messenger_lots_menu_star_title')),
+			'search_for_title' => bx_js_string(_t('_bx_messenger_search_for_lost_title')),
 			'bx_repeat:menu' => array(
 										array('menu_title' => _t("_bx_messenger_lots_type_all"), 'type' => 0, 'count' => '')
 									 ),
 			'profile' => (int)$iTalkPerson,
+			'star_icon' => $this -> _oConfig -> CNF['STAR_ICON'],
+			'star_color' => $this -> _oConfig -> CNF['STAR_BACKGROUND_COLOR']			
 		);
 		
 		$aMenu = $this -> _oDb -> getAllLotsTypes();
@@ -461,7 +489,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	}
 
 	/**
-	* Init js files depends on administratin settings
+	* Create js configuration for the messenger depends on administratin settings
 	*@param int $iProfileId logget member id
 	*@return string html code
 	*/
@@ -496,7 +524,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	}
 	
 	/**
-	* Crate profile html template for jot and is used when member posts a message
+	* Create profile html template for jot which is used when member posts a message
 	*@param int $iProfileId logget member id
 	*@return string html code
 	*/
@@ -527,14 +555,76 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	}
 	
 	/**
-	* Returns Jot content as attachment()repost for a message
+	* Returns attachment according jot's attachment type
+	*@param array $aJot jot info
+	*@return string html code
+	*/	
+	function getAttachment(&$aJot){
+		$sHTML = '';
+		$iViewer = bx_get_logged_profile_id();
+		
+		if (!empty($aJot))
+		{
+			switch($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']])
+			{
+				case 'repost':
+						$sHTML = $this -> getJotAsAttachment($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_ID']]);
+						break;
+				case 'files':
+						$aFiles = $this -> _oDb -> getJotFiles($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_ID']]);
+						
+						$aItems = array(
+							'bx_repeat:images' => array(),
+							'bx_repeat:files' => array()
+						);
+						
+						$oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);
+						foreach($aFiles as $iKey => $aFile){								
+								$isAuthor = $aFile[$this -> _oConfig -> CNF['FIELD_ST_AUTHOR']] == $iViewer || isAdmin();								
+								
+								if ($oStorage -> isImageFile($aFile[$this->_oConfig->CNF['FIELD_ST_TYPE']])){
+									$sPhotoThumb = '';
+									if ($aFile[$this->_oConfig->CNF['FIELD_ST_TYPE']] != 'image/gif' && $oImagesTranscoder = BxDolTranscoderImage::getObjectInstance($this->_oConfig->CNF['OBJECT_IMAGES_TRANSCODER_PREVIEW']))
+										$sPhotoThumb = $oImagesTranscoder->getFileUrl((int)$aFile[$this->_oConfig->CNF['FIELD_MESSAGE_ID']]);					
+									
+									$sFileUrl = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$this->_oConfig->CNF['FIELD_MESSAGE_ID']]);
+									$aItems['bx_repeat:images'][] = array(
+										'url' => $sPhotoThumb ? $sPhotoThumb : $sFileUrl,
+										'name' => $aFile[$this->_oConfig->CNF['FIELD_ST_NAME']],
+										'id' => $aFile[$this->_oConfig->CNF['FIELD_MESSAGE_ID']],
+										'delete_code' => $this -> deleteFileCode($aFile[$this->_oConfig->CNF['FIELD_MESSAGE_ID']], $isAuthor)
+									);
+								}
+								else
+									$aItems['bx_repeat:files'][] = array(
+										'type' => $oStorage -> getFontIconNameByFileName($aFile[$this->_oConfig->CNF['FIELD_ST_NAME']]),
+										'name' => $aFile[$this->_oConfig->CNF['FIELD_ST_NAME']],
+										'file_type' => $aFile[$this->_oConfig->CNF['FIELD_ST_TYPE']],
+										'id' => $aFile[$this->_oConfig->CNF['FIELD_MESSAGE_ID']],
+										'delete_code' => $this -> deleteFileCode($aFile[$this->_oConfig->CNF['FIELD_MESSAGE_ID']], $isAuthor)
+									);
+						}
+						
+						$sHTML = $this -> parseHtmlByName('files.html', $aItems);						
+						break;
+			}
+			
+			
+		}
+		
+		return $sHTML;
+	}
+	
+	/**
+	* Returns Jot content as attachment(repost) for a message
 	*@param int $iJotId jot id
 	*@return string html code
 	*/
 	function getJotAsAttachment($iJotId){
 		$sHTML = '';
 		$aJot = $this -> _oDb -> getJotById($iJotId);
-		if (!empty($aJot)){
+		if (!empty($aJot))
+		{
 			$aLotsTypes = $this -> _oDb -> getLotsTypesPairs();
 			$oProfile = $this -> getObjectUser($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_AUTHOR']]);	
 			$aLotInfo =  $this -> _oDb -> getLotByJotId($iJotId, false);
@@ -556,17 +646,61 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@return object instance of Profile
 	*/
 	private function getObjectUser($iProfileId = 0)
-    {
-    	bx_import('BxDolProfile');
-        $oProfile = BxDolProfile::getInstance($iProfileId);
-        if (!$oProfile) {
-            bx_import('BxDolProfileUndefined');
-            $oProfile = BxDolProfileUndefined::getInstance();
-        }
+	{
+		bx_import('BxDolProfile');
+		$oProfile = BxDolProfile::getInstance($iProfileId);
+		if (!$oProfile) {
+			bx_import('BxDolProfileUndefined');
+			$oProfile = BxDolProfileUndefined::getInstance();
+		}
 
-        return $oProfile;
-    }
+		return $oProfile;
+	}
 	
+	/**
+	* Returns right side file's menu in talk history. Allows to  remove or donwload the file
+	*@param int $iFileId file id in storage table
+	*@param boolean $bAuthor is the vendor of the file
+	*@return string html
+	*/
+	public function deleteFileCode($iFileId, $bAuthor = false){
+		return $this -> parseHtmlByName('file_menu.html', array(					
+					'id' => (int)$iFileId,
+					'url' => BX_DOL_URL_ROOT,
+					'bx_if:delete' => array(
+						'condition' => $bAuthor,
+						'content'	=> array(
+							'delete_message' => bx_js_string(_t('_bx_messenger_post_confirm_delete_file')),
+							'id' => (int)$iFileId
+						)
+					 )
+				));
+	}
+	
+	/**
+	* Returns files uploading form
+	*@param int $iProfile viewer profile id
+	*@return string html form
+	*/
+	public function getFilesUploadingForm($iProfileId){
+		$oStorage = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE']);
+		if (!$oStorage)
+			return '';	
+		
+		return $this -> parseHtmlByName('uploader_form.html', array(
+			'restrictions_text' => '',
+			'delete' => bx_js_string(_t('_bx_messenger_upload_delete')),
+			'delete_confirm' => bx_js_string(_t('_bx_messenger_delete_confirm')),
+			'all_files_confirm' => bx_js_string(_t('_bx_messenger_delete_all_files_confirm')),
+			'message' => bx_js_string(_t('_bx_messenger_upload_drop_area_message')),
+			'invalid_file_type' => bx_js_string(_t('_bx_messenger_upload_invalid_file_type')),
+			'file_size' => (int)$oStorage -> getMaxUploadFileSize($iProfileId)/(1024*1024), //convert to MB
+			'big_file' => bx_js_string($oStorage -> getRestrictionsTextFileSize($iProfileId)),
+			'max_files_exceeded' => bx_js_string(_t('_bx_messenger_max_files_upload_error')),
+			'number_of_files' => (int)$this->_oConfig-> CNF['MAX_FILES_TO_UPLOAD'],
+			'response_error' => bx_js_string(_t('_bx_messenger_invalid_server_response')),
+        ));
+	}
 
 }
 

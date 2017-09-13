@@ -14,9 +14,9 @@
  */
 class BxMessengerPageMain extends BxBaseModTextPageBrowse
 {
-    public function __construct($aObject, $oTemplate = false)
-    {
-        $this->MODULE = 'bx_messenger';
+	public function __construct($aObject, $oTemplate = false)
+	{
+		$this->MODULE = 'bx_messenger';
 		parent::__construct($aObject, $oTemplate);	
 	}
 	

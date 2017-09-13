@@ -1,0 +1,53 @@
+<div class="bx-messenger-files-upload-area">
+	<div class="bx-messenger-files-upload-description-area ">
+		<div contenteditable="true" placeholder="Add comments..." id="bx-messenger-files-upload-comment"></div>
+	</div>
+	<div class="dropzone" id="bx-messenger-uploaded-files-area"></div>
+	<div class="bx-def-padding-top bx-clearfix">
+      <div class="bx-btn bx-btn-primary bx-def-margin-sec-right" id="select-files" onclick="oMessenger.onSendFiles(AqbDropZone);"><bx_text:_bx_messenger_upload_send_button /></div> 
+      <div class="bx-btn close" onclick="AqbDropZone.options.onClose();"><bx_text:_bx_messenger_upload_close /></div>
+    </div>
+</div>
+<script>
+var AqbDropZone = new Dropzone("#bx-messenger-uploaded-files-area", { 
+			url: 'modules/?r=messenger/upload_temp_file',
+			dictDefaultMessage: '__message__',
+			dictFileTooBig: '__big_file__',
+			dictResponseError: '__response_error__',
+			dictMaxFilesExceeded: '__max_files_exceeded__',
+			maxFiles:__number_of_files__,
+			maxFilesize:__file_size__,
+			addRemoveLinks:true,			
+			dictRemoveFile:'__delete__',
+			dictInvalidFileType:'__invalid_file_type__',
+			dictRemoveFileConfirmation:'__delete_confirm__',
+			dictRemoveAllFilesConfirmation:'__all_files_confirm__',
+			clickable: ".dropzone",
+			onClose:function(){				
+				if (oMessenger.onCloseUploadingForm(AqbDropZone.options.dictRemoveAllFilesConfirmation, AqbDropZone.getAcceptedFiles().length))
+					AqbDropZone.removeAllFiles();				
+			},
+			
+			success: function(file) {
+				var _this = this;
+				$.post('modules/?r=messenger/is_valid_file', {name: file.name}, function(oData){							
+					if (parseInt(oData.code)){
+							file.accepted = false;
+							_this._errorProcessing([file], _this.options.dictInvalidFileType);
+						}
+						else
+						{
+							if (!oData.is_image)
+								$('.dz-image', file.previewElement).html('<i class="sys-icon ' + oData.thumbnail + '"></i>');
+						}
+				},
+				'json');
+			},
+			removedfile:function(file){
+				var $this = this;
+				$(file.previewElement).remove();
+				$.post('modules/?r=messenger/remove_temporary_file', {name: file.name});
+			}
+			
+		});
+</script>

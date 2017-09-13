@@ -1,0 +1,15 @@
+<span class="delete">
+	<div class="bx-messenger-jots-actions-list">
+		<i data-feather="more-horizontal"></i>
+			<div class="bx-messenger-jots-icons">		
+				<bx_if:delete>
+					<a href="javascript:void(0);" onclick="if (confirm('__delete_message__')) oMessenger.removeFile(this, __id__);">
+						<i data-feather="delete" /></i>
+					</a>
+				</bx_if:delete>
+				<a onclick="javascript:window.location.href='__url__modules/?r=messenger/download_file/__id__'" href="javascript:void(0);">	
+					<i data-feather="download"/></i>
+				</a>
+			</div>
+	</div>
+</span>

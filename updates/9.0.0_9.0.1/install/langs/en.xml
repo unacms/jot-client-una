@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="en" flag="gb" title="English">
+	<string_add name="_bx_messenger_lots_menu_mute_info_off"><![CDATA[Turn off notifications from this talk]]></string_add>
+	<string_add name="_bx_messenger_lots_menu_mute_info_on"><![CDATA[Enable notifications from the talk]]></string_add>
+	<string_add name="_bx_messenger_lots_menu_star_on"><![CDATA[Mark talk as important]]></string_add>
+	<string_add name="_bx_messenger_lots_menu_star_off"><![CDATA[Unmark talk]]></string_add>
+	<string_add name="_bx_messenger_reconnecting_failed"><![CDATA[Connection failed]]></string_add>
+	<string_add name="_bx_messenger_upload_invalid_file_type"><![CDATA[Sorry, this file type forbidden!]]></string_add>
+	<string_add name="_bx_messenger_upload_drop_area_message"><![CDATA[Drop files here or click to upload.]]></string_add>
+	<string_add name="_bx_messenger_upload_delete"><![CDATA[Delete file]]></string_add>
+	<string_add name="_bx_messenger_upload_send_button"><![CDATA[Send]]></string_add>
+	<string_add name="_bx_messenger_upload_close"><![CDATA[Close]]></string_add>
+	<string_add name="_bx_messenger_delete_confirm"><![CDATA[Are you sure you want to delete the file?]]></string_add>
+	<string_add name="_bx_messenger_delete_all_files_confirm"><![CDATA[All files from the list will be lost, continue and close the form?]]></string_add>
+	<string_add name="_bx_messenger_post_view_actions"><![CDATA[View actions]]></string_add>
+	<string_add name="_bx_messenger_post_attache_files"><![CDATA[Send files]]></string_add>
+	<string_add name="_bx_messenger_post_emoji"><![CDATA[Add emoji]]></string_add>
+	<string_add name="_bx_messenger_post_file_can_not_be_delete"><![CDATA[You can not remove the file!]]></string_add>
+	<string_add name="_bx_messenger_post_confirm_delete_file"><![CDATA[Are you sure you want to delete the file?]]></string_add>
+	<string_add name="_bx_messenger_post_file_not_found"><![CDATA[File not found!]]></string_add>
+	<string_add name="_bx_messenger_max_files_upload"><![CDATA[Max files number to send in one message]]></string_add>
+	<string_add name="_bx_messenger_max_files_upload_error"><![CDATA[Exceeded max files to send in one message (maximum {{maxFiles}})!]]></string_add>
+	<string_add name="_bx_messenger_invalid_server_response"><![CDATA[Invalid server response ({{statusCode}})]]></string_add>
+	<string_add name="_bx_messenger_attached_files_message"><![CDATA[{0} files received]]></string_add>
+	<string_add name="_bx_messenger_lots_menu_settings_title"><![CDATA[Talk options]]></string_add>
+	<string_add name="_bx_messenger_lots_menu_back_title"><![CDATA[Back to the talks list]]></string_add>
+	<string_add name="_bx_messenger_lots_menu_create_lot_title"><![CDATA[Create new talk]]></string_add>
+	<string_add name="_bx_messenger_lots_menu_star_title"><![CDATA[Show only marked/unmarked talks]]></string_add>
+	<string_add name="_bx_messenger_search_for_lost_title"><![CDATA[Find talks by title or message]]></string_add>
+
+	<string_upd name="_bx_messenger_is_push_enabled"><![CDATA[Enable OneSignal Push Notifications]]></string_upd>
+	<string_upd name="_bx_messenger_share_jot"><![CDATA[Copy and share jot's link]]></string_upd>
+	<string_upd name="_bx_messenger_lot_title_participants_number"><![CDATA[and {0} others]]></string_upd>
+	<string_upd name="_bx_messenger_reconnecting_message"><![CDATA[Connecting]]></string_upd>
+
+	<string_del name="_bx_messenger_menu_home"><![CDATA[Back]]></string_del>
+	<string_del name="_bx_messenger_lots_menu_mute_info"><![CDATA[Mute stops notifications from this talk]]></string_del>
+</resources>

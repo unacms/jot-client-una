@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="ru" flag="ru" title="Russian">
+	<string_add name="_bx_messenger_lots_menu_mute_info_off"><![CDATA[При выключении оповещений, вы перестаните получать пуш нотификацию]]></string_add>
+	<string_add name="_bx_messenger_lots_menu_mute_info_on"><![CDATA[Включить уведомления о новых сообщениях]]></string_add>
+	<string_add name="_bx_messenger_lots_menu_star_on"><![CDATA[Пометить разговор как важный]]></string_add>
+	<string_add name="_bx_messenger_lots_menu_star_off"><![CDATA[Отменить метку]]></string_add>
+	<string_add name="_bx_messenger_upload_invalid_file_type"><![CDATA[Извините, но этот тип файла не может быть загружен из соображений безопасности!]]></string_add>
+	<string_add name="_bx_messenger_upload_drop_area_message"><![CDATA[Перетащите файлы сюда или нажмите на кнопку загрузить]]></string_add>
+	<string_add name="_bx_messenger_upload_delete"><![CDATA[Удалить]]></string_add>
+	<string_add name="_bx_messenger_upload_send_button"><![CDATA[Оправить]]></string_add>
+	<string_add name="_bx_messenger_upload_close"><![CDATA[Закрыть]]></string_add>
+	<string_add name="_bx_messenger_delete_confirm"><![CDATA[Вы уверены, что хотите удалить этот файл?]]></string_add>
+	<string_add name="_bx_messenger_delete_all_files_confirm"><![CDATA[Все файлы из списка будут удалены, продолжить и закрыть форму?]]></string_add>
+	<string_add name="_bx_messenger_post_view_actions"><![CDATA[Показать действия]]></string_add>
+	<string_add name="_bx_messenger_post_attache_files"><![CDATA[Прикрепить Файлы]]></string_add>
+	<string_add name="_bx_messenger_post_emoji"><![CDATA[Добавить смайл]]></string_add>
+	<string_add name="_bx_messenger_post_file_can_not_be_delete"><![CDATA[Вы не можете удалить этот файл!]]></string_add>
+	<string_add name="_bx_messenger_post_confirm_delete_file"><![CDATA[Вы уверены что хотите удалить этот файл?]]></string_add>
+	<string_add name="_bx_messenger_post_file_not_found"><![CDATA[Файл не найден!]]></string_add>
+	<string_add name="_bx_messenger_max_files_upload"><![CDATA[Максимальное количество файлов, которое можно отправить в одном сообщении {{maxFiles}}.]]></string_add>
+	<string_add name="_bx_messenger_max_files_upload_error"><![CDATA[Превышено максимальное количество файлов для отправки в одном сообщении (максимально {{maxFiles}})!]]></string_add>
+	<string_add name="_bx_messenger_invalid_server_response"><![CDATA[Неверный ответ сервера ({{statusCode}})]]></string_add>
+	<string_add name="_bx_messenger_attached_files_message"><![CDATA[Получено {0} файл(ов)]]></string_add>
+	<string_add name="_bx_messenger_lots_menu_settings_title"><![CDATA[Опции разговора]]></string_add>
+	<string_add name="_bx_messenger_lots_menu_back_title"><![CDATA[Вернуться к списку разговоров]]></string_add>
+	<string_add name="_bx_messenger_lots_menu_create_lot_title"><![CDATA[Создать разговор]]></string_add>
+	<string_add name="_bx_messenger_lots_menu_star_title"><![CDATA[Показать только помеченные/непомеченные разговоры]]></string_add>
+	<string_add name="_bx_messenger_search_for_lost_title"><![CDATA[Искать разговор по названию или содержанию сообщения]]></string_add>
+
+	<string_upd name="_bx_messenger_is_push_enabled"><![CDATA[Активировать OneSignal пуш нотификацию]]></string_upd>
+	<string_upd name="_bx_messenger_lot_title_participants_number"><![CDATA[и ещё {0}]]></string_upd>
+
+	<string_del name="_bx_messenger_menu_home"><![CDATA[Назад]]></string_del>
+	<string_del name="_bx_messenger_lots_menu_mute_info"><![CDATA[При выключении оповещений, вы перестаните получать пуш нотификацию]]></string_del>
+</resources>

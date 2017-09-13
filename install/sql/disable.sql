@@ -10,7 +10,8 @@ DELETE FROM `sys_menu_items` WHERE `module` = 'bx_messenger';
 
 -- PAGES
 DELETE FROM `sys_objects_page` WHERE `module` = 'bx_messenger';
-DELETE FROM `sys_pages_blocks` WHERE `module` = 'bx_messenger';
+DELETE FROM `sys_pages_blocks` WHERE `module` = 'bx_messenger' OR `object` = 'bx_messenger_main';
+
 
 -- ALERTS
 SET @iHandler := (SELECT `id` FROM `sys_alerts_handlers` WHERE `name` = 'bx_messenger' LIMIT 1);

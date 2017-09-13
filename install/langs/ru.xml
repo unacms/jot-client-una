@@ -31,7 +31,7 @@
 	<string name="_bx_messenger_menu_item_title_system_messenger"><![CDATA[Болталка]]></string>   
 	<string name="_bx_messenger_menu_notifications_item_sys_title"><![CDATA[Болталка]]></string>
 	<string name="_bx_messenger_menu_notifications_item_title"><![CDATA[Болталка]]></string>   
-	<string name="_bx_messenger_name_place_holder"><![CDATA[Напишите имя тут...]]></string>    
+	<string name="_bx_messenger_name_place_holder"><![CDATA[Напишите имя тут...]]></string>
 	<string name="_bx_messenger_typing_message"><![CDATA[пишет сообщение...]]></string>
 	<string name="_bx_messenger_push_message_title"><![CDATA[Сообщение от {0}]]></string>   
 	<string name="_bx_messenger_is_push_enabled"><![CDATA[Активировать OneSignal пуш нотификацию]]></string>
@@ -71,7 +71,7 @@
 	<string name="_bx_messenger_menu_new_chat_sys_title"><![CDATA[Кнопка болталки]]></string>   
 	<string name="_bx_messenger_menu_new_chat_action_title"><![CDATA[Сообщение]]></string>   
 	<string name="_bx_messenger_home_page_all_members_block"><![CDATA[Кричалка]]></string>
-	<string name="_bx_messenger_friends_page_all_friends_block"><![CDATA[Разговор друзей]]></string>       
+	<string name="_bx_messenger_friends_page_all_friends_block"><![CDATA[Разговор друзей]]></string>
 	<string name="_bx_messenger_push_short_name"><![CDATA[Короткое имя (требуется только если у вас https сайт. Оно должно совпадать с поддоменом, введёным, в настройках пуш оповещений на OneSignal)]]></string>
 	<string name="_bx_messenger_push_safari_id"><![CDATA[Apple Safari Web ID в натрокйах Web Push]]></string>
 	<string name="_bx_messenger_typing_smiles"><![CDATA[Разрешить писать смайлы вручную]]></string>
@@ -98,6 +98,10 @@
 	<string name="_bx_messenger_upload_invalid_file_type"><![CDATA[Извините, но этот тип файла не может быть загружен из соображений безопасности!]]></string>
 	<string name="_bx_messenger_upload_drop_area_message"><![CDATA[Перетащите файлы сюда или нажмите на кнопку загрузить]]></string>
 	<string name="_bx_messenger_upload_delete"><![CDATA[Удалить]]></string>
+	<string name="_bx_messenger_upload_send_button"><![CDATA[Оправить]]></string>
+	<string name="_bx_messenger_upload_close"><![CDATA[Закрыть]]></string>
+	<string name="_bx_messenger_delete_confirm"><![CDATA[Вы уверены, что хотите удалить этот файл?]]></string>
+	<string name="_bx_messenger_delete_all_files_confirm"><![CDATA[Все файлы из списка будут удалены, продолжить и закрыть форму?]]></string>
 	<string name="_bx_messenger_post_view_actions"><![CDATA[Показать действия]]></string>
 	<string name="_bx_messenger_post_attache_files"><![CDATA[Прикрепить Файлы]]></string>
 	<string name="_bx_messenger_post_emoji"><![CDATA[Добавить смайл]]></string>

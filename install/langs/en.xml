@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources name="en" flag="gb" title="English">
-
 	<string name="_bx_messenger"><![CDATA[Messenger]]></string>
 	<string name="_bx_messenger_page_title_sys_view"><![CDATA[Messenger]]></string>
 	<string name="_bx_messenger_page_title_view"><![CDATA[Messenger]]></string>
@@ -49,11 +48,11 @@
 	<string name="_bx_messenger_lots_menu_delete"><![CDATA[Delete]]></string>
 	<string name="_bx_messenger_lots_menu_mute"><![CDATA[Mute]]></string>
 	<string name="_bx_messenger_lots_menu_unmute"><![CDATA[Unmute]]></string>
+	<string name="_bx_messenger_max_jot_number_in_history"><![CDATA[Number of records loads to the history]]></string>
 	<string name="_bx_messenger_lots_menu_mute_info_off"><![CDATA[Turn off notifications from this talk]]></string>
 	<string name="_bx_messenger_lots_menu_mute_info_on"><![CDATA[Enable notifications from the talk]]></string>
 	<string name="_bx_messenger_lots_menu_star_on"><![CDATA[Mark talk as important]]></string>	
 	<string name="_bx_messenger_lots_menu_star_off"><![CDATA[Unmark talk]]></string>
-	<string name="_bx_messenger_max_jot_number_in_history"><![CDATA[Number of records loads to the history]]></string>
 	<string name="_bx_messenger_lots_private_lot_info"><![CDATA[Open for anyone who access to {0}]]></string>
 	<string name="_bx_messenger_lots_private_page"><![CDATA[{0} page]]></string>
 	<string name="_bx_messenger_lots_private_lot"><![CDATA[Private talk]]></string>
@@ -102,7 +101,7 @@
 	<string name="_bx_messenger_upload_send_button"><![CDATA[Send]]></string>
 	<string name="_bx_messenger_upload_close"><![CDATA[Close]]></string>
 	<string name="_bx_messenger_delete_confirm"><![CDATA[Are you sure you want to delete the file?]]></string>
-	<string name="_bx_messenger_delete_all_files_confirm"><![CDATA[All files for the list will be lost, continue and close the form?]]></string>
+	<string name="_bx_messenger_delete_all_files_confirm"><![CDATA[All files from the list will be lost, continue and close the form?]]></string>
 	<string name="_bx_messenger_post_view_actions"><![CDATA[View actions]]></string>
 	<string name="_bx_messenger_post_attache_files"><![CDATA[Send files]]></string>
 	<string name="_bx_messenger_post_emoji"><![CDATA[Add emoji]]></string>

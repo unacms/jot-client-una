@@ -678,8 +678,8 @@ var oMessenger = (function($){
 									bxTime()
 								);
 			
-			_this.initJotIcons('[data-tmp="' + oParams.tmp_id + '"]');			
-			$(_this.sSendArea).html('');			
+			_this.initJotIcons('[data-tmp="' + oParams.tmp_id + '"]');
+			$(_this.sSendArea).html('');		
 			
 			/* Init SVG Icons*/
 			feather.replace();
@@ -705,6 +705,7 @@ var oMessenger = (function($){
 							if (typeof oParams.files !== 'undefined')
 								_this.attacheFiles(iJotId);
 							
+							_this.upLotsPosition(_this.oSettings);
 						}
 						
 						if (!_this.iAttachmentUpdate)
@@ -768,15 +769,26 @@ var oMessenger = (function($){
 						function(oData){
 									if (!parseInt(oData.code)){					
 										oNewLot = $(oData.html);
-										if (lot && !_this.isActiveLot(lot)){
-												if (!oLot.is(':first-child'))
-														oLot.fadeOut('slow', function(){					
-															oLot.remove();
-															$(_this.sLotsListBlock).prepend($(oNewLot).bxTime()).fadeIn('slow');
-														});	
+										if (lot){
+												if (!oLot.is(':first-child')){
+														var sFunc = function(){
+															$(_this.sLotsListBlock).prepend($(oNewLot).bxTime().fadeIn('slow'));
+														};
+														
+														if (oLot.length)
+															oLot.fadeOut('slow', function(){
+																oLot.remove();
+																sFunc();
+															});
+														else
+															sFunc();
+												}
 												else
-													oLot.replaceWith($(oNewLot).bxTime()).bxTime();
-											}			
+													oLot.replaceWith($(oNewLot).fadeTo(150, 0.5).fadeTo(150, 1).bxTime());
+												
+												if (_this.isActiveLot(lot))
+													_this.selectLotEmit($(oNewLot));
+										}		
 									}
 									
 								}, 'json');

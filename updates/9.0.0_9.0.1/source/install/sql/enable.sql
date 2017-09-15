@@ -43,8 +43,8 @@ INSERT INTO `sys_pages_blocks`(`object`, `cell_id`, `module`, `title`, `designbo
 SET @iPBCellProfile = 2;
 SET @iPBCellGroup = 4;
 INSERT INTO `sys_pages_blocks` (`object`, `cell_id`, `module`, `title`, `designbox_id`, `visible_for_levels`, `type`, `content`, `deletable`, `copyable`, `order`, `active`) VALUES
-('trigger_page_profile_view_entry', @iPBCellProfile, 'bx_messenger', '_bx_messenger_page_block_title_messenger', 0, 2147483647, 'service', 'a:3:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:19:"get_block_messenger";s:6:"params";a:1:{i:0;s:6:"{type}";}}', 0, 0, 0, 0),
-('trigger_page_group_view_entry', @iPBCellGroup, 'bx_messenger', '_bx_messenger_page_block_title_messenger', 0, 2147483647, 'service', 'a:3:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:19:"get_block_messenger";s:6:"params";a:1:{i:0;s:6:"{type}";}}', 0, 0, 0, 0);
+('trigger_page_profile_view_entry', @iPBCellProfile, @sName, '_bx_messenger_page_block_title_messenger', 0, 2147483647, 'service', 'a:3:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:19:"get_block_messenger";s:6:"params";a:1:{i:0;s:6:"{type}";}}', 0, 0, 0, 0),
+('trigger_page_group_view_entry', @iPBCellGroup, @sName, '_bx_messenger_page_block_title_messenger', 0, 2147483647, 'service', 'a:3:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:19:"get_block_messenger";s:6:"params";a:1:{i:0;s:6:"{type}";}}', 0, 0, 0, 0);
 
 -- PAGES: add page block on home
 SET @iPBCellHome = 1;

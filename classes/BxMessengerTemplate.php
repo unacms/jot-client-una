@@ -168,10 +168,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			{			
 				$oProfile = $this -> getObjectUser($iParticipant);
 				if ($oProfile)
-					$aNickNames[] = $oProfile->getDisplayName();//'<a href="' . $oProfile -> getUrl() . '">' . $oProfile->getDisplayName() . '</a>';
+					$aNickNames[] = $oProfile->getDisplayName();
 			}
 			
-			$sCode = $this -> parseHtmlByName('simple_usernames.html', array('usernames' => implode(', ', $aNickNames) . ' ' . _t('_bx_messenger_lot_title_participants_number', $iCount - (int)$this -> _oConfig -> CNF['PARAM_ICONS_NUMBER'])));
+			$sOthers = $iCount > (int)$this -> _oConfig -> CNF['PARAM_ICONS_NUMBER'] ? _t('_bx_messenger_lot_title_participants_number', $iCount - (int)$this -> _oConfig -> CNF['PARAM_ICONS_NUMBER']) : '';
+			
+			$sCode = $this -> parseHtmlByName('simple_usernames.html', array('usernames' => implode(', ', $aNickNames) . " {$sOthers}"));
 		}
 		
 		return $sCode;

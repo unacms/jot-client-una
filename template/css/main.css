@@ -418,7 +418,7 @@ div.bx-messenger-jots-icons {	position:absolute;
 	border-radius:0.25rem;
 	padding:0.25rem;
 	right:0;
-	top:-1rem;
+	top:0;
 	background-color:#f3f8fe;	
 	z-index:100;
 }

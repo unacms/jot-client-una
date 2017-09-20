@@ -298,8 +298,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			$aParticipantsList = $this -> _oDb -> getParticipantsList($aLot[$this -> _oConfig -> CNF['FIELD_ID']], true, $iProfileId);
 			
 			$iParticipantsCount = count($aParticipantsList);
-			$aParticipantsList = array_slice($aParticipantsList, 0, $this -> _oConfig -> CNF['PARAM_ICONS_NUMBER']); 
-				
+			$aParticipantsList = $iParticipantsCount ? array_slice($aParticipantsList, 0, $this -> _oConfig -> CNF['PARAM_ICONS_NUMBER']) : array($iProfileId);
+			
 			$aVars['bx_repeat:avatars'] = array();
 			$aNickNames = array();
 			foreach($aParticipantsList as $iParticipant){				
@@ -314,8 +314,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			      }
 			}
 			
-			if (empty($aNickNames)) continue;
-
 			if (!empty($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']]))
 				$sTitle = _t($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']]);				
 			else
@@ -460,11 +458,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	public function getLotsColumn($iProfileId, $iTalkPerson = 0){
 		$sContent = '';
 		
-		$aMyLots = $this -> _oDb -> getMyLots($iProfileId);	
+		$aMyLots = $this -> _oDb -> getMyLots($iProfileId);
 		if (!empty($aMyLots))
-				$sContent = $this -> getLotsPreview($iProfileId, $aMyLots, true);
+			$sContent = $this -> getLotsPreview($iProfileId, $aMyLots, true);
 		else 
-				$sContent = $this -> getFriendsList();
+			$sContent = $this -> getFriendsList();
 
 		$aMyLotsTypes = $this -> _oDb -> getMemberLotsTypes($iProfileId);		
 		$aVars = array(

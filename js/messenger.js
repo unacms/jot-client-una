@@ -98,8 +98,7 @@ var oMessenger = (function($){
 		var	_this = this;
 			oMessageBox = $(this.sMessangerBox),
 			oActionsSiblings = {};
-			
-			
+	
 			this.oSettings.url = oOptions.url || window.location.href,
 			this.oSettings.type = oOptions.type || this.oSettings.type,
 			this.oSettings.lot = oOptions.lot || 0,
@@ -649,11 +648,8 @@ var oMessenger = (function($){
 			oParams.files = aFiles;
 		else
 			oParams.files = undefined;
-		
+
 		oParams.participants = _this.getPatricipantsList();		
-		if (!oParams.lot && !oParams.participants.length)
-			return;
-		
 		if (!(sMessage.length && $.trim(sMessage).length) && typeof oParams.files == 'undefined')
 			return;
 		
@@ -715,8 +711,9 @@ var oMessenger = (function($){
 					case 1:
 						window.location.reload();
 						break;
-					default:
+					default:						
 						alert(oData.message);
+						$(_this.sTalkList).find('[data-tmp="' + oParams.tmp_id + '"]').remove();
 				}			
 					if (typeof fCallBack == 'function')
 						fCallBack();

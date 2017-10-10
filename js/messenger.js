@@ -594,9 +594,6 @@ var oMessenger = (function($){
 						}
 					}
 					
-					if (_this.isMobile()) 
-							_this.correctUserStatus();
-					
 					// embedly/iframly links
 					$('a.bx-link').dolConverLinks();
 					
@@ -605,16 +602,6 @@ var oMessenger = (function($){
 				}
 		}, 'json');	
 	}	
-	
-	/**
-	* Change view of the lot participants if viewer uses mobile devise
-	*/
-	oMessenger.prototype.correctUserStatus = function(){
-		var _this = this;
-		$('.bx-messenger-block.jots .bx-messenger-participants-usernames').each(function(){
-			$('.bx-messenger-status', $(this)).prependTo($('.name', $(this))).end().find('.status').remove();
-		});
-	}
 	
 	oMessenger.prototype.loadJotsForLot = function(iLotId){
 		var _this = this;		
@@ -765,7 +752,7 @@ var oMessenger = (function($){
 		$.get('modules/?r=messenger/update_lot_brief', {lot_id: lot}, 
 						function(oData){
 									if (!parseInt(oData.code)){					
-										oNewLot = $(oData.html);
+										oNewLot = $(oData.html).css('display', 'flex');
 										if (lot){
 												if (!oLot.is(':first-child')){
 														var sFunc = function(){
@@ -1339,9 +1326,15 @@ var oMessenger = (function($){
 			var sColor = $(oEl).data('color');
 
 			if (!_oMessenger.iStarredTalks && sColor)
+			{
+				$(oEl).addClass('active');
 				$('svg', oEl).attr({'fill':sColor, 'color':sColor});
+			}
 			else
+			{
 				$('svg', oEl).attr({'fill':'none', 'color':'none'});
+				$(oEl).removeClass('active');
+			}	
 			
 			_oMessenger.iStarredTalks = !_oMessenger.iStarredTalks;
 			this.searchByItems($('#items').val());			

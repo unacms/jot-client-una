@@ -80,7 +80,7 @@ img.emoji {
 /* Emoji area */
 .emoji-wysiwyg-editor:empty:before {
     content: attr(placeholder);
-    color: #9aa2ab;
+    color: #ccc;
 }
 
 .emoji-wysiwyg-editor:active:before,

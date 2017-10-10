@@ -78,7 +78,6 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box:empty:before
 {
 	overflow:hidden;
 	display:table-cell;	
-	/*max-width:7rem;*/
 	border:2px solid #4a90e2;
 	border-right:0px;
 	border-radius:0.25rem 0 0 0.25rem;
@@ -204,7 +203,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box:empty:before
 
 .bx-messenger-block .bx-db-header .bx-db-title
 {
-	float:none;
+	float:left;
 	max-width:100%;
 }
 
@@ -226,7 +225,6 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box:empty:before
 	text-align:center;	
 	position:relative;
 	display:table-cell;
-	/*border-bottom:1px solid rgba(219,233,249, 0.5);*/
 	padding:0.8rem;
 }
 
@@ -234,7 +232,6 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box:empty:before
 	display: table-cell;
 	vertical-align: top;
 	width:auto;	
-	/*border-bottom:1px solid rgba(219,233,249, 0.5);*/
 	padding-bottom:0.8rem;
 	padding-top:0.8rem;
 }
@@ -486,7 +483,7 @@ div.bx-messenger-attachment-footer span.type{	border-right:1px solid rgba(0,0,
 }
 
 #bx-messenger-files-upload-comment:empty:before {	content: attr(placeholder);
-	color: #9aa2ab;
+	color: #ccc;
 }
 #bx-messenger-files-upload-comment:focus:before 
 {
@@ -537,8 +534,7 @@ div.bx-messenger-attachment-file-wrapper span.delete
 	opacity:inherit;
 }
 
-.bx-messenger-attachment-file-info{	/*float:left;*/
-	overflow:hidden;
+.bx-messenger-attachment-file-info{	overflow:hidden;
 	opacity:1;
 }
 
@@ -588,11 +584,8 @@ div.bx-messenger-attachment-file-images img{	max-width: 40%;
 
 #bx-messenger-big-img img
 {
-	/*max-height:100%;
-	max-width:100%;*/
 	border-radius:0.2rem;
 }
-
 
 #bx-messenger-big-img .bx-popup-content-wrapped{	overflow:hidden;
 	vertical-align:middle;

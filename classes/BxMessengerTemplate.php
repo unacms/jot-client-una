@@ -156,8 +156,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 										'username' =>  $oProfile -> getDisplayName(),
 										'status' => ($bOnline ? 
 													$this -> getOnlineStatus($oProfile-> id(), 1):
-													$this -> getOnlineStatus($oProfile-> id(), 0)),
-										'time_desc' => ($bOnline ? _t('_bx_messenger_online') : bx_time_js($this -> _oDb -> lastOnline($oProfile-> id()), BX_FORMAT_DATE))
+													$this -> getOnlineStatus($oProfile-> id(), 0))
 									  );	
 			}
 			$sCode = $this -> parseHtmlByName('status_usernames.html', $aNickNames);
@@ -292,8 +291,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*/
 	function getLotsPreview($iProfileId, &$aLots, $bShowTime = false){
 		$sContent = '';
-		$iSymbolsMax = $this->_oConfig-> CNF['MAX_PREV_JOTS_SYMBOLS'];
-			
+
 		foreach($aLots as $iKey => $aLot){
 			$aParticipantsList = $this -> _oDb -> getParticipantsList($aLot[$this -> _oConfig -> CNF['FIELD_ID']], true, $iProfileId);
 			
@@ -347,7 +345,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				if (isset($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE']]))
 				{
 					$sMessage = $aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE']];
-					$sMessage = BxTemplFunctions::getInstance()->getStringWithLimitedLength($sMessage, $iSymbolsMax, true);
+					$sMessage = BxTemplFunctions::getInstance()->getStringWithLimitedLength($sMessage, $this->_oConfig-> CNF['MAX_PREV_JOTS_SYMBOLS']);
 				}
 				
 				if (!$sMessage && $aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)

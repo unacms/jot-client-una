@@ -108,7 +108,7 @@
 	<string name="_bx_messenger_post_file_can_not_be_delete"><![CDATA[Вы не можете удалить этот файл!]]></string>
 	<string name="_bx_messenger_post_confirm_delete_file"><![CDATA[Вы уверены что хотите удалить этот файл?]]></string>
 	<string name="_bx_messenger_post_file_not_found"><![CDATA[Файл не найден!]]></string>
-	<string name="_bx_messenger_max_files_upload"><![CDATA[Максимальное количество файлов, которое можно отправить в одном сообщении {{maxFiles}}.]]></string>
+	<string name="_bx_messenger_max_files_upload"><![CDATA[Максимальное количество файлов, которое можно отправить в одном сообщении]]></string>
 	<string name="_bx_messenger_max_files_upload_error"><![CDATA[Превышено максимальное количество файлов для отправки в одном сообщении (максимально {{maxFiles}})!]]></string>
 	<string name="_bx_messenger_invalid_server_response"><![CDATA[Неверный ответ сервера ({{statusCode}})]]></string>
 	<string name="_bx_messenger_attached_files_message"><![CDATA[Получено {0} файл(ов)]]></string>

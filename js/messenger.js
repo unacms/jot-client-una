@@ -98,8 +98,7 @@ var oMessenger = (function($){
 		var	_this = this;
 			oMessageBox = $(this.sMessangerBox),
 			oActionsSiblings = {};
-			
-			
+	
 			this.oSettings.url = oOptions.url || window.location.href,
 			this.oSettings.type = oOptions.type || this.oSettings.type,
 			this.oSettings.lot = oOptions.lot || 0,
@@ -595,9 +594,6 @@ var oMessenger = (function($){
 						}
 					}
 					
-					if (_this.isMobile()) 
-							_this.correctUserStatus();
-					
 					// embedly/iframly links
 					$('a.bx-link').dolConverLinks();
 					
@@ -606,16 +602,6 @@ var oMessenger = (function($){
 				}
 		}, 'json');	
 	}	
-	
-	/**
-	* Change view of the lot participants if viewer uses mobile devise
-	*/
-	oMessenger.prototype.correctUserStatus = function(){
-		var _this = this;
-		$('.bx-messenger-block.jots .bx-messenger-participants-usernames').each(function(){
-			$('.bx-messenger-status', $(this)).prependTo($('.name', $(this))).end().find('.status').remove();
-		});
-	}
 	
 	oMessenger.prototype.loadJotsForLot = function(iLotId){
 		var _this = this;		
@@ -649,11 +635,8 @@ var oMessenger = (function($){
 			oParams.files = aFiles;
 		else
 			oParams.files = undefined;
-		
+
 		oParams.participants = _this.getPatricipantsList();		
-		if (!oParams.lot && !oParams.participants.length)
-			return;
-		
 		if (!(sMessage.length && $.trim(sMessage).length) && typeof oParams.files == 'undefined')
 			return;
 		
@@ -678,8 +661,8 @@ var oMessenger = (function($){
 									bxTime()
 								);
 			
-			_this.initJotIcons('[data-tmp="' + oParams.tmp_id + '"]');			
-			$(_this.sSendArea).html('');			
+			_this.initJotIcons('[data-tmp="' + oParams.tmp_id + '"]');
+			$(_this.sSendArea).html('');		
 			
 			/* Init SVG Icons*/
 			feather.replace();
@@ -705,6 +688,7 @@ var oMessenger = (function($){
 							if (typeof oParams.files !== 'undefined')
 								_this.attacheFiles(iJotId);
 							
+							_this.upLotsPosition(_this.oSettings);
 						}
 						
 						if (!_this.iAttachmentUpdate)
@@ -714,8 +698,9 @@ var oMessenger = (function($){
 					case 1:
 						window.location.reload();
 						break;
-					default:
+					default:						
 						alert(oData.message);
+						$(_this.sTalkList).find('[data-tmp="' + oParams.tmp_id + '"]').remove();
 				}			
 					if (typeof fCallBack == 'function')
 						fCallBack();
@@ -767,16 +752,27 @@ var oMessenger = (function($){
 		$.get('modules/?r=messenger/update_lot_brief', {lot_id: lot}, 
 						function(oData){
 									if (!parseInt(oData.code)){					
-										oNewLot = $(oData.html);
-										if (lot && !_this.isActiveLot(lot)){
-												if (!oLot.is(':first-child'))
-														oLot.fadeOut('slow', function(){					
-															oLot.remove();
-															$(_this.sLotsListBlock).prepend($(oNewLot).bxTime()).fadeIn('slow');
-														});	
+										oNewLot = $(oData.html).css('display', 'flex');
+										if (lot){
+												if (!oLot.is(':first-child')){
+														var sFunc = function(){
+															$(_this.sLotsListBlock).prepend($(oNewLot).bxTime().fadeIn('slow'));
+														};
+														
+														if (oLot.length)
+															oLot.fadeOut('slow', function(){
+																oLot.remove();
+																sFunc();
+															});
+														else
+															sFunc();
+												}
 												else
-													oLot.replaceWith($(oNewLot).bxTime()).bxTime();
-											}			
+													oLot.replaceWith($(oNewLot).fadeTo(150, 0.5).fadeTo(150, 1).bxTime());
+												
+												if (_this.isActiveLot(lot))
+													_this.selectLotEmit($(oNewLot));
+										}		
 									}
 									
 								}, 'json');
@@ -1330,9 +1326,15 @@ var oMessenger = (function($){
 			var sColor = $(oEl).data('color');
 
 			if (!_oMessenger.iStarredTalks && sColor)
+			{
+				$(oEl).addClass('active');
 				$('svg', oEl).attr({'fill':sColor, 'color':sColor});
+			}
 			else
+			{
 				$('svg', oEl).attr({'fill':'none', 'color':'none'});
+				$(oEl).removeClass('active');
+			}	
 			
 			_oMessenger.iStarredTalks = !_oMessenger.iStarredTalks;
 			this.searchByItems($('#items').val());			

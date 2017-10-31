@@ -156,8 +156,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 										'username' =>  $oProfile -> getDisplayName(),
 										'status' => ($bOnline ? 
 													$this -> getOnlineStatus($oProfile-> id(), 1):
-													$this -> getOnlineStatus($oProfile-> id(), 0)),
-										'time_desc' => ($bOnline ? _t('_bx_messenger_online') : bx_time_js($this -> _oDb -> lastOnline($oProfile-> id()), BX_FORMAT_DATE))
+													$this -> getOnlineStatus($oProfile-> id(), 0))
 									  );	
 			}
 			$sCode = $this -> parseHtmlByName('status_usernames.html', $aNickNames);
@@ -168,10 +167,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			{			
 				$oProfile = $this -> getObjectUser($iParticipant);
 				if ($oProfile)
-					$aNickNames[] = $oProfile->getDisplayName();//'<a href="' . $oProfile -> getUrl() . '">' . $oProfile->getDisplayName() . '</a>';
+					$aNickNames[] = $oProfile->getDisplayName();
 			}
 			
-			$sCode = $this -> parseHtmlByName('simple_usernames.html', array('usernames' => implode(', ', $aNickNames) . ' ' . _t('_bx_messenger_lot_title_participants_number', $iCount - (int)$this -> _oConfig -> CNF['PARAM_ICONS_NUMBER'])));
+			$sOthers = $iCount > (int)$this -> _oConfig -> CNF['PARAM_ICONS_NUMBER'] ? _t('_bx_messenger_lot_title_participants_number', $iCount - (int)$this -> _oConfig -> CNF['PARAM_ICONS_NUMBER']) : '';
+			
+			$sCode = $this -> parseHtmlByName('simple_usernames.html', array('usernames' => implode(', ', $aNickNames) . " {$sOthers}"));
 		}
 		
 		return $sCode;
@@ -290,14 +291,13 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*/
 	function getLotsPreview($iProfileId, &$aLots, $bShowTime = false){
 		$sContent = '';
-		$iSymbolsMax = $this->_oConfig-> CNF['MAX_PREV_JOTS_SYMBOLS'];
-			
+
 		foreach($aLots as $iKey => $aLot){
 			$aParticipantsList = $this -> _oDb -> getParticipantsList($aLot[$this -> _oConfig -> CNF['FIELD_ID']], true, $iProfileId);
 			
 			$iParticipantsCount = count($aParticipantsList);
-			$aParticipantsList = array_slice($aParticipantsList, 0, $this -> _oConfig -> CNF['PARAM_ICONS_NUMBER']); 
-				
+			$aParticipantsList = $iParticipantsCount ? array_slice($aParticipantsList, 0, $this -> _oConfig -> CNF['PARAM_ICONS_NUMBER']) : array($iProfileId);
+			
 			$aVars['bx_repeat:avatars'] = array();
 			$aNickNames = array();
 			foreach($aParticipantsList as $iParticipant){				
@@ -312,8 +312,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			      }
 			}
 			
-			if (empty($aNickNames)) continue;
-
 			if (!empty($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']]))
 				$sTitle = _t($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']]);				
 			else
@@ -347,7 +345,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				if (isset($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE']]))
 				{
 					$sMessage = $aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE']];
-					$sMessage = BxTemplFunctions::getInstance()->getStringWithLimitedLength($sMessage, $iSymbolsMax, true);
+					$sMessage = BxTemplFunctions::getInstance()->getStringWithLimitedLength($sMessage, $this->_oConfig-> CNF['MAX_PREV_JOTS_SYMBOLS']);
 				}
 				
 				if (!$sMessage && $aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
@@ -458,11 +456,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	public function getLotsColumn($iProfileId, $iTalkPerson = 0){
 		$sContent = '';
 		
-		$aMyLots = $this -> _oDb -> getMyLots($iProfileId);	
+		$aMyLots = $this -> _oDb -> getMyLots($iProfileId);
 		if (!empty($aMyLots))
-				$sContent = $this -> getLotsPreview($iProfileId, $aMyLots, true);
+			$sContent = $this -> getLotsPreview($iProfileId, $aMyLots, true);
 		else 
-				$sContent = $this -> getFriendsList();
+			$sContent = $this -> getFriendsList();
 
 		$aMyLotsTypes = $this -> _oDb -> getMemberLotsTypes($iProfileId);		
 		$aVars = array(

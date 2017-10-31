@@ -12,7 +12,7 @@
 	<string name="_bx_messenger_page_title_home"><![CDATA[My Messages]]></string>	
 	<string name="_bx_messenger_page_title_sys_main"><![CDATA[Messenger]]></string>
 	<string name="_bx_messenger_page_title_main"><![CDATA[Messenger]]></string>	
-	<string name="_bx_messenger_page_inbox_block_title"><![CDATA[Inbox]]></string>	
+	<string name="_bx_messenger_page_inbox_block_title"><![CDATA[Talks]]></string>	
 	<string name="_bx_messenger_page_conversation_block_title"><![CDATA[Messages]]></string>	
 	<string name="_bx_messenger_page_block_title"><![CDATA[Messenger]]></string>
 	<string name="_bx_messenger_send_message_only_for_logged"><![CDATA[Sorry, but only logged members can send messages!]]></string>

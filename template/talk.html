@@ -2,8 +2,14 @@
 	<div class="bx-db-header">
 		<div class="bx-messenger-hide-mobile bx-db-menu left">
 			<a href="javascript:void(0);" onclick="oJotWindowBuilder.changeColumn();" title="__back_title__">	
-				<i data-feather="chevron-left"></i><span>__back_count__</span>
+				<i data-feather="chevron-left"></i>
+				<bx_if:count>
+					<span class="bubble bx-menu-toolbar-item-addon bx-def-unit-alert-middle">__back_count__</span>
+				</bx_if:count>
 			</a>
+		</div>
+		<div class="bx-db-title bx-def-font-h4">
+			__title__
 		</div>
 		<div class="bx-db-menu right">			
 			<a id="star" href="javascript:void(0);" title="__star_title__" onclick="oMessenger.onStarLot(__id__, this);" data-value="__star__" data-color="__star_fill_color__">
@@ -15,9 +21,6 @@
 			<a href="javascript:void(0);"  title="__settings_title__"  onclick="bx_menu_slide('#bx-menu-db-menu-settings', this)">
 				<i data-feather="info"></i>		
 			</a>
-		</div>
-		<div class="bx-db-title bx-def-font-h4">
-			__title__
 		</div>
 		<div id="bx-menu-db-menu-settings" class="bx-popup-wrapper bx-popup-slide-wrapper bx-def-z-index-front bx-def-border-bottom bx-def-border-top bx-def-padding bx-def-box-sizing">
 			<ul class="bx-menu-inter-vert">

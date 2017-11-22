@@ -1,8 +1,10 @@
 .bx-messenger-border{
-	padding:0.5rem 1rem 0.5rem 1rem;
+	padding:0rem 0.5rem 0rem 0.5rem;
 	background-color:rgba(0, 0, 0, 0);
 	border-bottom:1px solid #d7e9fb;
 	overflow:hidden;
+	display:flex;
+	align-items:center;
 }
 
 .bx-messenger-border input{
@@ -110,7 +112,8 @@ div.bx-messenger-lots-menu ul li a.active{
   padding-left:0px;
 }
 
-#bx-content-main .bx-def-padding-sec-left .bx-def-border-block{
+#bx-content-main .bx-def-padding-sec-left .bx-def-border-block
+{
 	border-left:1px solid #d7e9fb;
 	-webkit-background-clip: padding-box;
 	background-clip: padding-box;
@@ -120,75 +123,24 @@ div.bx-messenger-lots-menu ul li a.active{
 	border-right:1px solid #d7e9fb;
 }
 
-.bx-messenger-friends-list{
+.bx-messenger-friends-list
+{
 	vertical-align:middle;
 	overflow:hiden;
 }
-.bx-messenger-friends-list div{
+.bx-messenger-friends-list div
+{
 	width:100%;
 }
 
-.bx-messenger-top-user-info{
+.bx-messenger-top-user-info
+{
 	width:100%;
 	overflow:hidden;
 }
 
-#bx-messenger-add-users-input{
-	width:auto;
-	float:left;
-	border:0px;
-	box-shadow:none;
-	background-color:rgba(0,0,0,0);
-	height:2rem;
-}
-
-#bx-messenger-add-users img,
-#bx-messenger-add-users span{
-	float:left;	
-}
-
-#bx-messenger-add-users img.bx-def-thumb-size{
-	width:2rem;
-	height:2rem;
-	line-height: 2rem;
-}
-
-#bx-messenger-add-users b{
-	line-height: 2rem;	
-}
-
-.bx-messenger-block .bx-db-header  > div{
-	line-height:2.5rem;
-}
-
-.bx-db-header{
-	min-height:2.5rem;
-	height:auto;	
-}
-
-.bx-messenger-right-column{
-	text-align:left;
-	overflow:hidden;
-}
-
-.bx-messenger-right-column div.bx-form-input-autotoken{
-	padding:0.2rem 1rem 0rem 1rem;
-	line-height:2rem;
-}
-
-.bx-messenger-right-column div.bx-form-input-autotoken b{
-	padding-left:0;
-	margin-left:0;
-	margin-bottom:0.2rem;
-}
-
-.bx-messenger-right-column  .bx-form-input-autotoken b:after{
-   font-family: 'sys-user';
-   content: "\f00d";  
-   margin-left:0.1rem;
-}
-
-.bx-messenger-main-block{
+.bx-messenger-main-block
+{
 	overflow:auto;
 	position:relative;
 }
@@ -196,65 +148,79 @@ div.bx-messenger-lots-menu ul li a.active{
 .bx-messenger-block-jots  a,
 .bx-messenger-block-jots  a:hover,
 .bx-messanger-items-list a,
-.bx-messanger-items-list a:hover{
+.bx-messanger-items-list a:hover
+{
 	color:inherit;
 }
 
 
-.bx-messenger-jots-snip{
+.bx-messenger-jots-snip
+{
 	overflow:hidden;	
 	min-height:50px;	
 	display:flex;
 	cursor:pointer;
 }
 
-.bx-messenger-jots-snip-avatars{
+.bx-messenger-jots-snip-avatars
+{
 	height:auto;
 	text-align:center;	
 	position:relative;
 }
 
-.bx-messenger-jots-snip-info{
+.bx-messenger-jots-snip-info
+{
 	vertical-align: top;	
 	width:calc(100% - 4.8rem);
 	position:relative;
 }
 
-.bx-messenger-jots-snip-info span{
+.bx-messenger-jots-snip-info span
+{
 	opacity:0.7;	
 }
 
-.bx-messenger-block-jots .bx-messenger-jots-snip-info{
+.bx-messenger-block-jots .bx-messenger-jots-snip-info
+{
 	padding-bottom:0.25rem;
 	vertical-align:top;
 }
 
-.bx-messenger-jots-snip-title{
+.bx-messenger-jots-snip-title
+{
 	position: relative;
 	width: 100%;
 	padding-bottom:0.1rem;
-	display:inline-block;
+	display: inline-flex;
+    white-space: nowrap;
+    align-items: baseline;
 }
 
-.bx-messenger-jots-snip-message{
+.bx-messenger-jots-snip-message
+{
 	position:relative;
 }
 
-.bx-messenger-jots-snip:hover {
+.bx-messenger-jots-snip:hover
+{
 	background-color:rgba(0,0,0,0.02);
 }
 
-.bx-messenger-jots-snip.active{
+.bx-messenger-jots-snip.active
+{
 	background-color:rgba(0,0,0,0.03);	
 }
 
-.bx-messenger-jots-snip-avatars-list{
+.bx-messenger-jots-snip-avatars-list
+{
 	position:relative;
 	overflow: hidden;
 	z-index:2;
 }
 
-.bx-messenger-jots-snip-avatars-list div{
+.bx-messenger-jots-snip-avatars-list div
+{
 	position:relative;
 	z-index:1;
 	box-sizing: border-box;
@@ -264,7 +230,8 @@ div.bx-messenger-lots-menu ul li a.active{
 	height: 3rem;
 }
 
-.bx-messenger-jots-snip-avatars-list div:first-child{
+.bx-messenger-jots-snip-avatars-list div:first-child
+{
 	border-right: 1px solid #fff;
 }
 
@@ -275,7 +242,8 @@ div.bx-messenger-lots-menu ul li a.active{
 }
 
 .bx-messenger-jots-snip-avatars-list div:nth-child(1):nth-last-child(2) img,
-.bx-messenger-jots-snip-avatars-list div:nth-child(2):nth-last-child(1) img{
+.bx-messenger-jots-snip-avatars-list div:nth-child(2):nth-last-child(1) img
+{
 	margin-left:-12px
 }
 
@@ -284,79 +252,53 @@ div.bx-messenger-lots-menu ul li a.active{
 	width: 50%;
 }
 
-.bx-messenger-jots-snip-avatars-list div:nth-child(1):nth-last-child(3) img{
+.bx-messenger-jots-snip-avatars-list div:nth-child(1):nth-last-child(3) img
+{
 	margin-left:-12px
 }
 
 .bx-messenger-jots-snip-avatars-list div:nth-child(2):nth-last-child(2),
-.bx-messenger-jots-snip-avatars-list div:nth-child(3):nth-last-child(1){
+.bx-messenger-jots-snip-avatars-list div:nth-child(3):nth-last-child(1)
+{
 	height:50%;
 	width:50%;	
 }
 
 .bx-messenger-jots-snip-avatars-list div:nth-child(2):nth-last-child(2) img,
-.bx-messenger-jots-snip-avatars-list div:nth-child(3):nth-last-child(1) img{
+.bx-messenger-jots-snip-avatars-list div:nth-child(3):nth-last-child(1) img
+{
 	height:100%;
 	width:100%;	
 	margin-bottom:10px;
 }
 
-.bx-messenger-jots-snip-avatars-list div:nth-child(3):nth-last-child(1){
+.bx-messenger-jots-snip-avatars-list div:nth-child(3):nth-last-child(1)
+{
 	border-top: 1px solid #fff;
 }
 
-.bx-messanger-padding-lots-lefttopbottom{
+.bx-messanger-padding-lots-lefttopbottom
+{
 	padding:0.9rem;	
 }
 
-.bx-messanger-padding-lots-topbottom{
+.bx-messanger-padding-lots-topbottom
+{
 	padding-top:1rem;
 	padding-bottom:1rem;
 }
 
-.bx-messenger-jots-snip .unread-lot div{
+.bx-messenger-jots-snip .unread-lot div
+{
 	font-size:1rem;
 }
 
-.bx-messenger-jots-snip .unread-lot span{
+.bx-messenger-jots-snip .unread-lot span
+{
 	opacity:1;
 }
 
 .bx-db-menu i
 {
 	font-size:1.3rem;
-}
-
-div.bx-messenger-border.search div:first-child 
-{
-	display:table-cell;
-	width:100%;
-	vertical-align:middle;
-}
-
-div.bx-messenger-border.search div:first-child input
-{
-	padding:0px;
-}
-
-div.bx-messenger-border.search div:first-child input::placeholder
-{
-	color:#ccc;
-}
-
-div.bx-messenger-border.search div:last-child 
-{
-	display:table-cell;	
-	vertical-align:middle;
-	padding:0.3rem;
-}
-
-div.bx-messenger-border.search .star a
-{
-	opacity:0.5;
-}
-
-div.bx-messenger-border.search .star a.active 
-{
-	opacity:1;
 }

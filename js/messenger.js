@@ -24,6 +24,7 @@ var oMessenger = (function($){
 		this.sMainTalkBlock = '.bx-messenger-main-block',
 		this.sTalkList = '.bx-messenger-conversations',
 		this.sJot = '.bx-messenger-jots',
+		this.sLotsBlock = '.bx-messenger-block-lots',
 		this.sTalkListJotSelector = this.sTalkList + ' ' + this.sJot,
 		this.sItemsList = '.bx-messanger-items-list',
 		this.sSendArea = '.bx-messenger-text-box',
@@ -71,6 +72,11 @@ var oMessenger = (function($){
 		this.aUsers = [],
 		this.soundFile = 'modules/boonex/messenger/data/notify.wav'; //beep file, occurs when message received
 		
+		var _this = this;
+		$(this).on('message', function()
+		{			
+			_this.beep();
+		});
 		// Emoj config
 		if (oOptions && oOptions.emoji)
 				this.emojiPicker = new EmojiPicker(oOptions.emoji);
@@ -112,7 +118,7 @@ var oMessenger = (function($){
 				this.blockSendMessages(true);				
 				return;
 			}
-			
+		
 			// send message area init
 			$(this.sSendArea).on('keydown', function(oEvent){
 				var iKeyCode = oEvent.keyCode || oEvent.which;		
@@ -135,11 +141,12 @@ var oMessenger = (function($){
 				_this.sendMessage(oMessageBox.val());
 				oMessageBox.val('');
 			});
-			
-			
+						
 			// start to load history depens on scrolling position
 			$(_this.sTalkBlock).scroll(function(){
-				if ($(this).scrollTop() <= _this.iMinHeightToStartLoading){
+				var isScrollAvail = $(this)[0].scrollHeight > $(this)[0].clientHeight;
+				
+				if ($(this).scrollTop() <= _this.iMinHeightToStartLoading && isScrollAvail){
 					_this.iLoadTimout = setTimeout(function(){
 						_this.updateJots('prev');
 					}, _this.iMinTimeBeforeToStartLoadingPrev);
@@ -227,6 +234,10 @@ var oMessenger = (function($){
 		return $(window).width() <= 720;
 	}
 	
+	oMessenger.prototype.isBlockVersion = function(){
+		return $(this.sLotsBlock).length == 0;
+	}
+	
 	oMessenger.prototype.initJotIcons = function(oParent){
 		var _this = this;
 		
@@ -297,12 +308,12 @@ var oMessenger = (function($){
 	
 	/**
 	* Search for lot
-	*@param int iType type of the lot
+	*@param int/function mixedOption type of the lot or calback function
 	*@param string sText keyword for filter
 	*/
-	oMessenger.prototype.searchByItems = function(iType, sText){
+	oMessenger.prototype.searchByItems = function(mixedOption, sText){
 		var _this = this,
-			iFilterType	= iType != undefined ? iType : this.iFilterType,
+			iFilterType	= typeof mixedOption == 'function' || mixedOption == undefined ? this.iFilterType : mixedOption,
 			searchFunction = function()
 							{
 								bx_loading($(_this.sItemsList), true);
@@ -312,14 +323,25 @@ var oMessenger = (function($){
 											if (parseInt(oData.code) == 1) 
 												window.location.reload();
 											else
-											if (!parseInt(oData.code)){					
-													$(_this.sItemsList).html(oData.html).fadeIn();
+											{
+												var fCallback = function()
+													{
+														if (typeof mixedOption == 'function')
+															mixedOption();
+													}
+												
+												if (!parseInt(oData.code))
+												{			
+													$(_this.sItemsList).html(oData.html).fadeIn(fCallback);
 													_this.iFilterType = iFilterType;								
 												}
+												else
+													fCallback();
+											}
 										}, 'json');	
 							};
 
-		if (typeof iType !== 'undefined' || typeof sText !== 'undefined'){
+		if ((typeof mixedOption !== 'function' && mixedOption) || typeof sText !== 'undefined'){			
 			clearTimeout(_this.iTimer);	
 			this.iTimer = setTimeout(searchFunction, _this.iRunSearchInterval);	
 		}
@@ -339,37 +361,62 @@ var oMessenger = (function($){
 		$.post('modules/?r=messenger/create_lot', {profile:oParams.user || 0, lot:oParams.lot || 0}, function(oData){			
 			bx_loading($(_this.sMainTalkBlock), false);				
 				if (parseInt(oData.code) == 1) 
-						window.location.reload();
+					window.location.reload();
 				else		
-				if (!parseInt(oData.code)){
-					
-					$(_this.sJotsBlock).parent().html(oData.html).bxTime();
-					
-					_this.updateScrollPosition('bottom');
-					_this.initUsersSelector(oParams.lot !== undefined ? 'edit' : '');
-					
-					if (_this.oJotWindowBuilder != undefined) 
-						_this.oJotWindowBuilder.changeColumn('right');
-				}
+					if (!parseInt(oData.code))
+					{
+						
+						$(_this.sJotsBlock)
+							.parent()
+							.html(oData.html)
+							.bxTime();
+						
+						_this.updateScrollPosition('bottom');
+						_this.initUsersSelector(oParams.lot !== undefined ? 'edit' : '');
+						
+						if (_this.oJotWindowBuilder != undefined) 
+							_this.oJotWindowBuilder.changeColumn('right');
+					}
 				
 				_this.blockSendMessages();				
 		}, 'json');	
 	}
 	
 	oMessenger.prototype.saveParticipantsList = function(iLotId){
-		var _this = this;
-		if (iLotId)
-				$.post('modules/?r=messenger/save_lots_parts', {lot:iLotId, participants:_this.getPatricipantsList()}, function(oData){
-						if (parseInt(oData.code) == 1) 
-							window.location.reload();
+		var _this = this,
+			_iLotId = iLotId;
 
-						alert(oData.message);
-						if (!parseInt(oData.code)){
-							_this.searchByItems();
-							_this.loadTalk(iLotId);
+		$.post('modules/?r=messenger/save_lots_parts', 
+		{
+			lot:_iLotId, 
+			participants:_this.getPatricipantsList()
+		},
+		function(oData)
+		{
+						var iResult = parseInt(oData.code);
+					
+						if (iResult == 1)
+							alert(oData.message);
+						else
+						{
+							if (!_iLotId)
+								_iLotId = parseInt(oData.lot);
+
+							if (!_this.isBlockVersion())
+							{
+								_this.searchByItems(
+									function()
+									{
+										_this.oSettings.lot = null;
+										_this.loadTalk(_iLotId, true);
+									}
+								);
+							}
+							else
+								_this.loadTalk(_iLotId, true);
 						}
 						
-				}, 'json');
+		}, 'json');
 	}
 	
 	oMessenger.prototype.leaveLot = function(iLotId){
@@ -418,15 +465,23 @@ var oMessenger = (function($){
 					if (parseInt(oData.code) == 1) 
 							window.location.reload();
 		
-						if (!parseInt(oData.code)){
-							_this.searchByItems();
-							
-							if ($(_this.sLotsListSelector).length > 0)
-									$(_this.sLotsListSelector).first().click();
-						}
-						
-						alert(oData.message);
-						
+						if (!parseInt(oData.code))
+						{
+							_this.searchByItems(
+								function()
+								{
+									if ($(_this.sLotsListSelector).length > 0)
+									{
+										$(_this.sLotsListSelector).first().click();
+										if (_this.oJotWindowBuilder != undefined) 
+											_this.oJotWindowBuilder.changeColumn('right');
+									}
+									else
+										_this.createLot();
+									
+								}
+							);							
+						}						
 				}, 'json');
 	}
 
@@ -549,10 +604,10 @@ var oMessenger = (function($){
 	
 	/**
 	* Select lot in left side column when member clicks on it
-	*@param object el selected lot
+	*@param object oBlock selected lot
 	*/
-	oMessenger.prototype.selectLotEmit = function(el){		
-		$(el).addClass(this.sActiveLotClass).siblings().removeClass(this.sActiveLotClass).end().
+	oMessenger.prototype.selectLotEmit = function(oBlock){
+		oBlock.addClass(this.sActiveLotClass).siblings().removeClass(this.sActiveLotClass).end().
 				find(this.sLotInfo).removeClass(this.sUnreadLotClass).end().
 				find(this.sBubble).fadeOut(this.iHideUnreadBadge).end();
 	}
@@ -560,32 +615,50 @@ var oMessenger = (function($){
 	/**
 	* Load history for selected lot
 	*@param int iLotId lot id
+	*@param bool bDontChangeCol don't change pages if it is ture
 	*@param object el selected lot
 	*/
-	oMessenger.prototype.loadTalk = function(iLotId, el){
-		var _this = this;
+	oMessenger.prototype.loadTalk = function(iLotId, bDontChangeCol){
+		var _this = this,
+			oLotBlock = $(this.sLotSelector + '[data-lot="' + iLotId + '"]');
+				
+		if (!iLotId) 
+			return;
 		
-		if (this.isActiveLot(iLotId) && !this.isMobile()) return ;
+		if (_this.isActiveLot(iLotId) && _this.isMobile() && !bDontChangeCol)
+		{
+			_this.oJotWindowBuilder.changeColumn();
+			return;
+		}
 	
-		this.selectLotEmit(el);
+		_this.selectLotEmit(oLotBlock);
 		
 		bx_loading($(this.sMainTalkBlock), true);
 		$.post('modules/?r=messenger/load_talk', {id:iLotId}, function(oData){
 			bx_loading($(_this.sMainTalkBlock), false);
 				if (parseInt(oData.code) == 1) 
-						window.location.reload();
+					window.location.reload();
 				else
-				if (!parseInt(oData.code)){
-					$(_this.sJotsBlock).parent().html(oData.html).fadeIn(function(){
-						if (_this.oJotWindowBuilder != undefined) 
-								_this.oJotWindowBuilder.changeColumn();							
-					}).bxTime();
+				if (!parseInt(oData.code))
+				{
+					$(_this.sJotsBlock).parent().html(oData.html).fadeIn(
+						function()
+						{
+							if (_this.oJotWindowBuilder != undefined)
+							{
+								if (!bDontChangeCol)
+									_this.oJotWindowBuilder.changeColumn();
+								else
+									_this.oJotWindowBuilder.updateColumnSize();
+							}
+						}
+					).bxTime();
 							
 					
 					/*  copy current update member status to the top of the chat */
-					var iUser = $(el).find(_this.sStatus).data('user-status');
+					var iUser = oLotBlock.find(_this.sStatus).data('user-status');
 					if (parseInt(iUser)){
-						var classList = $(el).find(_this.sStatus).attr('class').split(/\s+/);						
+						var classList = oLotBlock.find(_this.sStatus).attr('class').split(/\s+/);						
 						if (typeof classList[1] !== 'undefined'){							
 							$('b[data-user-status="' + iUser + '"]').
 								removeClass('online offline away').
@@ -688,7 +761,8 @@ var oMessenger = (function($){
 							if (typeof oParams.files !== 'undefined')
 								_this.attacheFiles(iJotId);
 							
-							_this.upLotsPosition(_this.oSettings);
+							if (!_this.isBlockVersion())
+								_this.upLotsPosition(_this.oSettings);
 						}
 						
 						if (!_this.iAttachmentUpdate)
@@ -748,34 +822,42 @@ var oMessenger = (function($){
 			lot = parseInt(oData.lot), 
 			oLot = $('div[data-lot=' + lot + ']'),
 			oNewLot = undefined;
-		
-		$.get('modules/?r=messenger/update_lot_brief', {lot_id: lot}, 
-						function(oData){
-									if (!parseInt(oData.code)){					
-										oNewLot = $(oData.html).css('display', 'flex');
-										if (lot){
-												if (!oLot.is(':first-child')){
-														var sFunc = function(){
-															$(_this.sLotsListBlock).prepend($(oNewLot).bxTime().fadeIn('slow'));
-														};
-														
-														if (oLot.length)
-															oLot.fadeOut('slow', function(){
+
+		if (lot)
+			$.get('modules/?r=messenger/update_lot_brief', {lot_id: lot}, 
+						function(oData)
+						{
+							if (!parseInt(oData.code))
+							{					
+								oNewLot = $(oData.html).css('display', 'flex');								
+								if (!oLot.is(':first-child'))
+								{
+									var sFunc = function()
+												{
+													$(_this.sLotsListBlock)
+														.prepend($(oNewLot)
+														.bxTime()
+														.fadeIn('slow'));													
+												};
+												
+									if (oLot.length)
+										oLot.fadeOut('slow', function()
+															{
 																oLot.remove();
 																sFunc();
 															});
-														else
-															sFunc();
-												}
-												else
-													oLot.replaceWith($(oNewLot).fadeTo(150, 0.5).fadeTo(150, 1).bxTime());
-												
-												if (_this.isActiveLot(lot))
-													_this.selectLotEmit($(oNewLot));
-										}		
-									}
-									
-								}, 'json');
+									else
+										sFunc();
+								}
+								else
+									oLot.replaceWith($(oNewLot).fadeTo(150, 0.5).fadeTo(150, 1).bxTime());
+								
+								$(_this).trigger(jQuery.Event('message'));
+								
+								if (_this.isActiveLot(lot) && !_this.isMobile())
+									_this.selectLotEmit($(oNewLot));
+							}
+						}, 'json');
 	}
 	
 	/**
@@ -898,8 +980,10 @@ var oMessenger = (function($){
 		var playSound = null;
 		try{
 			playSound = new Audio(this.soundFile); 			
-			if (!document.hasFocus()) {
+			if (!document.hasFocus()) 
+			{
 				playSound.play();
+				console.log('beep');
 			}
 			
 		}catch(e){
@@ -924,7 +1008,6 @@ var oMessenger = (function($){
 			   bx_loading($(this.sTalkBlock), true);	   
 		   
 			_this.iPanding = true;
-			
 			$.post('modules/?r=messenger/update', {url: this.oSettings.url, type: this.oSettings.type, start: iStart, lot: this.oSettings.lot, load:sShow}, 
 			function(oData){
 				var oList = $(_this.sTalkList);
@@ -933,13 +1016,15 @@ var oMessenger = (function($){
 						if (iStart == undefined) 
 							oList.html('');
 								
-						if (sShow == 'new'){
+						if (sShow == 'new')
+						{
 							$(oData.html).filter(_this.sJot).each(function(){								
 								if ($('div[data-id="' + $(this).data('id') + '"]', oList).length !== 0)
 									$(this).remove();									
 							}).appendTo(oList);
 							
-							_this.beep();							
+							if ( _this.isBlockVersion() || (_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive())) /* play sound for jots only on mobile devices when chat area is active */
+								$(_this).trigger(jQuery.Event('message'));
 						}	
 						else 
 							oList.prepend(oData.html);							
@@ -970,13 +1055,21 @@ var oMessenger = (function($){
 					
 			}, 'json');
 	}
-	
+		
 	/**
 	* Init user selector are when create or edit participants list of the lot
 	*@param boolean bMode if used for edit or to create new lot
 	*/
 	oMessenger.prototype.initUsersSelector = function(bMode){
-			var _this = this;
+			var _this = this,
+				onSelectFunc = function()
+				{
+					if (bMode != 'edit')
+						_this.findLotByParticipantsList();
+					else
+						if (_this.oJotWindowBuilder != undefined)
+							_this.oJotWindowBuilder.updateColumnSize();
+				};
 			
 			$(_this.sUserSelectorInput).
 				autocomplete({
@@ -984,34 +1077,39 @@ var oMessenger = (function($){
 								minLength: 1,
 								width: 250,
 								autoFocus: true,
-								select: function(e, ui) {
-															$(this).val(ui.item.value);
-															$(this).trigger('selectuser', ui.item);
-															e.preventDefault();
-														}
+								select: function(e, ui)
+										{
+											$(this).val(ui.item.value);
+											$(this).trigger('selectuser', ui.item);
+											e.preventDefault();
+										}
 							}).on({
-								keyup : function(e, ui) {
-									  if(/(188|13)/.test(e.which)) 
-											$(this).trigger('selectuser', ui); 
-								},					
-								selectuser: function(e, item){
-								  $(this).hide();						  
-									  if (item != undefined)
-											$(this).before('<b class="bx-def-color-bg-hl bx-def-round-corners">' +
-															'<img class="bx-def-thumb bx-def-thumb-size bx-def-margin-sec-right" src="' + item.icon + '" /><span>'+ item.value + '</span>' + 
-															'<input type="hidden" name="users[]" value="'+ item.id +'" /></b>');
-									  
-									  if (bMode != 'edit')
-											_this.findLotByParticipantsList();
-									  
-									  $(this).show().val('').focus();
-								}
-							});
+									keyup : function(e, ui)
+											{
+												if(/(188|13)/.test(e.which))
+												$(this).trigger('selectuser', ui);
+											},
+									selectuser:
+											function(e, item)
+											{
+												$(this).hide();		  
+												if (item != undefined)
+													$(this).before('<b class="bx-def-color-bg-hl bx-def-round-corners">' +
+																'<img class="bx-def-thumb bx-def-thumb-size bx-def-margin-sec-right" src="' + item.icon + '" /><span>'+ item.value + '</span>' + 
+																'<input type="hidden" name="users[]" value="'+ item.id +'" /></b>');
+										  
+												onSelectFunc();
+										  
+												$(this)
+													.show()
+													.val('')
+													.focus();
+											}
+								});
 			
 			$(_this.sUserSelectorBlock).on('click', 'b', function(){
 					$(this).remove();					
-					if (bMode != 'edit')
-						_this.findLotByParticipantsList();
+					onSelectFunc();
 					
 					$(_this.sUserSelectorInput).focus();
 			});
@@ -1128,7 +1226,7 @@ var oMessenger = (function($){
 					});
 			}
 		
-			if (typeof _oMessenger.oJotWindowBuilder !== "undefined"){		
+			if (_oMessenger.oJotWindowBuilder != undefined){		
 				$(window).on('load resize', function(e){
 						if (e.type == 'load'){
 								if(iProfileId || $(_oMessenger.sLotsListSelector).length == 0) 
@@ -1160,8 +1258,8 @@ var oMessenger = (function($){
 		},
 		
 		// init public methods
-		loadTalk:function(iLotId, oEl){
-			_oMessenger.loadTalk(iLotId, oEl);
+		loadTalk:function(iLotId){
+			_oMessenger.loadTalk(iLotId);
 			return this;
 		},
 		searchByItems:function(sText){
@@ -1210,8 +1308,12 @@ var oMessenger = (function($){
 			return this;
 		},		
 		onMessage: function(oData){
-			_oMessenger.upLotsPosition(oData);
-			_oMessenger.updateJots();
+			if (!_oMessenger.isBlockVersion() && (!_oMessenger.isMobile() || (_oMessenger.isMobile() && !_oMessenger.oJotWindowBuilder.isHistoryColActive())))
+				_oMessenger.upLotsPosition(oData);
+			
+			if (oData.lot == _oMessenger.oSettings.lot)
+				_oMessenger.updateJots();
+			
 			return this;
 		},
 		onStatusUpdate: function(oData){

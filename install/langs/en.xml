@@ -43,7 +43,7 @@
 	<string name="_bx_messenger_lots_type_sets"><![CDATA[Sets]]></string>
 	<string name="_bx_messenger_lots_type_events"><![CDATA[Events]]></string>
 	<string name="_bx_messenger_lots_type_groups"><![CDATA[Groups]]></string>
-	<string name="_bx_messenger_lots_menu_add_part"><![CDATA[Add Participants]]></string>
+	<string name="_bx_messenger_lots_menu_add_part"><![CDATA[Edit participants list]]></string>
 	<string name="_bx_messenger_lots_menu_leave"><![CDATA[Leave]]></string>
 	<string name="_bx_messenger_lots_menu_delete"><![CDATA[Delete]]></string>
 	<string name="_bx_messenger_lots_menu_mute"><![CDATA[Mute]]></string>
@@ -62,8 +62,7 @@
 	<string name="_bx_messenger_save_part_failed"><![CDATA[Participant list can not be empty!]]></string>
 	<string name="_bx_messenger_save_part_success"><![CDATA[Participants list was successfully updated!]]></string>
 	<string name="_bx_messenger_delete_lot"><![CDATA[Are you sure you want to delete this lot?]]></string>
-	<string name="_bx_messenger_can_not_delete"><![CDATA[You can not delete this lot!]]></string>
-	<string name="_bx_messenger_delete_success"><![CDATA[The Lot successfully removed!]]></string>
+	<string name="_bx_messenger_can_not_delete"><![CDATA[You can not delete this lot!]]></string>	
 	<string name="_bx_messenger_not_participant"><![CDATA[You are not a participant!]]></string>
 	<string name="_bx_messenger_successfully_left"><![CDATA[You left the talk!]]></string>	
 	<string name="_bx_messenger_cant_leave"><![CDATA[You can not leave your own chat!]]></string>

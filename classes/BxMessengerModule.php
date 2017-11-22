@@ -126,7 +126,8 @@ class BxMessengerModule extends BxBaseModTextModule
 	* @return array  participants list
 	*/
 	private function getParticipantsList($mixedPartisipants){
-		if (empty($mixedPartisipants)) return array();
+		if (empty($mixedPartisipants)) 
+			return array();
 		$aParticipants = is_array($mixedPartisipants) ? $mixedPartisipants : array(intval($mixedPartisipants));
 		$aParticipants[] = $this -> _iUserId;
 		return array_unique($aParticipants, SORT_NUMERIC);
@@ -244,10 +245,7 @@ class BxMessengerModule extends BxBaseModTextModule
 		if (!$this -> isLogged())
 			return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 	   
-		if (!$iId)
-			$sContent = $this -> _oTemplate -> getPostBoxWithHistory($this -> _iUserId, BX_IM_EMPTY, BX_IM_TYPE_PRIVATE);
-		else
-			$sContent = $this -> _oTemplate -> getPostBoxWithHistory($this -> _iUserId, $iId, BX_IM_TYPE_PRIVATE);
+		$sContent = $this -> _oTemplate -> getPostBoxWithHistory($this -> _iUserId, (int)$iId > 0 ? $iId : BX_IM_EMPTY, BX_IM_TYPE_PRIVATE);
 	   
 		echoJson(array('code' => 0, 'html' =>  $sContent));
 	}
@@ -284,11 +282,16 @@ class BxMessengerModule extends BxBaseModTextModule
 		$iLotId = (int)bx_get('lot_id');
 	   
 		if (!$this -> isLogged() || !$iLotId)
-				return echoJson(array('code' => 1, 'html' => ''));
+			return echoJson(array('code' => 1));
 	   
-		$aMyLots = $this -> _oDb -> getMyLots($this -> _iUserId, BX_IM_EMPTY, BX_IM_EMPTY, BX_IM_EMPTY, $iLotId);
-		$sContent = $this -> _oTemplate -> getLotsPreview($this -> _iUserId, $aMyLots, true);			   
-		echoJson(array('code' => 0, 'html' =>  $sContent));	   
+		$aMyLots = $this -> _oDb -> getMyLots($this -> _iUserId, BX_IM_EMPTY, BX_IM_EMPTY, BX_IM_EMPTY, $iLotId);		
+		if (!empty($aMyLots))
+		{
+			$sContent = $this -> _oTemplate -> getLotsPreview($this -> _iUserId, $aMyLots, true);
+			return echoJson(array('code' => 0, 'html' =>  $sContent));
+		}
+		
+		echoJson(array('code' => 1));
 	}
    
 	/**
@@ -327,7 +330,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	   
 		if ($sUrl)
 			$sUrl = bx_get('url') ? $this -> getPreparedUrl(bx_get('url')) : '';
-				   
+		
 		$sContent = $this -> _oTemplate -> getJotsOfLot($this -> _iUserId, $iLotId, $sUrl, $iStart, $sLoad, ($sLoad != 'new' ? $this -> _oConfig -> CNF['MAX_JOTS_LOAD_HISTORY'] : 0));
 	   
 		$aResult = array('code' => 1);
@@ -399,14 +402,25 @@ class BxMessengerModule extends BxBaseModTextModule
 	public function actionSaveLotsParts(){
 		$iLotId = bx_get('lot');   
 		$aParticipants = $this -> getParticipantsList(bx_get('participants'));
-
+			
 		$aResult = array('message' => _t('_bx_messenger_save_part_failed'), 'code' => 1);
-		if (!$iLotId || !$this -> _oDb -> isAuthor($iLotId, $this -> _iUserId) || empty($aParticipants)){
+		if (($iLotId && !($this -> _oDb -> isAuthor($iLotId, $this -> _iUserId) || isAdmin())) || (empty($aParticipants) && !$iLotId)){
 			return echoJson($aResult);
 		}
-
-		if ($this -> _oDb -> savePariticipantsList($iLotId, $aParticipants))
-				$aResult = array('message' => _t('_bx_messenger_save_part_success'), 'code' => 0);
+		
+		$aLot = $this -> _oDb -> getLotByUrlAndPariticipantsList(BX_IM_EMPTY_URL, $aParticipants, BX_IM_TYPE_PRIVATE);
+		if (!empty($aLot))
+			$iLotId = $aLot[$this -> _oConfig -> CNF['FIELD_ID']];
+		
+		$aResult = array('message' => _t('_bx_messenger_save_part_success'), 'code' => 0);
+		if (!$iLotId)
+		{
+			$iLotId = $this -> _oDb -> createNewLot($this -> _iUserId, BX_IM_EMPTY_URL, BX_IM_TYPE_PRIVATE, BX_IM_EMPTY_URL, $aParticipants);
+			$aResult['lot'] = $iLotId;
+		}
+		else
+			if(!$this -> _oDb -> savePariticipantsList($iLotId, $aParticipants))
+				$aResult = array('code' => 2, 'lot' => $iLotId);
 		   
 		echoJson($aResult);
 	}
@@ -424,7 +438,7 @@ class BxMessengerModule extends BxBaseModTextModule
 		}
 
 		if ($this -> _oDb -> deleteLot($iLotId))
-				$aResult = array('message' => _t('_bx_messenger_delete_success'), 'code' => 0);
+				$aResult = array('code' => 0);
 		   
 		echoJson($aResult);
 	}

@@ -43,7 +43,7 @@
 	<string name="_bx_messenger_lots_type_sets"><![CDATA[Разное]]></string>
 	<string name="_bx_messenger_lots_type_events"><![CDATA[События]]></string>
 	<string name="_bx_messenger_lots_type_groups"><![CDATA[Группы]]></string>
-	<string name="_bx_messenger_lots_menu_add_part"><![CDATA[Добавить участника]]></string>
+	<string name="_bx_messenger_lots_menu_add_part"><![CDATA[Редактировать список участников]]></string>
 	<string name="_bx_messenger_lots_menu_leave"><![CDATA[Покинуть]]></string>
 	<string name="_bx_messenger_lots_menu_delete"><![CDATA[Удалить]]></string>
 	<string name="_bx_messenger_lots_menu_mute"><![CDATA[Выключить оповещения]]></string>
@@ -62,8 +62,7 @@
 	<string name="_bx_messenger_save_part_failed"><![CDATA[Список участников не может быть пуст!]]></string>
 	<string name="_bx_messenger_save_part_success"><![CDATA[Списко участников был успешно обнавлён!]]></string>
 	<string name="_bx_messenger_delete_lot"><![CDATA[Вы уверены, что хотите удалить это разговор?]]></string>
-	<string name="_bx_messenger_can_not_delete"><![CDATA[Вы не можите удалить этот разговор!]]></string>
-	<string name="_bx_messenger_delete_success"><![CDATA[Разговор был успешно удалён!]]></string>
+	<string name="_bx_messenger_can_not_delete"><![CDATA[Вы не можите удалить этот разговор!]]></string>	
 	<string name="_bx_messenger_not_participant"><![CDATA[Вы не являетесь участником разговора!]]></string>
 	<string name="_bx_messenger_successfully_left"><![CDATA[Вы покинули разговор!]]></string>   
 	<string name="_bx_messenger_cant_leave"><![CDATA[Вы не можете покинуть свой собственный разговор!]]></string>

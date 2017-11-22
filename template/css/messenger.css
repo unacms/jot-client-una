@@ -9,7 +9,8 @@
 	margin:0px;
 }
 
-#bx-content-wrapper .bx-def-page-width{
+#bx-content-wrapper .bx-def-page-width
+{
 	width:100%;
 }
 
@@ -17,28 +18,12 @@
 	display:none;
 }
 
-.bx-messanger-items-list{
+.bx-messanger-items-list
+{
 	height:100%;
 	overflow-y:auto;
 	overflow-x:hidden;
 	-webkit-overflow-scrolling: touch;
-}
-
-#bx-messenger-add-users b{
-	background-color:rgba(210, 230, 250, 0.5);
-	border-radius:15px !important;
-}
-
-#bx-messenger-add-users .save{
-	position: relative;
-	bottom: 0px;
-	line-height: 2rem;		
-}
-
-.bx-messenger-block .bx-db-header .bx-db-menu.right{
-	position:relative;
-	max-width:7rem;
-	float:right;
 }
 
 .bx-messenger-main-block{
@@ -53,7 +38,8 @@
 }
 
 .bx-messenger-table-wrapper  .bx-messenger-table-wrapper-rows:first-child .cell{
-	height:100% !important;	
+	height:100% !important;
+	min-height:50px;
 }
 
 .bx-layout-row .bx-layout-col
@@ -101,7 +87,6 @@
     vertical-align: middle;
     padding: .07rem;
     position: relative;
-    float: left;
     margin-right: 0.1rem;
 }
 
@@ -118,12 +103,15 @@
 
 .bx-messenger-jots-snip-title div.title
 {
-	float:none;
+	white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+	margin-right:0.3rem;
+	width:100%;
 }
 
 .bx-messenger-jots-snip-title div.time
 {
-	float:right;
 	margin-right:0.3rem;
 	opacity:0.7;
 }
@@ -134,16 +122,17 @@
 	width:auto;	
 }
 
-.bx-messenger-jots-snip-info .bubble
+span.bubble
 {
 	position:relative;
 	background-color: #d7e9fb;
     color: #4a90e2;
     margin-right: 0.2rem;
-	width:1rem;	
+	width:1rem;
+	float:left;
 }
 
-.bx-messenger-jots-snip-info .bubble.hidden
+span.bubble.hidden
 {
 	display:none;
 }
@@ -197,6 +186,7 @@
 .bx-messenger-block .bx-db-header .bx-db-menu.right{
 	position:relative;
 	max-width:7.5rem;
+	display:flex;
 }
 
 .bx-messenger-participants-usernames
@@ -206,6 +196,10 @@
 	max-height:2.3rem;
 	margin-right:1rem;
 	font-weight:bold;
+	width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .bx-messenger-participants-usernames div
@@ -248,30 +242,62 @@
 	font-size:1rem;
 	font-weight:700;
 	margin-left:0.6rem;
+	display:inline-flex;
 }
 
-.bx-messenger-hide-mobile span
+div.bx-messenger-border.search div:first-child 
 {
-	font-size: 1.3rem;    
-    vertical-align: middle;
-    font-weight: normal;
-	line-height:2rem;
+	width:100%;
+	vertical-align:middle;
+	flex:0 1 auto;
 }
 
-@media (max-width:720px){
-	.bx-messenger-block .bx-db-header .bx-db-menu.right
-	{		
-		position:relative;
-		width:7.5rem;
-	}
+div.bx-messenger-border.search div:first-child input
+{
+	padding:0px;
+	background-color:rgba(0,0,0,0);
+}
+
+div.bx-messenger-border.search div:first-child input::placeholder
+{
+	color:#ccc;
+}
+
+div.bx-messenger-border.search .star a
+{
+	opacity:0.5;
+	margin:0.25rem;
+	display: inline-flex;
+	align-items: center;
+}
+
+div.bx-messenger-border.search .star a svg
+{
+	vertical-align:middle;
+}
+
+div.bx-messenger-border.search .star a.active 
+{
+	opacity:1;
+}
+
+
+@media (max-width:720px)
+{
 	
 	.bx-messenger-participants-usernames div.status
 	{
 		display:none;
 	}
-	
+
 	/* show back icon only on main messenger page*/
 	.bx-messenger-hide-mobile{
 		display:block !important;
 	}
+	
+	#bx-messenger-add-users-input
+	{
+		max-width:calc(100% - 2rem);
+	}
+
 }

@@ -75,11 +75,11 @@ class BxMessengerDb extends BxBaseModTextDb
 	* Check if is the member author of the lot or jot
 	*@param int $iLotId lot id
 	*@param int $iAuthor profile id 
-	*@param boolean $bJotAuthor if true checks Lot, otherwise jot  
+	*@param boolean $bLotAuthor if true checks Lot, otherwise jot  
 	*@return boolean
 	*/
-	public function isAuthor($iId, $iAuthorId, $bJotAuthor = true){
-		if ($bJotAuthor)
+	public function isAuthor($iId, $iAuthorId, $bLotAuthor = true){
+		if ($bLotAuthor)
 			$sQuery = $this -> prepare("SELECT COUNT(*) FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = ? AND `{$this->CNF['FIELD_AUTHOR']}` = ? LIMIT 1", (int)$iId, (int)$iAuthorId);
 		else
 			$sQuery = $this -> prepare("SELECT COUNT(*) FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = ? AND `{$this->CNF['FIELD_MESSAGE_AUTHOR']}` = ? LIMIT 1", (int)$iId, (int)$iAuthorId);
@@ -224,10 +224,12 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@return int affected rows
 	*/
 	public function savePariticipantsList($iLotId, $aParticipants){
-		$aParticipants = array_map('intval', $aParticipants);
-		
-		if (empty($aParticipants)) return false;
-		$sParticipants = implode(',', $aParticipants);	
+		$sParticipants = '';		
+		if (!empty($aParticipants))
+		{
+			$aParticipants = array_map('intval', $aParticipants);
+			$sParticipants = implode(',', $aParticipants);
+		}
 		
 		return $this -> query("UPDATE `{$this->CNF['TABLE_ENTRIES']}` SET `{$this->CNF['FIELD_PARTICIPANTS']}` = :parts WHERE `{$this->CNF['FIELD_ID']}` = :id", array('parts' => $sParticipants, 'id' => $iLotId));
 	}
@@ -243,7 +245,7 @@ class BxMessengerDb extends BxBaseModTextDb
 		if ((int)$aData['lot'])
 			$aLot = $this -> getLotInfoById($aData['lot']);
 		
-		if ($aData['type'] != BX_IM_TYPE_PRIVATE && !$this -> isParticipant($aData['lot'], $aData['member_id']))
+		if (($aData['type'] != BX_IM_TYPE_PRIVATE || $this -> isAuthor($aData['lot'], $aData['member_id'])) && !$this -> isParticipant($aData['lot'], $aData['member_id'], true))
 			$this -> addMemberToParticipantsList($aData['lot'], $aData['member_id']);			
 				
 		if (empty($aParticipants) && (int)$aData['lot']) 
@@ -275,9 +277,10 @@ class BxMessengerDb extends BxBaseModTextDb
 
 			$aLots = $this -> getAll("SELECT * FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `type` = :type {$sWhere}", array('type' => $iType));
 
-			if (!empty($aLots)){
-					
-				foreach($aLots as $iKey => $aValue){
+			if (!empty($aLots))
+			{
+				foreach($aLots as $iKey => $aValue)
+				{
 					 $aPerticipantsList = $this -> getParticipantsList($aValue[$this->CNF['FIELD_ID']]);
 					 if (empty($aPerticipantsList) || count($aPerticipantsList) != count($aParicipants)) continue;			
 					 
@@ -361,7 +364,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@param array $aParticipants list of participants
 	*@return  int affected rows
 	*/
-	private function createNewLot($iProfileId, $sTitle, $iType, $sUrl = '', &$aParticipants = array())
+	public function createNewLot($iProfileId, $sTitle, $iType, $sUrl = '', &$aParticipants = array())
 	{
 		$mixedParticipants = !empty($aParticipants) ? implode(',', $aParticipants) : $iProfileId;				
 		$sQuery = $this->prepare("INSERT INTO `{$this->CNF['TABLE_ENTRIES']}` 
@@ -456,11 +459,16 @@ class BxMessengerDb extends BxBaseModTextDb
 	* Check if it is participant of the lot
 	*@param int $iLotId lot id
 	*@param int $iParticipantId profile id
+	*@param boolean $bAsParticipant if true to check only participants list without lot owner
 	*@return boolean 
 	*/
-	public function isParticipant($iLotId, $iParticipantId){
+	public function isParticipant($iLotId, $iParticipantId, $bAsParticipant = false)
+	{
 		$aParticipants = $this -> getParticipantsList($iLotId);
-		return array_search($iParticipantId, $aParticipants) !== FALSE;
+		if (array_search($iParticipantId, $aParticipants) !== FALSE)
+			return true;
+		
+		return !$bAsParticipant ? $this -> getOne("SELECT COUNT(*) FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = :lot AND `{$this->CNF['FIELD_AUTHOR']}` = :author LIMIT 1", array('lot' => (int)$iLotId, 'author' => (int)$iParticipantId)) == 1 : false;
 	}
 	
 	/**
@@ -728,7 +736,7 @@ class BxMessengerDb extends BxBaseModTextDb
 						WHERE FIND_IN_SET(:parts, `{$this->CNF['FIELD_MESSAGE_NEW_FOR']}`)
 						GROUP BY `{$this->CNF['FIELD_MESSAGE_FK']}`
 					  ) as `p` ON `p`.`{$this->CNF['FIELD_MESSAGE_FK']}` = `l`.`{$this->CNF['FIELD_ID']}`
-			WHERE FIND_IN_SET(:profile, `l`.`{$this->CNF['FIELD_PARTICIPANTS']}`) {$sWhere} 
+			WHERE (FIND_IN_SET(:profile, `l`.`{$this->CNF['FIELD_PARTICIPANTS']}`) OR `l`.`{$this->CNF['FIELD_AUTHOR']}`=:profile) {$sWhere} 
 			GROUP BY `l`.`{$this->CNF['FIELD_ID']}`
 			{$sHaving}
 			ORDER BY `last_created` DESC, `last_jot_created` DESC", $aWhere);

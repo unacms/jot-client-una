@@ -40,11 +40,12 @@ var oJotWindowBuilder = (function(){
 				updateRightHeight:function(){
 						this.iRightAreaHeight = $(this.sInfoUsersArea).length ? $(this.sInfoUsersArea).outerHeight() : $(this.sBlockHeaderArea).outerHeight();	
 
-						if (this.iRightAreaHeight == null) return ;
+						if (this.iRightAreaHeight == null) 
+							return;
 					
 						$(this.sRightAreaName).height(this.iMainAreaHeight - this.iRightAreaHeight);
 				},
-					
+				
 				init:function(){
 						var iParent = $(this.sBothColumnsParent).width();
 						
@@ -63,7 +64,8 @@ var oJotWindowBuilder = (function(){
 				changeColumn:function(sSide){
 						this.init();
 						
-						if (this.isMobile()){
+						if (this.isMobile())
+						{
 							if (sSide)
 								this.sActiveType = sSide;
 							else	
@@ -121,7 +123,8 @@ var oJotWindowBuilder = (function(){
 		};
 		
 	return {
-			resizeWindow:function(){
+			resizeWindow:function()
+			{
 				 clearTimeout(_oPrivate.iResizeTimeout);
 				_oPrivate.iResizeTimeout = setTimeout(
 														function()
@@ -129,13 +132,24 @@ var oJotWindowBuilder = (function(){
 															_oPrivate.onResizeWindow()
 														}, 300);
 			},
-			changeColumn:function(sSide){
+			updateColumnSize:function()
+			{
+				_oPrivate.resizeColumns();
+			},
+			changeColumn:function(sSide)
+			{
 				_oPrivate.changeColumn(sSide);
 			},
-			loadRightColumn:function(){
+			isHistoryColActive:function()
+			{
+				return _oPrivate.sActiveType == 'both' || _oPrivate.sActiveType == 'right';
+			},
+			loadRightColumn:function()
+			{
 				console.log('Occurs when resizing window and right column is empty. Overwrite it in class owner.');
 			},			
-			isMobile:function(){
+			isMobile:function()
+			{
 				return _oPrivate.isMobile();
 			}
 		}

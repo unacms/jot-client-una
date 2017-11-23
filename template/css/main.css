@@ -174,17 +174,14 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box:empty:before
 	background-color:rgba(0,0,0,0);
 }
 
-.bx-messenger-block .left
-{
-	float:left;
-}
-
 .bx-messenger-block .bx-db-header
 {
-	text-align:center;
 	position:relative;
-	height:2.5rem;
+	min-height:2.5rem;
 	vertical-align:middle;
+	padding:0 0.5rem 0 0.5rem;
+	display:flex;
+	align-items:center;
 }
 
 #bx-menu-db-menu-settings
@@ -203,7 +200,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box:empty:before
 
 .bx-messenger-block .bx-db-header .bx-db-title
 {
-	float:left;
+	text-align:left;
 	max-width:100%;
 }
 
@@ -281,7 +278,8 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box:empty:before
 }
 
 .bx-messenger-hide-mobile{	display:none;
-	float:left;
+	align-items:center;
+	width:4.3rem;
 }
 
 .bx-messenger-conversations-typing{	display: inline-block;	
@@ -597,8 +595,13 @@ div.bx-messenger-attachment-file-images img{	max-width: 40%;
 
 .bx-messenger-block .bx-db-menu a{	vertical-align:middle;
 	line-height:normal;
-	display:inline-block;
+	display:inline-flex;
+	align-items:center;
 	margin:0.25rem;
+}
+.bx-messenger-block .bx-db-menu a svg
+{
+	vertical-align:middle;
 }
 
 .bx-messenger-block .bx-db-menu .middle{	margin: auto;
@@ -608,7 +611,84 @@ div.bx-messenger-attachment-file-images img{	max-width: 40%;
 #bx-messenger-files-uploader
 {
 	max-width:80%;	
-}	
+}
+
+#bx-messenger-add-users-input
+{
+	width:auto;
+	float:left;
+	border:0px;
+	box-shadow:none;
+	background-color:rgba(0,0,0,0);
+	max-height:2rem;
+}
+
+#bx-messenger-add-users b
+{
+	line-height: 2rem;	
+	background-color:rgba(210, 230, 250, 0.5);
+	border-radius:15px !important;	
+	margin:0.1rem;
+	padding-right:0.5rem;
+}
+
+#bx-messenger-add-users .save
+{
+	position:relative;
+	bottom:0px;
+	float:left;
+	line-height:2rem;
+}
+
+.bx-db-header{
+	min-height:2.5rem;
+	height:auto;	
+}
+
+.bx-messenger-right-column{
+	text-align:left;
+	overflow:hidden;
+}
+
+.bx-messenger-right-column div.bx-form-input-autotoken
+{
+	padding:0rem 1rem 0rem 1rem;
+}
+
+.bx-messenger-right-column div.bx-form-input-autotoken svg
+{
+	vertical-align:middle;
+}
+
+.bx-messenger-right-column div.bx-form-input-autotoken b
+{
+	padding-left:0;
+	margin-left:0;
+	display:inline-flex;
+	align-items:center;
+}
+
+.bx-messenger-right-column  .bx-form-input-autotoken b:after
+{
+   font-family: 'sys-user';
+   content: "\f00d";  
+   margin-left:0.1rem;
+   position:relative;
+   padding-left:1rem;
+   vertical-align:middle;
+}
+
+#bx-messenger-add-users img
+{
+	float:left;	
+}
+
+#bx-messenger-add-users img.bx-def-thumb-size
+{
+	width:2rem;
+	height:2rem;
+	line-height: 2rem;
+}
 
 @media (max-width:720px)
 {
@@ -622,7 +702,16 @@ div.bx-messenger-attachment-file-images img{	max-width: 40%;
 		height:auto;
 	}
 	
-	.bx-messenger-block .bx-db-header .bx-db-title	{		max-width:54%;
+	.jots .bx-db-header
+	{
+		padding:0rem 0rem 0rem 0.3rem;
+	}
+	
+	.jots .bx-db-header .bx-db-title	{		text-align: left;		
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		font-size:1rem;
 	}
 	
 	.bx-messenger-attachment-file

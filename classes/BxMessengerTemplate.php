@@ -109,7 +109,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		
 		return $this -> parseHtmlByName('talk.html', array(
 				'bx_repeat:settings' => $aMenu,
-				'back_count' => $iUnreadLotsJots ? $iUnreadLotsJots : '',
+				'bx_if:count' => array(
+									'condition' => $iUnreadLotsJots,
+									'content' => array(
+										'back_count' => $iUnreadLotsJots
+									)
+								),
 				'mute' => (int)$bIsMuted,
 				'mute_title' => bx_js_string( $bIsMuted ? _t('_bx_messenger_lots_menu_mute_info_on') : _t('_bx_messenger_lots_menu_mute_info_off')),
 				'settings_title' => _t('_bx_messenger_lots_menu_settings_title'),
@@ -218,16 +223,16 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		}
 
 		$aVars = array('bx_if:find_participants' =>	array(
-															'condition' => !$bFirstTime && $iProfileId == BX_IM_EMPTY,
-															'back_title' => bx_js_string(_t('_bx_messenger_lots_menu_back_title')),
+															'condition' => !$bFirstTime && $iProfileId == BX_IM_EMPTY,															
 															'content' => array(
 																'bx_repeat:participants_list' => $aParticipants,
+																'back_title' => bx_js_string(_t('_bx_messenger_lots_menu_back_title')),
 																'bx_if:edit_mode' => 
 																					array(
-																						'condition' => $iLotId && $this -> _oDb -> isAuthor($iLotId, $iViewer),
+																						'condition' => ($iLotId && $this -> _oDb -> isAuthor($iLotId, $iViewer)) || isAdmin() || !$iLotId,
 																						'content' => array(
-																												'lot' => $iLotId,																									
-																												)
+																											'lot' => $iLotId,																									
+																										   )
 																					),																							
 															)								
 														),
@@ -339,6 +344,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			$aLatestJots = $this -> _oDb -> getLatestJot($aLot[$this -> _oConfig -> CNF['FIELD_ID']]);			
 			
 			$iTime = bx_time_js($aLot[$this -> _oConfig -> CNF['FIELD_ADDED']], BX_FORMAT_DATE);
+			
+			$aVars[$this -> _oConfig -> CNF['FIELD_MESSAGE']] = $aVars['sender_username'] = '';
 			if (!empty($aLatestJots))
 			{
 				$sMessage = '';
@@ -351,11 +358,13 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				if (!$sMessage && $aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
 					$sMessage = _t('_bx_messenger_attached_files_message', $this -> _oDb -> getJotFiles($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']], true));
 								
-				$aVars[$this -> _oConfig -> CNF['FIELD_MESSAGE']] = $sMessage;
-				
-				$aVars['sender_username'] = '';
+				$aVars[$this -> _oConfig -> CNF['FIELD_MESSAGE']] = $sMessage;								
 				if ($oSender = $this -> getObjectUser($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_AUTHOR']]))
-					$aVars['sender_username'] = $oSender -> id() == $iProfileId? _t('_bx_messenger_you_username_title') : $oSender -> getDisplayName();
+				{
+	
+					$aVars['sender_username'] = $oSender -> id() == $iProfileId ? _t('_bx_messenger_you_username_title') : $oSender -> getDisplayName();
+					$aVars['sender_username'] .= ':';
+				}
 				
 				$iTime = bx_time_js($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_DATE);
 			}
@@ -427,8 +436,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$aVars['bx_repeat:jots'] = array(); 
 		foreach($aJots as $iKey => $aJot){
 			$oProfile = $this -> getObjectUser($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AUTHOR']]);
-				if ($oProfile) {
-					$aVars['bx_repeat:jots'][] = array(
+			if ($oProfile) 
+			{
+				$aVars['bx_repeat:jots'][] = array(
 						'title' => $oProfile->getDisplayName(),
 						'time' => bx_time_js($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_DATE_TIME),
 						'url' => $oProfile->getUrl(),
@@ -441,8 +451,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 												'condition' => isAdmin() || $aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AUTHOR']] == $iProfileId,
 												'content'	=> array()
 												)
-					);				
-				  }
+					);
+				
+				if ($sLoad == 'new')
+					$this -> _oDb -> readMessage($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']], $iProfileId);
+			}
 		}	
 		return $this -> parseHtmlByName('jots.html',  $aVars);
 	}

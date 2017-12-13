@@ -65,12 +65,12 @@
 	<string name="_bx_messenger_can_not_delete"><![CDATA[You can not delete this lot!]]></string>	
 	<string name="_bx_messenger_not_participant"><![CDATA[You are not a participant!]]></string>
 	<string name="_bx_messenger_successfully_left"><![CDATA[You left the talk!]]></string>	
-	<string name="_bx_messenger_cant_leave"><![CDATA[You can not leave your own chat!]]></string>
-	<string name="_bx_messenger_leave_chat_confirm"><![CDATA[You you sure you want to leave the chat?]]></string>	
+	<string name="_bx_messenger_cant_leave"><![CDATA[You can not leave your own talk!]]></string>
+	<string name="_bx_messenger_leave_chat_confirm"><![CDATA[You you sure you want to leave the talk?]]></string>	
 	<string name="_bx_messenger_menu_new_chat_sys_title"><![CDATA[Messenger button]]></string>	
 	<string name="_bx_messenger_menu_new_chat_action_title"><![CDATA[Message]]></string>	
 	<string name="_bx_messenger_home_page_all_members_block"><![CDATA[Shoutbox]]></string>
-	<string name="_bx_messenger_friends_page_all_friends_block"><![CDATA[My Friends chat]]></string>		
+	<string name="_bx_messenger_friends_page_all_friends_block"><![CDATA[My Friends talk]]></string>		
 	<string name="_bx_messenger_push_short_name"><![CDATA[Short name (required only for http sites. It must match the Subdomain you entered on the Web Push settings on the OneSignal dashboard)]]></string>
 	<string name="_bx_messenger_push_safari_id"><![CDATA[Apple Safari Web ID on the Web Push settings]]></string>
 	<string name="_bx_messenger_typing_smiles"><![CDATA[Allow to type smiles]]></string>

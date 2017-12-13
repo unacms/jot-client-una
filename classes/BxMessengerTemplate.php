@@ -27,7 +27,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$aCss = array('main.css', 'emoji.css', 'dropzone.css');
 		$aJs = array('primus.js', 'connect.js', 'messenger.js', 'config.js', 'util.js', 'jquery.emojiarea.js', 'emoji-picker.js', 'status.js', 'dropzone.js', 'feather.min.js'); 
 		
-		if ($this->_oConfig-> CNF['IS_PUSH_ENABLED'])
+		if ($this->_oConfig->CNF['IS_PUSH_ENABLED'])
 			array_push($aJs, 'https://cdn.onesignal.com/sdks/OneSignalSDK.js');
 		
 		if ($sMode == 'all'){
@@ -48,30 +48,34 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@return string html code 
 	*/
 	public function getPostBoxWithHistory($iProfileId, $iLotId = BX_IM_EMPTY, $iType = BX_IM_TYPE_PUBLIC, $sEmptyContent = ''){
-		$aVars = $aJots = $aLotInfo = array();		
+		$aVars = $aJots = $aLotInfo = array();
 		$aParams = array(
 			'content' => $sEmptyContent,
 			'id'	  => 0,
 			'name'	  => '',
-			'user_id' => $iProfileId, 
-			'type' => $iType			
+			'user_id' => $iProfileId,
+			'type' => $iType,
+			'bx_if:post_area' => array(
+				'condition' => $iProfileId,
+				'content' 	=> array(
+					'place_holder' => $this->_oConfig-> CNF['SERVER_URL'] ? _t('_bx_messenger_post_area_message') : _t('_bx_messenger_server_is_not_installed')
+				)
+			)
 		);
 		
 		$oProfile = $this -> getObjectUser($aParams['user_id']);
-	    if($oProfile)	        
+	    if($oProfile)
 			$aParams['name'] = bx_js_string($oProfile -> getDisplayName());
 		
-		if ($aParams['id'] = $iLotId)			
+		if ($aParams['id'] = $iLotId)
 			$aParams['content'] = $this -> getJotsOfLot($iProfileId, $iLotId, '', 0, '', $this -> _oConfig -> CNF['MAX_JOTS_BY_DEFAULT'], true);
 		
 		$aParams['url'] = '';
-		if ($iType != BX_IM_TYPE_PRIVATE)			
-			$aParams['url'] = isset($aLotInfo[$this -> _oConfig -> CNF['FIELD_URL']]) ? $aLotInfo[$this -> _oConfig -> CNF['FIELD_URL']] : '';	
-	
-		$aParams['place_holder'] =  $this->_oConfig-> CNF['SERVER_URL'] ? _t('_bx_messenger_post_area_message') : _t('_bx_messenger_server_is_not_installed');
+		if ($iType != BX_IM_TYPE_PRIVATE)
+			$aParams['url'] = isset($aLotInfo[$this -> _oConfig -> CNF['FIELD_URL']]) ? $aLotInfo[$this -> _oConfig -> CNF['FIELD_URL']] : '';
 		
-		BxDolSession::getInstance()-> exists($iProfileId);			
-		return $this -> parseHtmlByName('chat_window.html', $aParams);			
+		BxDolSession::getInstance()-> exists($iProfileId);
+		return $this -> parseHtmlByName('chat_window.html', $aParams);
 	}
   
   	/**
@@ -86,15 +90,18 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$sTitle = '';
 		$aLotInfo = array();
  
-		if ($iLotId){
+		if ($iLotId)
+		{
 			$aLotInfo = $this -> _oDb -> getLotInfoById($iLotId); 
-				if ($this -> _oDb -> isAuthor($iLotId, $iProfileId) || isAdmin()){
+				if ($this -> _oDb -> isAuthor($iLotId, $iProfileId) || isAdmin())
+				{
 					$aMenu[] = array('name' => _t("_bx_messenger_lots_menu_add_part"), 'title' => '', 'action' => "oMessenger.createLot({lot:{$iLotId}});");
 					$aMenu[] = array('name' => _t("_bx_messenger_lots_menu_delete"), 'title' => '', 'action' => "if (confirm('" . bx_js_string(_t('_bx_messenger_delete_lot')) . "')) oMessenger.onDeleteLot($iLotId);");
 				}		
 		}
 			  
-		if (!empty($aLotInfo)){
+		if (!empty($aLotInfo))
+		{
 			$iType = $aLotInfo[$this -> _oConfig -> CNF['FIELD_TYPE']];
 			$sTitle = isset($aLotInfo[$this -> _oConfig -> CNF['FIELD_TITLE']]) && $aLotInfo[$this -> _oConfig -> CNF['FIELD_TITLE']] ? $aLotInfo[$this -> _oConfig -> CNF['FIELD_TITLE']] : $this -> getParticipantsNames($iProfileId, $iLotId);
 			$sTitle = $this -> _oDb -> isLinkedTitle($iType) ? _t('_bx_messenger_linked_title', '<a href ="'. $aLotInfo[$this -> _oConfig -> CNF['FIELD_URL']] .'">' . $sTitle . '</a>') : _t($sTitle);
@@ -102,10 +109,13 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
 
 		$aMenu[] = array('name' => _t("_bx_messenger_lots_menu_leave"), 'title' => '', 'action' => "if (confirm('" . bx_js_string(_t('_bx_messenger_leave_chat_confirm')) . "')) oMessenger.onLeaveLot($iLotId);");
-		
-		$iUnreadLotsJots = $this -> _oDb -> getUnreadJotsMessagesCount($iProfileId, $iLotId);		
-		$bIsMuted = $this -> _oDb -> isMuted($iLotId, $iProfileId);
-		$bIsStarred = $this -> _oDb -> isStarred($iLotId, $iProfileId);
+		$iUnreadLotsJots = $bIsMuted = $bIsStarred = 0;		
+		if ($iProfileId)
+		{
+			$iUnreadLotsJots = $this -> _oDb -> getUnreadJotsMessagesCount($iProfileId, $iLotId);		
+			$bIsMuted = $this -> _oDb -> isMuted($iLotId, $iProfileId);
+			$bIsStarred = $this -> _oDb -> isStarred($iLotId, $iProfileId);
+		}
 		
 		return $this -> parseHtmlByName('talk.html', array(
 				'bx_repeat:settings' => $aMenu,
@@ -115,17 +125,23 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 										'back_count' => $iUnreadLotsJots
 									)
 								),
-				'mute' => (int)$bIsMuted,
-				'mute_title' => bx_js_string( $bIsMuted ? _t('_bx_messenger_lots_menu_mute_info_on') : _t('_bx_messenger_lots_menu_mute_info_off')),
-				'settings_title' => _t('_bx_messenger_lots_menu_settings_title'),
-				'star_title' => bx_js_string( !$bIsStarred ? _t('_bx_messenger_lots_menu_star_on') : _t('_bx_messenger_lots_menu_star_off')),
-				'star' => (int)$bIsStarred,
-				'star_color' => $bIsStarred ? $this -> _oConfig -> CNF['STAR_BACKGROUND_COLOR']: 'none',
-				'star_fill_color' => $this -> _oConfig -> CNF['STAR_BACKGROUND_COLOR'],
+				'bx_if:show_lot_menu' => array(
+									'condition' => $iProfileId,
+									'content' => array(
+										'id' => $iLotId,
+										'mute' => (int)$bIsMuted,
+										'mute_title' => bx_js_string( $bIsMuted ? _t('_bx_messenger_lots_menu_mute_info_on') : _t('_bx_messenger_lots_menu_mute_info_off')),
+										'settings_title' => _t('_bx_messenger_lots_menu_settings_title'),
+										'star_title' => bx_js_string( !$bIsStarred ? _t('_bx_messenger_lots_menu_star_on') : _t('_bx_messenger_lots_menu_star_off')),
+										'star' => (int)$bIsStarred,										
+										'star_fill_color' => $this -> _oConfig -> CNF['STAR_BACKGROUND_COLOR'],										
+										'bell_icon' => $bIsMuted ? $this -> _oConfig -> CNF['BELL_ICON_OFF'] : $this -> _oConfig -> CNF['BELL_ICON_ON'],
+										'star_icon' => $this -> _oConfig -> CNF['STAR_ICON'],
+									)
+								),				
 				'back_title' => bx_js_string(_t('_bx_messenger_lots_menu_back_title')),
-				'id' => $iLotId,
-				'bell_icon' => $bIsMuted ? $this -> _oConfig -> CNF['BELL_ICON_OFF'] : $this -> _oConfig -> CNF['BELL_ICON_ON'],
-				'star_icon' => $this -> _oConfig -> CNF['STAR_ICON'],			
+				'star_color' => $bIsStarred ? $this -> _oConfig -> CNF['STAR_BACKGROUND_COLOR']: 'none',
+				'star_icon' => $this -> _oConfig -> CNF['STAR_ICON'],
 				'title' => $sTitle,
 				'post_area' => !$bShowMessanger && empty($aLotInfo) ?
 								MsgBox(_t('_bx_messenger_txt_msg_no_results')) : 
@@ -446,11 +462,17 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						'id' => $aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']],
 						'message' => nl2br($this -> _oConfig -> bx_linkify($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE']], 'class="bx-link"')),
 						'attachment' => !empty($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']]) ? $this -> getAttachment($aJot) : '',
-						'display' => !$bDisplay ? 'style="display:none;"' : '',
-						'bx_if:delete' => array(
-												'condition' => isAdmin() || $aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AUTHOR']] == $iProfileId,
-												'content'	=> array()
+						'display' => !$bDisplay ? 'style="display:none;"' : '',						
+						'bx_if:jot_menu' => array
+						(
+							'condition' => $iProfileId,							
+							'content'	=> array(
+													'bx_if:delete' => array(
+														'condition' => isAdmin() || $aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AUTHOR']] == $iProfileId,
+														'content'	=> array()
+													)
 												)
+						)
 					);
 				
 				if ($sLoad == 'new')
@@ -517,7 +539,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'ip' => gethostbyname($aUrlInfo['host']),
 			'smiles' => (int)$this->_oConfig-> CNF['CONVERT_SMILES'],
 			'bx_if:onsignal' => array(
-										'condition'	=> $this->_oConfig-> CNF['IS_PUSH_ENABLED'],
+										'condition'	=> (int)$iProfileId && $this->_oConfig-> CNF['IS_PUSH_ENABLED'],
 										'content' => array(
 											'one_signal_api' => $this->_oConfig-> CNF['PUSH_APP_ID'],
 											'short_name' => $this->_oConfig-> CNF['PUSH_SHORT_NAME'],

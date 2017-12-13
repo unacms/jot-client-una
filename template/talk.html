@@ -11,17 +11,19 @@
 		<div class="bx-db-title bx-def-font-h4">
 			__title__
 		</div>
-		<div class="bx-db-menu right">			
-			<a id="star" href="javascript:void(0);" title="__star_title__" onclick="oMessenger.onStarLot(__id__, this);" data-value="__star__" data-color="__star_fill_color__">
-				<i data-feather="__star_icon__" /></i>
-			</a>
-			<a href="javascript:void(0);" title="__mute_title__" onclick="oMessenger.onMuteLot(__id__, this);" data-value="__mute__">
-				<i data-feather="__bell_icon__"></i>
-			</a>
-			<a href="javascript:void(0);"  title="__settings_title__"  onclick="bx_menu_slide('#bx-menu-db-menu-settings', this)">
-				<i data-feather="info"></i>		
-			</a>
-		</div>
+		<bx_if:show_lot_menu>
+			<div class="bx-db-menu right">
+				<a id="star" href="javascript:void(0);" title="__star_title__" onclick="oMessenger.onStarLot(__id__, this);" data-value="__star__" data-color="__star_fill_color__">
+					<i data-feather="__star_icon__" /></i>
+				</a>
+				<a href="javascript:void(0);" title="__mute_title__" onclick="oMessenger.onMuteLot(__id__, this);" data-value="__mute__">
+					<i data-feather="__bell_icon__"></i>
+				</a>
+				<a href="javascript:void(0);"  title="__settings_title__"  onclick="bx_menu_slide('#bx-menu-db-menu-settings', this)">
+					<i data-feather="info"></i>
+				</a>
+			</div>
+		</bx_if:show_lot_menu>
 		<div id="bx-menu-db-menu-settings" class="bx-popup-wrapper bx-popup-slide-wrapper bx-def-z-index-front bx-def-border-bottom bx-def-border-top bx-def-padding bx-def-box-sizing">
 			<ul class="bx-menu-inter-vert">
 				<bx_repeat:settings>
@@ -33,9 +35,9 @@
 				</bx_repeat:settings>			
 			</ul>
 		</div>		
-	</div> 
+	</div>
 	<div class="bx-db-divider bx-def-hr"></div>
-	<div class="bx-messenger-main-block">	
+	<div class="bx-messenger-main-block">
 		__post_area__
 	</div>
 </div>

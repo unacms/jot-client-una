@@ -36,7 +36,8 @@ class BxMessengerModule extends BxBaseModTextModule
 	* Returns left side block for messenger page and loads config data
 	*/
 	public function serviceGetBlockInbox(){
-		if (!$this -> isLogged()) return '';	   
+		if (!$this -> isLogged())
+			return '';	   
 		$iProfile = bx_get('profile');
 		$iProfile = $iProfile == $this -> _iUserId ? 0 : $iProfile;
 		return	$this -> _oTemplate -> getLotsColumn($this -> _iUserId, (int)$iProfile).
@@ -46,7 +47,8 @@ class BxMessengerModule extends BxBaseModTextModule
 	* Returns right side block for messenger page
 	*/
 	public function serviceGetBlockLot(){
-		if (!$this -> isLogged()) return '';
+		if (!$this -> isLogged()) 
+			return '';
 		$iProfile = bx_get('profile');
 		$iProfile = $iProfile == $this -> _iUserId ? 0 : $iProfile;	   
 		return $this -> _oTemplate -> getLotWindow($iProfile, BX_IM_EMPTY, true);
@@ -55,18 +57,16 @@ class BxMessengerModule extends BxBaseModTextModule
 	* Returns block with messenger for any page
 	*@param string $sModule module name
 	*/
-	public function serviceGetBlockMessenger($sModule){
-		if (!$this -> isLogged()) return '';
-		   
+	public function serviceGetBlockMessenger($sModule){		
 		$this->_oTemplate-> loadCssJs('view');
 		$aLotInfo = $this -> _oDb -> getLotByUrl($_SERVER['REQUEST_URI']);
 		if (empty($aLotInfo) && $sModule)
 			$aLotInfo = $this -> _oDb -> getLotByClass($sModule);
 	   
-		return	$this -> _oTemplate -> loadConfig($this -> _iUserId).
-				$this -> _oTemplate -> getTalkBlock($this -> _iUserId, !empty($aLotInfo) ?
-					(int)$aLotInfo[$this -> _oConfig -> CNF['FIELD_ID']] :
-					BX_IM_EMPTY, $this -> _oConfig -> getTalkType($sModule), true /* create messenger window even if chat doesn't exist yet */);
+		$sConfig = $this -> _oTemplate -> loadConfig($this -> _iUserId);
+		return	$sConfig . $this -> _oTemplate -> getTalkBlock($this -> _iUserId, !empty($aLotInfo) ?
+				(int)$aLotInfo[$this -> _oConfig -> CNF['FIELD_ID']] :
+				BX_IM_EMPTY, $this -> _oConfig -> getTalkType($sModule), true /* create messenger window even if chat doesn't exist yet */);
 	}
    
 	/**
@@ -182,17 +182,20 @@ class BxMessengerModule extends BxBaseModTextModule
 												'url' => $sUrl,
 												'title'	=> $sTitle,
 												'lot' => $iLotId
-											), $aParticipants))){
-		   
-		if (!$iLotId)
-			$aResult['lot_id'] = $this -> _oDb -> getLotByJotId($iId);
-			
-		if (!empty($aFiles)){
-			$oStorage = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE']);
-			$aFilesNames = array();
-				foreach($aFiles as $iKey => $sName){
-					$iFile = $oStorage -> storeFileFromPath(BX_DIRECTORY_PATH_TMP . $sName, $iType == BX_IM_TYPE_PRIVATE, $this -> _iUserId, (int)$iId);					
-					if ($iFile){
+											), $aParticipants)))
+		{		   
+			if (!$iLotId)
+				$aResult['lot_id'] = $this -> _oDb -> getLotByJotId($iId);
+				
+			if (!empty($aFiles))
+			{
+				$oStorage = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE']);
+				$aFilesNames = array();
+				foreach($aFiles as $iKey => $sName)
+				{
+					$iFile = $oStorage -> storeFileFromPath(BX_DIRECTORY_PATH_TMP . $sName, $iType == BX_IM_TYPE_PRIVATE, $this -> _iUserId, (int)$iId);
+					if ($iFile)
+					{
 						$oStorage -> afterUploadCleanup($iFile, $this -> _iUserId);
 						$this -> _oDb -> updateFiles($iFile, $this->_oConfig-> CNF['FIELD_ST_JOT'], $iId);
 						$aFilesNames[] = $sName;
@@ -204,9 +207,9 @@ class BxMessengerModule extends BxBaseModTextModule
 				if (!empty($aFilesNames))
 					$this -> _oDb -> addAttachment($iId, implode(',', $aFilesNames), BX_ATT_TYPE_FILES);
 			}
-			
+				
 			$aResult['jot_id'] =  $iId;
-			$aResult['tmp_id'] =  $iTmpId;		   
+			$aResult['tmp_id'] =  $iTmpId;
 		}
 		else
 			$aResult = array('code' => 2, 'message' => _t('_bx_messenger_send_message_save_error'));
@@ -310,15 +313,13 @@ class BxMessengerModule extends BxBaseModTextModule
 	* @return array with json
 	*/
 	public function actionUpdate(){	   
-		if (!$this -> isLogged())
-			return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
-			   
 		$sUrl = bx_get('url');
 		$iStart = (int)bx_get('start');
 		$iLotId = (int)bx_get('lot');
 		$sLoad = bx_get('load');
 	   
-		if ($sLoad == 'new' && $iStart == 0){
+		if ($sLoad == 'new' && $iStart == 0)
+		{
 			$aMyLatestJot = $this -> _oDb -> getLatestJot($iLotId, $this -> _iUserId);
 
 			if (empty($aMyLatestJot))
@@ -331,8 +332,7 @@ class BxMessengerModule extends BxBaseModTextModule
 		if ($sUrl)
 			$sUrl = bx_get('url') ? $this -> getPreparedUrl(bx_get('url')) : '';
 		
-		$sContent = $this -> _oTemplate -> getJotsOfLot($this -> _iUserId, $iLotId, $sUrl, $iStart, $sLoad, ($sLoad != 'new' ? $this -> _oConfig -> CNF['MAX_JOTS_LOAD_HISTORY'] : 0));
-	   
+		$sContent = $this -> _oTemplate -> getJotsOfLot($this -> _iUserId, $iLotId, $sUrl, $iStart, $sLoad, ($sLoad != 'new' ? $this -> _oConfig -> CNF['MAX_JOTS_LOAD_HISTORY'] : 0));	   
 		$aResult = array('code' => 1);
 		if (!$sContent)
 			$aResult = array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_found')));
@@ -340,7 +340,9 @@ class BxMessengerModule extends BxBaseModTextModule
 			$aResult = array('code' => 0, 'html' => $sContent);
 	   
 		// update session
-		BxDolSession::getInstance()-> exists($this -> _iUserId);	   
+		if ($this -> _iUserId)
+			BxDolSession::getInstance()-> exists($this -> _iUserId);
+		
 		echoJson($aResult);
 	}
    

@@ -564,7 +564,8 @@ class BxMessengerDb extends BxBaseModTextDb
 		$sWhere = '';
 		$aWhere['lot'] = $iLotId;
 		
-		if ($iProfileId){
+		if ($iProfileId)
+		{
 			$sWhere = " AND `{$this->CNF['FIELD_MESSAGE_AUTHOR']}` = :profile"; 
 			$aWhere['profile'] = $iProfileId;
 		}

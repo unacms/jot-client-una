@@ -328,11 +328,16 @@ var oMessenger = (function($){
 													{
 														if (typeof mixedOption == 'function')
 															mixedOption();
+														
 													}
 												
 												if (!parseInt(oData.code))
 												{			
-													$(_this.sItemsList).html(oData.html).fadeIn(fCallback);
+													$(_this.sItemsList)
+														.html(oData.html)
+														.bxTime()
+														.fadeIn(fCallback);
+													
 													_this.iFilterType = iFilterType;								
 												}
 												else

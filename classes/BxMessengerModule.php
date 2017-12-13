@@ -290,7 +290,7 @@ class BxMessengerModule extends BxBaseModTextModule
 		$aMyLots = $this -> _oDb -> getMyLots($this -> _iUserId, BX_IM_EMPTY, BX_IM_EMPTY, BX_IM_EMPTY, $iLotId);		
 		if (!empty($aMyLots))
 		{
-			$sContent = $this -> _oTemplate -> getLotsPreview($this -> _iUserId, $aMyLots, true);
+			$sContent = $this -> _oTemplate -> getLotsPreview($this -> _iUserId, $aMyLots);
 			return echoJson(array('code' => 0, 'html' =>  $sContent));
 		}
 		

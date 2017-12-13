@@ -310,7 +310,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@param boolean $bShowTime display time(last message) in the right side of the lot
 	*@return string html code
 	*/
-	function getLotsPreview($iProfileId, &$aLots, $bShowTime = false){
+	function getLotsPreview($iProfileId, &$aLots, $bShowTime = true){
 		$sContent = '';
 
 		foreach($aLots as $iKey => $aLot){
@@ -493,7 +493,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		
 		$aMyLots = $this -> _oDb -> getMyLots($iProfileId);
 		if (!empty($aMyLots))
-			$sContent = $this -> getLotsPreview($iProfileId, $aMyLots, true);
+			$sContent = $this -> getLotsPreview($iProfileId, $aMyLots);
 		else 
 			$sContent = $this -> getFriendsList();
 

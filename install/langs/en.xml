@@ -116,4 +116,5 @@
 	<string name="_bx_messenger_lots_menu_create_lot_title"><![CDATA[Create new talk]]></string>
 	<string name="_bx_messenger_lots_menu_star_title"><![CDATA[Show only marked/unmarked talks]]></string>
 	<string name="_bx_messenger_search_for_lost_title"><![CDATA[Find talks by title or message]]></string>
+	<string name="_bx_messenger_repost_message"><![CDATA[repost of a message received]]></string>	
 </resources>

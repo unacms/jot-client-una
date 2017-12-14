@@ -825,23 +825,38 @@ class BxMessengerDb extends BxBaseModTextDb
 	/**
 	* Add attachment to the jot
 	*@param int  $iJotId jot id
-	*@param text sCcontent attachment content
+	*@param text mixedContent attachment content
 	*@param type sType attachment type
 	*@return affected rows
 	*/
-	public function addAttachment($iJotId, $sContent, $sType = BX_ATT_TYPE_REPOST){
+	public function addAttachment($iJotId, $mixedContent, $sType = BX_ATT_TYPE_REPOST){
 		$iJotId = (int)$iJotId;
 		$aJotInfo = array();
-	
-		if (!$iJotId || !($aJotInfo = $this -> getJotById($iJotId)) || !$sContent)
+			
+		if (!$iJotId || !($aJotInfo = $this -> getJotById($iJotId)) || !$mixedContent)
 			return false;
 			
 		$sQuery = $this->prepare("UPDATE `{$this->CNF['TABLE_MESSAGES']}` 
 												SET  `{$this->CNF['FIELD_MESSAGE_AT_TYPE']}` = ?, 
 													 `{$this->CNF['FIELD_MESSAGE_AT']}` = ?
-												WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = ?", $sType, $sContent, $iJotId);
+												WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = ?", $sType, $mixedContent, $iJotId);
 		
 		return $this -> query($sQuery);
+	}
+	
+	/**
+	* Check if the Jot already has attachement
+	*@param int  $iJotId jot id
+	*@param string $sType attachment type
+	*@return int original attachment Id
+	*/
+	public function hasAttachment($iJotId, $sType='repost'){
+		$iResult = $this->getOne("SELECT
+									`{$this->CNF['FIELD_MESSAGE_AT']}` 
+									FROM `{$this->CNF['TABLE_MESSAGES']}` 
+									WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id AND `{$this->CNF['FIELD_MESSAGE_AT_TYPE']}`= :type", array('id' => $iJotId, 'type' => $sType));
+		
+		return $iResult ? $iResult : $iJotId;
 	}
 	
 	public function updateFiles($iJotId, $sField = 'jot_id', $sValue){

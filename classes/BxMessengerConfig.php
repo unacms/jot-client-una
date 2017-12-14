@@ -73,6 +73,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 
 			// page URIs  			
 			'URL_HOME' => BX_DOL_URL_ROOT . 'page/messenger',
+			'URL_REPOST' => BX_DOL_URL_ROOT . 'm/messenger/archive/',
 
 			// some params
 			'STAR_BACKGROUND_COLOR' => '#f5a623',
@@ -156,29 +157,40 @@ class BxMessengerConfig extends BxBaseModTextConfig
 		preg_match_all($sRe, $sText, $aMatches, PREG_OFFSET_CAPTURE);
 
 		$aMatches = $aMatches[0];
-
 		if ($i = count($aMatches))
 			$bAddNofollow = getParam('sys_add_nofollow') == 'on';
 
 		while ($i--)
 		{
-			$url = $aMatches[$i][0];
-			if (!preg_match('@^https?://@', $url))
-				$url = 'http://'.$url;
+			$sUrl = $aMatches[$i][0];
+			if (!preg_match('@^https?://@', $sUrl))
+				$sUrl = 'http://'.$sUrl;
 
-			if (strncmp(BX_DOL_URL_ROOT, $url, strlen(BX_DOL_URL_ROOT)) !== 0) {
+			if (strncmp(BX_DOL_URL_ROOT, $sUrl, strlen(BX_DOL_URL_ROOT)) !== 0) {
 				$sAttrs .= ' target="_blank" ';
 				if ($bAddNofollow)
 					$sAttrs .= ' rel="nofollow" ';
 			}
 
-			$sText = substr_replace($sText, '<a ' . (!$this -> isJotLink($url) ? $sAttrs : '') . ' href="'.$url.'">'.$aMatches[$i][0].'</a>', $aMatches[$i][1], strlen($aMatches[$i][0]));
+			$sText = substr_replace($sText, '<a ' . (!$this -> isJotLink($sUrl) ? $sAttrs : '') . ' href="'.$sUrl.'">'.$aMatches[$i][0].'</a>', $aMatches[$i][1], strlen($aMatches[$i][0]));
 		}
 		
 		$mail_pattern = "/([A-z0-9\._-]+\@[A-z0-9_-]+\.)([A-z0-9\_\-\.]{1,}[A-z])/";
 		$sText = preg_replace($mail_pattern, '<a href="mailto:$1$2">$1$2</a>', $sText);
 
 		return $sText;
+	}
+	
+	/**
+	* Remove repost links from the message
+	*@param string $sMessage message
+	*@param int iJotId jot Id
+	*@return string message
+	*/
+	public function cleanRepostLinks($sMessage, $iJotId)
+	{
+		$sArchiveUrl = $this->CNF['URL_REPOST'] . $iJotId;
+		return str_replace($sArchiveUrl, '', $sMessage);
 	}
 }
 

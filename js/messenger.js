@@ -288,7 +288,10 @@ var oMessenger = (function($){
 				sClass = 'offline';
 		}
 
-		$('b[data-user-status="' + oData.user_id + '"]').removeClass('online offline away').addClass(sClass).attr('title', _t('_bx_messenger_' + sClass));		
+		$('b[data-user-status="' + oData.user_id + '"]')
+			.removeClass('online offline away')
+			.addClass(sClass)
+			.attr('title', _t('_bx_messenger_' + sClass));
 	}
 	
 	/**
@@ -555,7 +558,15 @@ var oMessenger = (function($){
 	$.fn.attacheLinkContent = function(sUrl){
 		var _this = this;
 		_oMessenger.iAttachmentUpdate = true;
-		$.post('modules/?r=messenger/parse_link', {link:sUrl, jot_id:$(_this).parents(_oMessenger.sJot).data('id')}, function(oData){
+		$.post('modules/?r=messenger/parse_link',
+			{
+				link:sUrl,
+				jot_id:$(_this)
+						.parents(_oMessenger.sJot)
+						.data('id')
+			},
+			function(oData)
+			{
 				if (!parseInt(oData['code']))
 					$(_this).parent().append(oData['html']);					
 				else
@@ -760,8 +771,9 @@ var oMessenger = (function($){
 												
 							if (typeof oData.tmp_id != 'undefined')
 								$(_this.sTalkList).
-									find('[data-tmp="' + oData.tmp_id + '"]').
-									attr('data-id', oData.jot_id).linkify();
+									find('[data-tmp="' + oData.tmp_id + '"]')
+										.attr('data-id', oData.jot_id)
+										.linkify();
 									
 							if (typeof oParams.files !== 'undefined')
 								_this.attacheFiles(iJotId);
@@ -834,7 +846,10 @@ var oMessenger = (function($){
 						{
 							if (!parseInt(oData.code))
 							{					
-								oNewLot = $(oData.html).css('display', 'flex');								
+								var sHtml = oData.html.replace(new RegExp(_this.sJotUrl + '\\d+', 'i'), _t('_bx_messenger_repost_message'));
+								oNewLot = $(sHtml)
+											.css('display', 'flex');
+											
 								if (!oLot.is(':first-child'))
 								{
 									var sFunc = function()
@@ -842,7 +857,7 @@ var oMessenger = (function($){
 													$(_this.sLotsListBlock)
 														.prepend($(oNewLot)
 														.bxTime()
-														.fadeIn('slow'));													
+														.fadeIn('slow'));												
 												};
 												
 									if (oLot.length)
@@ -855,7 +870,11 @@ var oMessenger = (function($){
 										sFunc();
 								}
 								else
-									oLot.replaceWith($(oNewLot).fadeTo(150, 0.5).fadeTo(150, 1).bxTime());
+									oLot
+										.replaceWith($(oNewLot)
+										.fadeTo(150, 0.5)
+										.fadeTo(150, 1)
+										.bxTime());
 								
 								$(_this).trigger(jQuery.Event('message'));
 								

@@ -139,7 +139,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	*/
 	public function actionSend(){	   
 		$sUrl =	$sTitle = '';
-		$sMessage = trim(bx_get('message'));
+		$sMessage = trim(bx_get('message'));		
 		$iLotId = (int)bx_get('lot');	   
 		$iType = bx_get('type');
 		$iTmpId = bx_get('tmp_id');
@@ -171,8 +171,7 @@ class BxMessengerModule extends BxBaseModTextModule
 			
 			if ($iType != BX_IM_TYPE_PRIVATE && $sUrl)
 					$sUrl = $this -> getPreparedUrl($sUrl);
-		   
-		}	
+		}
 
 		$aResult = array('code' => 0);
 		if (($sMessage || !empty($aFiles)) && ($iId = $this -> _oDb -> saveMessage(array(
@@ -648,11 +647,13 @@ class BxMessengerModule extends BxBaseModTextModule
 		$sUrl = bx_get('link');
 		$iJotId = (int)bx_get('jot_id');
 		
-		$aUrl = $this -> _oConfig -> isJotLink($sUrl);		
-		if (!empty($aUrl)){
+		$aUrl = $this -> _oConfig -> isJotLink($sUrl);
+		if (!empty($aUrl))
+		{
 			$sHTML = $this -> _oTemplate -> getJotAsAttachment($aUrl['id']);
-			if ($sHTML){
-				$this -> _oDb -> addAttachment($iJotId, $aUrl['url']);
+			if ($sHTML)
+			{
+				$this -> _oDb -> addAttachment($iJotId, $aUrl['id']);
 				return echoJson(array('code' => 0, 'html' => $sHTML));
 			}
 		}
@@ -668,15 +669,15 @@ class BxMessengerModule extends BxBaseModTextModule
 	public function actionGetAttachment(){
 		$iJotId = (int)bx_get('jot_id');
 		
-		if ($iJotId){
+		if ($iJotId)
+		{
 			$aJot = $this -> _oDb -> getJotById($iJotId);			
 			if ($this -> _oDb -> isParticipant($aJot[$this->_oConfig-> CNF['FIELD_MESSAGE_FK']], $this -> _iUserId)){
 				$sHTML = $this -> _oTemplate -> getAttachment($aJot);
 				if ($sHTML)
 					return echoJson(array('code' => 0, 'html' => $sHTML));
 			}
-		}
-		
+		}		
 		
 		echoJson(array('code' => 1));
 	}

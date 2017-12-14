@@ -116,4 +116,5 @@
 	<string name="_bx_messenger_lots_menu_create_lot_title"><![CDATA[Создать разговор]]></string>
 	<string name="_bx_messenger_lots_menu_star_title"><![CDATA[Показать только помеченные/непомеченные разговоры]]></string>
 	<string name="_bx_messenger_search_for_lost_title"><![CDATA[Искать разговор по названию или содержанию сообщения]]></string>
+	<string name="_bx_messenger_repost_message"><![CDATA[получена ссылка на сообщение]]></string>
 </resources>

@@ -368,6 +368,13 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				if (isset($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE']]))
 				{
 					$sMessage = $aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE']];
+					
+					if ($aLatestJots[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_REPOST)
+					{
+						$sMessage = $this -> _oConfig -> cleanRepostLinks($sMessage, $aLatestJots[$this->_oConfig->CNF['FIELD_MESSAGE_AT']]);
+						$sMessage = $sMessage ? $sMessage : _t('_bx_messenger_repost_message');
+					}
+					
 					$sMessage = BxTemplFunctions::getInstance()->getStringWithLimitedLength($sMessage, $this->_oConfig-> CNF['MAX_PREV_JOTS_SYMBOLS']);
 				}
 				
@@ -534,7 +541,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'online' => bx_js_string(_t('_bx_messenger_online')),
 			'offline' => bx_js_string(_t('_bx_messenger_offline')),
 			'away' => bx_js_string(_t('_bx_messenger_away')),
-			'jot_remove_confirm' => bx_js_string(_t('_bx_messenger_remove_jot_confirm')),			
+			'jot_remove_confirm' => bx_js_string(_t('_bx_messenger_remove_jot_confirm')),
+			'repost_of_the_message' => bx_js_string(_t('_bx_messenger_repost_message')),
 			'message_length' => (int)$this->_oConfig-> CNF['MAX_SEND_SYMBOLS'] ? (int)$this->_oConfig-> CNF['MAX_SEND_SYMBOLS'] : 0,
 			'ip' => gethostbyname($aUrlInfo['host']),
 			'smiles' => (int)$this->_oConfig-> CNF['CONVERT_SMILES'],
@@ -601,11 +609,10 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			switch($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']])
 			{
 				case 'repost':
-						$sHTML = $this -> getJotAsAttachment($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_ID']]);
+						$sHTML = $this -> getJotAsAttachment($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT']]);
 						break;
 				case 'files':
-						$aFiles = $this -> _oDb -> getJotFiles($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_ID']]);
-						
+						$aFiles = $this -> _oDb -> getJotFiles($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_ID']]);						
 						$aItems = array(
 							'bx_repeat:images' => array(),
 							'bx_repeat:files' => array()
@@ -614,7 +621,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						$oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);
 						foreach($aFiles as $iKey => $aFile){								
 								$isAuthor = $aFile[$this -> _oConfig -> CNF['FIELD_ST_AUTHOR']] == $iViewer || isAdmin();								
-								
 								if ($oStorage -> isImageFile($aFile[$this->_oConfig->CNF['FIELD_ST_TYPE']])){
 									$sPhotoThumb = '';
 									if ($aFile[$this->_oConfig->CNF['FIELD_ST_TYPE']] != 'image/gif' && $oImagesTranscoder = BxDolTranscoderImage::getObjectInstance($this->_oConfig->CNF['OBJECT_IMAGES_TRANSCODER_PREVIEW']))
@@ -654,8 +660,27 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@return string html code
 	*/
 	function getJotAsAttachment($iJotId){
-		$sHTML = '';
+		$sMessage = $sHTML = '';
+		
 		$aJot = $this -> _oDb -> getJotById($iJotId);
+		if (empty($aJot))
+			return $sHTML;
+		
+		$iAttachedJotId = $this -> _oDb -> hasAttachment($iJotId);		
+		if ($iJotId != $iAttachedJotId)
+		{
+			$sOriginalMessage = $this->_oConfig->cleanRepostLinks($aJot[$this->_oConfig->CNF['FIELD_MESSAGE']], $iAttachedJotId);
+			if (!$sOriginalMessage)
+				$aJot = $this -> _oDb -> getJotById($iAttachedJotId);
+			
+			$sMessage = $aJot[$this->_oConfig->CNF['FIELD_MESSAGE']];
+		}
+		
+		if ($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
+			$sMessage = $aJot[$this->_oConfig->CNF['FIELD_MESSAGE']] . $this -> getAttachment($aJot);
+		else
+			$sMessage = nl2br($this -> _oConfig -> bx_linkify($aJot[$this->_oConfig->CNF['FIELD_MESSAGE']]));
+		
 		if (!empty($aJot))
 		{
 			$aLotsTypes = $this -> _oDb -> getLotsTypesPairs();
@@ -663,7 +688,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			$aLotInfo =  $this -> _oDb -> getLotByJotId($iJotId, false);
 			$sHTML = $this -> parseHtmlByName('repost.html', array(
 					'icon' => $oProfile -> getIcon(),
-					'message' => $aJot[$this->_oConfig->CNF['FIELD_MESSAGE']],
+					'message' => $sMessage,
 					'username' => $oProfile -> getDisplayName(),
 					'message_type' => !empty($aLotInfo) && isset($aLotInfo[$this->_oConfig->CNF['FIELD_TYPE']])? _t('_bx_messenger_lots_message_type_' . $aLotsTypes[$aLotInfo[$this->_oConfig->CNF['FIELD_TYPE']]]) : '',
 					'date' => bx_process_output($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_ADDED']], BX_DATA_DATETIME_TS),

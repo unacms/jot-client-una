@@ -34,7 +34,7 @@
 	<string name="_bx_messenger_name_place_holder"><![CDATA[Type name here...]]></string>
 	<string name="_bx_messenger_typing_message"><![CDATA[typing a message...]]></string>
 	<string name="_bx_messenger_push_message_title"><![CDATA[Message from {0}]]></string>	
-	<string name="_bx_messenger_is_push_enabled"><![CDATA[Enable OneSignal Push Notifications]]></string>
+	<string name="_bx_messenger_is_push_enabled"><![CDATA[Enable OneSignal Push Notifications (Use site settings for push notifications, if they set)]]></string>
 	<string name="_bx_messenger_push_app_id"><![CDATA[OneSignal App ID]]></string>
 	<string name="_bx_messenger_push_rest_api"><![CDATA[REST API Key]]></string>
 	<string name="_bx_messenger_linked_title"><![CDATA[Page: {0}]]></string>

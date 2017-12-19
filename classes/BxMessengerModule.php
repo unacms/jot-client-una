@@ -554,7 +554,8 @@ class BxMessengerModule extends BxBaseModTextModule
 		$iLotId = (int)bx_get('lot');
 		$aSent = is_array(bx_get('sent')) ? bx_get('sent') : array();
 
-		if (!$this -> isLogged() || !$this->_oConfig-> CNF['IS_PUSH_ENABLED'] || !$iLotId || !$this -> _oDb -> isParticipant($iLotId, $this -> _iUserId)) return false;
+		if (!$this -> isLogged() || !$this->_oConfig-> CNF['IS_PUSH_ENABLED'] || !$iLotId || !$this -> _oDb -> isParticipant($iLotId, $this -> _iUserId)) 
+			return false;
 			   
 		$aLot = $this -> _oDb -> getLotInfoById($iLotId, false);	   
 		if (empty($aLot)) return false;	   
@@ -571,11 +572,14 @@ class BxMessengerModule extends BxBaseModTextModule
 			$sMessage = BxTemplFunctions::getInstance()->getStringWithLimitedLength(html_entity_decode($sMessage), (int)$this->_oConfig->CNF['PARAM_PUSH_NOTIFICATIONS_DEFAULT_SYMBOLS_NUM']);
 
 		if (!$sMessage && $aLatestJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
-				$sMessage = _t('_bx_messenger_attached_files_message', $this -> _oDb -> getJotFiles($aLatestJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']], true));
+			$sMessage = _t('_bx_messenger_attached_files_message', $this -> _oDb -> getJotFiles($aLatestJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']], true));
 												
 		$aContent = array(
-			 $sLanguage => $sMessage
-		);	   
+			'en' => $sMessage,
+		);
+		
+		if ($sLanguage!='en') 
+			$aContent[$sLanguage] = $sMessage;
 
 		$oProfile = BxDolProfile::getInstance($this -> _iUserId);						   
 		if($oProfile)
@@ -606,7 +610,7 @@ class BxMessengerModule extends BxBaseModTextModule
 		$oCh = curl_init();
 		curl_setopt($oCh, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
 		curl_setopt($oCh, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8',
-												   'Authorization: Basic ' . $this->_oConfig-> CNF['PUSH_REST_API']));
+													'Authorization: Basic ' . $this->_oConfig->CNF['PUSH_REST_API']));
 		curl_setopt($oCh, CURLOPT_RETURNTRANSFER, TRUE);
 		curl_setopt($oCh, CURLOPT_HEADER, FALSE);
 		curl_setopt($oCh, CURLOPT_POST, TRUE);

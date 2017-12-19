@@ -27,7 +27,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$aCss = array('main.css', 'emoji.css', 'dropzone.css');
 		$aJs = array('primus.js', 'connect.js', 'messenger.js', 'config.js', 'util.js', 'jquery.emojiarea.js', 'emoji-picker.js', 'status.js', 'dropzone.js', 'feather.min.js'); 
 		
-		if ($this->_oConfig->CNF['IS_PUSH_ENABLED'])
+		if ($this->_oConfig->CNF['IS_PUSH_ENABLED'] && !getParam('sys_push_app_id'))
 			array_push($aJs, 'https://cdn.onesignal.com/sdks/OneSignalSDK.js');
 		
 		if ($sMode == 'all'){
@@ -547,7 +547,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'ip' => gethostbyname($aUrlInfo['host']),
 			'smiles' => (int)$this->_oConfig-> CNF['CONVERT_SMILES'],
 			'bx_if:onsignal' => array(
-										'condition'	=> (int)$iProfileId && $this->_oConfig-> CNF['IS_PUSH_ENABLED'],
+										'condition'	=> (int)$iProfileId && $this->_oConfig-> CNF['IS_PUSH_ENABLED'] && !getParam('sys_push_app_id'),
 										'content' => array(
 											'one_signal_api' => $this->_oConfig-> CNF['PUSH_APP_ID'],
 											'short_name' => $this->_oConfig-> CNF['PUSH_SHORT_NAME'],

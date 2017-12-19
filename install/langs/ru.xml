@@ -34,7 +34,7 @@
 	<string name="_bx_messenger_name_place_holder"><![CDATA[Напишите имя тут...]]></string>
 	<string name="_bx_messenger_typing_message"><![CDATA[пишет сообщение...]]></string>
 	<string name="_bx_messenger_push_message_title"><![CDATA[Сообщение от {0}]]></string>   
-	<string name="_bx_messenger_is_push_enabled"><![CDATA[Активировать OneSignal пуш нотификацию]]></string>
+	<string name="_bx_messenger_is_push_enabled"><![CDATA[Активировать OneSignal пуш нотификацию(Использовать настройки сайта для пуш нотификации, если они заданы)]]></string>
 	<string name="_bx_messenger_push_app_id"><![CDATA[OneSignal App ID]]></string>
 	<string name="_bx_messenger_push_rest_api"><![CDATA[REST API Key]]></string>
 	<string name="_bx_messenger_linked_title"><![CDATA[Страница: {0}]]></string>

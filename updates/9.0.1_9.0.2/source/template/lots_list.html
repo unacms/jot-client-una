@@ -1,0 +1,33 @@
+<div class="bx-messenger-block bx-messenger-block-lots bx-def-color-bg-block bx-def-border-block">
+	<div id="bx-messangger-block-head">
+		<div class="bx-db-header">
+			<div class="bx-db-title bx-def-font-h3"><bx_text:_bx_messenger_page_inbox_block_title /></div>
+			<div class="bx-db-menu">			
+					<a href="javascript:void(0);" onclick="oMessenger.createLot();" title="__create_lot_title__">
+						<i data-feather="edit"></i>
+					</a>			
+			</div>
+		</div>
+		<div class="bx-db-divider bx-def-hr"></div>
+		<div class="bx-form-input-wrapper bx-form-input-wrapper-text bx-messenger-border search">
+			<div>
+				<input id="items" title="__search_for_title__" onkeyup="oMessenger.searchByItems(this.value);" name="items" class="bx-def-font-inputs bx-form-input-text" type="text" placeholder="<bx_text:_bx_messenger_title_search />">
+			</div>
+			<div class="star">
+				<a href="javascript:void(0);" onclick="oMessenger.showStarred(this);" data-color="__star_color__" title="__star_title__">
+					<i data-feather="__star_icon__"></i>
+				</a>
+			</div>
+		</div>
+	</div>
+   <div class="bx-db-content bx-clearfix">
+		<div class="bx-messanger-items-list">	
+				__items__
+		</div>	
+	</div>
+</div>
+<script type="text/javascript">	
+	$(document).ready(function(){		
+		oMessenger.initMessengerPage(__profile__, oJotWindowBuilder);
+	});
+</script>

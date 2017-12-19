@@ -1,0 +1,303 @@
+.bx-main,
+#bx-content-container,
+#bx-content-wrapper,
+#bx-content-main,
+.bx-page-wrapper,
+.bx-page-block-container,
+.bx-layout-cell{
+	padding:0px;
+	margin:0px;
+}
+
+#bx-content-wrapper .bx-def-page-width
+{
+	width:100%;
+}
+
+#bx-footer-wrapper{
+	display:none;
+}
+
+.bx-messanger-items-list
+{
+	height:100%;
+	overflow-y:auto;
+	overflow-x:hidden;
+	-webkit-overflow-scrolling: touch;
+}
+
+.bx-messenger-main-block{
+	min-height:100% !important;
+}
+
+.bx-main{
+	height:100vh;
+	overflow:hidden;
+	position:fixed;
+	width:100%;
+}
+
+.bx-messenger-table-wrapper  .bx-messenger-table-wrapper-rows:first-child .cell{
+	height:100% !important;
+	min-height:50px;
+}
+
+.bx-layout-row .bx-layout-col
+{
+	display:none;
+}
+
+.bx-messenger-block-lots
+{
+	border-left:0px;
+	border-top:0px;	
+	border-bottom:0px;	
+}
+
+.bx-messenger-status
+{
+	font-family: 'sys-user';
+	margin-right:0.2rem;
+	font-size:0.8rem;
+	font-weight:300;	
+}
+
+.bx-messenger-jots-snip-title .bx-messenger-status
+{
+	display:table-cell;
+}
+
+.bx-messenger-status.online:before{
+	content: "\f111";
+	color: #00c39b;
+}
+
+.bx-messenger-status.away:before{
+	content: "\f111"; 
+	color: #f5a623;
+}
+
+.bx-messenger-status.offline:before
+{
+	content: "\f10c";
+	color: #9b9b9b;
+}
+.bx-messenger-jots-snip-title div.status
+{
+    vertical-align: middle;
+    padding: .07rem;
+    position: relative;
+    margin-right: 0.1rem;
+}
+
+.bx-messenger-jots-snip-title div.status div
+{
+	background-color: #9b9b9b;
+	color:#eee;
+	font-weight:400 !important;
+	font-size:0.7rem !important;
+	border-radius:3px;
+	text-align:center !important;
+	font-family:inherit;
+}
+
+.bx-messenger-jots-snip-title div.title
+{
+	white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+	margin-right:0.3rem;
+	width:100%;
+}
+
+.bx-messenger-jots-snip-title div.time
+{
+	margin-right:0.3rem;
+	opacity:0.7;
+}
+
+.bx-messenger-usernames
+{
+	overflow:hidden;
+	width:auto;	
+}
+
+span.bubble
+{
+	position:relative;
+	background-color: #d7e9fb;
+    color: #4a90e2;
+    margin-right: 0.2rem;
+	width:1rem;
+	float:left;
+}
+
+span.bubble.hidden
+{
+	display:none;
+}
+
+.unread-lot .bx-messenger-preview-lot div:first-child span:first-child
+{
+	font-weight:600;
+}
+
+.bx-messenger-preview-lot
+{
+    overflow: hidden;
+    display: block;
+	min-height: 1rem;
+    margin: auto;
+}
+
+.bx-messenger-preview-lot div:first-child
+{
+	float:left;
+	white-space:nowrap;
+	text-overflow:ellipsis;
+	white-space: nowrap;
+	overflow:hidden;
+	width:calc(100% - 2rem);
+	margin-top:0.2rem;
+}
+
+.bx-messenger-preview-lot div:first-child span:first-child
+{
+	margin-right:0.2rem;
+}
+
+.bx-messenger-preview-lot div:last-child
+{
+	float:right;
+	width:2rem;
+}
+
+.bx-messenger-preview-lot div:last-child span
+{
+	width:1rem;
+}
+
+.bx-messenger-jots-snip-info span:last-child
+{
+	word-break:break-word;
+	overflow-wrap:break-word;
+}
+
+.bx-messenger-block .bx-db-header .bx-db-menu.right{
+	position:relative;
+	max-width:7.5rem;
+	display:flex;
+}
+
+.bx-messenger-participants-usernames
+{
+	float:left;
+	position:relative;
+	max-height:2.3rem;
+	margin-right:1rem;
+	font-weight:bold;
+	width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.bx-messenger-participants-usernames div
+{
+	width:100%;
+	float:left;
+}
+
+.bx-messenger-participants-usernames a
+{
+	font-weight:bold;
+}
+
+.bx-messenger-participants-usernames div.status
+{
+	line-height:1rem;
+	height:1rem;
+	font-size:0.8rem;
+	font-weight:normal;
+}
+
+.bx-messenger-participants-usernames .bx-messenger-status
+{
+	display:inline-block;
+}
+
+.bx-messenger-participants-usernames div.name
+{
+	font-weight:bold;
+	overflow:hidden;
+}
+
+.bx-messenger-hide-mobile svg
+{
+	vertical-align:middle;
+}
+
+.bx-messenger-hide-mobile a
+{
+	font-size:1rem;
+	font-weight:700;
+	margin-left:0.6rem;
+	display:inline-flex;
+}
+
+div.bx-messenger-border.search div:first-child 
+{
+	width:100%;
+	vertical-align:middle;
+	flex:0 1 auto;
+}
+
+div.bx-messenger-border.search div:first-child input
+{
+	padding:0px;
+	background-color:rgba(0,0,0,0);
+}
+
+div.bx-messenger-border.search div:first-child input::placeholder
+{
+	color:#ccc;
+}
+
+div.bx-messenger-border.search .star a
+{
+	opacity:0.5;
+	margin:0.25rem;
+	display: inline-flex;
+	align-items: center;
+}
+
+div.bx-messenger-border.search .star a svg
+{
+	vertical-align:middle;
+}
+
+div.bx-messenger-border.search .star a.active 
+{
+	opacity:1;
+}
+
+
+@media (max-width:720px)
+{
+	
+	.bx-messenger-participants-usernames div.status
+	{
+		display:none;
+	}
+
+	/* show back icon only on main messenger page*/
+	.bx-messenger-hide-mobile{
+		display:block !important;
+	}
+	
+	#bx-messenger-add-users-input
+	{
+		max-width:calc(100% - 2rem);
+	}
+
+}

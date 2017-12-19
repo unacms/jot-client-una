@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="ru" flag="ru" title="Russian">
+	<string_add name="_bx_messenger_repost_message"><![CDATA[получена ссылка на сообщение]]></string_add>
+
+	<string_upd name="_bx_messenger_is_push_enabled"><![CDATA[Активировать OneSignal пуш нотификацию(Использовать настройки сайта для пуш нотификации, если они заданы)]]></string_upd>
+	<string_upd name="_bx_messenger_lots_menu_add_part"><![CDATA[Редактировать список участников]]></string_upd>
+	<string_upd name="_bx_messenger_max_files_upload"><![CDATA[Максимальное количество файлов, которое можно отправить в одном сообщении]]></string_upd>
+
+	<string_del name="_bx_messenger_delete_success"><![CDATA[Разговор был успешно удалён!]]></string_del>
+</resources>

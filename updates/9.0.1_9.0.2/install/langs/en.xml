@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="en" flag="gb" title="English">
+	<string_add name="_bx_messenger_repost_message"><![CDATA[repost of a message received]]></string_add>
+
+	<string_upd name="_bx_messenger_page_inbox_block_title"><![CDATA[Talks]]></string_upd>
+	<string_upd name="_bx_messenger_is_push_enabled"><![CDATA[Enable OneSignal Push Notifications (Use site settings for push notifications, if they set)]]></string_upd>
+	<string_upd name="_bx_messenger_lots_menu_add_part"><![CDATA[Edit participants list]]></string_upd>
+	<string_upd name="_bx_messenger_cant_leave"><![CDATA[You can not leave your own talk!]]></string_upd>
+	<string_upd name="_bx_messenger_leave_chat_confirm"><![CDATA[You you sure you want to leave the talk?]]></string_upd>
+	<string_upd name="_bx_messenger_friends_page_all_friends_block"><![CDATA[My Friends talk]]></string_upd>
+
+	<string_del name="_bx_messenger_delete_success"><![CDATA[The Lot successfully removed!]]></string_del>
+</resources>

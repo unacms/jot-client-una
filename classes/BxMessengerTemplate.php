@@ -86,7 +86,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@param boolean $bShowMessanger show empty chat window if there is no history
 	*@return string html code 
 	*/
-	public function getTalkBlock($iProfileId, $iLotId = BX_IM_EMPTY, $iType = BX_IM_TYPE_PUBLIC, $bShowMessanger = false){
+	public function getTalkBlock($iProfileId, $iLotId = BX_IM_EMPTY, $iType = BX_IM_TYPE_PUBLIC, $bShowMessanger = false, &$sReturnTitle = ''){
 		$sTitle = '';
 		$aLotInfo = array();
  
@@ -105,8 +105,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			$iType = $aLotInfo[$this -> _oConfig -> CNF['FIELD_TYPE']];
 			$sTitle = isset($aLotInfo[$this -> _oConfig -> CNF['FIELD_TITLE']]) && $aLotInfo[$this -> _oConfig -> CNF['FIELD_TITLE']] ? $aLotInfo[$this -> _oConfig -> CNF['FIELD_TITLE']] : $this -> getParticipantsNames($iProfileId, $iLotId);
 			$sTitle = $this -> _oDb -> isLinkedTitle($iType) ? _t('_bx_messenger_linked_title', '<a href ="'. $aLotInfo[$this -> _oConfig -> CNF['FIELD_URL']] .'">' . $sTitle . '</a>') : _t($sTitle);
-		}		  
-
+			$sReturnTitle = html2txt($sTitle);
+		}
 
 		$aMenu[] = array('name' => _t("_bx_messenger_lots_menu_leave"), 'title' => '', 'action' => "if (confirm('" . bx_js_string(_t('_bx_messenger_leave_chat_confirm')) . "')) oMessenger.onLeaveLot($iLotId);");
 		$iUnreadLotsJots = $bIsMuted = $bIsStarred = 0;		

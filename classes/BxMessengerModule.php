@@ -228,10 +228,10 @@ class BxMessengerModule extends BxBaseModTextModule
 			return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 		};
 	   		
-		$sContent = $this -> _oTemplate -> getTalkBlock($this -> _iUserId, $iId);
+		$sContent = $this -> _oTemplate -> getTalkBlock($this -> _iUserId, $iId, BX_IM_TYPE_PUBLIC, false, $sTitle);
 		$this -> _oDb -> readAllMessages($iId, $this -> _iUserId);
 	   
-		echoJson(array('code' => 0, 'html' =>  $sContent));
+		echoJson(array('code' => 0, 'html' =>  $sContent, 'title' => $sTitle));
 	}
    
 	/**
@@ -355,7 +355,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	   
 		$iProfileId = (int)bx_get('profile');
 		$iLot = (int)bx_get('lot');
-		echoJson(array('html' => $this -> _oTemplate -> getLotWindow($iProfileId, $iLot, false)));
+		echoJson(array('title' => _t('_bx_messenger_lots_menu_create_lot_title'), 'html' => $this -> _oTemplate -> getLotWindow($iProfileId, $iLot, false)));
 	}
    
 	/**

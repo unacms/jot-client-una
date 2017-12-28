@@ -53,6 +53,8 @@ var oMessenger = (function($){
 		//globa class options
 		this.oUsersTemplate	= null,
 		this.sJotUrl = sUrlRoot + 'm/messenger/archive/',
+		this.sRedFavIcon = 'modules/boonex/messenger/template/images/icons/favicon-red-32x32.png',
+		this.sDefaultFavIcon = $('link[rel="shortcut icon"]').attr('href'),
 		this.iAttachmentUpdate = false,
 		this.iTimer = null,
 		this.iMaxLength = (oOptions && oOptions.max) || 0,
@@ -71,11 +73,11 @@ var oMessenger = (function($){
 		this.iPanding = false, // don't update jots while prevous update is not finished yet
 		this.aUsers = [],
 		this.soundFile = 'modules/boonex/messenger/data/notify.wav'; //beep file, occurs when message received
-		
+
 		var _this = this;
 		$(this).on('message', function()
 		{			
-			_this.beep();
+			_this.beep();			
 		});
 		// Emoj config
 		if (oOptions && oOptions.emoji)
@@ -379,6 +381,9 @@ var oMessenger = (function($){
 							.html(oData.html)
 							.bxTime();
 						
+						if (typeof oData.title !== 'undefined')
+							$(document).prop('title', oData.title);
+					
 						_this.updateScrollPosition('bottom');
 						_this.initUsersSelector(oParams.lot !== undefined ? 'edit' : '');
 						
@@ -623,9 +628,38 @@ var oMessenger = (function($){
 	*@param object oBlock selected lot
 	*/
 	oMessenger.prototype.selectLotEmit = function(oBlock){
-		oBlock.addClass(this.sActiveLotClass).siblings().removeClass(this.sActiveLotClass).end().
-				find(this.sLotInfo).removeClass(this.sUnreadLotClass).end().
-				find(this.sBubble).fadeOut(this.iHideUnreadBadge).end();
+		oBlock.addClass(this.sActiveLotClass)
+			.siblings()
+			.removeClass(this.sActiveLotClass)
+			.end()
+			.find(this.sLotInfo)
+			.removeClass(this.sUnreadLotClass)
+			.end()
+			.find(this.sBubble)
+			.fadeOut(this.iHideUnreadBadge)
+			.end();	
+	}
+	
+	/**
+	* Change page's favicon 
+	*@param boolean bEnable 
+	*/
+	oMessenger.prototype.updatePageIcon = function(bEnable, iLot)
+	{
+		var iUnreadLotsCount = $(this.sBubble + ':visible').length;
+		
+		if (iUnreadLotsCount == 1 && iLot !== undefined && iLot == $(this.sBubble + ':visible')
+															.parents('.bx-messenger-jots-snip')
+															.data('lot'))
+		{
+			iUnreadLotsCount = 0;
+		}
+		
+		if (bEnable === true || iUnreadLotsCount)
+			$('link[rel="shortcut icon"]').attr('href', this.sRedFavIcon);
+		else 
+		if (bEnable === false || !iUnreadLotsCount)
+			$('link[rel="shortcut icon"]').attr('href', this.sDefaultFavIcon);
 	}
 		
 	/**
@@ -657,25 +691,40 @@ var oMessenger = (function($){
 				else
 				if (!parseInt(oData.code))
 				{
-					$(_this.sJotsBlock).parent().html(oData.html).fadeIn(
-						function()
-						{
-							if (_this.oJotWindowBuilder != undefined)
+					$(_this.sJotsBlock)
+						.parent()
+						.html(oData.html)
+						.fadeIn(
+							function()
 							{
-								if (!bDontChangeCol)
-									_this.oJotWindowBuilder.changeColumn();
-								else
-									_this.oJotWindowBuilder.updateColumnSize();
+								if (_this.oJotWindowBuilder != undefined)
+								{
+									if (!bDontChangeCol)
+										_this.oJotWindowBuilder.changeColumn();
+									else
+										_this.oJotWindowBuilder.updateColumnSize();
+								}
+								
+								_this.updatePageIcon(undefined, iLotId);
 							}
-						}
-					).bxTime();
-							
+						).bxTime();
+					
+					if (typeof oData.title !== 'undefined')
+						$(document).prop('title', oData.title);
 					
 					/*  copy current update member status to the top of the chat */
-					var iUser = oLotBlock.find(_this.sStatus).data('user-status');
-					if (parseInt(iUser)){
-						var classList = oLotBlock.find(_this.sStatus).attr('class').split(/\s+/);						
-						if (typeof classList[1] !== 'undefined'){							
+					var iUser = oLotBlock
+									.find(_this.sStatus)
+									.data('user-status');
+					
+					if (parseInt(iUser))
+					{
+						var classList = oLotBlock
+											.find(_this.sStatus)
+											.attr('class').split(/\s+/);
+											
+						if (typeof classList[1] !== 'undefined')
+						{
 							$('b[data-user-status="' + iUser + '"]').
 								removeClass('online offline away').
 								addClass(classList[1]).
@@ -847,9 +896,8 @@ var oMessenger = (function($){
 							if (!parseInt(oData.code))
 							{					
 								var sHtml = oData.html.replace(new RegExp(_this.sJotUrl + '\\d+', 'i'), _t('_bx_messenger_repost_message'));
-								oNewLot = $(sHtml)
-											.css('display', 'flex');
-											
+								oNewLot = $(sHtml).css('display', 'flex');
+														
 								if (!oLot.is(':first-child'))
 								{
 									var sFunc = function()
@@ -867,19 +915,21 @@ var oMessenger = (function($){
 																sFunc();
 															});
 									else
-										sFunc();
+										sFunc();								
 								}
 								else
+								{
 									oLot
 										.replaceWith($(oNewLot)
 										.fadeTo(150, 0.5)
 										.fadeTo(150, 1)
-										.bxTime());
+										.bxTime());								
+								}
 								
 								$(_this).trigger(jQuery.Event('message'));
 								
-								if (_this.isActiveLot(lot) && !_this.isMobile())
-									_this.selectLotEmit($(oNewLot));
+								if (_this.isActiveLot(lot) && !_this.isMobile())							
+									_this.selectLotEmit($(oNewLot));								
 							}
 						}, 'json');
 	}
@@ -892,7 +942,8 @@ var oMessenger = (function($){
 		var _this = this,
 			sName = oData.name != undefined ? (oData.name).toLowerCase() : '';
 	
-		if (oData.lot != undefined && this.isActiveLot(oData.lot)){			
+		if (oData.lot != undefined && this.isActiveLot(oData.lot))
+		{			
 			if (!~this.aUsers.indexOf(sName)) 
 							this.aUsers.push(sName);
 			
@@ -902,7 +953,11 @@ var oMessenger = (function($){
 		
 		clearTimeout(this.iTimer);	
 		this.iTimer = setTimeout(function(){
-			$(_this.sInfoArea).fadeOut().find(_this.sTypingArea).html('');
+			$(_this.sInfoArea)
+			.fadeOut()
+			.find(_this.sTypingArea)
+			.html('');
+			
 			_this.aUsers = [];
 		},_this.iTypingUsersTitleHide);				
 	};
@@ -1007,7 +1062,7 @@ var oMessenger = (function($){
 			if (!document.hasFocus()) 
 			{
 				playSound.play();
-				console.log('beep');
+				this.updatePageIcon(true);
 			}
 			
 		}catch(e){
@@ -1036,7 +1091,8 @@ var oMessenger = (function($){
 			function(oData){
 				var oList = $(_this.sTalkList);
 				
-				if (!parseInt(oData.code)){
+				if (!parseInt(oData.code))
+				{
 						if (iStart == undefined) 
 							oList.html('');
 								
@@ -1048,8 +1104,8 @@ var oMessenger = (function($){
 							}).appendTo(oList);
 							
 							if ( _this.isBlockVersion() || (_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive())) /* play sound for jots only on mobile devices when chat area is active */
-								$(_this).trigger(jQuery.Event('message'));
-						}	
+								$(_this).trigger(jQuery.Event('message'));							
+						}
 						else 
 							oList.prepend(oData.html);							
 						
@@ -1059,7 +1115,7 @@ var oMessenger = (function($){
 						}).bxTime();
 						
 						// embedly/iframly links
-						$('a.bx-link').dolConverLinks();
+						$('a.bx-link').dolConverLinks();						
 						
 						_this.updateScrollPosition(
 							sShow == 'new' ? 'bottom' : 'position', 
@@ -1220,6 +1276,12 @@ var oMessenger = (function($){
 				e.preventDefault();
 			});
 			
+			$(window).on('focus', 
+			function()
+			{
+				_oMessenger.updatePageIcon();
+			})
+								
 			$(_oMessenger.sTalkList + ',' + _oMessenger.sMessangerParentBox).on('drop', function (e){
 				var files = e.originalEvent.dataTransfer.files;
 				e.preventDefault();
@@ -1239,15 +1301,17 @@ var oMessenger = (function($){
 		initMessengerPage:function(iProfileId, oBuilder){
 			_oMessenger.oJotWindowBuilder = oBuilder || window.oJotWindowBuilder;
 			
-			if (typeof oMessengerMemberStatus !== 'undefined'){
-				oMessengerMemberStatus.init(function(iStatus){
+			if (typeof oMessengerMemberStatus !== 'undefined')
+			{
+				oMessengerMemberStatus.init(function(iStatus)
+				{
 					_oMessenger.iStatus = iStatus;
 					if (typeof _oMessenger.oRTWSF !== "undefined")
 						_oMessenger.oRTWSF.updateStatus({
 											user_id:_oMessenger.oSettings.user_id,
 											status:iStatus,
 										 });
-					});
+				});
 			}
 		
 			if (_oMessenger.oJotWindowBuilder != undefined){		

@@ -712,6 +712,7 @@ div.bx-messenger-attachment-file-images img{	max-width: 40%;
 		text-overflow: ellipsis;
 		overflow: hidden;
 		font-size:1rem;
+		flex:0 1 auto;
 	}
 	
 	.bx-messenger-attachment-file

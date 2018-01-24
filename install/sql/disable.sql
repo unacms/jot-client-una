@@ -17,3 +17,6 @@ DELETE FROM `sys_pages_blocks` WHERE `module` = 'bx_messenger' OR `object` = 'bx
 SET @iHandler := (SELECT `id` FROM `sys_alerts_handlers` WHERE `name` = 'bx_messenger' LIMIT 1);
 DELETE FROM `sys_alerts` WHERE `handler_id` = @iHandler;
 DELETE FROM `sys_alerts_handlers` WHERE `id` = @iHandler;
+
+-- LIVE UPDATES
+DELETE FROM `sys_objects_live_updates` WHERE `name` = 'bx_messenger_new_messages';

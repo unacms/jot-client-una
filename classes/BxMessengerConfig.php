@@ -54,11 +54,14 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'FIELD_MESSAGE_ID' => 'id',
 			'FIELD_MESSAGE' => 'message',
 			'FIELD_MESSAGE_FK' => 'lot_id',
-			'FIELD_MESSAGE_AUTHOR' => 'user_id',			
+			'FIELD_MESSAGE_AUTHOR' => 'user_id',
 			'FIELD_MESSAGE_ADDED' => 'created',
 			'FIELD_MESSAGE_NEW_FOR' => 'new_for',
 			'FIELD_MESSAGE_AT_TYPE' => 'attachment_type',
 			'FIELD_MESSAGE_AT' => 'attachment',
+			'FIELD_MESSAGE_LAST_EDIT' => 'last_edit',
+			'FIELD_MESSAGE_EDIT_BY' => 'edit_by',
+			'FIELD_MESSAGE_TRASH' => 'trash',
 
 			// lots types table fields
 			'FIELD_TYPE_ID' => 'id',

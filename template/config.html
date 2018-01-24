@@ -30,13 +30,13 @@
 			var isPushSupported = OneSignal.isPushNotificationsSupported();
 				OneSignal.setDefaultNotificationUrl('__jot_chat_page_url__');
 				OneSignal.isPushNotificationsEnabled().then(
-		        function(isEnabled) {								
+		        function(isEnabled) {
 							OneSignal.sendTag('user', __profile_id__); // set tag for onesiganl, this tag will be used to send notification
 									if (!isEnabled && isPushSupported)
-												OneSignal.showHttpPermissionRequest();													
+												OneSignal.showHttpPermissionRequest();
 				});
 		});	
-	/*  One Signal Push Notifications Init End */				
+	/*  One Signal Push Notifications Init End */
 	</bx_if:onsignal>
 	
 	if (oRTWSF != undefined)
@@ -56,14 +56,13 @@
 					  },
 				oRTWSF:oRTWSF,
 				user_id:__profile_id__,
-				max:__message_length__				
+				max:__message_length__
 	});
 	
 	window.aDolLang	=	{
 							'_bx_messenger_online':'__online__',
 							'_bx_messenger_offline':'__offline__',
 							'_bx_messenger_away':'__away__',
-							'_bx_messenger_repost_message': '__repost_of_the_message__',
-							'_bx_messenger_remove_jot_confirm':'__jot_remove_confirm__'
+							'_bx_messenger_repost_message': '__repost_of_the_message__'
 						}
 </script>

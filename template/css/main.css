@@ -8,7 +8,7 @@
 	-webkit-overflow-scrolling: touch;
 }
 
-.bx-messenger-conversation-block .bx-btn
+/*.bx-messenger-conversation-block .bx-btn
 {
 	width:90%;
 	max-width:400px;
@@ -19,7 +19,7 @@
 	opacity:0.3;
 	display:inline-block;
 	floaT:none;
-}
+}*/
 
 div.bx-messenger-post-box
 {
@@ -49,15 +49,18 @@ div.bx-messenger-post-box .bx-messenger-post-box-set div
 
 div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 {
-	height:auto;	
+	height:auto;
 	position:relative;
 	overflow-wrap: break-word;
 	overflow: hidden;	
 	border:0px;	
 	background-color:rgba(0,0,0,0);	
-	padding:0.5rem;
+	padding-top:0.5rem;	
 	max-height:10rem;
 	word-break:break-word;
+	line-height:1rem;
+	font-size:1rem;
+	overflow-y:auto;
 }
 
 div.bx-messenger-post-box-send-area div.bx-messenger-text-box:empty:before
@@ -133,6 +136,25 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box:empty:before
 	box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	-webkit-box-sizing: border-box;
+}
+.bx-messenger-jots-message .bx-messenger-post-box-send-area
+{
+	width:100%;
+	display:block;	
+	position:relative;
+	border:1px solid #4a90e2;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	max-width:100%;
+	border-radius: 0.25rem;
+	margin:0;
+}
+
+.bx-messenger-jots-message .bx-messenger-post-box-send-area div
+{
+	max-width:100%;	
+	margin:0;
 }
 
 .pc-holder 
@@ -268,13 +290,10 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box:empty:before
 }
 
 .bx-messenger-jots-message{	position: relative;
-	overflow: hidden;
 	overflow-wrap: break-word;
 	word-break: break-word;
 	padding-right: 0.5rem;
-}
-
-.bx-messenger-jots-message.new{	white-space:pre-line;
+	white-space:pre-line;
 }
 
 .bx-messenger-hide-mobile{	display:none;
@@ -435,8 +454,13 @@ div.bx-messenger-attachment,
 	padding-left: 0.3rem;
 }
 
+div.bx-messenger-attachment-area
+{
+	width:100%;	
+}
+
 .bx-messenger-jots-message div{	margin-left:0.5rem;
-	max-width:50%;
+	/*max-width:50%;*/
 	height:auto;
 	overflow:visible;
 }
@@ -451,6 +475,7 @@ div.bx-messenger-attachment div.bx-messenger-attachment-author-message{	positi
 	margin-top: 0.5rem;
 	margin-bottom: 0.5rem;
 	opacity: 1;	
+	white-space:pre-line;
 }
 
 div.bx-messenger-attachment-footer{	text-transform:lowercase;
@@ -491,8 +516,8 @@ div.bx-messenger-attachment-footer span.type{	border-right:1px solid rgba(0,0,
 .bx-messenger-attachment-files{	position: relative;
 	margin-top: 0.5rem;
 	width: auto;
-	float:left;
-	width:100%;
+	float:left;	
+	white-space:normal;
 }
 
 .bx-messenger-attachment-file{	
@@ -503,7 +528,8 @@ div.bx-messenger-attachment-footer span.type{	border-right:1px solid rgba(0,0,
 	border-radius: 0.5rem;
 	padding: 0.5rem;
 	position:relative;
-	max-width:30%;
+	max-width:320px;
+	width:70%
 }
 
 .bx-messenger-attachment-file-wrapper
@@ -690,6 +716,122 @@ div.bx-messenger-attachment-file-images img{	max-width: 40%;
 	line-height: 2rem;
 }
 
+div.bx-messenger-edit-jot
+{
+	margin:0.5rem 0 0 0;
+	padding:0;
+	border:0px;	
+	max-width:100%;
+	display:none;
+	white-space:normal;
+	line-height:1rem;
+	min-height:2rem;
+}
+
+div.bx-messenger-edit-jot div.bx-messenger-post-box-send-area
+{
+	margin-bottom:1rem;
+}
+
+div.bx-messenger-edit-jot div.bx-messenger-post-box-send-area div.bx-messenger-text-box
+{
+	white-space: pre-line;
+    overflow-y: auto;
+    max-height: 7rem;
+    min-height: 2.3rem;
+    vertical-align: middle;
+    padding-top: 0.7rem;
+	padding-left: 0.5rem;
+}
+
+div.bx-messenger-edit-jot a.smiles
+{
+	right: 1rem;
+    top: 0.3rem;
+    position:absolute;
+}
+
+div.bx-messenger-edit-jot-buttons
+{
+	margin:0rem;
+	max-width:100%;
+}
+
+div.bx-messenger-edit-jot-buttons div
+{
+	margin:0 1.5rem 0 0;
+}
+
+.bx-messenger-jots-message-edit-time
+{
+	position: relative;
+    float: right;
+    opacity: 0.4;
+    bottom: 1rem;
+    margin-right: 0.5rem;
+}
+
+div.bx-messenger-jots-message-deleted
+{
+	max-width: 100%;
+	text-align: left;
+	display: flex;
+	position: relative;
+	background-color: rgba(0,0,0,0.07);
+	max-height: 1.5rem;
+	overflow: hidden;
+	white-space: normal;
+	border-radius: 0.25rem;
+	padding: 0.3rem;
+	margin:0.25rem 0 0 0;	
+	border:0;
+	align-items:center;
+}
+
+div.bx-messenger-jots-message-deleted span
+{
+	margin-left: 1rem;
+}
+
+div.bx-messenger-jots-message-deleted span:first-child
+{
+	flex:1 0 auto;
+	margin:0.2rem;
+}
+
+div.bx-messenger-jots-message-deleted span svg
+{
+	height: 1.3rem;
+	vertical-align:middle;
+}
+
+div.bx-messenger-hidden-jot div
+{
+	overflow:hidden;
+	/*max-width:100%;*/
+}
+
+div.bx-messenger-hidden-jot div.bx-messenger-jots-actions-list
+{
+	display:none;
+}
+
+div.bx-messenger-hidden-jot
+{
+	margin-top:1rem;
+	border:1px solid #4a90e2;
+	white-space:normal;
+	padding:0.5rem;
+	border-radius:0.25rem;
+	overflow:hidden;
+	max-width:100%;
+}
+
+.bx-messenger-jots-message-edit-time svg
+{
+	height:1rem;
+}
+
 @media (max-width:720px)
 {
 	#bx-messenger-files-uploader
@@ -712,11 +854,6 @@ div.bx-messenger-attachment-file-images img{	max-width: 40%;
 		text-overflow: ellipsis;
 		overflow: hidden;
 		font-size:1rem;
-		flex:0 1 auto;
-	}
+	}	
 	
-	.bx-messenger-attachment-file
-	{		
-		width:80%;
-	}
 }

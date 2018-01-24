@@ -58,6 +58,7 @@
           var id = getGuid();
           new EmojiArea_Plain(originalInput, id, options);
         }
+	
         originalInput.attr(
           {
             'data-emojiable': 'converted',
@@ -344,6 +345,9 @@
     }
     this.emojiPopup.appendUnicodeAsImageToElement(this.$editor, $textarea.val());
     
+	if ($textarea.text().length)
+		this.emojiPopup.appendUnicodeAsImageToElement(this.$editor, $textarea.text());
+	
 	this.$editor.attr({
       'data-id': id,
       'data-type': 'input',
@@ -394,6 +398,9 @@
         e.preventDefault();
       }
       self.updateBodyPadding(editorDiv);
+	  
+	  if(e.which == 8 || e.which == 46)
+		  $(this).trigger('change');
     });
 
     if (this.options.onPaste) {
@@ -414,14 +421,27 @@
         editorDiv.scrollTop(editorDiv[0].scrollHeight);
       });
     }
-   
-   $('#smiles').html('<svg width="24" height="24" viewBox="0 0 23 21" xmlns="http://www.w3.org/2000/svg" class="emoji-picker-icon emoji-picker' + this.options.popupButtonClasses + '" data-id="' + id + '" data-type="picker">' +
-	'<g transform="translate(1 1)" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="10"/>' + 
-	'<path d="M8 9V7M12 9V7M4.505 11c0 2.58 2.425 4.67 5.417 4.67S15.34 13.58 15.34 11"/></g></svg>' +
-	'</svg>');
+  	
+	if (typeof options.custom_events !== 'undefined')
+	{
+		for(evt in options.custom_events)			
+			this.$editor.on(evt, options.custom_events[evt]);
+	}
+	
+	$textarea.hide().after(this.$editor);
 
-    $textarea.hide().after(this.$editor);
-    this.setup();
+	var sSmiles = $('<svg width="24" height="24" viewBox="0 0 23 21" xmlns="http://www.w3.org/2000/svg" class="emoji-picker-icon emoji-picker' + this.options.popupButtonClasses + '" data-id="' + id + '" data-type="picker">' +
+	'<g transform="translate(1 1)" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="10"/>' + 
+	'<path d="M8 9V7M12 9V7M4.505 11c0 2.58 2.425 4.67 5.417 4.67S15.34 13.58 15.34 11"/></g></svg></svg>');
+   
+    if (this.options.add)
+		$(this.$editor).after($('<a class="smiles"></a>').html(sSmiles));
+	else 
+		$('a.smiles').html(sSmiles);
+	
+	this.setup();
+	
+	this.$editor.trigger('focus');
 
     /*
      * MODIFICATION: Following line was modified by Igor Zhukov, in order to
@@ -449,7 +469,8 @@
     }
   };
 
-  EmojiArea_WYSIWYG.prototype.onChange = function(e) {
+  EmojiArea_WYSIWYG.prototype.onChange = function(e)
+  {	
 	this.$textarea.val(this.val()).trigger('change');
   };
 
@@ -783,9 +804,11 @@
     if (this.visible)
       return this.hide();
     
-	$(this.$menu).css('z-index', ++EmojiMenu.menuZIndexcss);
-    
-	this.$menu.css({left:-$('.bx-messenger-post-box-send-actions').width(), top:-this.$menu.height() - 10}).show("fast");
+	$(this.$menu).css('z-index', ++EmojiMenu.menuZIndexcss);	
+	
+	this.$menu
+		.css(typeof emojiarea.options.popup_position == 'function' ? emojiarea.options.popup_position() : emojiarea.options.popup_position)
+		.css({top:-this.$menu.height() - 10}).show("fast");
 
     if (!this.currentCategory) {
       this.load(0);

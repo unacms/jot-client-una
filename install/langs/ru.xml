@@ -117,4 +117,13 @@
 	<string name="_bx_messenger_lots_menu_star_title"><![CDATA[Показать только помеченные/непомеченные разговоры]]></string>
 	<string name="_bx_messenger_search_for_lost_title"><![CDATA[Искать разговор по названию или содержанию сообщения]]></string>
 	<string name="_bx_messenger_repost_message"><![CDATA[получена ссылка на сообщение]]></string>
+	<string name="_bx_messenger_save_button"><![CDATA[Сохранить изменения]]></string>
+	<string name="_bx_messenger_cancel_button"><![CDATA[Отмена]]></string>
+	<string name="_bx_messenger_edit_by"><![CDATA[Редактировано {0}, {1}]]></string>
+	<string name="_bx_messenger_edit_jot"><![CDATA[Редактировать сообщение]]></string>
+	<string name="_bx_messenger_deleted_by"><![CDATA[Удалено {0}, пользователем {1}]]></string>
+	<string name="_bx_messenger_was_deleted"><![CDATA[Сообщение было удалено.]]></string>
+	<string name="_bx_messenger_confirm_delete_completely"><![CDATA[Удалить сообщение полностью?]]></string>
+	<string name="_bx_messenger_delete_message"><![CDATA[Удалить сообщение]]></string>
+	<string name="_bx_messenger_view_message"><![CDATA[Посмотреть удалённое сообщение]]></string>
 </resources>

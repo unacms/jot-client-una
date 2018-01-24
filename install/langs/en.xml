@@ -34,7 +34,7 @@
 	<string name="_bx_messenger_name_place_holder"><![CDATA[Type name here...]]></string>
 	<string name="_bx_messenger_typing_message"><![CDATA[typing a message...]]></string>
 	<string name="_bx_messenger_push_message_title"><![CDATA[Message from {0}]]></string>	
-	<string name="_bx_messenger_is_push_enabled"><![CDATA[Enable OneSignal Push Notifications (Use site settings for push notifications, if they set)]]></string>
+	<string name="_bx_messenger_is_push_enabled"><![CDATA[Enable OneSignal Push Notifications (If global site's push notification options are set, they will be used for messenger)]]></string>
 	<string name="_bx_messenger_push_app_id"><![CDATA[OneSignal App ID]]></string>
 	<string name="_bx_messenger_push_rest_api"><![CDATA[REST API Key]]></string>
 	<string name="_bx_messenger_linked_title"><![CDATA[Page: {0}]]></string>
@@ -99,7 +99,7 @@
 	<string name="_bx_messenger_upload_delete"><![CDATA[Delete file]]></string>
 	<string name="_bx_messenger_upload_send_button"><![CDATA[Send]]></string>
 	<string name="_bx_messenger_upload_close"><![CDATA[Close]]></string>
-	<string name="_bx_messenger_delete_confirm"><![CDATA[Are you sure you want to delete the file?]]></string>
+	<string name="_bx_messenger_delete_confirm"><![CDATA[Are you sure, you want to delete the file?]]></string>
 	<string name="_bx_messenger_delete_all_files_confirm"><![CDATA[All files from the list will be lost, continue and close the form?]]></string>
 	<string name="_bx_messenger_post_view_actions"><![CDATA[View actions]]></string>
 	<string name="_bx_messenger_post_attache_files"><![CDATA[Send files]]></string>
@@ -116,5 +116,14 @@
 	<string name="_bx_messenger_lots_menu_create_lot_title"><![CDATA[Create new talk]]></string>
 	<string name="_bx_messenger_lots_menu_star_title"><![CDATA[Show only marked/unmarked talks]]></string>
 	<string name="_bx_messenger_search_for_lost_title"><![CDATA[Find talks by title or message]]></string>
-	<string name="_bx_messenger_repost_message"><![CDATA[repost of a message received]]></string>	
+	<string name="_bx_messenger_repost_message"><![CDATA[repost of a message received]]></string>
+	<string name="_bx_messenger_save_button"><![CDATA[Save changes]]></string>
+	<string name="_bx_messenger_cancel_button"><![CDATA[Cancel]]></string>
+	<string name="_bx_messenger_edit_by"><![CDATA[Edited {0} by {1}]]></string>
+	<string name="_bx_messenger_edit_jot"><![CDATA[Edit message]]></string>
+	<string name="_bx_messenger_deleted_by"><![CDATA[Deleted {0} by {1}]]></string>
+	<string name="_bx_messenger_was_deleted"><![CDATA[Message was removed.]]></string>
+	<string name="_bx_messenger_confirm_delete_completely"><![CDATA[Completely delete the message?]]></string>
+	<string name="_bx_messenger_delete_message"><![CDATA[Delete message]]></string>
+	<string name="_bx_messenger_view_message"><![CDATA[View deleted message]]></string>
 </resources>

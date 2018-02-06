@@ -108,17 +108,24 @@ class BxMessengerDb extends BxBaseModTextDb
 	/**
 	* Deletes jot
 	*@param int iJotId jot id
+	*@param int iProfileId member who deleted jot
 	*@param boolean $bCompletely if true totally remove from the site 
 	*@return int affected rows
 	*/
-	public function deleteJot($iJotId, $bCompletely = false){
+	public function deleteJot($iJotId, $iProfileId, $bCompletely = false){
 		$iJotId = (int)$iJotId;
 		if ($bCompletely)
 		{
 			$this -> removeFilesByJotId($iJotId);
 			return $this -> query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('id' => $iJotId));
 		}		
-		return $this -> query("UPDATE `{$this->CNF['TABLE_MESSAGES']}` SET `{$this->CNF['FIELD_MESSAGE_TRASH']}` = 1 WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('id' => $iJotId));
+		
+		return $this -> query("UPDATE `{$this->CNF['TABLE_MESSAGES']}` 
+								SET 
+									`{$this->CNF['FIELD_MESSAGE_TRASH']}` = 1,
+									`{$this->CNF['FIELD_MESSAGE_LAST_EDIT']}` = UNIX_TIMESTAMP(),
+									`{$this->CNF['FIELD_MESSAGE_EDIT_BY']}` = :profile
+								WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('id' => $iJotId, 'profile' => $iProfileId));
 	}	
 	
 	/**
@@ -572,9 +579,10 @@ class BxMessengerDb extends BxBaseModTextDb
 	* Get the latest posted jot(message)
 	*@param int $iLotId lot id
 	*@param int $iProfileId if not specified the just latest jot of any member
+	*@param boolean $bNotTrash don't show trash message
 	*@return array with jot info
 	*/
-	public function getLatestJot($iLotId, $iProfileId = 0){
+	public function getLatestJot($iLotId, $iProfileId = 0, $bNotTrash = true){
 		$sWhere = '';
 		$aWhere['lot'] = $iLotId;
 		
@@ -584,10 +592,13 @@ class BxMessengerDb extends BxBaseModTextDb
 			$aWhere['profile'] = $iProfileId;
 		}
 		
+		if ($bNotTrash)
+			$sWhere .= " AND `{$this->CNF['FIELD_MESSAGE_TRASH']}` = 0"; 			
+		
 		return $this -> getRow("SELECT *
 			FROM `{$this->CNF['TABLE_MESSAGES']}` 
 			WHERE  `{$this->CNF['FIELD_MESSAGE_FK']}` = :lot {$sWhere}
-			ORDER BY `{$this->CNF['FIELD_MESSAGE_ADDED']}` DESC	
+			ORDER BY `{$this->CNF['FIELD_MESSAGE_ADDED']}` DESC
 			LIMIT 1", $aWhere);
 	}
 	

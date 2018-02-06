@@ -274,15 +274,14 @@ class BxMessengerModule extends BxBaseModTextModule
 	}
    
 	/**
-	* Search for Lots by keywords in the right side block
+	* Update brief of the specified lot in the lots list
 	* @return array with json 
 	*/
 	public function actionUpdateLotBrief(){
 		if (!$this -> isLogged())
 			return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 	   
-		$iLotId = (int)bx_get('lot_id');
-	   
+		$iLotId = (int)bx_get('lot_id');	   
 		if (!$this -> isLogged() || !$iLotId)
 			return echoJson(array('code' => 1));
 	   
@@ -457,17 +456,19 @@ class BxMessengerModule extends BxBaseModTextModule
 	public function actionDeleteJot(){
 		$iJotId = bx_get('jot');
 		$bÑompletely = (int)bx_get('completely');
-		
+		$aJotInfo = $this -> _oDb -> getJotById($iJotId);
+
 		$aResult = array('code' => 1);
-		if (!$iJotId || !(isAdmin() || $this -> _oDb -> isAuthor($iJotId, $this -> _iUserId, false)))
+		if (empty($aJotInfo))
 			return echoJson($aResult);
 		
-		if ($this -> _oDb -> deleteJot($iJotId, $bÑompletely))
-		{		
-			$aJotInfo = $this -> _oDb -> getJotById($iJotId);
-			$aResult = array('code' => 0, 'html' => !$bÑompletely ? $this -> _oTemplate -> getMessageIcons($iJotId, 'delete', $this -> _oDb -> isAuthor($aJotInfo[$this->_oConfig-> CNF['FIELD_MESSAGE_FK']], $this -> _iUserId) || isAdmin()) : '');
-		}
-		   
+		$bIsLotAuthor = $this -> _oDb -> isAuthor($aJotInfo[$this->_oConfig-> CNF['FIELD_MESSAGE_FK']], $this -> _iUserId);
+		if (!(isAdmin() || (!$bÑompletely && $this -> _oDb -> isAuthor($iJotId, $this -> _iUserId, false)) || $bIsLotAuthor))
+			return echoJson($aResult);
+					
+		if ($this -> _oDb -> deleteJot($iJotId, $this -> _iUserId, $bÑompletely))			
+			$aResult = array('code' => 0, 'html' => !$bÑompletely ? $this -> _oTemplate -> getMessageIcons($iJotId, 'delete', isAdmin() || $bIsLotAuthor) : '');
+	   
 		echoJson($aResult);
 	}
 	
@@ -492,8 +493,9 @@ class BxMessengerModule extends BxBaseModTextModule
 	public function actionEditJotForm(){
 		$iJotId = bx_get('jot');
 		$aResult = array('code' => 1);
-
-		if (!$iJotId || !(isAdmin() || $this -> _oDb -> isAuthor($iJotId, $this -> _iUserId, false))){
+		$aJotInfo = $this -> _oDb -> getJotById($iJotId);
+		
+		if (empty($aJotInfo) || !(isAdmin() || $this -> _oDb -> isAuthor($iJotId, $this -> _iUserId, false) || $this -> _oDb -> isAuthor($aJotInfo[$this->_oConfig-> CNF['FIELD_MESSAGE_FK']], $this -> _iUserId))){
 			return echoJson($aResult);
 		}
 		
@@ -503,13 +505,14 @@ class BxMessengerModule extends BxBaseModTextModule
 	
 	public function actionEditJot(){
 		$iJotId = bx_get('jot');
+		$aJotInfo = $this -> _oDb -> getJotById($iJotId);		
 		
 		$sMessage = preg_replace('/\<br(\s*)?\/?\>/i', "\n", bx_get('message'));
 		$sMessage = htmlspecialchars_adv($sMessage);
 		$sMessage = BxTemplFunctions::getInstance()->getStringWithLimitedLength($sMessage, (int)$this->_oConfig-> CNF['MAX_SEND_SYMBOLS']);
 
 		$aResult = array('code' => 1);
-		if (!$iJotId || !(isAdmin() || $this -> _oDb -> isAuthor($iJotId, $this -> _iUserId, false)))
+		if (empty($aJotInfo) || !(isAdmin() || $this -> _oDb -> isAuthor($iJotId, $this -> _iUserId, false) || $this -> _oDb -> isAuthor($aJotInfo[$this->_oConfig-> CNF['FIELD_MESSAGE_FK']], $this -> _iUserId)))
 			return echoJson($aResult);
 		
 		if ($this -> _oDb -> editJot($iJotId, $this -> _iUserId, $sMessage))
@@ -540,7 +543,7 @@ class BxMessengerModule extends BxBaseModTextModule
 			$aJotInfo = $this -> _oDb -> getJotById($aFile[$this -> _oConfig -> CNF['FIELD_ST_JOT']]);
 			$aJotFiles = $this -> _oDb -> getJotFiles($aFile[$this -> _oConfig -> CNF['FIELD_ST_JOT']]);			
 			
-			if (count($aJotFiles) == 0 && !$aJotInfo[$this -> _oConfig -> CNF['FIELD_MESSAGE']] && $this -> _oDb -> deleteJot($aJotInfo[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']])){
+			if (count($aJotFiles) == 0 && !$aJotInfo[$this -> _oConfig -> CNF['FIELD_MESSAGE']] && $this -> _oDb -> deleteJot($aJotInfo[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']], $this -> _iUserId)){
 				$aResult['empty_jot'] = 1;
 			}
 		}
@@ -681,6 +684,8 @@ class BxMessengerModule extends BxBaseModTextModule
 			'filters' => $aWhere,
 			'contents' => $aContent,
 			'headings' => $aHeadings,
+			'url' => $this->_oConfig->CNF['URL_HOME'],
+			'chrome_web_icon' => $oProfile->getIcon()
 		);
 	   
 		$aFields = json_encode($aFields);

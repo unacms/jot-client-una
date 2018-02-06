@@ -4,9 +4,15 @@
 #bx-content-main,
 .bx-page-wrapper,
 .bx-page-block-container,
-.bx-layout-cell{
+.bx-layout-cell
+{
 	padding:0px;
 	margin:0px;
+}
+
+.cd-main-content .content-wrapper
+{
+	margin-left:0px !important;
 }
 
 #bx-content-wrapper .bx-def-page-width
@@ -14,6 +20,7 @@
 	width:100%;
 }
 
+.cd-side-nav,
 #bx-footer-wrapper{
 	display:none;
 }

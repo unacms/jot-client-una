@@ -318,15 +318,16 @@ var oMessenger = (function($){
 			return false;
 		});
 	}
-	
+		
 	/**
 	* Update status of the member
 	*@param object oData changed profile's settings
 	*/
 	oMessenger.prototype.updateStatuses = function(oData){
 		var sClass = 'offline';
-	
-		switch(oData.status){
+		
+		switch(oData.status)
+		{
 			case 1:
 				sClass = 'online';
 				break;
@@ -342,6 +343,32 @@ var oMessenger = (function($){
 			.addClass(sClass)
 			.attr('title', _t('_bx_messenger_' + sClass));
 	}
+	
+	/**
+	* Set users statuses
+	*@param object oObject from which to copy status to all other places where status exists (to make all statuses similar)
+	*/
+	oMessenger.prototype.setUsersStatuses = function(oObject){
+		var iUser = oObject
+						.find(this.sStatus)
+						.data('user-status');
+		
+		if (parseInt(iUser))
+		{
+			var classList = oObject
+								.find(this.sStatus)
+								.attr('class')
+								.split(/\s+/);
+								
+			if (typeof classList[1] !== 'undefined')
+			{
+				$('b[data-user-status="' + iUser + '"]').
+					removeClass('online offline away').
+					addClass(classList[1]).
+					attr('title', _t('_bx_messenger_' + classList[1]));
+			}
+		}
+	}	
 	
 	/**
 	* Load logged member's message template	
@@ -628,11 +655,16 @@ var oMessenger = (function($){
 					
 					$(_this.sJotIcons, oJot)
 						.remove();
-						
-					_this.broadcastMessage({
-											jot_id:iJotId,
-											addon:'delete'
-										});			
+					
+					var oInfo = {
+									jot_id:iJotId,
+									addon:'delete'
+								};
+					
+					if (!_this.isBlockVersion())
+						_this.upLotsPosition($.extend(oInfo, _this.oSettings));
+											
+					_this.broadcastMessage(oInfo);					
 				}
 			}, 'json');
 	}
@@ -679,11 +711,16 @@ var oMessenger = (function($){
 					
 					/* Init SVG Icons*/
 					feather.replace();
-				
-					_this.broadcastMessage({
-						jot_id:iJotId,
-						addon:'edit'
-					});
+					
+					var oInfo = {
+									jot_id:iJotId,
+									addon:'edit'
+								};
+								
+					if (!_this.isBlockVersion())
+						_this.upLotsPosition($.extend(oInfo, _this.oSettings));
+					
+					_this.broadcastMessage(oInfo);
 				}
 			}, 'json');
 			
@@ -771,10 +808,13 @@ var oMessenger = (function($){
 	
 	oMessenger.prototype.copyJotLink = function(oObject){
 		var _this = this,
-			iJotId = $(oObject).parents(_this.sJot).data('id') || 0,
+			iJotId = $(oObject)
+						.parents(_this.sJot)
+						.data('id') || 0,
 			$oInput = $('<input>');
 			
-			if (iJotId){
+			if (iJotId)
+			{
 				$('body').append($oInput);
 				$oInput.val(_this.sJotUrl + iJotId).select();
 				document.execCommand("copy");
@@ -953,7 +993,7 @@ var oMessenger = (function($){
 		if (bEnable === false || !iUnreadLotsCount)
 			$('link[rel="shortcut icon"]').attr('href', this.sDefaultFavIcon);
 	}
-		
+	
 	/**
 	* Load history for selected lot
 	*@param int iLotId lot id
@@ -1009,25 +1049,8 @@ var oMessenger = (function($){
 					if (typeof oData.title !== 'undefined')
 						$(document).prop('title', oData.title);
 					
-					/*  copy current update member status to the top of the chat */
-					var iUser = oLotBlock
-									.find(_this.sStatus)
-									.data('user-status');
-					
-					if (parseInt(iUser))
-					{
-						var classList = oLotBlock
-											.find(_this.sStatus)
-											.attr('class').split(/\s+/);
-											
-						if (typeof classList[1] !== 'undefined')
-						{
-							$('b[data-user-status="' + iUser + '"]').
-								removeClass('online offline away').
-								addClass(classList[1]).
-								attr('title', _t('_bx_messenger_' + classList[1]));
-						}
-					}
+					/*  copy selected jot's member status to the top of the chat */
+					_this.setUsersStatuses(oLotBlock);
 					
 					// embedly/iframly links
 					$('a.bx-link').dolConverLinks();
@@ -1186,61 +1209,69 @@ var oMessenger = (function($){
 	}
 	
 	/**
-	* Move lot's brief to the top of the left side when new message received
+	* Move lot's brief to the top of the left side when new message received or just update brief message
 	*@param object oObject lot's settings
 	*/
-	oMessenger.prototype.upLotsPosition = function(oObject){		
+	oMessenger.prototype.upLotsPosition = function(oObject){
 		var _this = this,
 			lot = parseInt(oObject.lot), 
 			oLot = $('div[data-lot=' + lot + ']'),
+			oJot = $('div[data-id=' + oObject.jot_id + ']', _this.sTalkList),
 			oNewLot = undefined;
-
-		if (typeof oObject.addon !== 'undefined') 
+	
+		if (!(typeof oObject.addon == 'undefined' || (oObject.addon.length && oJot.is(':last-child')))) 
 			return;
 			
 		if (lot)
 			$.get('modules/?r=messenger/update_lot_brief', {lot_id: lot}, 
-						function(oData)
-						{
-							if (!parseInt(oData.code))
-							{					
-								var sHtml = oData.html.replace(new RegExp(_this.sJotUrl + '\\d+', 'i'), _t('_bx_messenger_repost_message'));
-								oNewLot = $(sHtml).css('display', 'flex');
-														
-								if (!oLot.is(':first-child'))
-								{
-									var sFunc = function()
-												{
-													$(_this.sLotsListBlock)
-														.prepend($(oNewLot)
-														.bxTime()
-														.fadeIn('slow'));
-												};
+				function(oData)
+				{
+					if (!parseInt(oData.code))
+					{					
+						var sHtml = oData.html.replace(new RegExp(_this.sJotUrl + '\\d+', 'i'), _t('_bx_messenger_repost_message'));
+						oNewLot = $(sHtml).css('display', 'flex');
 												
-									if (oLot.length)
-										oLot.fadeOut('slow', function()
-															{
-																oLot.remove();
-																sFunc();
-															});
-									else
-										sFunc();
-								}
-								else
-								{
-									oLot
-										.replaceWith($(oNewLot)
-										.fadeTo(150, 0.5)
-										.fadeTo(150, 1)
-										.bxTime());
-								}
-								
-								$(_this).trigger(jQuery.Event('message'));
-								
-								if (_this.isActiveLot(lot) && !_this.isMobile())
-									_this.selectLotEmit($(oNewLot));
-							}
-						}, 'json');
+						if (!oLot.is(':first-child'))
+						{
+							var sFunc = function()
+										{
+											$(_this.sLotsListBlock)
+												.prepend($(oNewLot)
+												.bxTime()
+												.fadeIn('slow'));
+										};
+										
+							if (oLot.length)
+								oLot.fadeOut('slow', function()
+													{
+														oLot.remove();
+														sFunc();
+													});
+							else
+								sFunc();
+						}
+						else
+						{
+							oLot
+								.replaceWith($(oNewLot)
+								.fadeTo(150, 0.5)
+								.fadeTo(150, 1)
+								.bxTime());
+						}
+						
+						/*  copy selected jot's member status to the top of the chat */
+						_this.setUsersStatuses(oLot);
+						
+						if (typeof oObject.addon == 'undefined') /* only for new messages */
+						{
+							$(_this).trigger(jQuery.Event('message'));
+						
+							if (_this.isActiveLot(lot) && !_this.isMobile())
+								_this.selectLotEmit($(oNewLot));
+						}
+						
+					}
+				}, 'json');
 	}
 	
 	/**
@@ -1389,8 +1420,14 @@ var oMessenger = (function($){
 			{				
 				if (!$(_oMessenger.sDeletedJot, this).length)
 					$(this)
-						.on('dblclick', function()
+						.on('dblclick', function(e)
 						{
+							if ($(e.target).hasClass(_oMessenger.sSendArea.substr(1)))
+							{
+								e.stopPropagation();
+								return false;
+							}
+		
 							_oMessenger.editJot(this);
 						});
 			});
@@ -1491,7 +1528,7 @@ var oMessenger = (function($){
 											{
 												$(this).remove();
 											});
-									} /*  if nothing return, then remove jot completely (it is for completely delete jot)*/
+									} /*  if nothing returns, then remove jot completely (it is for completely deleted jots)*/
 									 else
 									{
 										$('div[data-id="' + iJotId + '"]', oList)
@@ -1684,9 +1721,7 @@ var oMessenger = (function($){
 				.on('drop paste', function (e)
 				{
 					var files = (e.type == 'drop' && e.originalEvent.dataTransfer && e.originalEvent.dataTransfer.files) || [];
-			
-					e.preventDefault();
-					
+							
 					if (e.type == 'paste')
 					{
 						var aItems = (e.clipboardData || e.originalEvent.clipboardData).items;
@@ -1698,6 +1733,7 @@ var oMessenger = (function($){
 								files.push(oItem.getAsFile());
 						}
 					}
+					
 					
 					if (files.length)
 						_this.showPopForm(undefined, function()

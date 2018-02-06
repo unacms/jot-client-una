@@ -735,13 +735,14 @@ div.bx-messenger-edit-jot div.bx-messenger-post-box-send-area
 
 div.bx-messenger-edit-jot div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 {
-	white-space: pre-line;
-    overflow-y: auto;
-    max-height: 7rem;
-    min-height: 2.3rem;
-    vertical-align: middle;
-    padding-top: 0.7rem;
-	padding-left: 0.5rem;
+	white-space:pre-line;
+    overflow-y:auto;
+    max-height:7rem;
+    min-height:2.3rem;
+    vertical-align:middle;
+    padding-top:0.7rem;
+	padding-left:0.5rem;
+	padding-top:0.3rem;
 }
 
 div.bx-messenger-edit-jot a.smiles

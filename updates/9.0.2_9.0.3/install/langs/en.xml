@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="en" flag="gb" title="English">
+	<string_add name="_bx_messenger_save_button"><![CDATA[Save changes]]></string_add>
+	<string_add name="_bx_messenger_cancel_button"><![CDATA[Cancel]]></string_add>
+	<string_add name="_bx_messenger_edit_by"><![CDATA[Edited {0} by {1}]]></string_add>
+	<string_add name="_bx_messenger_edit_jot"><![CDATA[Edit message]]></string_add>
+	<string_add name="_bx_messenger_deleted_by"><![CDATA[Deleted {0} by {1}]]></string_add>
+	<string_add name="_bx_messenger_was_deleted"><![CDATA[Message was removed.]]></string_add>
+	<string_add name="_bx_messenger_confirm_delete_completely"><![CDATA[Completely delete the message?]]></string_add>
+	<string_add name="_bx_messenger_delete_message"><![CDATA[Delete message]]></string_add>
+	<string_add name="_bx_messenger_view_message"><![CDATA[View deleted message]]></string_add>
+
+	<string_upd name="_bx_messenger_is_push_enabled"><![CDATA[Enable OneSignal Push Notifications (If global site's push notification options are set, they will be used for messenger)]]></string_upd>
+	<string_upd name="_bx_messenger_delete_confirm"><![CDATA[Are you sure, you want to delete the file?]]></string_upd>
+</resources>

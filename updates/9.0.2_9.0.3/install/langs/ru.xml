@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="ru" flag="ru" title="Russian">
+	<string_add name="_bx_messenger_save_button"><![CDATA[Сохранить изменения]]></string_add>
+	<string_add name="_bx_messenger_cancel_button"><![CDATA[Отмена]]></string_add>
+	<string_add name="_bx_messenger_edit_by"><![CDATA[Редактировано {0}, {1}]]></string_add>
+	<string_add name="_bx_messenger_edit_jot"><![CDATA[Редактировать сообщение]]></string_add>
+	<string_add name="_bx_messenger_deleted_by"><![CDATA[Удалено {0}, пользователем {1}]]></string_add>
+	<string_add name="_bx_messenger_was_deleted"><![CDATA[Сообщение было удалено.]]></string_add>
+	<string_add name="_bx_messenger_confirm_delete_completely"><![CDATA[Удалить сообщение полностью?]]></string_add>
+	<string_add name="_bx_messenger_delete_message"><![CDATA[Удалить сообщение]]></string_add>
+	<string_add name="_bx_messenger_view_message"><![CDATA[Посмотреть удалённое сообщение]]></string_add>
+</resources>

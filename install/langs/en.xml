@@ -126,4 +126,16 @@
 	<string name="_bx_messenger_confirm_delete_completely"><![CDATA[Completely delete the message?]]></string>
 	<string name="_bx_messenger_delete_message"><![CDATA[Delete message]]></string>
 	<string name="_bx_messenger_view_message"><![CDATA[View deleted message]]></string>
+	<string name="_bx_messenger_upload_add_comment"><![CDATA[Add Comment...]]></string>
+	<string name="_bx_messenger_start_record_button"><![CDATA[Start]]></string>
+	<string name="_bx_messenger_play_record_button"><![CDATA[Play]]></string>
+	<string name="_bx_messenger_send_record_button"><![CDATA[Send]]></string>
+	<string name="_bx_messenger_send_recorded_video"><![CDATA[Send recorded video]]></string>
+	<string name="_bx_messenger_video_rec"><![CDATA[Rec]]></string>
+	<string name="_bx_messenger_send_message_no_video"><![CDATA[There is no video file to send!]]></string>
+	<string name="_bx_messenger_close_video_confirm"><![CDATA[If you close the window video file will be lost. Are you sure?]]></string>
+	<string name="_bx_messenger_video_record_is_not_supported"><![CDATA[Video recording is not supported: {0}]]></string>
+	<string name="_bx_messenger_max_video_file_size"><![CDATA[Max length of video-recording in minutes]]></string>
+	<string name="_bx_messenger_max_video_file_exceeds"><![CDATA[Sorry, you have exceeded max video-recording length limit in {0} minutes!]]></string>
+	<string name="_bx_messenger_video_not_supported"><![CDATA[I'm sorry, your browser doesn't support HTML5 video in WebM with VP8/VP9 or MP4 with H.264.]]></string>
 </resources>

@@ -32,14 +32,14 @@ class BxMessengerStorage extends BxDolStorage
 										'image/gif' => 'gif',
 										'image/jpeg' => 'jpg',
 										'image/pjpeg' => 'jpg',
-										'image/png' => 'png',
+										'image/png' => 'png'
 									);
 		return isset($aImagesMimeTypes[$sMimeType]);
-	}
+	}	
 	
 	public function isImageExt($sFileName){
 		$aImagesExts = array('bmp', 'gif', 'jpg', 'png');
-		$sExt = $this -> getFileExt($sFileName);		
+		$sExt = $this -> getFileExt($sFileName);
 		return in_array($sExt, $aImagesExts);
 	}
 }

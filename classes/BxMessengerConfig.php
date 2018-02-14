@@ -84,6 +84,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'STAR_ICON' => 'star',
 			'BELL_ICON_OFF' => 'bell-off',
 			'PARAM_FRIENDS_NUM_BY_DEFAULT' => 10,
+			'PARAM_MAX_HISTORY_MESSAGES' => 50,
 			'PARAM_PUSH_NOTIFICATIONS_DEFAULT_SYMBOLS_NUM' => 190,
 			'PARAM_PRIVATE' => TRUE,
 			'PARAM_PUBLIC' => FALSE,
@@ -96,6 +97,11 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'OBJECT_STORAGE' => 'bx_messenger_files',
 			'OBJECT_IMAGES_TRANSCODER_GALLERY' => 'bx_messenger_photos_resized',
 			'OBJECT_IMAGES_TRANSCODER_PREVIEW' => 'bx_messenger_preview',
+			'OBJECT_VIDEOS_TRANSCODERS' => array(
+													'poster' => 'bx_messenger_videos_poster',
+													'mp4' => 'bx_messenger_videos_mp4',
+													'webm' => 'bx_messenger_videos_webm',
+												),
 			'OBJECT_VIEWS' => 'bx_messenger_lots',
 			'OBJECT_FORM_ENTRY' => 'bx_messenger_lots',
 			'OBJECT_FORM_ENTRY_DISPLAY_VIEW' => 'bx_messenger_lots',
@@ -119,6 +125,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'SERVER_URL' => getParam($aModule['db_prefix'] . 'server_url'),
 			'CONVERT_SMILES' => getParam($aModule['db_prefix'] . 'typing_smiles') == 'on',
 			'MAX_FILES_TO_UPLOAD' => (int)getParam($aModule['db_prefix'] . 'max_files_send'),
+			'MAX_VIDEO_LENGTH'	=> (int)getParam($aModule['db_prefix'] . 'max_video_length_minutes'),
 		);	   
 	}
 	

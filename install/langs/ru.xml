@@ -126,4 +126,16 @@
 	<string name="_bx_messenger_confirm_delete_completely"><![CDATA[Удалить сообщение полностью?]]></string>
 	<string name="_bx_messenger_delete_message"><![CDATA[Удалить сообщение]]></string>
 	<string name="_bx_messenger_view_message"><![CDATA[Посмотреть удалённое сообщение]]></string>
+	<string name="_bx_messenger_upload_add_comment"><![CDATA[Добавить комментарий...]]></string>
+	<string name="_bx_messenger_start_record_button"><![CDATA[Старт]]></string>
+	<string name="_bx_messenger_play_record_button"><![CDATA[Воспроизвести]]></string>
+	<string name="_bx_messenger_send_record_button"><![CDATA[Отправить]]></string>
+	<string name="_bx_messenger_send_recorded_video"><![CDATA[Отправить записанное видео]]></string>
+	<string name="_bx_messenger_video_rec"><![CDATA[запись]]></string>
+	<string name="_bx_messenger_send_message_no_video"><![CDATA[Нет видо файла для отправки!]]></string>
+	<string name="_bx_messenger_close_video_confirm"><![CDATA[Если вы закроете окно, записанный видео файл будет потерян. Продолжить?]]></string>
+	<string name="_bx_messenger_video_record_is_not_supported"><![CDATA[Запись видео не поддерживается: {0}]]></string>
+	<string name="_bx_messenger_max_video_file_size"><![CDATA[Максимальная длина видео файла для записи в минутах]]></string>
+	<string name="_bx_messenger_max_video_file_exceeds"><![CDATA[Извините, максимально разрешённая длина для видео файла {0} мин. превышена!]]></string>
+	<string name="_bx_messenger_video_not_supported"><![CDATA[Извините, но ваш браузер не поддерживает HTML5 видео WebM в VP8/VP9 или MP4 в H.264.]]></string>
 </resources>

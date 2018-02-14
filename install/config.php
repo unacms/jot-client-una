@@ -66,9 +66,13 @@ $aConfig = array(
 	/**
 	* Transcoders.
 	*/
+	
 	'transcoders' => array(
-        'bx_messenger_preview'
-    ),
+        'bx_messenger_preview',
+		'bx_messenger_videos_poster',
+		'bx_messenger_videos_mp4',
+		'bx_messenger_videos_webm'
+	),
 	
 	/**
 	* Installation/Uninstallation Section.

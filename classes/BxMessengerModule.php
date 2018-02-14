@@ -371,17 +371,58 @@ class BxMessengerModule extends BxBaseModTextModule
 		$aUsers = BxDolService::call('system', 'profiles_search', array(bx_get('term'), 5), 'TemplServiceProfiles');
 		if (empty($aUsers)) return array();
 
-		$iProfile = $this -> _iUserId;	   
+		$iProfile = $this -> _iUserId;
 		foreach($aUsers as $iKey => $aValue){
 				if ((int)$aValue['value'] == $this -> _iUserId) continue;
 			   
 				$oProfile = BxDolProfile::getInstance($aValue['value']);
 				if ($oProfile)
-					$aResult[] = array(   
+					$aResult[] = array(
 							'value' => $oProfile -> getDisplayName(),
 							'icon' => $oProfile -> getThumb(),
 							'id' => $oProfile -> id(),
 					);
+		}
+			   
+		echoJson($aResult);
+	}
+	
+	/**
+	* Returns processed videos by received videos ids
+	* @return array with json
+	*/
+	public function actionGetProcessedVideos(){
+		$aVideos = bx_get('videos');
+		$aResult = array();
+		
+		if (empty($aVideos))
+			return echoJson($aResult);
+		
+		$aTranscodersVideo = array();
+		if (isset($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']) && $this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS'])
+			$aTranscodersVideo = array(
+				'poster' => BxDolTranscoderImage::getObjectInstance($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']['poster']),
+				'mp4' => BxDolTranscoderVideo::getObjectInstance($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']['mp4']),
+				'webm' => BxDolTranscoderVideo::getObjectInstance($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']['webm']),
+			);
+		
+		if (empty($aTranscodersVideo))
+			return echoJson($aResult);
+				
+		foreach($aVideos as $iKey => $iValue)
+		{
+			$sPoster = $aTranscodersVideo['poster']->getFileUrl($iValue);
+			$sMp4 = $aTranscodersVideo['mp4']->getFileUrl($iValue);
+			$sWebM = $aTranscodersVideo['webm']->getFileUrl($iValue);
+														
+			if ($aTranscodersVideo['poster'] -> isFileReady($iValue) && $aTranscodersVideo['mp4'] -> isFileReady($iValue) && $aTranscodersVideo['webm'] -> isFileReady($iValue))
+				$aResult[$iValue] = BxTemplFunctions::getInstance()->videoPlayer(
+																					$sPoster,
+																					$sMp4,
+																					$sWebM,
+																					false,
+																					''
+																				);
 		}
 			   
 		echoJson($aResult);
@@ -537,7 +578,8 @@ class BxMessengerModule extends BxBaseModTextModule
 		if ($aFile[$this -> _oConfig -> CNF['FIELD_ST_AUTHOR']] != $this -> _iUserId && !isAdmin())
 			return echoJson($aResult);
 		
-		if ($oStorage -> deleteFile($iFileId, $this -> _iUserId)){
+		if ($oStorage -> deleteFile($iFileId, $this -> _iUserId))
+		{
 			$aResult = array('code' => 0);
 			
 			$aJotInfo = $this -> _oDb -> getJotById($aFile[$this -> _oConfig -> CNF['FIELD_ST_JOT']]);
@@ -685,7 +727,7 @@ class BxMessengerModule extends BxBaseModTextModule
 			'contents' => $aContent,
 			'headings' => $aHeadings,
 			'url' => $this->_oConfig->CNF['URL_HOME'],
-			'chrome_web_icon' => $oProfile->getIcon()
+			'chrome_web_icon' => $oProfile->getThumb()
 		);
 	   
 		$aFields = json_encode($aFields);
@@ -779,6 +821,12 @@ class BxMessengerModule extends BxBaseModTextModule
 		exit;		
 	}
 	
+	public function actionGetRecordVideoForm(){
+		header('Content-type: text/html; charset=utf-8');
+		echo $this -> _oTemplate-> getVideoRecordingForm($this -> _iUserId);
+		exit;
+	}
+	
 	public function actionUploadTempFile(){		
 		$oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);
 		if (!$oStorage){
@@ -793,7 +841,25 @@ class BxMessengerModule extends BxBaseModTextModule
 		}		
 	}
 	
-	public function actionIsValidFile(){		
+	public function actionUploadVideoFile(){
+		$oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);
+	
+		if (!$oStorage || !isset($_POST['name']) || empty($_FILES)){
+			return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_no_video')));
+		}
+	
+		if (!empty($_FILES) && $_FILES['file'] && $oStorage -> isValidFileExt($_FILES['file']['name'])){ 
+			$sTempFile = $_FILES['file']['tmp_name'];
+			$sTargetFile =  BX_DIRECTORY_PATH_TMP . $_POST['name']; 
+			
+			if (move_uploaded_file($sTempFile, $sTargetFile))
+				return echoJson(array('code' => 0));
+		}
+
+		echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_no_video')));
+	}
+	
+	public function actionIsValidFile(){
 		$oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);
 		if (!$oStorage)
 			return echoJson(array('code' => 1));

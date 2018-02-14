@@ -8,19 +8,6 @@
 	-webkit-overflow-scrolling: touch;
 }
 
-/*.bx-messenger-conversation-block .bx-btn
-{
-	width:90%;
-	max-width:400px;
-	height:1.5em;
-	line-height:1.5em;
-	margin:0px;
-	padding:0px;
-	opacity:0.3;
-	display:inline-block;
-	floaT:none;
-}*/
-
 div.bx-messenger-post-box
 {
 	padding:0.6rem;
@@ -100,6 +87,9 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box:empty:before
 	list-style:none;
 	padding:0;
 	margin:auto;
+	display:flex;
+	align-items:center;
+	justify-content:space-around;
 }
 
 .bx-messenger-post-box-send-actions ul li
@@ -492,6 +482,7 @@ div.bx-messenger-attachment-footer span.type{	border-right:1px solid rgba(0,0,
 .bx-messenger-files-upload-description-area{	overflow:hidden;
 }
 
+.bx-messenger-upload-area div[contenteditable="true"],
 .bx-messenger-files-upload-area div[contenteditable="true"]{	
 	border:0px;
 	min-height:3rem;
@@ -500,15 +491,17 @@ div.bx-messenger-attachment-footer span.type{	border-right:1px solid rgba(0,0,
 	margin-bottom:0.5rem;
 }
 
-#bx-messenger-files-upload-comment
+.bx-messenger-comment
 {
 	white-space:pre-line;
 }
 
-#bx-messenger-files-upload-comment:empty:before {	content: attr(placeholder);
+.bx-messenger-comment:empty:before 
+{	content: attr(placeholder);
 	color: #ccc;
 }
-#bx-messenger-files-upload-comment:focus:before 
+
+.bx-messenger-comment:focus:before 
 {
 	content:'';
 }
@@ -575,10 +568,12 @@ div.bx-messenger-attachment-file-download{	position:absolute;
 	margin:0.3rem;	
 }
 
+div.bx-messenger-attachment-file-videos,
 div.bx-messenger-attachment-file-images{	width:100%;
 	text-align:left;
 	float:left;
 	position:relative;
+	margin-bottom:0.5rem;
 }
 
 div.bx-messenger-attachment-file-images span.title{	width:100%;
@@ -588,6 +583,14 @@ div.bx-messenger-attachment-file-images span.title{	width:100%;
 	float:left;
 	margin-top:1rem;
 	padding:0.3rem;
+}
+
+div.bx-messenger-attachment-file-videos video
+{
+	max-width: 40%;
+	float: left;
+	margin-top: 0.3rem;
+	border-radius:0.2rem;
 }
 
 div.bx-messenger-attachment-file-images img{	max-width: 40%;
@@ -832,6 +835,132 @@ div.bx-messenger-hidden-jot
 {
 	height:1rem;
 }
+* Video Recording Area */
+div.bx-messenger-upload-area
+{
+	margin:1rem;
+	overflow:hidden;
+	min-height:3rem;
+}
+
+div.bx-messenger-upload-area .bx-messenger-video-buttons
+{
+	overflow:hidden;
+	width:100%;	
+	display:flex;
+	justify-content:center;
+}
+
+div.bx-messenger-upload-area .bx-messenger-video-buttons .bx-btn
+{
+	float:none;
+}
+
+.bx-messenger-video
+{
+	position:relative;
+	text-align:center;
+}
+
+.bx-messenger-video video
+{
+	min-width:320px;
+	min-height:240px;
+	width:480px;
+	height:360px;
+	background-color:rgba(7,20,30,.8);
+}
+
+div.bx-messenger-video-block
+{
+	margin:1rem;
+	overflow:hidden;
+}
+
+div.bx-messenger-video-block div:first-child
+{
+	overflow:hidden;
+}
+
+.bx-messenger-video-buttons button.bx-btn
+{
+	vertical-align:middle;
+	min-width:2.2rem;
+}
+
+.bx-messenger-video-buttons svg
+{
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	fill:#fff;
+}
+
+.bx-messenger-video-buttons button.empty svg
+{
+	fill:none;
+}
+
+.bx-messenger-video-buttons div.bx-btn.active svg
+{
+	fill:orangered;
+}
+
+.bx-messenger-video-recording
+{
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    fill: orangered;
+    text-transform: uppercase;
+    font-size: 1rem;
+    font-weight: bold;
+    vertical-align: middle;
+	display:none;
+	color:#fff;
+}
+
+.bx-messenger-video-recording span
+{
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    font-weight: bold;
+    vertical-align: middle;
+	color:#fff;
+	margin-right:0.5rem;
+}
+
+.bx-messenger-video-recording svg
+{
+	height:1rem;
+	width:1rem;
+	fill:orangered;
+	color:orangered;
+	top: 50%;
+}
+
+.bx-messenger-upload-description-area
+{
+	margin-right:1rem;
+	margin-left:1rem;
+}
+
+@-moz-keyframes blinker {  
+	50% { opacity: 0; }
+}
+@-webkit-keyframes blinker {  
+	50% { opacity: 0; }
+}
+@keyframes blinker {  
+	50% { opacity: 0; }
+}
+
+.blink {
+	-moz-animation: blinker 2s linear infinite;
+	-webkit-animation: blinker 2s linear infinite;
+	animation: blinker 2s linear infinite;
+}
 
 @media (max-width:720px)
 {
@@ -841,10 +970,35 @@ div.bx-messenger-hidden-jot
 		width:auto;
 	}	
 
+	#bx-messenger-files-uploader .bx-messenger-video-block
+	{
+		margin:0px;
+	}
+
 	.bx-messenger-block .bx-db-header	{		min-height:2.5rem;
 		height:auto;
 	}
 	
+	.bx-messenger-attachment-file
+	{		
+		width:80%;
+	}
+	
+	div.bx-messenger-attachment-file-videos video
+	{
+		max-width: 80%;
+	}
+	
+
+	
+	div.bx-messenger-upload-area
+	{
+		margin:0rem;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-around;
+	}
+
 	.jots .bx-db-header
 	{
 		padding:0rem 0rem 0rem 0.3rem;
@@ -856,5 +1010,42 @@ div.bx-messenger-hidden-jot
 		overflow: hidden;
 		font-size:1rem;
 	}	
+}
+
+@media (max-width:480px)
+{
+	.bx-messenger-video
+	{
+		position:inherit;
+	}
 	
+	.bx-messenger-video video
+	{
+		width:100%;
+		height:calc(100% - 4rem);
+		max-width:100%;
+		min-height:auto;
+		position:absolute;
+		top:0px;
+		left:0px;
+		z-index:-1;
+	}
+	
+	.bx-popup-close-wrapper
+	{
+		display:none;
+	}
+	
+	.bx-messenger-upload-description-area
+	{
+		color:white;
+	}
+	
+	div.bx-messenger-upload-area .bx-messenger-video-buttons
+	{
+		position: absolute;
+		bottom: 4.5rem;
+		left:0px;
+	}
+
 }

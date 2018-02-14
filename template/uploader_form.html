@@ -1,6 +1,6 @@
 <div class="bx-messenger-files-upload-area">
 	<div class="bx-messenger-files-upload-description-area ">
-		<div contenteditable="true" placeholder="Add comments..." id="bx-messenger-files-upload-comment"></div>
+		<div contenteditable="true" placeholder="<bx_text:_bx_messenger_upload_add_comment />" id="bx-messenger-files-upload-comment" class="bx-messenger-comment"></div>
 	</div>
 	<div class="dropzone" id="bx-messenger-uploaded-files-area"></div>
 	<div class="bx-def-padding-top bx-clearfix">
@@ -25,12 +25,12 @@ var AqbDropZone = new Dropzone("#bx-messenger-uploaded-files-area", {
 			clickable: ".dropzone",
 			onClose:function(){				
 				if (oMessenger.onCloseUploadingForm(AqbDropZone.options.dictRemoveAllFilesConfirmation, AqbDropZone.getAcceptedFiles().length))
-					AqbDropZone.removeAllFiles();				
+					AqbDropZone.removeAllFiles();
 			},
 			
 			success: function(file) {
 				var _this = this;
-				$.post('modules/?r=messenger/is_valid_file', {name: file.name}, function(oData){							
+				$.post('modules/?r=messenger/is_valid_file', {name: file.name}, function(oData){
 					if (parseInt(oData.code)){
 							file.accepted = false;
 							_this._errorProcessing([file], _this.options.dictInvalidFileType);

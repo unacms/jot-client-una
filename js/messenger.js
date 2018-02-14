@@ -59,6 +59,8 @@ var oMessenger = (function($){
 		this.sEmojiEditorClass = '.emoji-wysiwyg-editor';
 		this.sHiddenJot = '.bx-messenger-hidden-jot';
 		this.sDeletedJot = '.bx-messenger-jots-message-deleted';
+		this.sVideoATArea = '.bx-messenger-attachment-file-videos';
+		this.sFilesUploadAreaOnForm = '.bx-messenger-upload-area';
 		
 		//globa class options
 		this.oUsersTemplate	= null,
@@ -75,6 +77,7 @@ var oMessenger = (function($){
 		this.iRunSearchInterval = 500, // seconds
 		this.iMinHeightToStartLoading = 0, // scroll height to start history loading 
 		this.iMinTimeBeforeToStartLoadingPrev = 500, // 2 seconds before to start loading history
+		this.iUpdateProcessedVideo = 30000, //  30 seconds for video elements updating
 		this.iTypingUsersTitleHide = 1000, //hide typing users div when users stop typing
 		this.iLoadTimout = 0,
 		this.iFilterType = 0,
@@ -181,9 +184,17 @@ var oMessenger = (function($){
 					clearTimeout(_this.iLoadTimout);							
 			});
 			
+			/* runs periodic to find not processed videos in chat history and replace them with processed videos */
+			setInterval(
+						function()
+							{
+								_this.updateProcessedVideo();
+							}, _this.iUpdateProcessedVideo
+						);							
+			
 			this.updateSendAreaButtons();
 			this.initJotIcons(this.sTalkList);
-			this.updateScrollPosition('bottom');			
+			this.updateScrollPosition('bottom');
 			
 			//remove all edit jot areas on their lost focus
 			$(document).on('mouseup', function(oEvent){
@@ -231,21 +242,27 @@ var oMessenger = (function($){
 	oMessenger.prototype.triggerSendAreaButtons = function(bHide){
 		var _this = this,
 			oParent = $(_this.sSendAreaMenuIcons).parent(),
-		oSiblings = oParent.prevAll().filter(
-						function(){
-							return !!!$(this).data('hide');
-						});
+			isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
+			oSiblings = oParent
+							.prevAll(isSafari ? 'li:not(.video)' : '')
+							.filter(function()
+									{
+										return !$(this).data('hide');
+									});
 			
 		if (!oSiblings.length)
 			return;
 					
-		if (bHide){
+		if (bHide)
+		{
 			oSiblings.hide();
 			oParent.fadeIn();
 		}
 			
-		oParent.parents('ul').parent().
-			animate(
+		oParent
+			.parents('ul')
+			.parent()
+			.animate(
 					{
 						'width': !bHide ? oSiblings.length * _this.iActionsButtonWidth + 'rem' : _this.iActionsButtonWidth + 'rem'
 					}, 500, 
@@ -254,7 +271,7 @@ var oMessenger = (function($){
 						if (!bHide)
 						{
 							oParent.hide();
-							oSiblings.css('display', 'inline');							
+							oSiblings.show();
 						}
 					});	
 	}
@@ -379,8 +396,8 @@ var oMessenger = (function($){
 		if (_this.oUsersTemplate == null)
 			$.get('modules/?r=messenger/load_members_template', 
 				function(oData){
-					if (oData != undefined && oData.data.length){					
-						_this.oUsersTemplate = $(oData.data);						
+					if (oData != undefined && oData.data.length){
+						_this.oUsersTemplate = $(oData.data);
 					}
 			}, 'json');	
 	}
@@ -417,7 +434,7 @@ var oMessenger = (function($){
 														.bxTime()
 														.fadeIn(fCallback);
 													
-													_this.iFilterType = iFilterType;								
+													_this.iFilterType = iFilterType;
 												}
 												else
 													fCallback();
@@ -425,7 +442,7 @@ var oMessenger = (function($){
 										}, 'json');	
 							};
 
-		if ((typeof mixedOption !== 'function' && mixedOption) || typeof sText !== 'undefined'){			
+		if ((typeof mixedOption !== 'function' && mixedOption) || typeof sText !== 'undefined'){
 			clearTimeout(_this.iTimer);	
 			this.iTimer = setTimeout(searchFunction, _this.iRunSearchInterval);	
 		}
@@ -441,9 +458,9 @@ var oMessenger = (function($){
 		var _this = this,
 			oParams = oOptions || {};
 		
-		bx_loading($(_this.sMainTalkBlock), true);		
+		bx_loading($(_this.sMainTalkBlock), true);
 		$.post('modules/?r=messenger/create_lot', {profile:oParams.user || 0, lot:oParams.lot || 0}, function(oData){			
-			bx_loading($(_this.sMainTalkBlock), false);				
+			bx_loading($(_this.sMainTalkBlock), false);
 				if (parseInt(oData.code) == 1) 
 					window.location.reload();
 				else		
@@ -465,7 +482,7 @@ var oMessenger = (function($){
 							_this.oJotWindowBuilder.changeColumn('right');
 					}
 				
-				_this.blockSendMessages();				
+				_this.blockSendMessages();
 		}, 'json');	
 	}
 	
@@ -515,7 +532,7 @@ var oMessenger = (function($){
 				
 				alert(oData.message);
 				if (!parseInt(oData.code))
-						_this.searchByItems();						
+						_this.searchByItems();
 					}, 'json');
 	}
 	
@@ -579,7 +596,7 @@ var oMessenger = (function($){
 	oMessenger.prototype.deleteLot = function(iLotId){
 		var _this = this;
 		if (iLotId)
-				$.post('modules/?r=messenger/delete', {lot:iLotId}, function(oData){						
+				$.post('modules/?r=messenger/delete', {lot:iLotId}, function(oData){
 					if (parseInt(oData.code) == 1) 
 							window.location.reload();
 		
@@ -598,8 +615,8 @@ var oMessenger = (function($){
 										_this.createLot();
 									
 								}
-							);							
-						}						
+							);
+						}
 				}, 'json');
 	}
 
@@ -633,14 +650,14 @@ var oMessenger = (function($){
 										.fadeOut(function()
 										{
 											$(this).remove();
-										})										
+										})
 										.end()
 										.html(oData.html)
 										.fadeIn('slow');
 										checkScroll();
 										
 										/* Init SVG Icons*/
-										feather.replace();										
+										feather.replace();
 								})
 							.unbind();
 					}
@@ -650,7 +667,7 @@ var oMessenger = (function($){
 								function()
 								{
 									checkScroll();
-									$(this).remove();									
+									$(this).remove();
 								});
 					
 					$(_this.sJotIcons, oJot)
@@ -663,8 +680,7 @@ var oMessenger = (function($){
 					
 					if (!_this.isBlockVersion())
 						_this.upLotsPosition($.extend(oInfo, _this.oSettings));
-											
-					_this.broadcastMessage(oInfo);					
+					_this.broadcastMessage(oInfo);
 				}
 			}, 'json');
 	}
@@ -675,7 +691,7 @@ var oMessenger = (function($){
 			$(oObject)
 				.closest(this.sJot)
 				.find(this.sJotMessage)
-				.text(this.lastEditText)					
+				.text(this.lastEditText)
 				.parent()
 				.linkify(true, true); // don't update attachment for message and don't broadcast as new message 
 		}
@@ -871,7 +887,7 @@ var oMessenger = (function($){
 						_oMessenger.updateScrollPosition('bottom');
 						_oMessenger.iAttachmentUpdate = false;
 					}
-				});			
+				});
 		}
 		else
 		{
@@ -922,6 +938,32 @@ var oMessenger = (function($){
 	}
 	
 	/**
+	* Check for not processed videos and update them, if they are ready 
+	*/
+	oMessenger.prototype.updateProcessedVideo = function(){
+		var _this = this,
+			aVideos = [];
+		$(this.sVideoATArea, this.sTalkList).each(
+			function()
+			{
+				if (!$('video source', this).prop('src'))
+					aVideos.push($(this).data('video-id'));
+			});
+		
+		if (aVideos.length)
+			$.post('modules/?r=messenger/get_processed_videos',{videos:aVideos},
+			function(oData)
+			{
+				for(var i=0; i < aVideos.length; i++)
+				{
+					if (typeof oData[aVideos[i]] !== 'undefined')
+						$('[data-video-id="' + aVideos[i] + '"] video', _this.sTalkList)
+							.replaceWith(oData[aVideos[i]]);
+				}
+			}, 'json');
+	}
+		
+	/**
 	* Add attachment to the message
 	*@param string sUrl internal or external link
 	*@return object this
@@ -930,27 +972,30 @@ var oMessenger = (function($){
 		var _this = this;
 		
 		_this.iAttachmentUpdate = true;
-		$.post('modules/?r=messenger/get_attachment', {jot_id:iJotId}, function(oData){
-				if (!parseInt(oData['code']))
-				{
-					$(_this.sJotMessage, '[data-id="' + iJotId + '"]').after(
-						$(oData['html']).find('img').load(
-							function()
-							{
-								_this.updateScrollPosition('bottom');
-							}
-						).end());
-						
-					/* Init SVG Icons*/
-					feather.replace();
+		$.post('modules/?r=messenger/get_attachment', {jot_id:iJotId}, function(oData)
+		{
+			if (!parseInt(oData['code']))
+			{
+				$(_this.sJotMessage, '[data-id="' + iJotId + '"]')
+					.after(
+							$(oData['html'])
+								.waitForImages(
+									function()
+									{
+										_this.updateScrollPosition('bottom');
+									}
+								));
 					
-					_this.initJotIcons('[data-id="' + iJotId + '"]');
-					_this.broadcastMessage();
-				}
+				/* Init SVG Icons*/
+				feather.replace();
 				
-				_this.iAttachmentUpdate = false;
-			},
-			'json');
+				_this.initJotIcons('[data-id="' + iJotId + '"]');
+				_this.broadcastMessage();
+			}
+			
+			_this.iAttachmentUpdate = false;
+		},
+		'json');
 			
 		return this;
 	}
@@ -993,6 +1038,28 @@ var oMessenger = (function($){
 		if (bEnable === false || !iUnreadLotsCount)
 			$('link[rel="shortcut icon"]').attr('href', this.sDefaultFavIcon);
 	}
+	
+	$.fn.waitForImages = function(fCallback){
+		var aImg = $('img', $(this)),
+			iTotalImg = aImg.length,
+			waitImgLoad = function()
+			{
+				iTotalImg--;
+				if (!iTotalImg && typeof fCallback == 'function')
+				{
+					fCallback();
+				}
+			};
+
+			if (!iTotalImg)
+				fCallback();
+			else
+				aImg
+					.load(waitImgLoad)
+					.error(waitImgLoad);
+		
+		return this;
+	};
 	
 	/**
 	* Load history for selected lot
@@ -1044,8 +1111,13 @@ var oMessenger = (function($){
 								_this.updatePageIcon(undefined, iLotId);
 							}
 						)
-						.bxTime();
-					
+						.bxTime()
+						.waitForImages(
+							function()
+							{
+								_this.updateScrollPosition('bottom');
+							});
+						
 					if (typeof oData.title !== 'undefined')
 						$(document).prop('title', oData.title);
 					
@@ -1054,9 +1126,8 @@ var oMessenger = (function($){
 					
 					// embedly/iframly links
 					$('a.bx-link').dolConverLinks();
-					
-					_this.updateScrollPosition('bottom');
 					_this.blockSendMessages();
+					
 				}
 		}, 'json');	
 	}	
@@ -1102,10 +1173,6 @@ var oMessenger = (function($){
 		
 		oParams.tmp_id = msgTime.getTime();
 
-		// remove MSG (if it exists) from clean history page
-		if ($('.bx-msg-box-container', _this.sTalkList).length)
-				$('.bx-msg-box-container', _this.sTalkList).remove();
-
 		if (oParams.message.length > this.iMaxLength) 
 			oParams.message = oParams.message.substr(0, this.iMaxLength);
 
@@ -1133,6 +1200,8 @@ var oMessenger = (function($){
 			/* Init SVG Icons*/
 			feather.replace();
 		}
+
+		_this.updateScrollPosition('bottom');
 		
 		// save message to database and broadcast to all participants
 		$.post('modules/?r=messenger/send', oParams, function(oData){
@@ -1140,12 +1209,10 @@ var oMessenger = (function($){
 				{
 					case 0:
 						var iJotId = parseInt(oData.jot_id);
-											
 						if (iJotId)
 						{
 							if (typeof oData.lot_id !== 'undefined')
 								_this.oSettings.lot = parseInt(oData.lot_id);
-												
 							if (typeof oData.tmp_id != 'undefined')
 								$('[data-tmp="' + oData.tmp_id + '"]', _this.sTalkList)
 									.attr('data-id', oData.jot_id)
@@ -1172,10 +1239,9 @@ var oMessenger = (function($){
 					if (typeof fCallBack == 'function')
 						fCallBack();
 			}, 'json');
-			
-		_this.updateScrollPosition('bottom');		
-		return true;	
-	}		
+		
+		return true;
+	}
 	
 	oMessenger.prototype.broadcastMessage = function(oInfo){
 		var 
@@ -1499,7 +1565,12 @@ var oMessenger = (function($){
 												$(this).remove();
 										})
 									.onEditJot()
-									.appendTo(oList);
+									.appendTo(oList)
+									.waitForImages(
+										function()
+										{
+											_this.updateScrollPosition('bottom');
+										});
 									
 									if ( _this.isBlockVersion() || (_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive())) /* play sound for jots only on mobile devices when chat area is active */
 										$(_this).trigger(jQuery.Event('message'));
@@ -1517,6 +1588,11 @@ var oMessenger = (function($){
 										.linkify(true, true); // don't update attachment for message and don't broadcast as new message 								
 								break;
 							case 'delete':
+									var onRemove = function()
+											{
+												$(this).remove();
+												_this.updateScrollPosition('bottom');
+											};
 									if (oData.html.length)
 									{
 										$('div[data-id="' + iJotId + '"] ' + _this.sJotMessage, oList)
@@ -1524,18 +1600,13 @@ var oMessenger = (function($){
 											.parent()
 											.linkify(true, true)
 											.find(_this.sAttachmentArea)
-											.fadeOut('slow', function()
-											{
-												$(this).remove();
-											});
-									} /*  if nothing returns, then remove jot completely (it is for completely deleted jots)*/
+											.fadeOut('slow', onRemove);
+									} 
+										/*  if nothing returns, then remove html code completely */
 									 else
 									{
 										$('div[data-id="' + iJotId + '"]', oList)
-											.fadeOut('slow', function()
-											{
-												$(this).remove();
-											});
+											.fadeOut('slow', onRemove);
 									}
 						}
 						
@@ -1915,25 +1986,33 @@ var oMessenger = (function($){
 				sUrl = 'modules/?r=messenger/' + (sUrl || 'get_upload_files_form'),
 				sText = $(_oMessenger.sMessangerBox).val();
 
+			$(_oMessenger.sAddFilesForm).remove();
+			
 			$(window).dolPopupAjax({
 				url: sUrl,
 				id: {force: true, value: _oMessenger.sAddFilesForm.substr(1)},
 				onShow: function() {
-					$(_oMessenger.sAddFilesForm + ' .bx-popup-element-close').click(function() {
-						$(_oMessenger.sAddFilesForm + ' .bx-btn.close').click();
-					});
+					$(_oMessenger.sAddFilesForm + ' .bx-popup-element-close')
+					.click(
+						function()
+						{
+							$(_oMessenger.sAddFilesForm + ' .bx-btn.close').click();
+						});
 					
-					if (typeof fCallback == 'function'){
+					if (typeof fCallback == 'function')
+					{
 						fCallback();
 					}
 					
 					if (sText.length)
-					{
 						$(_oMessenger.sAddFilesFormComments).text(sText);
-					}
 				},				
 				closeElement: true,
-				closeOnOuterClick: false
+				closeOnOuterClick: false,
+				onHide:function()
+				{
+					_oMessenger.updateScrollPosition('bottom');
+				}
 			});
 		},
 		
@@ -2025,6 +2104,41 @@ var oMessenger = (function($){
 				if (parseInt(oData.code))
 					alert(oData.message);
 			});
+		},
+		sendVideoRecord:function(oFile, oCallback){
+			var fileName = (new Date().getTime()) + '.webm';
+
+			var formData = new FormData();
+			formData.append('name', fileName);
+			formData.append('file', oFile);
+
+			bx_loading($(_oMessenger.sFilesUploadAreaOnForm), true);
+			$.ajax({
+				url:'modules/?r=messenger/upload_video_file',
+				data:formData,
+				type:'POST',
+				dataType:'json',
+				contentType: false,
+				processData: false,
+			})
+			.done(
+					function(oData)
+					{
+						bx_loading($(_oMessenger.sFilesUploadAreaOnForm), false);
+						if (!parseInt(oData.code))
+						{
+							var sMessage = $(_oMessenger.sAddFilesFormComments).text();
+							_oMessenger.sendMessage(sMessage, [fileName], function()
+								{
+									if (typeof oCallback == 'function')
+										oCallback();
+								});
+						}
+						else
+							alert(oData.message);
+					});
+			
+			
 		}
 	}
 })(jQuery);

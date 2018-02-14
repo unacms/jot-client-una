@@ -25,7 +25,21 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*/
 	public function loadCssJs($sMode = 'all'){
 		$aCss = array('main.css', 'emoji.css', 'dropzone.css');
-		$aJs = array('primus.js', 'connect.js', 'messenger.js', 'config.js', 'util.js', 'jquery.emojiarea.js', 'emoji-picker.js', 'status.js', 'dropzone.js', 'feather.min.js'); 
+		$aJs = array(
+						'primus.js',
+						'connect.js',
+						'messenger.js',
+						'config.js',
+						'util.js',
+						'jquery.emojiarea.js',
+						'emoji-picker.js',
+						'status.js',
+						'dropzone.js',
+						'feather.min.js',
+						'RecordRTC.min.js',
+						'adapter.js',
+						'record-video.js'
+					); 
 		
 		if ($this->_oConfig->CNF['IS_PUSH_ENABLED'] && !getParam('sys_push_app_id'))
 			array_push($aJs, 'https://cdn.onesignal.com/sdks/OneSignalSDK.js');
@@ -40,11 +54,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	}
 	
 	/**
-	* Main function to build post messsage area with messages history
-	*@param int $iProfileId logget member id
+	* Main function to build post messages area with messages history
+	*@param int $iProfileId logged member id
 	*@param int $iLotId id of conversation. It can be empty if new talk
 	*@param int $iType type of talk (Private, Public and etc..)
-	*@param string $sEmptyContent  html content which may be edded to the cented of the talk when there is no messages yet
+	*@param string $sEmptyContent  html content which may be added to the center of the talk when there is no messages yet
 	*@return string html code 
 	*/
 	public function getPostBoxWithHistory($iProfileId, $iLotId = BX_IM_EMPTY, $iType = BX_IM_TYPE_PUBLIC, $sEmptyContent = ''){
@@ -67,8 +81,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	    if($oProfile)
 			$aParams['name'] = bx_js_string($oProfile -> getDisplayName());
 		
+		$iUnreadLotsJots = $this -> _oDb -> getUnreadJotsMessagesCount($iProfileId, $iLotId);
+		$iJotsNumber = $iUnreadLotsJots > $this -> _oConfig -> CNF['MAX_JOTS_BY_DEFAULT'] && $iUnreadLotsJots <= (int)$this -> _oConfig -> CNF['PARAM_MAX_HISTORY_MESSAGES']
+						? $iUnreadLotsJots : $this -> _oConfig -> CNF['MAX_JOTS_BY_DEFAULT'];
+		
 		if ($aParams['id'] = $iLotId)
-			$aParams['content'] = $this -> getJotsOfLot($iProfileId, $iLotId, '', 0, '', $this -> _oConfig -> CNF['MAX_JOTS_BY_DEFAULT'], true);
+			$aParams['content'] = $this -> getJotsOfLot($iProfileId, $iLotId, '', 0, '', $iJotsNumber, true);
 		
 		$aParams['url'] = '';
 		if ($iType != BX_IM_TYPE_PRIVATE)
@@ -79,8 +97,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	}
   
   	/**
-	* Main function to build post messsage block for any page
-	*@param int $iProfileId logget member id
+	* Main function to build post message block for any page
+	*@param int $iProfileId logged member id
 	*@param int $iLotId id of conversation. It can be empty if new talk
 	*@param int $iType type of talk (Private, Public and etc..)
 	*@param boolean $bShowMessanger show empty chat window if there is no history
@@ -112,7 +130,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$iUnreadLotsJots = $bIsMuted = $bIsStarred = 0;		
 		if ($iProfileId)
 		{
-			$iUnreadLotsJots = $this -> _oDb -> getUnreadJotsMessagesCount($iProfileId, $iLotId);		
+			$iUnreadLotsJots = $this -> _oDb -> getUnreadJotsMessagesCount($iProfileId, $iLotId);
 			$bIsMuted = $this -> _oDb -> isMuted($iLotId, $iProfileId);
 			$bIsStarred = $this -> _oDb -> isStarred($iLotId, $iProfileId);
 		}
@@ -568,6 +586,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'offline' => bx_js_string(_t('_bx_messenger_offline')),
 			'away' => bx_js_string(_t('_bx_messenger_away')),
 			'repost_of_the_message' => bx_js_string(_t('_bx_messenger_repost_message')),
+			'close_video_confirm' => bx_js_string(_t('_bx_messenger_close_video_confirm')),
+			'video_is_not_supported' => bx_js_string(_t('_bx_messenger_video_record_is_not_supported')),	
+			'video_exceed' => bx_js_string(_t('_bx_messenger_max_video_file_exceeds', $this->_oConfig->CNF['MAX_VIDEO_LENGTH'])),	
 			'message_length' => (int)$this->_oConfig-> CNF['MAX_SEND_SYMBOLS'] ? (int)$this->_oConfig-> CNF['MAX_SEND_SYMBOLS'] : 0,
 			'ip' => gethostbyname($aUrlInfo['host']),
 			'smiles' => (int)$this->_oConfig-> CNF['CONVERT_SMILES'],
@@ -690,23 +711,49 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						$aFiles = $this -> _oDb -> getJotFiles($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_ID']]);						
 						$aItems = array(
 							'bx_repeat:images' => array(),
-							'bx_repeat:files' => array()
+							'bx_repeat:files' => array(),
+							'bx_repeat:videos' => array()
 						);
 						
+						$aTranscodersVideo = array();
+						if (isset($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']) && $this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS'])
+							$aTranscodersVideo = array (
+								'poster' => BxDolTranscoderImage::getObjectInstance($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']['poster']),
+								'mp4' => BxDolTranscoderVideo::getObjectInstance($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']['mp4']),
+								'webm' => BxDolTranscoderVideo::getObjectInstance($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']['webm']),
+							);
+				
 						$oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);
-						foreach($aFiles as $iKey => $aFile){
-								$isAuthor = $aFile[$this -> _oConfig -> CNF['FIELD_ST_AUTHOR']] == $iViewer || isAdmin();								
-								if ($oStorage -> isImageFile($aFile[$this->_oConfig->CNF['FIELD_ST_TYPE']])){
+						foreach($aFiles as $iKey => $aFile)
+						{
+								$isAuthor = $aFile[$this -> _oConfig -> CNF['FIELD_ST_AUTHOR']] == $iViewer || isAdmin();
+								$isVideo = !empty($aTranscodersVideo) && $aTranscodersVideo['mp4']->isMimeTypeSupported($aFile[$this->_oConfig->CNF['FIELD_ST_TYPE']]) && $aTranscodersVideo['webm']->isMimeTypeSupported($aFile[$this->_oConfig->CNF['FIELD_ST_TYPE']]);
+								
+								if ($oStorage -> isImageFile($aFile[$this->_oConfig->CNF['FIELD_ST_TYPE']]))
+								{
 									$sPhotoThumb = '';
 									if ($aFile[$this->_oConfig->CNF['FIELD_ST_TYPE']] != 'image/gif' && $oImagesTranscoder = BxDolTranscoderImage::getObjectInstance($this->_oConfig->CNF['OBJECT_IMAGES_TRANSCODER_PREVIEW']))
-										$sPhotoThumb = $oImagesTranscoder->getFileUrl((int)$aFile[$this->_oConfig->CNF['FIELD_MESSAGE_ID']]);					
+										$sPhotoThumb = $oImagesTranscoder->getFileUrl((int)$aFile[$this->_oConfig->CNF['FIELD_ST_ID']]);					
 									
-									$sFileUrl = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$this->_oConfig->CNF['FIELD_MESSAGE_ID']]);
+									$sFileUrl = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$this->_oConfig->CNF['FIELD_ST_ID']]);
 									$aItems['bx_repeat:images'][] = array(
 										'url' => $sPhotoThumb ? $sPhotoThumb : $sFileUrl,
 										'name' => $aFile[$this->_oConfig->CNF['FIELD_ST_NAME']],
-										'id' => $aFile[$this->_oConfig->CNF['FIELD_MESSAGE_ID']],
-										'delete_code' => $this -> deleteFileCode($aFile[$this->_oConfig->CNF['FIELD_MESSAGE_ID']], $isAuthor)
+										'id' => $aFile[$this->_oConfig->CNF['FIELD_ST_ID']],
+										'delete_code' => $this -> deleteFileCode($aFile[$this->_oConfig->CNF['FIELD_ST_ID']], $isAuthor)
+									);
+								}elseif ($isVideo)
+								{
+									$sFileUrl = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$this->_oConfig->CNF['FIELD_ST_ID']]);
+									$aItems['bx_repeat:videos'][] = array(
+										'id' => $aFile[$this->_oConfig->CNF['FIELD_ST_ID']],
+										'video' => BxTemplFunctions::getInstance()->videoPlayer(
+														$aTranscodersVideo['poster']->getFileUrl($aFile[$this->_oConfig->CNF['FIELD_ST_ID']]), 
+														$aTranscodersVideo['mp4']->getFileUrl((int)$aFile[$this->_oConfig->CNF['FIELD_ST_ID']]), 
+														$aTranscodersVideo['webm']->getFileUrl((int)$aFile[$this->_oConfig->CNF['FIELD_ST_ID']]),
+														false, ''
+													),
+										'delete_code' => $this -> deleteFileCode($aFile[$this->_oConfig->CNF['FIELD_ST_ID']], $isAuthor)
 									);
 								}
 								else
@@ -869,6 +916,15 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		);
 		
 		return $this -> parseHtmlByName('hidden_jot.html',  $aVars);
+	}
+
+	/**
+	* Returns Video Recording form
+	*@param int $iProfile viewer profile id
+	*@return string html form
+	*/
+	public function getVideoRecordingForm($iProfileId){
+		return $this -> parseHtmlByName('video_record_form.html', array('max_video_length' => (int)$this->_oConfig->CNF['MAX_VIDEO_LENGTH']  * 60 * 1000));
 	}
 }
 

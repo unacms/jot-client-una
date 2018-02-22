@@ -20,7 +20,7 @@
 	width:100%;
 }
 
-.cd-side-nav,
+.cd-main-content .cd-side-nav,
 #bx-footer-wrapper{
 	display:none;
 }
@@ -300,6 +300,11 @@ div.bx-messenger-border.search .star a.active
 	/* show back icon only on main messenger page*/
 	.bx-messenger-hide-mobile{
 		display:block !important;
+	}
+	
+	.cd-main-content .cd-side-nav
+	{
+		display:block;
 	}
 	
 	#bx-messenger-add-users-input

@@ -242,14 +242,14 @@ var oMessenger = (function($){
 	oMessenger.prototype.triggerSendAreaButtons = function(bHide){
 		var _this = this,
 			oParent = $(_this.sSendAreaMenuIcons).parent(),
-			isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
+			isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent),
 			oSiblings = oParent
 							.prevAll(isSafari ? 'li:not(.video)' : '')
 							.filter(function()
 									{
 										return !$(this).data('hide');
 									});
-			
+
 		if (!oSiblings.length)
 			return;
 					

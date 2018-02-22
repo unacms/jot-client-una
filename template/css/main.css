@@ -389,6 +389,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box:empty:before
 
 .bx-messenger-block .bx-def-hr{	border:none;
 	border-top: 1px solid #d7e9fb;
+	margin:0 !important;
 }
 
 .bx-messenger-usernames div{  float:left;
@@ -962,6 +963,12 @@ div.bx-messenger-video-block div:first-child
 	animation: blinker 2s linear infinite;
 }
 
+.bx-messenger-block.bx-db-container .bx-db-divider
+{
+	top:0;
+	position:relative;
+}
+
 @media (max-width:720px)
 {
 	#bx-messenger-files-uploader
@@ -1031,7 +1038,7 @@ div.bx-messenger-video-block div:first-child
 		z-index:-1;
 	}
 	
-	.bx-popup-close-wrapper
+	#bx-messenger-files-uploader .bx-popup-close-wrapper
 	{
 		display:none;
 	}

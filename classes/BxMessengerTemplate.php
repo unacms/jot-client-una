@@ -24,15 +24,23 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@param string $sMode 
 	*/
 	public function loadCssJs($sMode = 'all'){
-		$aCss = array('main.css', 'emoji.css', 'dropzone.css');
+		$aCss = array(
+						'main.css', 
+						BX_DIRECTORY_PATH_PLUGINS_PUBLIC . 'emoji/css/|emoji.css', 
+						'dropzone.css'
+					 );
 		$aJs = array(
 						'primus.js',
 						'connect.js',
 						'messenger.js',
-						'config.js',
+						/*'config.js',
 						'util.js',
 						'jquery.emojiarea.js',
-						'emoji-picker.js',
+						'emoji-picker.js',*/
+						'emoji/js/util.js',
+						'emoji/js/config.js',
+						'emoji/js/emoji-picker.js',
+						'emoji/js/jquery.emojiarea.js',
 						'status.js',
 						'dropzone.js',
 						'feather.min.js',

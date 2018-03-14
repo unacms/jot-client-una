@@ -42,17 +42,11 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 	overflow: hidden;	
 	border:0px;	
 	background-color:rgba(0,0,0,0);	
-	padding-top:0.5rem;	
 	max-height:10rem;
 	word-break:break-word;
-	line-height:1rem;
+	line-height:1.1rem;
 	font-size:1rem;
 	overflow-y:auto;
-}
-
-div.bx-messenger-post-box-send-area div.bx-messenger-text-box:empty:before
-{
-	position:absolute;
 }
 
 .bx-messenger-post-box-dsabled

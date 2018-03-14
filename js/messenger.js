@@ -96,15 +96,8 @@ var oMessenger = (function($){
 		});
 	
 		// Emoj config
-		if (oOptions && this.emojiObject)
-		{
-			this.emojiObject.popup_position = function()
-			{
-				return {left:-$(_this.sSendAreaActionsCell).width()};
-			};
-			
+		if (this.emojiObject)
 			this.emojiPicker = new EmojiPicker(this.emojiObject);
-		}
 		
 		// Lot's(Chat's) settings 
 		this.oSettings = {
@@ -780,8 +773,10 @@ var oMessenger = (function($){
 											return $.trim(sText).localeCompare(sOriginalText) == 0
 										};
 										
+										
 										oEmoji.emojiable_selector = _this.sEditJotAreaId;
-										oEmoji.popup_position = {right:'1rem'};
+										oEmoji.menu_wrapper = undefined;
+										oEmoji.popup_position = {'right':0};
 										oEmoji.custom_events = 
 										{
 											'close': function()
@@ -810,8 +805,8 @@ var oMessenger = (function($){
 											}
 										};
 									
-									oEmoji.add = true;
-									new EmojiPicker(oEmoji).discover();
+										oEmoji.add = true;
+										new EmojiPicker(oEmoji).discover();
 								}
 								
 								if (oJot.is(':last-child'))

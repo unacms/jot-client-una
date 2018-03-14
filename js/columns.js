@@ -45,17 +45,20 @@ var oJotWindowBuilder = (function(){
 					
 						$(this.sRightAreaName).height(this.iMainAreaHeight - this.iRightAreaHeight);
 				},
-				
 				init:function(){
-						var iParent = $(this.sBothColumnsParent).width();
+						var iParent = $(this.sBothColumnsParent).outerWidth();
 						
-						if (this.oLeftCol != null || this.oRightCol != null) return ;
+						if (!iParent || this.oLeftCol != null || this.oRightCol != null) return ;
 						
 						this.oLeftCol = $(this.sBothColumnsParent + ' > div').first();
 						this.oRightCol = $(this.sBothColumnsParent + ' > div').last();
 						
-						this.iLeftSize = this.oLeftCol.outerWidth()*100/iParent + '%' || this.iLeftSize;
-						this.iRightSize = this.oRightCol.outerWidth()*100/iParent + '%' || this.iRightSize;	
+						var iLeftW = (this.oLeftCol.outerWidth()*100/iParent).toFixed(2);
+						if (!iLeftW)
+							return;
+						
+						this.iRightSize = (100 - iLeftW) + '%';
+						this.iLeftSize = iLeftW + '%';
 				},
 				isMobile:function(){
 						return $(window).width() <= 720;						

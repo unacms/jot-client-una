@@ -39,6 +39,14 @@
 	/*  One Signal Push Notifications Init End */
 	</bx_if:onsignal>
 	
+    if (navigator.userAgent.indexOf('gonative') > -1) {
+        var data = {user: __profile_id__};
+        var json = JSON.stringify(data);
+        $(document).ready(function () {
+            window.location.href='gonative://registration/send?customData=' + encodeURIComponent(json);        
+        });
+    }
+
 	if (oRTWSF != undefined)
 	{
 			oRTWSF.init({

@@ -101,7 +101,7 @@ var oMessenger = (function($){
 		
 		// Lot's(Chat's) settings 
 		this.oSettings = {
-							'type'	: 'public',
+							'type'	: 1,
 							'url'	: '',
 							'title' : document.title || '',
 							'lot'	: 0,
@@ -151,8 +151,8 @@ var oMessenger = (function($){
 							oEvent.preventDefault();
 						}
 					}
-				
-				if (_this.oRTWSF != undefined)
+
+				if (_this.oRTWSF != undefined && !~$.inArray(iKeyCode, [9,16,17,18,19,20,27,35,36,37,38,39,40,91,93,224])) /* exclude unnusesary keydown keycodes  (Shift, Break and etc...) */
 						_this.oRTWSF.typing({
 							lot	:_this.oSettings.lot, 
 							name:_this.oSettings.name, 

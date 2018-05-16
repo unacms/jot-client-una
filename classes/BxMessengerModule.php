@@ -59,7 +59,9 @@ class BxMessengerModule extends BxBaseModTextModule
 	*/
 	public function serviceGetBlockMessenger($sModule){		
 		$this->_oTemplate-> loadCssJs('view');
-		$aLotInfo = $this -> _oDb -> getLotByUrl($_SERVER['REQUEST_URI']);
+		
+		$sUrl = $this -> _oConfig -> getPageIdent();
+		$aLotInfo = $this -> _oDb -> getLotByUrl($sUrl);
 		if (empty($aLotInfo) && $sModule)
 			$aLotInfo = $this -> _oDb -> getLotByClass($sModule);
 	   
@@ -153,7 +155,8 @@ class BxMessengerModule extends BxBaseModTextModule
 			return echoJson(array('code' => 2, 'message' => _t('_bx_messenger_send_message_no_data')));
 	   
 		$iType = $this -> _oDb -> isLotType($iType) ? $iType : BX_IM_TYPE_PUBLIC;	   
-		if ($iType != BX_IM_TYPE_PRIVATE){
+		if ($iType != BX_IM_TYPE_PRIVATE)
+		{
 			$sUrl = bx_get('url');
 			$sTitle = bx_get('title');
 		}	   
@@ -300,7 +303,8 @@ class BxMessengerModule extends BxBaseModTextModule
 	* @param string URL
 	* @return string URL
 	*/
-	private function getPreparedUrl($sUrl){
+	private function getPreparedUrl($sUrl)
+	{
 		if (!$sUrl) return false;
 		$aUrl = parse_url($sUrl);
 		return strtolower($aUrl['path'] . (isset($aUrl['query']) ? '?' . $aUrl['query'] : ''));

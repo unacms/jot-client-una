@@ -93,6 +93,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 											'bx_groups' => BX_IM_TYPE_GROUPS,
 											'bx_events' => BX_IM_TYPE_EVENTS
 										),
+			'URL_IDENT_PARAMS' => array('i','r','id','profile_id'),
 			// objects
 			'OBJECT_STORAGE' => 'bx_messenger_files',
 			'OBJECT_IMAGES_TRANSCODER_GALLERY' => 'bx_messenger_photos_resized',
@@ -201,6 +202,33 @@ class BxMessengerConfig extends BxBaseModTextConfig
 	{
 		$sArchiveUrl = $this->CNF['URL_REPOST'] . $iJotId;
 		return str_replace($sArchiveUrl, '', $sMessage);
+	}
+	
+	/**
+	* Builds from server environment valid Url handle for lot 
+	*@return string url
+	*/
+	public function getPageIdent()
+	{
+		$sUrl = $_SERVER['REQUEST_URI'];
+		$aUrl = array();
+		
+		if (!empty($_SERVER['QUERY_STRING']))
+		{
+			parse_str($_SERVER['QUERY_STRING'], $aUrl);			
+			if (!empty($aUrl))
+			{
+				$aValidUrl = array();
+				foreach($this->CNF['URL_IDENT_PARAMS'] as &$sParam)
+					if (!empty($aUrl[$sParam]))
+						$aValidUrl[$sParam] = $aUrl[$sParam];
+		
+				if (!empty($aValidUrl))
+					$sUrl = http_build_query($aValidUrl);
+			}
+		}
+		
+		return $sUrl;
 	}
 }
 

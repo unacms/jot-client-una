@@ -94,7 +94,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		
 		$aParams['url'] = '';
 		if ($iType != BX_IM_TYPE_PRIVATE)
-			$aParams['url'] = isset($aLotInfo[$this -> _oConfig -> CNF['FIELD_URL']]) ? $aLotInfo[$this -> _oConfig -> CNF['FIELD_URL']] : '';
+			$aParams['url'] = isset($aLotInfo[$this -> _oConfig -> CNF['FIELD_URL']]) ? $aLotInfo[$this -> _oConfig -> CNF['FIELD_URL']] : $this-> _oConfig -> getPageIdent();
 		
 		BxDolSession::getInstance()-> exists($iProfileId);
 		return $this -> parseHtmlByName('chat_window.html', $aParams);
@@ -593,7 +593,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'close_video_confirm' => bx_js_string(_t('_bx_messenger_close_video_confirm')),
 			'video_is_not_supported' => bx_js_string(_t('_bx_messenger_video_record_is_not_supported')),	
 			'video_exceed' => bx_js_string(_t('_bx_messenger_max_video_file_exceeds', $this->_oConfig->CNF['MAX_VIDEO_LENGTH'])),	
-			'message_length' => (int)$this->_oConfig-> CNF['MAX_SEND_SYMBOLS'] ? (int)$this->_oConfig-> CNF['MAX_SEND_SYMBOLS'] : 0,
+			'message_length' => (int)$this->_oConfig->CNF['MAX_SEND_SYMBOLS'] ? (int)$this->_oConfig-> CNF['MAX_SEND_SYMBOLS'] : 0,
 			'ip' => gethostbyname($aUrlInfo['host']),
 			'smiles' => (int)$this->_oConfig-> CNF['CONVERT_SMILES'],
 			'bx_if:onsignal' => array(

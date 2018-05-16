@@ -47,6 +47,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 	line-height:1.1rem;
 	font-size:1rem;
 	overflow-y:auto;
+	min-height:1.5rem;
 }
 
 .bx-messenger-post-box-dsabled
@@ -93,7 +94,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 }
 .bx-messenger-post-box-send-actions ul li:last-child
 {
-	display:inline;
+	display:none;
 }
 
 .bx-messenger-post-box-send-button
@@ -208,6 +209,8 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 {
 	text-align:left;
 	max-width:100%;
+	flex:2 1;
+	line-height:1.5rem;
 }
 
 #bx-menu-db-menu li{
@@ -376,11 +379,6 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 	overflow:auto;
 }
 
-.bx-messenger-block
-{
-	color:#224466;
-}
-
 .bx-messenger-block .bx-def-hr{	border:none;
 	border-top: 1px solid #d7e9fb;
 	margin:0 !important;
@@ -520,6 +518,11 @@ div.bx-messenger-attachment-footer span.type{	border-right:1px solid rgba(0,0,
 	width:70%
 }
 
+.bx-messenger-attachment-file-wrapper a
+{
+	color:inherit;
+}
+
 .bx-messenger-attachment-file-wrapper
 {
 	width:100%;
@@ -582,7 +585,8 @@ div.bx-messenger-attachment-file-images span.title{	width:100%;
 
 div.bx-messenger-attachment-file-videos video
 {
-	max-width: 40%;
+	max-width: 480px;
+	width: 90%;
 	float: left;
 	margin-top: 0.3rem;
 	border-radius:0.2rem;
@@ -830,7 +834,7 @@ div.bx-messenger-hidden-jot
 {
 	height:1rem;
 }
-* Video Recording Area */
+/* Video Recording Area */
 div.bx-messenger-upload-area
 {
 	margin:1rem;
@@ -989,8 +993,6 @@ div.bx-messenger-video-block div:first-child
 	{
 		max-width: 80%;
 	}
-	
-
 	
 	div.bx-messenger-upload-area
 	{

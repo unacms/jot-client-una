@@ -1,4 +1,4 @@
-<div class="bx-messenger-block jots bx-db-container bx-def-color-bg-block bx-shadow-block">
+<div class="bx-messenger-block jots bx-db-container bx-def-color-bg-block bx-def-image-bg-block bx-def-border-block bx-shadow-block">
 	<bx_if:find_participants>	
 		<div class="bx-form-value bx-db-header bx-messenger-right-column">
 			<div class="bx-messenger-hide-mobile bx-db-menu left">
@@ -14,7 +14,7 @@
 						<input type="hidden" name="users[]" value="__id__">
 					</b>
 				</bx_repeat:participants_list>
-				<input placeholder="<bx_text:_bx_messenger_name_place_holder />" class="bx-def-font-inputs bx-form-input-text ui-autocomplete-input" id="bx-messenger-add-users-input" type="text" />
+				<input placeholder="<bx_text:_bx_messenger_name_place_holder />" class="bx-def-font-inputs bx-form-input-text ui-autocomplete-input" id="bx-messenger-add-users-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" />
 				<bx_if:edit_mode>
 					<span class="save bx-def-font-small bx-def-font">
 						<a href="javascript:void(0);" onclick="oMessenger.onSaveParticipantsList(__lot__);" title="<bx_text:_bx_messenger_save_part_list />">							

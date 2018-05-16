@@ -33,10 +33,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						'primus.js',
 						'connect.js',
 						'messenger.js',
-						/*'config.js',
-						'util.js',
-						'jquery.emojiarea.js',
-						'emoji-picker.js',*/
 						'emoji/js/util.js',
 						'emoji/js/config.js',
 						'emoji/js/emoji-picker.js',
@@ -770,7 +766,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 										'name' => $aFile[$this->_oConfig->CNF['FIELD_ST_NAME']],
 										'file_type' => $aFile[$this->_oConfig->CNF['FIELD_ST_TYPE']],
 										'id' => $aFile[$this->_oConfig->CNF['FIELD_MESSAGE_ID']],
-										'delete_code' => $this -> deleteFileCode($aFile[$this->_oConfig->CNF['FIELD_MESSAGE_ID']], $isAuthor)
+										'delete_code' => $this -> deleteFileCode($aFile[$this->_oConfig->CNF['FIELD_MESSAGE_ID']], $isAuthor),
+										'url' => BX_DOL_URL_ROOT
 									);
 						}
 						

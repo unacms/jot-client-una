@@ -154,9 +154,9 @@ var oMessenger = (function($){
 				
 				if (_this.oRTWSF != undefined)
 						_this.oRTWSF.typing({
-								lot	:_this.oSettings.lot, 
-								name:_this.oSettings.name, 
-								user_id:_this.oSettings.user_id});
+							lot	:_this.oSettings.lot, 
+							name:_this.oSettings.name, 
+							user_id:_this.oSettings.user_id});
 			});
 			
 			$(this.sSendButton).on('click', function(){
@@ -197,7 +197,9 @@ var oMessenger = (function($){
 			// hide buttons on outside click
 			$(_this.sTalkBlock + ',' + _this.sSendArea).on('click', function(oEvent)
 			{
-				_this.triggerSendAreaButtons(true);
+				if (_this.isMobile())
+					_this.triggerSendAreaButtons(true);	
+				
 				_this.removeEditArea(oEvent);
 			});
 			
@@ -209,7 +211,9 @@ var oMessenger = (function($){
 			if (_this.isBlockVersion())
 				$(_this.sTalkList)
 					.onEditJot();
-				
+	
+			_this.triggerSendAreaButtons(_this.isMobile());	
+			
 			/* Init SVG Icons*/
 			feather.replace();
 	}
@@ -218,6 +222,7 @@ var oMessenger = (function($){
 	/**
 	* Init send message area buttons
 	*/
+		
 	oMessenger.prototype.updateSendAreaButtons = function(){
 		var _this = this,			
 			oSmile = $(_this.sSendAreaMenuIcons)
@@ -226,13 +231,19 @@ var oMessenger = (function($){
 						.parent(),
 			bSmile = oSmile.data('hide');
 
-		if (typeof bSmile !== 'undefined' && ((_this.isMobile() && !!bSmile) || (!_this.isMobile() && !!!bSmile)))
+		if (typeof bSmile !== 'undefined' && ((_this.isMobile() && !!bSmile) || (!_this.isMobile() && !bSmile)))
 			return;
 		
 		oSmile.data('hide', _this.isMobile());	
 	}
-	
-	oMessenger.prototype.triggerSendAreaButtons = function(bHide){
+
+	/**
+	 * Show/hide send message area buttons
+	 *  
+	 *  @param boolean bHide if true - hide buttons
+	*/	
+	oMessenger.prototype.triggerSendAreaButtons = function(bHide)
+	{
 		var _this = this,
 			oParent = $(_this.sSendAreaMenuIcons).parent(),
 			isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent),
@@ -242,7 +253,6 @@ var oMessenger = (function($){
 									{
 										return !$(this).data('hide');
 									});
-
 		if (!oSiblings.length)
 			return;
 					
@@ -253,7 +263,7 @@ var oMessenger = (function($){
 		}
 			
 		oParent
-			.parents('ul')
+			.closest('ul')
 			.parent()
 			.animate(
 					{
@@ -1168,6 +1178,10 @@ var oMessenger = (function($){
 		
 		oParams.tmp_id = msgTime.getTime();
 
+		// remove MSG (if it exists) from clean history page
+		if ($('.bx-msg-box-container', _this.sTalkList).length)
+				$('.bx-msg-box-container', _this.sTalkList).remove();	
+		
 		if (oParams.message.length > this.iMaxLength) 
 			oParams.message = oParams.message.substr(0, this.iMaxLength);
 

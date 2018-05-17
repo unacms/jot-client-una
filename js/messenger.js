@@ -1188,7 +1188,8 @@ var oMessenger = (function($){
 		if (oParams.message || typeof oParams.files !== 'undefined')
 		{
 			// append content of the message to the history page
-			$(_this.sTalkList).append(
+			$(_this.sTalkList)
+				.append(
 									_this.oUsersTemplate
 									.clone()
 										.attr('data-tmp', oParams.tmp_id)
@@ -1202,6 +1203,7 @@ var oMessenger = (function($){
 										.bxTime()
 										.onEditJot()
 								);
+								
 			
 			_this.initJotIcons('[data-tmp="' + oParams.tmp_id + '"]');
 			$(_this.sSendArea).html('');
@@ -1624,7 +1626,7 @@ var oMessenger = (function($){
 							.fadeIn(
 								function()
 								{
-									$(this).css('display', 'table-row');
+									$(this).css('display', 'flex');
 									_this.initJotIcons(this);
 								})
 							.bxTime();

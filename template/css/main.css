@@ -164,10 +164,10 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 {
 	position:relative;
 	height:auto;
-	display:table;
+	display:flex;
 	width:100%;
 	margin-bottom:1rem;
-	table-layout:fixed;
+	flex-direction:column;
 }
 
 .bx-messenger-conversations div.bx-messenger-jots:last-child .bx-messenger-jots-avatars,
@@ -220,7 +220,8 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 .bx-messenger-jots{
 	overflow:hidden;	
 	min-height:50px;	
-	display:table-row;
+	display:flex;
+	flex-direction:row;
 	width:auto;	
 }
 
@@ -230,16 +231,17 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 	overflow:hidden;
 	text-align:center;	
 	position:relative;
-	display:table-cell;
 	padding:0.8rem;
+	flex:0 0 auto;
 }
 
-.bx-messenger-jots-info{
-	display: table-cell;
+.bx-messenger-jots-info
+{
 	vertical-align: top;
 	width:auto;	
 	padding-bottom:0.8rem;
 	padding-top:0.8rem;
+	flex:1 1 auto;
 }
 
 .bx-messenger-block-jots .bx-messenger-jots-info

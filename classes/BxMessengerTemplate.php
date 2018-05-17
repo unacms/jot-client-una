@@ -670,7 +670,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				'time' => bx_time_js(time(), BX_FORMAT_TIME),
 				'url' => $oProfile->getUrl(),
 				'thumb' => $oProfile->getThumb(),
-				'display' => 'style="display:table-row;"',
+				'display' => 'style="display:flex;"',
 				'display_message' => 'style="display:none;"',
 				'id' => 0,
 				'message' => '',

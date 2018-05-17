@@ -56,9 +56,7 @@
 
 .bx-messenger-block-lots
 {
-	border-left:0px;
-	border-top:0px;	
-	border-bottom:0px;	
+	border:0px;
 }
 
 .bx-messenger-status

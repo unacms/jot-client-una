@@ -226,9 +226,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@param int $iProfileId logget member id
 	*@param int $iLotId id of conversation. It can be empty if new talk
 	*@param boolean $bFirstTime create private talk window with participants selector at the top
+	*@param int $iJotId use jot it as position in history to display history
 	*@return string html code
 	*/
-	public function getLotWindow($iProfileId = BX_IM_EMPTY, $iLotId = BX_IM_EMPTY, $bFirstTime = false){
+	public function getLotWindow($iProfileId = BX_IM_EMPTY, $iLotId = BX_IM_EMPTY, $bFirstTime = false, $iJotId = 0)
+	{
 		$aProfiles = array();
 		$aParticipants = array();
 		$iViewer = bx_get_logged_profile_id();

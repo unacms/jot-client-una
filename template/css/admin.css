@@ -120,7 +120,7 @@ div.bx-messenger-lots-menu ul li a.active{
 }
 .bx-messenger-block.bx-def-border-block
 {
-	border-right:1px solid #d7e9fb;
+	/*border-right:1px solid #d7e9fb;*/
 }
 
 .bx-messenger-friends-list

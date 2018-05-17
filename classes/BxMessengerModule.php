@@ -35,10 +35,12 @@ class BxMessengerModule extends BxBaseModTextModule
 	/**
 	* Returns left side block for messenger page and loads config data
 	*/
-	public function serviceGetBlockInbox(){
+	public function serviceGetBlockInbox()
+	{
 		if (!$this -> isLogged())
 			return '';	   
-		$iProfile = bx_get('profile');
+
+		$iProfile = bx_get('profile_id');
 		$iProfile = $iProfile == $this -> _iUserId ? 0 : $iProfile;
 		return	$this -> _oTemplate -> getLotsColumn($this -> _iUserId, (int)$iProfile).
 				$this -> _oTemplate -> loadConfig($this -> _iUserId);
@@ -46,10 +48,11 @@ class BxMessengerModule extends BxBaseModTextModule
 	/**
 	* Returns right side block for messenger page
 	*/
-	public function serviceGetBlockLot(){
+	public function serviceGetBlockLot()
+	{
 		if (!$this -> isLogged()) 
 			return '';
-		$iProfile = bx_get('profile');
+		$iProfile = bx_get('profile_id');
 		$iProfile = $iProfile == $this -> _iUserId ? 0 : $iProfile;	   
 		return $this -> _oTemplate -> getLotWindow($iProfile, BX_IM_EMPTY, true);
 	}
@@ -57,7 +60,8 @@ class BxMessengerModule extends BxBaseModTextModule
 	* Returns block with messenger for any page
 	*@param string $sModule module name
 	*/
-	public function serviceGetBlockMessenger($sModule){		
+	public function serviceGetBlockMessenger($sModule)
+	{		
 		$this->_oTemplate-> loadCssJs('view');
 		
 		$sUrl = $this -> _oConfig -> getPageIdent();
@@ -650,6 +654,19 @@ class BxMessengerModule extends BxBaseModTextModule
 		if (!$this -> isLogged()) return 0;
 		return $this -> _oDb -> getNewMessagesNum($this -> _iUserId);
 	}
+	
+	/**
+	* Returns number of lots with any unread messages member
+	* @return int
+	*/   
+	public function serviceGetUpdatedLotsNum()
+	{   
+		if (!$this -> isLogged())
+			return 0;
+		
+		$aLots = $this -> _oDb -> getMyLots($this -> _iUserId, BX_IM_EMPTY, BX_IM_EMPTY, true);
+		return sizeof($aLots);
+	}
    
 	/**
 	* Sends push notifications for participants of specified lot
@@ -953,7 +970,8 @@ class BxMessengerModule extends BxBaseModTextModule
 	
 	public function serviceGetLiveUpdates($aMenuItemParent, $aMenuItemChild, $iCount = 0)
     {
-		$iCountNew = $this -> _oDb -> getNewMessagesNum($this -> _iUserId);
+		$aLots = $this -> _oDb -> getMyLots($this -> _iUserId, BX_IM_EMPTY, BX_IM_EMPTY, true);
+		$iCountNew = sizeof($aLots);
         if($iCountNew == $iCount)
 			return false;
 

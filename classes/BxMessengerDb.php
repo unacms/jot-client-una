@@ -686,7 +686,8 @@ class BxMessengerDb extends BxBaseModTextDb
 		$sWhere = '';
 		$aWhere['profile'] = $iProfileId;
 		
-		if ($bUnread){
+		if ($bUnread)
+		{
 			$sWhere = " AND FIND_IN_SET(:parts, `j`.`{$this->CNF['FIELD_MESSAGE_NEW_FOR']}`)";
 			$aWhere['parts'] = $iProfileId;
 		}
@@ -712,32 +713,38 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@param int $iLotId lot id 
 	*@return array list of lots
 	*/
-	public function getMyLots($iProfileId, $iType = 0, $sParam = '', $bUnread = false, $iLotId = 0, $iStar = 0){
+	public function getMyLots($iProfileId, $iType = 0, $sParam = '', $bUnread = false, $iLotId = 0, $iStar = 0)
+	{
 		$sJOIN = $sHaving = $sWhere = '';
 		$aSWhere = array();
 		$aWhere['parts'] = $aWhere['profile'] = $iProfileId;
 		
-		if ($sParam){
+		if ($sParam)
+		{
 			$aSWhere[] = "(`j`.`{$this->CNF['FIELD_MESSAGE']}` LIKE :message OR `l`.`{$this->CNF['FIELD_TITLE']}` LIKE :title)";
 			$aWhere['title'] = "%{$sParam}%";
 			$aWhere['message'] = "%{$sParam}%";
 		}
 
-		if ($iType){
+		if ($iType)
+		{
 			$aSWhere[] = " `l`.`{$this->CNF['FIELD_TYPE']}` = :type ";
 			$aWhere['type'] = $iType;
 		}
 		
-		if ($bUnread){
-			$sHaving = "HAVING `unread_jot_id` != 0";
+		if ($bUnread)
+		{
+			$sHaving = "HAVING `unread_num` != 0";
 		}
 		
-		if ($iLotId){
+		if ($iLotId)
+		{
 			$aSWhere[] = " `l`.`{$this->CNF['FIELD_ID']}` = :id ";
 			$aWhere['id'] = $iLotId;	
 		}
 		
-		if ($iStar){
+		if ($iStar)
+		{
 			$sJOIN = "INNER JOIN `{$this->CNF['TABLE_USERS_INFO']}` as `u` ON `u`.`{$this->CNF['FIELD_INFO_LOT_ID']}` = `l`.`{$this->CNF['FIELD_ID']}`";
 			$aSWhere[] = "`u`.`{$this->CNF['FIELD_INFO_STAR']}` = 1";
 		}

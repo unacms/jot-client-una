@@ -26,11 +26,12 @@ define('BX_ATT_TYPE_REPOST', 'repost');
  */
 class BxMessengerModule extends BxBaseModTextModule
 {
-	private $_iUserId = 0;   
+	private $_iUserId = 0;
+	private $_iJotId = 0;
 	function __construct(&$aModule)
 	{
 		parent::__construct($aModule);
-		$this -> _iUserId = bx_get_logged_profile_id();
+		$this -> _iUserId = bx_get_logged_profile_id();		
 	}
 	/**
 	* Returns left side block for messenger page and loads config data
@@ -42,7 +43,12 @@ class BxMessengerModule extends BxBaseModTextModule
 
 		$iProfile = bx_get('profile_id');
 		$iProfile = $iProfile == $this -> _iUserId ? 0 : $iProfile;
-		return	$this -> _oTemplate -> getLotsColumn($this -> _iUserId, (int)$iProfile).
+		
+		$iLotId = 0;
+		if ($this -> _iJotId)
+			$iLotId = $this -> _oDb -> getLotByJotId($this -> _iJotId);
+		
+		return	$this -> _oTemplate -> getLotsColumn($iLotId, $this -> _iJotId, $this -> _iUserId, (int)$iProfile).
 				$this -> _oTemplate -> loadConfig($this -> _iUserId);
 	}
 	/**
@@ -50,11 +56,12 @@ class BxMessengerModule extends BxBaseModTextModule
 	*/
 	public function serviceGetBlockLot()
 	{
-		if (!$this -> isLogged()) 
+		if (!$this -> isLogged())
 			return '';
+		
 		$iProfile = bx_get('profile_id');
 		$iProfile = $iProfile == $this -> _iUserId ? 0 : $iProfile;	   
-		return $this -> _oTemplate -> getLotWindow($iProfile, BX_IM_EMPTY, true);
+		return $this -> _oTemplate -> getLotWindow($iProfile, BX_IM_EMPTY, true, $this -> _iJotId);
 	}
 	/**
 	* Returns block with messenger for any page
@@ -71,7 +78,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	   
 		$sConfig = $this -> _oTemplate -> loadConfig($this -> _iUserId);
 		return	$sConfig . $this -> _oTemplate -> getTalkBlock($this -> _iUserId, !empty($aLotInfo) ?
-				(int)$aLotInfo[$this -> _oConfig -> CNF['FIELD_ID']] :
+				(int)$aLotInfo[$this -> _oConfig -> CNF['FIELD_ID']] : BX_IM_EMPTY,
 				BX_IM_EMPTY, $this -> _oConfig -> getTalkType($sModule), true /* create messenger window even if chat doesn't exist yet */);
 	}
    
@@ -100,7 +107,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	/**
 	* Builds main messenger page
 	*/   
-	public function actionMain()
+	public function actionHome()
 	{
 		if (!$this -> isLogged())
 			bx_login_form();
@@ -123,7 +130,8 @@ class BxMessengerModule extends BxBaseModTextModule
 	
 	public function actionArchive($iJotId)
 	{
-		$this -> actionMain();
+		$this -> _iJotId = $iJotId;
+		$this -> actionHome();
 	}
    
 	/**
@@ -228,16 +236,18 @@ class BxMessengerModule extends BxBaseModTextModule
 	* Loads talk to the right side block when member choose conversation or when open messenger page
 	* @return array with json result
 	*/
-	public function actionLoadTalk(){	   
-		$iId = (int)bx_get('id');
-	   
+	public function actionLoadTalk(){
+		$iId = (int)bx_get('lot_id');
+		$iJotId = (int)bx_get('jot_id');
+		
 		if (!$this -> isLogged() || !$iId || !$this -> _oDb -> isParticipant($iId, $this -> _iUserId)){
 			return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 		};
-	   		
-		$sContent = $this -> _oTemplate -> getTalkBlock($this -> _iUserId, $iId, BX_IM_TYPE_PUBLIC, false, $sTitle);
-		//$this -> _oDb -> readAllMessages($iId, $this -> _iUserId);
-	   
+	   	
+		if ((int)bx_get('mark_as_read'))
+			$this -> _oDb -> readAllMessages($iId, $this -> _iUserId);
+		
+		$sContent = $this -> _oTemplate -> getTalkBlock($this -> _iUserId, $iId, $iJotId, BX_IM_TYPE_PUBLIC, false, $sTitle);   
 		echoJson(array('code' => 0, 'html' =>  $sContent, 'title' => $sTitle));
 	}
    
@@ -324,7 +334,7 @@ class BxMessengerModule extends BxBaseModTextModule
 		$iLotId = (int)bx_get('lot');
 		$sLoad = bx_get('load');
 	   
-		if ($sLoad == 'new' && $iJot == 0)
+		if ($sLoad == 'new' && !(int)$iJot)
 		{
 			$aMyLatestJot = $this -> _oDb -> getLatestJot($iLotId, $this -> _iUserId);
 			if (empty($aMyLatestJot))
@@ -339,7 +349,14 @@ class BxMessengerModule extends BxBaseModTextModule
 		{
 			case 'new':
 			case 'prev':
-					$sContent = $this -> _oTemplate -> getJotsOfLot($this -> _iUserId, $iLotId, $sUrl, $iJot, $sLoad, ($sLoad != 'new' ? $this -> _oConfig -> CNF['MAX_JOTS_LOAD_HISTORY'] : 0));
+					$aOptions = array(
+								'lot_id' => $iLotId,
+								'url' => $sUrl,
+								'start'	=> $iJot,
+								'load' => $sLoad,
+								'limit'	=> ($sLoad != 'new' ? $this -> _oConfig -> CNF['MAX_JOTS_LOAD_HISTORY'] : 0)								
+							 );
+					$sContent = $this -> _oTemplate -> getJotsOfLot($this -> _iUserId, $aOptions);
 				break;
 			case 'edit':
 					$aJotInfo = $this -> _oDb -> getJotById($iJot);
@@ -644,15 +661,6 @@ class BxMessengerModule extends BxBaseModTextModule
 			$bStar = $this -> _oDb -> starLot($iLotId, $this -> _iUserId);
 			return echoJson(array('code' => $bStar, 'title' => !$bStar ? _t('_bx_messenger_lots_menu_star_on') : _t('_bx_messenger_lots_menu_star_off')));
 		}
-	}
-
-	/**
-	* Returns number of unread messages for specified lot for logged member
-	* @return int
-	*/   
-	public function serviceGetNewMessagesNum(){   
-		if (!$this -> isLogged()) return 0;
-		return $this -> _oDb -> getNewMessagesNum($this -> _iUserId);
 	}
 	
 	/**

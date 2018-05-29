@@ -142,6 +142,10 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 	margin:0;
 }
 
+.bx-messenger-jots-message .embedly-card
+{
+	max-width:480px;
+}
 .pc-holder 
 {
 	border: 0 none;
@@ -340,7 +344,6 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 	overflow:hidden;	
 	margin:0.1rem;
 }
-
 .bx-messenger-block-info .sys-icon,
 .bx-messenger-block-info span{	color:inherit;
 	opacity:0.5;

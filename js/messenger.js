@@ -61,6 +61,8 @@ var oMessenger = (function($){
 		this.sDeletedJot = '.bx-messenger-jots-message-deleted';
 		this.sVideoATArea = '.bx-messenger-attachment-file-videos';
 		this.sFilesUploadAreaOnForm = '.bx-messenger-upload-area';
+		this.sScrollArea = '.bx-messenger-area-scroll';
+		this.sSelectedJot = '.bx-messenger-blink-jot';
 		
 		//globa class options
 		this.oUsersTemplate	= null,
@@ -166,15 +168,20 @@ var oMessenger = (function($){
 						
 			// start to load history depends on scrolling position
 			$(_this.sTalkBlock).scroll(function(){
-				var isScrollAvail = $(this)[0].scrollHeight > $(this)[0].clientHeight;
-				
-				if ($(this).scrollTop() <= _this.iMinHeightToStartLoading && isScrollAvail){
+				var isScrollAvail = $(this).prop('scrollHeight') > $(this).prop('clientHeight'),
+					isPrev = $(this).scrollTop() <= _this.iMinHeightToStartLoading,
+					isNew = ($(this).prop('scrollHeight') - $(this).scrollTop() - _this.iMinHeightToStartLoading == $(this).prop('clientHeight')) && $(_this.sScrollArea).is(':visible');
+
+				if ((isPrev || isNew) && isScrollAvail){
 					_this.iLoadTimout = setTimeout(function(){
-						_this.updateJots({action: 'prev'});
+						_this.updateJots({
+											action: isPrev ? 'prev' : 'new',
+											position: isNew ? 'position' : undefined
+										 });
 					}, _this.iMinTimeBeforeToStartLoadingPrev);
 				}
 				else
-					clearTimeout(_this.iLoadTimout);							
+					clearTimeout(_this.iLoadTimout);
 			});
 			
 			/* runs periodic to find not processed videos in chat history and replace them with processed videos */
@@ -515,12 +522,12 @@ var oMessenger = (function($){
 									function()
 									{
 										_this.oSettings.lot = null;
-										_this.loadTalk(_iLotId, true);
+										_this.loadTalk(_iLotId, undefined, true);
 									}
 								);
 							}
 							else
-								_this.loadTalk(_iLotId, true);
+								_this.loadTalk(_iLotId, undefined, true);
 						}
 						
 		}, 'json');
@@ -1069,10 +1076,13 @@ var oMessenger = (function($){
 	/**
 	* Load history for selected lot
 	*@param int iLotId lot id
-	*@param bool bDontChangeCol don't change pages if it is ture
+	*@param int iJotId jot id
+	*@param bool bDontChangeCol don't change columns on mobile version 
+	*@param bool bMarkAllAsRead allows to mark all the unread messages as read
+	*@param function oCallback is called when history is loaded
 	*@param object el selected lot
 	*/
-	oMessenger.prototype.loadTalk = function(iLotId, bDontChangeCol){
+	oMessenger.prototype.loadTalk = function(iLotId, iJotId, bDontChangeCol, bMarkAllAsRead, fCallback){
 		var _this = this,
 			oLotBlock = $(this.sLotSelector + '[data-lot="' + iLotId + '"]');
 				
@@ -1088,7 +1098,7 @@ var oMessenger = (function($){
 		_this.selectLotEmit(oLotBlock);
 		
 		bx_loading($(this.sMainTalkBlock), true);
-		$.post('modules/?r=messenger/load_talk', {id:iLotId}, function(oData)
+		$.post('modules/?r=messenger/load_talk', {lot_id:iLotId, jot_id:iJotId, mark_as_read:+bMarkAllAsRead}, function(oData)
 		{
 			bx_loading($(_this.sMainTalkBlock), false);
 				if (parseInt(oData.code) == 1) 
@@ -1119,8 +1129,17 @@ var oMessenger = (function($){
 						.bxTime()
 						.waitForImages(
 							function()
-							{
-								_this.updateScrollPosition('bottom');
+							{								
+								if (typeof fCallback == 'function')
+									fCallback();
+								else
+									if ($(_this.sSelectedJot, _this.sTalkList).length == 1)
+										_this.updateScrollPosition('position', 'slow', $(_this.sSelectedJot, _this.sTalkList),
+										function(){
+											$(_this.sScrollArea).fadeIn('slow');
+										});																
+									else
+										_this.updateScrollPosition('bottom');
 							});
 						
 					if (typeof oData.title !== 'undefined')
@@ -1212,7 +1231,10 @@ var oMessenger = (function($){
 			feather.replace();
 		}
 
-		_this.updateScrollPosition('bottom');
+		if ($(_this.sScrollArea).length)
+			_this.loadTalk(oParams.lot);
+		else
+			_this.updateScrollPosition('bottom');
 		
 		// save message to database and broadcast to all participants
 		$.post('modules/?r=messenger/send', oParams, function(oData){
@@ -1343,7 +1365,7 @@ var oMessenger = (function($){
 						{
 							$(_this).trigger(jQuery.Event('message'));
 						
-							if (_this.isActiveLot(lot) && !_this.isMobile())
+							if (_this.isActiveLot(lot) && !_this.isMobile() && !$(_this.sScrollArea).length)
 								_this.selectLotEmit($(oNewLot));
 						}
 						
@@ -1442,13 +1464,14 @@ var oMessenger = (function($){
 	*@param string sPosition position name
 	*@param string sEff name of the effect for load 
 	*@param object oObject any history item near which to place the scroll 
+	*@param function fCallback executes when scrolling complete
 	*/
-	oMessenger.prototype.updateScrollPosition = function(sPosition, sEff, oObject){
+	oMessenger.prototype.updateScrollPosition = function(sPosition, sEff, oObject, fCallback){
 		var iPosition = 0,
 			sEffect = sEff,
 			iHeight = $(this.sTalkBlock).prop('scrollHeight'),
 			_this = this;
-				
+		
 		switch(sPosition){
 			case 'top':
 					iPosition = 0;
@@ -1461,12 +1484,10 @@ var oMessenger = (function($){
 					break;
 		}
 		
-		if (sEffect == 'slow')
-			$(this.sTalkBlock).animate({
+		$(this.sTalkBlock).animate({
 											scrollTop: iPosition,
-										 }, _this.iScrollDownSpeed);
-		else 
-			$(this.sTalkBlock).scrollTop(iPosition);
+										 }, sEffect == 'slow' ? _this.iScrollDownSpeed : 0,
+										 typeof fCallback === 'function' ? fCallback : function(){});
 	}
 	
 	/**
@@ -1521,8 +1542,11 @@ var oMessenger = (function($){
 			sAction = oAction.addon || (oAction.action != 'msg' ? oAction.action : 'new'),
 			sPosition = oAction.position || (sAction == 'new' ? 'bottom' : 'position'),
 			oObjects = $(this.sTalkListJotSelector),
-			iJotId = 0;		
+			iJotId = 0;
 			
+			if (oAction.action == 'msg' && $(_this.sScrollArea).length)
+				return;
+						
 			if ((sAction == 'new' || sAction == 'prev') && _this.iPanding)
 				return;
 					
@@ -1568,6 +1592,16 @@ var oMessenger = (function($){
 						switch(sAction)
 						{
 							case 'new':
+									if (!oData.html.length)
+									{
+										if ($(_this.sScrollArea).is(':visible'))
+											$(_this.sScrollArea).fadeOut('slow', function(){
+												$(this).remove();
+											});
+										
+										return ;
+									}
+									
 									$(oData.html)
 									.filter(_this.sJot)
 									.each(function()
@@ -1580,7 +1614,7 @@ var oMessenger = (function($){
 									.waitForImages(
 										function()
 										{
-											_this.updateScrollPosition('bottom');
+											_this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'slow', oObjects.last());
 										});
 									
 									if ( _this.isBlockVersion() || (_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive())) /* play sound for jots only on mobile devices when chat area is active */
@@ -1589,8 +1623,14 @@ var oMessenger = (function($){
 							case 'prev':
 									oList
 										.prepend(
-													$(oData.html).onEditJot()
-												);	
+													$(oData.html)
+														.onEditJot()
+														.waitForImages(
+														function()
+														{
+															_this.updateScrollPosition(sPosition, 'fast', $(oObjects.first()));
+														})
+												);														
 								break;
 							case 'edit':
 									$('div[data-id="' + iJotId + '"] ' + _this.sJotMessage, oList)
@@ -1633,13 +1673,6 @@ var oMessenger = (function($){
 							
 						// embedly/iframly links
 						$('a.bx-link').dolConverLinks();
-						
-						if (sAction == 'prev' || sAction == 'new')
-							_this.updateScrollPosition(
-								sPosition, 
-								sAction == 'new' ? 'slow' : '',
-								sAction == 'new' ? null : $(oObjects.first())
-							);
 						
 						/* Init SVG Icons*/
 						feather.replace();
@@ -1827,10 +1860,12 @@ var oMessenger = (function($){
 		
 		/**
 		* Init settings, occurs when member opens the main messenger page
+		*@param int iLotId, if defined select this lot
+		*@param int iJotId, if defined select this jot
 		*@param int iProfileId if profile id oà the person whom to talk 
 		*@param object oBuilder page builder class
 		*/
-		initMessengerPage:function(iProfileId, oBuilder){
+		initMessengerPage:function(iLotId, iJotId, iProfileId, oBuilder){
 			_oMessenger.oJotWindowBuilder = oBuilder || window.oJotWindowBuilder;
 			
 			if (typeof oMessengerMemberStatus !== 'undefined')
@@ -1848,12 +1883,16 @@ var oMessenger = (function($){
 		
 			if (_oMessenger.oJotWindowBuilder != undefined){
 				$(window).on('load resize', function(e){
-						if (e.type == 'load'){
-								if(iProfileId || $(_oMessenger.sLotsListSelector).length == 0) 
-									_oMessenger.createLot({user:iProfileId});
+						if (e.type == 'load')
+						{
+								if (iLotId && iJotId)
+									_oMessenger.loadTalk(iLotId, iJotId, false, false);
 								else
-								if (!_oMessenger.isMobile() && $(_oMessenger.sLotsListSelector).length > 0)
-									$(_oMessenger.sLotsListSelector).first().click();
+									if(iProfileId || $(_oMessenger.sLotsListSelector).length == 0) 
+										_oMessenger.createLot({user:iProfileId});
+								else
+									if (!_oMessenger.isMobile() && $(_oMessenger.sLotsListSelector).length > 0)
+										$(_oMessenger.sLotsListSelector).first().click();
 						}
 						else 
 							_oMessenger.updateSendAreaButtons();
@@ -1878,8 +1917,8 @@ var oMessenger = (function($){
 		},
 		
 		// init public methods
-		loadTalk:function(iLotId){
-			_oMessenger.loadTalk(iLotId);
+		loadTalk:function(iLotId, bMakeAllAsRead){
+			_oMessenger.loadTalk(iLotId, undefined, false, !!bMakeAllAsRead);
 			return this;
 		},
 		searchByItems:function(sText){

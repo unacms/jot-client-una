@@ -138,4 +138,6 @@
 	<string name="_bx_messenger_max_video_file_size"><![CDATA[Max length of video-recording in minutes]]></string>
 	<string name="_bx_messenger_max_video_file_exceeds"><![CDATA[Sorry, you have exceeded max video-recording length limit in {0} minutes!]]></string>
 	<string name="_bx_messenger_video_not_supported"><![CDATA[I'm sorry, your browser doesn't support HTML5 video in WebM with VP8/VP9 or MP4 with H.264.]]></string>
+	<string name="_bx_messenger_jump_to_the_bottom"><![CDATA[Jump to the latest message]]></string>
+	<string name="_bx_messenger_mark_all_as_read"><![CDATA[Mark all messages as read]]></string>
 </resources>

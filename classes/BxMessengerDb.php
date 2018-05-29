@@ -528,15 +528,23 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@param int $iLimit number of jots to get
 	*@return array of the jots
 	*/
-	public function getJotsByLotId($iLotId, $iStart = 0, $sMode = 'new', $iLimit = 0){
+	public function getJotsByLotId($iLotId, $iStart = BX_IM_EMPTY, $sMode = 'new', $iLimit = BX_IM_EMPTY, $bInclude = false){
 		$sLimit = '';
 		$aSWhere[] = "`{$this->CNF['FIELD_MESSAGE_FK']}` = :lot_id ";
 		$aBindings['lot_id'] = (int)$iLotId;
-		
+		$sInsideOrder = 'DESC';
+
 		if ($iStart)
 		{ 
-			$aSWhere[] = "`{$this->CNF['FIELD_MESSAGE_ID']}` " . ($sMode == 'new' ? '>' : '<') . " :start ";
+			$sEqual = '';
+			if ($bInclude)
+				$sEqual='=';
+				
+			$aSWhere[] = "`{$this->CNF['FIELD_MESSAGE_ID']}` " . ($sMode == 'new' ? '>' . $sEqual : '<' . $sEqual) . " :start ";
 			$aBindings['start'] = (int)$iStart;
+			
+			if ($sMode == 'new')
+				$sInsideOrder = 'ASC';
 		}
 
 		if ($iLimit)
@@ -548,17 +556,16 @@ class BxMessengerDb extends BxBaseModTextDb
 		if (!empty($aBindings))
 			$sWhere = 'WHERE ' . implode(' AND ', $aSWhere);
 		
-		return $this -> getAll("(
-									SELECT * FROM `{$this->CNF['TABLE_MESSAGES']}`
+		$sQuery = "SELECT * FROM `{$this->CNF['TABLE_MESSAGES']}`
 									{$sWhere}	
-									ORDER BY `{$this->CNF['FIELD_MESSAGE_ADDED']}` DESC
-									$sLimit
-								) ORDER BY `{$this->CNF['FIELD_MESSAGE_ADDED']}` ASC", $aBindings);
-					
+									ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}` {$sInsideOrder}
+									$sLimit";
+									
+		return $this -> getAll( $iStart && $sMode == 'new' ? $sQuery : "({$sQuery}) ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}`", $aBindings);					
 	}
 
 	/**
-	* Get lot it by jot id 
+	* Get lot id by jot id 
 	*@param int $iJotId jot id
 	*@param boolean bIdOnly return id or array with info
 	*@return mixed lot id or lot info in array
@@ -675,6 +682,22 @@ class BxMessengerDb extends BxBaseModTextDb
 		$aJots = $this -> getMyJots($iProfileId, true, $iLotId);
 		return count($aJots);
 	}
+	
+	public function getLeftJots($iLotId, $iJotId = 0){
+		if (!(int)$iLotId) return false;
+		
+		$sWhere = '';
+		$aWhere['lot'] = $iLotId;
+		if ($iJotId)
+		{
+			$sWhere = ' AND `id` > :jot';
+			$aWhere['jot'] = $iJotId;
+		}
+		
+		return $this->getOne("SELECT COUNT(*) FROM `{$this->CNF['TABLE_MESSAGES']}` 
+								WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :lot {$sWhere}
+								ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}`", $aWhere);
+	}
 
 	/**
 	* Get all jots of the member
@@ -701,7 +724,7 @@ class BxMessengerDb extends BxBaseModTextDb
 			FROM `{$this->CNF['TABLE_ENTRIES']}` as `l`
 			LEFT JOIN `{$this->CNF['TABLE_MESSAGES']}` as `j` ON `l`.`{$this->CNF['FIELD_ID']}` = `j`.`{$this->CNF['FIELD_MESSAGE_FK']}` 
 			WHERE FIND_IN_SET(:profile, `l`.`{$this->CNF['FIELD_PARTICIPANTS']}`) {$sWhere}
-			ORDER BY `j`.`{$this->CNF['FIELD_MESSAGE_ADDED']}` DESC", $aWhere);
+			ORDER BY `j`.`{$this->CNF['FIELD_MESSAGE_ADDED']}` ASC", $aWhere);
 	}
 
 	/**
@@ -775,16 +798,6 @@ class BxMessengerDb extends BxBaseModTextDb
 			ORDER BY `last_created` DESC, `last_jot_created` DESC", $aWhere);
 	}
 	
-	/**
-	* Get member's unread messages number
-	*@param int $iProfileId
-	*@return int number
-	*/
-	public function getNewMessagesNum($iProfileId){
-		$aJots = $this -> getMyJots($iProfileId, true);
-		return count($aJots);
-	}
-
 	/**
 	* Check if the title of the lot type must contain link
 	*@param int $iType
@@ -957,6 +970,19 @@ class BxMessengerDb extends BxBaseModTextDb
 		$aJotInfo = $this -> getJotById($iJotId);
 		
 		return empty($aJotInfo) || !$aJotInfo['FIELD_MESSAGE'];
+	}
+	
+	public function getFirstUnreadJot($iProfileId, $iLotId){
+		$iJotId = 0;
+		
+		if (!$iLotId)
+			return $iJotId;
+		
+		$aUnreadJot = $this -> getMyJots($iProfileId, true, $iLotId);
+		if (!empty($aUnreadJot))
+			$iJotId = $aUnreadJot[0][$this->CNF['FIELD_MESSAGE_ID']];
+		
+		return $iJotId;
 	}
 }
 

@@ -154,7 +154,7 @@ var oMessenger = (function($){
 						}
 					}
 
-				if (_this.oRTWSF != undefined && !~$.inArray(iKeyCode, [9,16,17,18,19,20,27,35,36,37,38,39,40,91,93,224])) /* exclude unnusesary keydown keycodes  (Shift, Break and etc...) */
+				if (_this.oRTWSF != undefined && !~$.inArray(iKeyCode, [9,16,17,18,19,20,27,35,36,37,38,39,40,91,93,224])) /* exclude unnecessary key-down key codes  (Shift, Break and etc...) */
 						_this.oRTWSF.typing({
 							lot	:_this.oSettings.lot, 
 							name:_this.oSettings.name, 
@@ -1750,7 +1750,7 @@ var oMessenger = (function($){
 	*/
 	return {
 		/**
-		* Init main Lot settings and object to work with (settings, real-time frame work, page builder and etc...)
+		* Init main Lot's settings and object to work with (settings, real-time frame work, page builder and etc...)
 		*@param object oOptions options
 		*/
 		init:function(oOptions){			

@@ -80,21 +80,24 @@ var oJotWindowBuilder = (function(){
 						this.resizeColumns();	
 					},
 				activateLeft:function(){					
-						this.oRightCol.hide();
+						this.oRightCol.hide().width('0%');
+						this.iRightSize = '0%';
 						this.oLeftCol.width('100%').fadeIn();
 						this.updateLeftHeight();						
 					},
 				activateRight:function(){
-						this.oLeftCol.hide();
-						this.oRightCol.width('100%').fadeIn();
+						this.oLeftCol.hide().width('0%');
+						this.iLeftSize = '0%';
+						this.oRightCol.width('100%').fadeIn();						
 						this.updateRightHeight();											
 					},
 					
 				activateBoth:function(){
-						if (!parseInt(this.iRightSize) || !parseInt(this.iLeftSize) || (parseInt(this.iRightSize) == 100 && parseInt(this.iRightSize) == 100)){
+						if (parseInt(this.iRightSize) == 0 || parseInt(this.iRightSize) == 100)
+						{
 							this.iLeftSize = '30%';
 							this.iRightSize = '70%';
-							if (!parseInt(this.iRightSize))
+							if (!parseInt(this.iRightAreaHeight))
 									oJotWindowBuilder.loadRightColumn();
 						}	
 						
@@ -129,11 +132,9 @@ var oJotWindowBuilder = (function(){
 			resizeWindow:function()
 			{
 				 clearTimeout(_oPrivate.iResizeTimeout);
-				_oPrivate.iResizeTimeout = setTimeout(
-														function()
-														{
-															_oPrivate.onResizeWindow()
-														}, 300);
+				_oPrivate.iResizeTimeout = setTimeout(function(){
+														_oPrivate.onResizeWindow()
+													 }, 300);
 			},
 			updateColumnSize:function()
 			{

@@ -46,7 +46,14 @@ class BxMessengerModule extends BxBaseModTextModule
 		
 		$iLotId = 0;
 		if ($this -> _iJotId)
+		{
 			$iLotId = $this -> _oDb -> getLotByJotId($this -> _iJotId);
+			if (!$this ->_oDb -> isParticipant($iLotId, $this -> _iUserId))
+			{
+				$this -> _iJotId = BX_IM_EMPTY;
+				$iLotId	= BX_IM_EMPTY;
+			}
+		}
 		
 		return	$this -> _oTemplate -> getLotsColumn($iLotId, $this -> _iJotId, $this -> _iUserId, (int)$iProfile).
 				$this -> _oTemplate -> loadConfig($this -> _iUserId);

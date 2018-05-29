@@ -877,7 +877,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	public function addAttachment($iJotId, $mixedContent, $sType = BX_ATT_TYPE_REPOST){
 		$iJotId = (int)$iJotId;
 		$aJotInfo = array();
-			
+
 		if (!$iJotId || !($aJotInfo = $this -> getJotById($iJotId)) || !$mixedContent)
 			return false;
 		

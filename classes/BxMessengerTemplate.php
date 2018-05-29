@@ -734,6 +734,10 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				'id' => 0,
 				'message' => '',
 				'attachment' => '',
+				'bx_if:blink-jot' => array(
+					'condition' => false,
+					'content' => array()
+				),
 				'bx_if:jot_menu' => array(
 					'condition' => $iProfileId,
 					'content'	=> array(

@@ -400,23 +400,36 @@ class BxMessengerModule extends BxBaseModTextModule
 	* @return array with json
 	*/
 	public function actionGetAutoComplete(){
-		$aUsers = BxDolService::call('system', 'profiles_search', array(bx_get('term'), 5), 'TemplServiceProfiles');
-		if (empty($aUsers)) return array();
+		$sExcept = bx_get('except');
+		$aResult = $aExcept = array();
+		if ($sExcept)
+			$aExcept = explode(',', $sExcept);
+		
+		$aUsers = BxDolService::call('system', 'profiles_search', array(bx_get('term'), $this -> _oConfig -> CNF['PARAM_SEARCH_DEFAULT_USERS'] + sizeof($aExcept)), 'TemplServiceProfiles');
+		if (empty($aUsers))
+			return echoJson(array('items' => $aResult));
 
 		$iProfile = $this -> _iUserId;
 		foreach($aUsers as $iKey => $aValue){
-				if ((int)$aValue['value'] == $this -> _iUserId) continue;
+				if ($aValue['value'] == $this -> _iUserId || in_array($aValue['value'], $aExcept)) continue;
 			   
 				$oProfile = BxDolProfile::getInstance($aValue['value']);
+				$aProfileInfo = $oProfile -> getInfo();	
+				$aProfileInfoDetails = BxDolService::call($aProfileInfo['type'], 'get_content_info_by_id', array($aProfileInfo['content_id']));	
+				$oAccountInfo = BxDolAccount::getInstance($aProfileInfo['account_id']);	
 				if ($oProfile)
 					$aResult[] = array(
 							'value' => $oProfile -> getDisplayName(),
 							'icon' => $oProfile -> getThumb(),
 							'id' => $oProfile -> id(),
+							//'description' => _t('_bx_messenger_search_desc', bx_process_output($oAccountInfo -> getInfo()['logged'], BX_DATA_DATE_TS), bx_process_output($aProfileInfoDetails['added'], BX_DATA_DATE_TS))
+							'description' => _t('_bx_messenger_search_desc', 
+													bx_time_js($oAccountInfo -> getInfo()['logged'], BX_FORMAT_DATE), 
+													bx_time_js($aProfileInfoDetails['added'], BX_FORMAT_DATE))
 					);
 		}
 			   
-		echoJson($aResult);
+		echoJson(array('items' => $aResult));
 	}
 	
 	/**

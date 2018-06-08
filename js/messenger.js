@@ -1156,7 +1156,7 @@ var oMessenger = (function($){
 		}, 'json');	
 	}	
 	
-	oMessenger.prototype.loadJotsForLot = function(iLotId){
+	oMessenger.prototype.loadJotsForLot = function(iLotId, fCallback){
 		var _this = this;		
 		
 		bx_loading($(this.sMainTalkBlock), true);
@@ -1166,10 +1166,17 @@ var oMessenger = (function($){
 					window.location.reload();
 						
 			if (!parseInt(oData.code))
-				{
-					$(_this.sMainTalkBlock).html(oData.html).fadeIn().bxTime();
+			{
+					$(_this.sMainTalkBlock)
+						.html(oData.html)
+						.fadeIn()
+						.bxTime();
+					
 					_this.updateScrollPosition('bottom');
-				}
+					
+					if (typeof fCallback == 'function')
+						fCallback();
+			}
 		}, 'json');	
 	}
 		
@@ -1448,13 +1455,14 @@ var oMessenger = (function($){
 	/**
 	* Search for lot by participants list
 	*@param int iId profile id 
+	*@param function fCallback callback function 
 	*/	
-	oMessenger.prototype.findLotByParticipantsList = function(){
+	oMessenger.prototype.findLotByParticipantsList = function(fCallback){
 		var _this = this;
 		$.post('modules/?r=messenger/find_lot', {participants:this.getPatricipantsList()}, 
 			function(oData){
 				_this.oJotWindowBuilder.resizeWindow();
-				_this.loadJotsForLot(parseInt(oData.lotId));
+				_this.loadJotsForLot(parseInt(oData.lotId), fCallback);
 			}, 
 		'json');
 	}
@@ -1692,55 +1700,72 @@ var oMessenger = (function($){
 	*/
 	oMessenger.prototype.initUsersSelector = function(bMode){
 			var _this = this,
-				onSelectFunc = function()
+				onSelectFunc = function(fCallback)
 				{
 					if (bMode != 'edit')
-						_this.findLotByParticipantsList();
+						_this.findLotByParticipantsList(fCallback);
 					else
 						if (_this.oJotWindowBuilder != undefined)
 							_this.oJotWindowBuilder.updateColumnSize();
 				};
 			
-			$(_this.sUserSelectorInput).
-				autocomplete({
-								source: 'modules/?r=messenger/get_auto_complete',
-								minLength: 1,
-								width: 250,
-								autoFocus: true,
-								select: function(e, ui)
-										{
-											$(this).val(ui.item.value);
-											$(this).trigger('selectuser', ui.item);
-											e.preventDefault();
+				$(_this.sUserSelectorBlock + ' .ui.search')
+						.search({
+									apiSettings:
+									{
+										url: 'modules/?r=messenger/get_auto_complete&term={query}&except={except}',
+										urlData:
+												{
+													except: function(){
+																let aUsers = [];
+																$('[name="users[]"]', _this.sUserSelectorBlock)
+																	.each(function(){
+																		aUsers.push($(this).val());
+																	});
+																
+																return aUsers.join(',');	
+															  }
+												}
+									},
+									templates:
+									{
+										message:function(message, type){
+											return type && message ? `<div class="message empty"><div class="description">${message}</div></div>` : '';
 										}
-							}).on({
-									keyup : function(e, ui)
-											{
-												if(/(188|13)/.test(e.which))
-												$(this).trigger('selectuser', ui);
-											},
-									selectuser:
-											function(e, item)
-											{
-												$(this).hide();		  
-												if (item != undefined)
-													$(this).before('<b class="bx-def-color-bg-hl bx-def-round-corners">' +
-																'<img class="bx-def-thumb bx-def-thumb-size bx-def-margin-sec-right" src="' + item.icon + '" /><span>'+ item.value + '</span>' + 
-																'<input type="hidden" name="users[]" value="'+ item.id +'" /></b>');
-										  
-												onSelectFunc();
-										  
-												$(this)
-													.show()
-													.val('')
-													.focus();
-											}
-								});
+									},
+									error:
+									{
+										noResults  : _t('_bx_messenger_search_no_results'),
+										serverError : _t('_bx_messenger_search_query_issue'),
+									},
+									cache : false,
+									fields: {
+									  results : 'items',
+									  title   : 'value',
+									  image	  : 'icon'
+									},
+									onResultsOpen: function(){
+										$(this).bxTime();
+									},
+									onSelect: function(result, response){
+										let _this = this;
+										$(this)
+											.before(`<b class="bx-def-color-bg-hl bx-def-round-corners">
+														<img class="bx-def-thumb bx-def-thumb-size bx-def-margin-sec-right" src="${result.icon}" /><span>${result.value}</span>
+														<input type="hidden" name="users[]" value="${result.id}" /></b>`);
+											onSelectFunc(function(){
+												$('input', _this).val('').focus();
+											});
+										
+										return true;
+									},
+									minCharacters : 1
+								})
+								.focus();
 			
 			$(_this.sUserSelectorBlock).on('click', 'b', function(){
-					$(this).remove();					
+					$(this).remove();
 					onSelectFunc();
-					
 					$(_this.sUserSelectorInput).focus();
 			});
 	};

@@ -667,10 +667,10 @@ div.bx-messenger-attachment-file-images img{	max-width: 40%;
 
 #bx-messenger-add-users .save
 {
-	position:relative;
-	bottom:0px;
-	float:left;
+	position:relative;	
 	line-height:2rem;
+	display:flex;
+	align-items:center;
 }
 
 .bx-db-header{
@@ -680,7 +680,7 @@ div.bx-messenger-attachment-file-images img{	max-width: 40%;
 
 .bx-messenger-right-column{
 	text-align:left;
-	overflow:hidden;
+	/*overflow:hidden;*/
 }
 
 .bx-messenger-right-column div.bx-form-input-autotoken
@@ -1018,6 +1018,17 @@ div.bx-messenger-video-block div:first-child
 		overflow: hidden;
 		font-size:1rem;
 	}	
+}
+
+.ui.search>.results .result .image
+{
+	width:3rem !important;
+	border-radius:3rem !important;	
+}
+
+.ui.search>.results .result .image+.content
+{
+	margin:0 !important;
 }
 
 @media (max-width:480px)

@@ -84,6 +84,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'STAR_ICON' => 'star',
 			'BELL_ICON_OFF' => 'bell-off',
 			'PARAM_FRIENDS_NUM_BY_DEFAULT' => 10,
+			'PARAM_SEARCH_DEFAULT_USERS' => 5,
 			'PARAM_MAX_HISTORY_MESSAGES' => 50,
 			'PARAM_PUSH_NOTIFICATIONS_DEFAULT_SYMBOLS_NUM' => 190,
 			'PARAM_PRIVATE' => TRUE,

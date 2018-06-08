@@ -25,9 +25,10 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*/
 	public function loadCssJs($sMode = 'all'){
 		$aCss = array(
-						'main.css', 
 						BX_DIRECTORY_PATH_PLUGINS_PUBLIC . 'emoji/css/|emoji.css', 
-						'dropzone.css'
+						'dropzone.css',
+						'semantic.min.css',
+						'main.css'
 					 );
 		$aJs = array(
 						'primus.js',
@@ -42,7 +43,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						'feather.min.js',
 						'RecordRTC.min.js',
 						'adapter.js',
-						'record-video.js'
+						'record-video.js',
+						'semantic.min.js'
 					); 
 		
 		if ($this->_oConfig->CNF['IS_PUSH_ENABLED'] && !getParam('sys_push_app_id'))
@@ -650,7 +652,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'away' => bx_js_string(_t('_bx_messenger_away')),
 			'repost_of_the_message' => bx_js_string(_t('_bx_messenger_repost_message')),
 			'close_video_confirm' => bx_js_string(_t('_bx_messenger_close_video_confirm')),
-			'video_is_not_supported' => bx_js_string(_t('_bx_messenger_video_record_is_not_supported')),	
+			'video_is_not_supported' => bx_js_string(_t('_bx_messenger_video_record_is_not_supported')),
+			'bx_messenger_search_no_results' => bx_js_string(_t('_bx_messenger_search_no_results')),
+			'bx_messenger_search_query_issue' => bx_js_string(_t('_bx_messenger_search_query_issue')),
 			'video_exceed' => bx_js_string(_t('_bx_messenger_max_video_file_exceeds', $this->_oConfig->CNF['MAX_VIDEO_LENGTH'])),	
 			'message_length' => (int)$this->_oConfig->CNF['MAX_SEND_SYMBOLS'] ? (int)$this->_oConfig-> CNF['MAX_SEND_SYMBOLS'] : 0,
 			'ip' => gethostbyname($aUrlInfo['host']),

@@ -140,4 +140,7 @@
 	<string name="_bx_messenger_video_not_supported"><![CDATA[I'm sorry, your browser doesn't support HTML5 video in WebM with VP8/VP9 or MP4 with H.264.]]></string>
 	<string name="_bx_messenger_jump_to_the_bottom"><![CDATA[Jump to the latest message]]></string>
 	<string name="_bx_messenger_mark_all_as_read"><![CDATA[Mark all messages as read]]></string>
+	<string name="_bx_messenger_search_no_results"><![CDATA[Search returned no results]]></string>
+	<string name="_bx_messenger_search_query_issue"><![CDATA[There was an issue with querying the server.]]></string>
+	<string name="_bx_messenger_search_desc"><![CDATA[Joined - {1}<br/>Last login - {0}]]></string>
 </resources>

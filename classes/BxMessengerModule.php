@@ -422,10 +422,9 @@ class BxMessengerModule extends BxBaseModTextModule
 							'value' => $oProfile -> getDisplayName(),
 							'icon' => $oProfile -> getThumb(),
 							'id' => $oProfile -> id(),
-							//'description' => _t('_bx_messenger_search_desc', bx_process_output($oAccountInfo -> getInfo()['logged'], BX_DATA_DATE_TS), bx_process_output($aProfileInfoDetails['added'], BX_DATA_DATE_TS))
 							'description' => _t('_bx_messenger_search_desc', 
-													bx_time_js($oAccountInfo -> getInfo()['logged'], BX_FORMAT_DATE), 
-													bx_time_js($aProfileInfoDetails['added'], BX_FORMAT_DATE))
+													bx_process_output($oAccountInfo -> getInfo()['logged'], BX_DATA_DATE_TS), 
+													bx_process_output($aProfileInfoDetails['added'], BX_DATA_DATE_TS))
 					);
 		}
 			   

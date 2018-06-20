@@ -71,6 +71,7 @@ var oMessenger = (function($){
 		this.sDefaultFavIcon = $('link[rel="shortcut icon"]').attr('href'),
 		this.iAttachmentUpdate = false,
 		this.iTimer = null,
+		this.sEmbedTemplate = (oOptions && oOptions.ebmed_template) || '<a class="bx-link" href="__url__"></a>';
 		this.iMaxLength = (oOptions && oOptions.max) || 0,
 		this.iStatus = document.hasFocus() ? 1 : 2, // 1- online, 2-away
 		this.iActionsButtonWidth = '2.25';
@@ -773,7 +774,7 @@ var oMessenger = (function($){
 				bx_loading($(_this.sJotMessage, oJot).parent(), false);	
 				if (!parseInt(oData.code))
 				{						
-					var sOriginalText = $.trim($(_this.sJotMessage, oJot).text());
+					var sOriginalText = $.trim($(_this.sJotMessage, oJot).text()).length ? $(_this.sJotMessage, oJot).text() : $(_this.sEditJotAreaId, oData.html).text();
 					_this.lastEditText = sOriginalText;
 						
 					$(_this.sJotMessage, oJot)
@@ -857,11 +858,12 @@ var oMessenger = (function($){
 	*@param bool bDontAddAttachment don't add repost link to the jot 
 	*/
 	$.fn.linkify = function(bDontAddAttachment, bDontBroadcast){
-		var sUrlPattern = /\b(?:https?):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim,
+		let sUrlPattern = /\b(?:https?):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim,
 		// www, http, https
 			sPUrlPattern = /(^|[^\/])(www\.[\S]+(\b|$))/gim,
 		// Email addresses
-			sEmailPattern = /[\w.]+@[a-zA-Z_-]+?(?:\.[a-zA-Z]{2,6})+/gim;
+			sEmailPattern = /[\w.]+@[a-zA-Z_-]+?(?:\.[a-zA-Z]{2,6})+/gim,
+			sJotLinkPattern = new RegExp(_oMessenger.sJotUrl + '\\d+', 'i');
 	
 		var sUrl = '',
 			oJot = $(_oMessenger.sJotMessage, this).first(),
@@ -870,12 +872,12 @@ var oMessenger = (function($){
 						.replace(sUrlPattern, function(str)
 						{
 							sUrl = str;
-							return '<a class="bx-link" href="' + str + '">' + str + '</a>';
+							return !sJotLinkPattern.test(str) ? _oMessenger.sEmbedTemplate.replace('__url__', str) : `<a href="${str}">${str}</a>`;
 						})
 						.replace(sPUrlPattern, function(str, p1, p2)
 						{
 							sUrl = 'http://' + p2;
-							return p1 + '<a class="bx-link" href="' + p2 + '">' + p2 + '</a>'
+							return p1 + (!sJotLinkPattern.test(str) ? _oMessenger.sEmbedTemplate.replace('__url__', p2) : `<a href="${p2}">${p2}</a>`);
 						})
 						.replace(sEmailPattern, '<a href="mailto:$&">$&</a>');
 		
@@ -938,8 +940,6 @@ var oMessenger = (function($){
 						.remove() /* remove attachment if exists */
 						.end()
 						.append(oData.html);
-				else
-					$('a.bx-link').dolConverLinks();
 				
 				if (typeof fCallback == 'function')
 					fCallback();
@@ -1147,9 +1147,6 @@ var oMessenger = (function($){
 					
 					/*  copy selected jot's member status to the top of the chat */
 					_this.setUsersStatuses(oLotBlock);
-					
-					// embedly/iframly links
-					$('a.bx-link').dolConverLinks();
 					_this.blockSendMessages();
 					
 				}
@@ -1679,9 +1676,6 @@ var oMessenger = (function($){
 								})
 							.bxTime();
 							
-						// embedly/iframly links
-						$('a.bx-link').dolConverLinks();
-						
 						/* Init SVG Icons*/
 						feather.replace();
 				}

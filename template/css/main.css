@@ -146,6 +146,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 {
 	max-width:480px;
 }
+
 .pc-holder 
 {
 	border: 0 none;
@@ -221,8 +222,9 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 	text-align:left;
 }
 
-.bx-messenger-jots{
-	overflow:hidden;	
+.bx-messenger-jots
+{
+	overflow:visible;
 	min-height:50px;	
 	display:flex;
 	flex-direction:row;
@@ -654,6 +656,9 @@ div.bx-messenger-attachment-file-images img{	max-width: 40%;
 	box-shadow:none;
 	background-color:rgba(0,0,0,0);
 	max-height:2rem;
+	font-size:1rem;
+	padding:0px;	
+	border-radius:0;
 }
 
 #bx-messenger-add-users b
@@ -662,6 +667,7 @@ div.bx-messenger-attachment-file-images img{	max-width: 40%;
 	background-color:rgba(210, 230, 250, 0.5);
 	border-radius:15px !important;	
 	margin:0.1rem;
+	margin-right:0.5rem;
 	padding-right:0.5rem;
 }
 
@@ -1029,6 +1035,11 @@ div.bx-messenger-video-block div:first-child
 .ui.search>.results .result .image+.content
 {
 	margin:0 !important;
+}
+.ui.input > input
+{
+	padding-left:0rem !important;
+	padding-right:0rem !important;
 }
 
 @media (max-width:480px)

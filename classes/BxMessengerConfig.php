@@ -147,7 +147,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 	*/
 	public function isJotLink($sUrl){
 		$aResult = array();
-		$sJotPattern = '/^'. preg_replace(array('/\./', '/\//'), array('\.', '\/'), BX_DOL_URL_ROOT) . '.*\/archive\/(\d+)/i';
+		$sJotPattern = '/^'. preg_replace(array('/\./', '/\//'), array('\.', '\/'), $this->CNF['URL_REPOST']) . '(\d+)/i';
 		if (preg_match($sJotPattern, $sUrl, $aMatches) && intval($aMatches[1]))
 			$aResult = array('url' => $aMatches[0], 'id' => $aMatches[1]);
 		
@@ -184,7 +184,19 @@ class BxMessengerConfig extends BxBaseModTextConfig
 					$sAttrs .= ' rel="nofollow" ';
 			}
 
-			$sText = substr_replace($sText, '<a ' . (!$this -> isJotLink($sUrl) ? $sAttrs : '') . ' href="'.$sUrl.'">'.$aMatches[$i][0].'</a>', $aMatches[$i][1], strlen($aMatches[$i][0]));
+			$sReplacement = '';
+			if ($this -> isJotLink($sUrl))
+				$sReplacement = "<a href=\"{$sUrl}\">{$aMatches[$i][0]}</a>";
+			else
+			{
+				$oEmbed = BxDolEmbed::getObjectInstance();
+				if($oEmbed)
+					$sReplacement = $oEmbed->getLinkHTML($sUrl, $aMatches[$i][0]);
+				else
+					$sReplacement = "<a {$sAttrs} href=\"{$sUrl}\">{$aMatches[$i][0]}</a>";				
+			}
+			
+			$sText = substr_replace($sText, $sReplacement, $aMatches[$i][1], strlen($aMatches[$i][0]));
 		}
 		
 		$mail_pattern = "/([A-z0-9\._-]+\@[A-z0-9_-]+\.)([A-z0-9\_\-\.]{1,}[A-z])/";

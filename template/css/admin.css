@@ -112,15 +112,9 @@ div.bx-messenger-lots-menu ul li a.active{
   padding-left:0px;
 }
 
-#bx-content-main .bx-def-padding-sec-left .bx-def-border-block
+#bx-content-main .bx-messenger-block.jots
 {
 	border-left:1px solid #d7e9fb;
-	-webkit-background-clip: padding-box;
-	background-clip: padding-box;
-}
-.bx-messenger-block.bx-def-border-block
-{
-	/*border-right:1px solid #d7e9fb;*/
 }
 
 .bx-messenger-friends-list

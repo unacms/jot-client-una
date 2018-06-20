@@ -543,7 +543,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 					$sMessage = $this -> getMessageIcons($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']], 'delete', isAdmin() || $bIsLotAuthor); 
 				else
 				{
-					$sMessage = $this -> _oConfig -> bx_linkify($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE']], 'class="bx-link"');
+					$sMessage = $this -> _oConfig -> bx_linkify($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE']]);
 					$sAttachment = !empty($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']]) ? $this -> getAttachment($aJot) : '';
 				}
 				
@@ -644,6 +644,10 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*/
 	public function loadConfig($iProfileId){
 		$aUrlInfo = parse_url(BX_DOL_URL_ROOT); 
+		$oEmbed = BxDolEmbed::getObjectInstance();
+        if($oEmbed)
+            $sEmbedTemplate = $oEmbed->getLinkHTML('__url__');
+				
 		$aVars = array(
 			'profile_id' => (int)$iProfileId,
 			'server_url' => $this->_oConfig-> CNF['SERVER_URL'],
@@ -659,6 +663,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'message_length' => (int)$this->_oConfig->CNF['MAX_SEND_SYMBOLS'] ? (int)$this->_oConfig-> CNF['MAX_SEND_SYMBOLS'] : 0,
 			'ip' => gethostbyname($aUrlInfo['host']),
 			'smiles' => (int)$this->_oConfig-> CNF['CONVERT_SMILES'],
+			'ebmed_template' => $sEmbedTemplate,
 			'bx_if:onsignal' => array(
 										'condition'	=> (int)$iProfileId && $this->_oConfig-> CNF['IS_PUSH_ENABLED'] && !getParam('sys_push_app_id'),
 										'content' => array(
@@ -980,7 +985,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		if (empty($aJot))
 			return '';
 
-		$sMessage = $this -> _oConfig -> bx_linkify($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE']], 'class="bx-link"');
+		$sMessage = $this -> _oConfig -> bx_linkify($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE']]);
 		$sAttachment = !empty($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']]) ? $this -> getAttachment($aJot) : '';
 		$aVars = array(
 			'message' => $sMessage,

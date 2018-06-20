@@ -742,6 +742,12 @@ class BxMessengerModule extends BxBaseModTextModule
 	   	    
 		
 		$aWhere = array();
+		$aInfo = array(
+					'contents' => $aContent,
+					'headings' => $aHeadings,
+					'url' => $this->_oConfig->CNF['URL_REPOST'] . $aLatestJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']]
+				);
+				
 		foreach($aParticipantList as $iKey => $iValue)
 		{   
 			if (array_search($iValue, $aSent) !== FALSE || $this -> _oDb -> isMuted($aLot[$this -> _oConfig -> CNF['FIELD_ID']], $iValue))
@@ -749,12 +755,7 @@ class BxMessengerModule extends BxBaseModTextModule
 			
 			if ($bIsGlobalSettings)
 			{
-				BxDolPush::getInstance()->send($iValue, array(
-					'contents' => $aContent,
-					'headings' => $aHeadings,
-					'url' => $this->_oConfig->CNF['URL_HOME'],
-					'icon' => $oProfile->getThumb()
-				), true);
+				BxDolPush::getInstance()->send($iValue, array_merge($aInfo, array('icon' => $oProfile->getThumb())), true);
 			}
 			else
 			{
@@ -769,16 +770,13 @@ class BxMessengerModule extends BxBaseModTextModule
 		
 		unset($aWhere[count($aWhere) - 1]);
 
-		$aFields = array(
+		$aFields = array_merge(array(
 			'app_id' => $this->_oConfig-> CNF['PUSH_APP_ID'],
-			'filters' => $aWhere,
-			'contents' => $aContent,
-			'headings' => $aHeadings,
-			'url' => $this->_oConfig->CNF['URL_HOME'],
+			'filters' => $aWhere,			
 			'chrome_web_icon' => $oProfile->getThumb()
-		);
+		), $aInfo);
 	   
-		$aFields = json_encode($aFields);
+	   	$aFields = json_encode($aFields);
 	   
 		$oCh = curl_init();
 		curl_setopt($oCh, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");

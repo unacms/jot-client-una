@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="en" flag="gb" title="English">
+	<string name="_bx_messenger_jump_to_the_bottom"><![CDATA[Jump to the latest message]]></string>
+	<string name="_bx_messenger_mark_all_as_read"><![CDATA[Mark all messages as read]]></string>
+	<string name="_bx_messenger_search_no_results"><![CDATA[Search returned no results]]></string>
+	<string name="_bx_messenger_search_query_issue"><![CDATA[There was an issue with querying the server.]]></string>
+	<string name="_bx_messenger_search_desc"><![CDATA[Joined - {1}<br/>Last login - {0}]]></string>
+</resources>

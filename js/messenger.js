@@ -91,17 +91,14 @@ var oMessenger = (function($){
 		this.lastEditText = '';
 		this.soundFile = 'modules/boonex/messenger/data/notify.wav'; //beep file, occurs when message received
 		this.emojiObject = oOptions.emoji || null;
-
+	
 		var _this = this;
+		
 		$(this).on('message', function()
 		{			
 			_this.beep();			
 		});
 	
-		// Emoj config
-		if (this.emojiObject)
-			this.emojiPicker = new EmojiPicker(this.emojiObject);
-		
 		// Lot's(Chat's) settings 
 		this.oSettings = {
 							'type'	: 1,
@@ -130,14 +127,17 @@ var oMessenger = (function($){
 			this.oSettings.type = oOptions.type || this.oSettings.type,
 			this.oSettings.lot = oOptions.lot || 0,
 			this.oSettings.name = oOptions.name || '';
-			
-			// init smiles			
-			if (this.emojiPicker != undefined)				
-				this.emojiPicker.discover();	  		
-			
+	
+			// init Emoj
+			if (this.emojiObject)
+			{
+				this.emojiObject.set_focus = !this.isBlockVersion();
+				this.emojiPicker = new EmojiPicker(this.emojiObject).discover();
+			}	
+	
 			if (!_this.oRTWSF.isInitialized())
 			{
-				this.blockSendMessages(true);				
+				this.blockSendMessages(true);
 				return;
 			}
 		
@@ -795,6 +795,7 @@ var oMessenger = (function($){
 										oEmoji.emojiable_selector = _this.sEditJotAreaId;
 										oEmoji.menu_wrapper = undefined;
 										oEmoji.popup_position = {'right':0};
+										oEmoji.set_focus = true;
 										oEmoji.custom_events = 
 										{
 											'close': function()

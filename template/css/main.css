@@ -314,8 +314,8 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 	padding:0.3rem;
 }
 
-#bx-messenger-info-area .bx-messenger-conversations-typing:before{	font-family: 'sys-user', 'sys-user-fal';
-	content: "\f27b";
+#bx-messenger-info-area .bx-messenger-conversations-typing:before{	font-family: 'sys-user-far';
+	content: "\f4ad";
 	margin-left: 1rem;
 	font-size: 0.8rem;
 }
@@ -326,7 +326,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 #bx-messenger-info-area .bx-messenger-info-area-connecting span{	margin-left:0.3rem;
 }
 
-#bx-messenger-info-area .bx-messenger-info-area-connecting:before{	font-family: 'sys-user', 'sys-user-fal';
+#bx-messenger-info-area .bx-messenger-info-area-connecting:before{	font-family: 'sys-user';
 	content: "\f1e6";
 	margin-left: 1rem;
 	font-size: 0.8rem;
@@ -335,7 +335,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 #bx-messenger-info-area .bx-messenger-info-area-connect-failed{	display:none;
 }
 
-#bx-messenger-info-area .bx-messenger-info-area-connect-failed:before{	font-family: 'sys-user', 'sys-user-fal';
+#bx-messenger-info-area .bx-messenger-info-area-connect-failed:before{	font-family: 'sys-user';
 	content: "\f06a";
 	margin-left: 1rem;
 	font-size: 0.8rem;
@@ -711,7 +711,7 @@ div.bx-messenger-attachment-file-images img{	max-width: 40%;
 
 .bx-messenger-right-column  .bx-form-input-autotoken b:after
 {
-   font-family: 'sys-user', 'sys-user-fal';
+   font-family: 'sys-user';
    content: "\f00d";  
    margin-left:0.1rem;
    position:relative;

@@ -18,6 +18,7 @@
 #bx-content-wrapper .bx-def-page-width
 {
 	width:100%;
+	padding:0;
 }
 
 .cd-main-content .cd-side-nav,
@@ -84,7 +85,8 @@
 
 .bx-messenger-status.offline:before
 {
-	content: "\f10c";
+	font-family: 'sys-user-far';
+	content: "\f111";
 	color: #9b9b9b;
 }
 .bx-messenger-jots-snip-title div.status
@@ -393,6 +395,11 @@ div.bx-messenger-border.search .star a.active
 	transform: rotate(45deg);
 }
 
+div.bx-messenger-post-box
+{
+	padding-bottom:0.5rem;
+}
+	
 @media (max-width:720px)
 {
 	

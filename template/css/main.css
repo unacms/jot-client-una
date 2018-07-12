@@ -11,6 +11,7 @@
 div.bx-messenger-post-box
 {
 	padding:0.6rem;
+	padding-bottom:0.1rem;
 	min-height:2rem;
 	display:table;	
 	box-sizing: border-box;
@@ -356,6 +357,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 
 .bx-messenger-main-block{   height:auto;
    width:100%;
+   padding-bottom:0.5rem;
 }
 
 .bx-messenger-main-block  .bx-loading-ajax{	

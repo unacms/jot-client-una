@@ -115,6 +115,7 @@ div.bx-messenger-lots-menu ul li a.active{
 #bx-content-main .bx-messenger-block.jots
 {
 	border-left:1px solid #d7e9fb;
+	border-radius:0;
 }
 
 .bx-messenger-friends-list

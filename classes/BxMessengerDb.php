@@ -869,10 +869,10 @@ class BxMessengerDb extends BxBaseModTextDb
 
 	/**
 	* Add attachment to the jot
-	*@param int  $iJotId jot id
+	*@param int $iJotId jot id
 	*@param text mixedContent attachment content
-	*@param type sType attachment type
-	*@return affected rows
+	*@param int sType attachment type
+	*@return int affected rows
 	*/
 	public function addAttachment($iJotId, $mixedContent, $sType = BX_ATT_TYPE_REPOST){
 		$iJotId = (int)$iJotId;
@@ -896,8 +896,8 @@ class BxMessengerDb extends BxBaseModTextDb
 	* Add attachment to the jot
 	*@param int  $iJotId jot id
 	*@param int  $iProfileId profile id
-	*@param text $sMessage 
-	*@return affected rows
+	*@param string $sMessage
+	*@return int affected rows
 	*/
 	public function editJot($iJotId, $iProfileId, $sMessage){
 		$iJotId = (int)$iJotId;

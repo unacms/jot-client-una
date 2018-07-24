@@ -48,7 +48,7 @@ class BxMessengerModule extends BxBaseModTextModule
 		if ($this -> _iJotId)
 		{
 			$iLotId = $this -> _oDb -> getLotByJotId($this -> _iJotId);
-			if (!$this ->_oDb -> isParticipant($iLotId, $this -> _iUserId))
+			if (!empty($iLotId) && !$this ->_oDb -> isParticipant($iLotId, $this -> _iUserId))
 			{
 				$this -> _iJotId = BX_IM_EMPTY;
 				$iLotId	= BX_IM_EMPTY;
@@ -119,7 +119,6 @@ class BxMessengerModule extends BxBaseModTextModule
 		if (!$this -> isLogged())
 			bx_login_form();
 	  
-		$oTemplate = BxDolTemplate::getInstance();
 		$oPage = BxDolPage::getObjectInstance('bx_messenger_main');
 
 		if (!$oPage) {
@@ -540,7 +539,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	*/
 	public function actionDeleteJot(){
 		$iJotId = bx_get('jot');
-		$bÑompletely = (int)bx_get('completely');
+		$bCompletely = (int)bx_get('completely');
 		$aJotInfo = $this -> _oDb -> getJotById($iJotId);
 
 		$aResult = array('code' => 1);
@@ -548,11 +547,11 @@ class BxMessengerModule extends BxBaseModTextModule
 			return echoJson($aResult);
 		
 		$bIsLotAuthor = $this -> _oDb -> isAuthor($aJotInfo[$this->_oConfig-> CNF['FIELD_MESSAGE_FK']], $this -> _iUserId);
-		if (!(isAdmin() || (!$bÑompletely && $this -> _oDb -> isAuthor($iJotId, $this -> _iUserId, false)) || $bIsLotAuthor))
+		if (!(isAdmin() || (!$bCompletely && $this -> _oDb -> isAuthor($iJotId, $this -> _iUserId, false)) || $bIsLotAuthor))
 			return echoJson($aResult);
 					
-		if ($this -> _oDb -> deleteJot($iJotId, $this -> _iUserId, $bÑompletely))			
-			$aResult = array('code' => 0, 'html' => !$bÑompletely ? $this -> _oTemplate -> getMessageIcons($iJotId, 'delete', isAdmin() || $bIsLotAuthor) : '');
+		if ($this -> _oDb -> deleteJot($iJotId, $this -> _iUserId, $bCompletely))
+			$aResult = array('code' => 0, 'html' => !$bCompletely ? $this -> _oTemplate -> getMessageIcons($iJotId, 'delete', isAdmin() || $bIsLotAuthor) : '');
 	   
 		echoJson($aResult);
 	}

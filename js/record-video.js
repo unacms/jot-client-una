@@ -203,6 +203,29 @@ oJotVideoRecorder.prototype.init = function()
 				});	
 }
 
+oJotVideoRecorder.prototype.isMimeTypeSupported = function(mimeType){
+	return typeof MediaRecorder.isTypeSupported === 'function' ?
+        MediaRecorder.isTypeSupported(mimeType) : true;
+};
+
+oJotVideoRecorder.prototype.getMimeType = function(mimeType){
+	var mimeType = 'video/mp4;codecs=h264'; // H264
+
+    if (this.isMimeTypeSupported(mimeType) === false) {
+          mimeType = 'video/webm\;codecs=vp9'; // VP9
+
+          if (this.isMimeTypeSupported(mimeType) === false) {
+              mimeType = 'video/webm\;codecs=vp8'; // VP8
+
+              if (this.isMimeTypeSupported(mimeType) === false) {
+                  mimeType = 'video/webm'; // do NOT pass any codecs (vp8 by default)
+              }
+          }
+    };
+
+    return mimeType;
+};
+
 oJotVideoRecorder.prototype.stopRecording = function(oBlob)
 {
 	var _this = this;
@@ -224,6 +247,6 @@ oJotVideoRecorder.prototype.stopRecording = function(oBlob)
 	
 	$(_this.bsend)
 		.removeClass(_this.sDisableButtonClass)
-		.prop('disabled', false);																		
+		.prop('disabled', false);
 	
  }

@@ -48,7 +48,8 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'FIELD_ST_ADDED' => 'created',
 			'FIELD_ST_JOT' => 'jot_id',
 			'FIELD_ST_TYPE' => 'mime_type',
-			 
+			'FIELD_ST_EXT' => 'ext',
+
 
 			// messages/jots table fields
 			'FIELD_MESSAGE_ID' => 'id',

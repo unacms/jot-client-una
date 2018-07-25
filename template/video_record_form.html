@@ -30,11 +30,13 @@
 		 var oOptions = 
 			{
 				start: function(oCamera){
-					var _this = this;
+					var _this = this,
+                        mimeType = oJotRecorder.getMimeType();
 
 					this.oRecorder = RecordRTC(oCamera, 
 					{
-						mimeType: 'video/webm\;codecs=vp8',
+						mimeType: mimeType,
+                        disableLogs: true
 					});
 					
 					this.oRecorder.clearRecordedData();

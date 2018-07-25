@@ -204,6 +204,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	* Create top of the block with participants names and statuses
 	*@param int $iProfileId logget member id
 	*@param int $iLotId id of conversation. It can be empty if new talk
+    *@return string HTML code
 	*/
 	private function getParticipantsNames($iProfileId, $iLotId){
 		$aNickNames = array();
@@ -503,6 +504,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*	- boolean $bDisplay make jots visible before loading
 	*	- string html code
 	*	- boolean load history from defined jot id and to select it
+    *@return string HTML code
 	*/
 	public function getJotsOfLot($iProfileId, $aParams){
 		
@@ -821,12 +823,23 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 								}elseif ($isVideo)
 								{
 									$sFileUrl = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$this->_oConfig->CNF['FIELD_ST_ID']]);
+
+                                    $sMp4File = $aTranscodersVideo['mp4']->getFileUrl((int)$aFile[$this->_oConfig->CNF['FIELD_ST_ID']]);
+                                    $sWebMFile = $aTranscodersVideo['webm']->getFileUrl((int)$aFile[$this->_oConfig->CNF['FIELD_ST_ID']]);
+
+                                    $sPoster = $sMp4File && $sWebMFile ? $aTranscodersVideo['poster']->getFileUrl($aFile[$this->_oConfig->CNF['FIELD_ST_ID']]) : '';
+
+                                    $sWebMFile = $sWebMFile ? $sWebMFile : ($aFile[$this->_oConfig->CNF['FIELD_ST_EXT']] == 'webm' ? $sFileUrl : '' );
+                                    $sMp4File = $sMp4File ? $sMp4File :
+                                        ($aFile[$this->_oConfig->CNF['FIELD_ST_EXT']] == 'mp4' || $aFile[$this->_oConfig->CNF['FIELD_ST_EXT']] == 'mov'
+                                            ? $sFileUrl : '' );
+
 									$aItems['bx_repeat:videos'][] = array(
 										'id' => $aFile[$this->_oConfig->CNF['FIELD_ST_ID']],
 										'video' => BxTemplFunctions::getInstance()->videoPlayer(
-														$aTranscodersVideo['poster']->getFileUrl($aFile[$this->_oConfig->CNF['FIELD_ST_ID']]), 
-														$aTranscodersVideo['mp4']->getFileUrl((int)$aFile[$this->_oConfig->CNF['FIELD_ST_ID']]), 
-														$aTranscodersVideo['webm']->getFileUrl((int)$aFile[$this->_oConfig->CNF['FIELD_ST_ID']]),
+                                                        $sPoster,
+                                                        $sMp4File,
+                                                        $sWebMFile,
 														false, ''
 													),
 										'delete_code' => $this -> deleteFileCode($aFile[$this->_oConfig->CNF['FIELD_ST_ID']], $isAuthor)

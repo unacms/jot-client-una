@@ -955,11 +955,14 @@ var oMessenger = (function($){
 	*/
 	oMessenger.prototype.updateProcessedVideo = function(){
 		var _this = this,
-			aVideos = [];
+			aVideos = [],
+			oVideoEl = document.createElement('video');
+
 		$(this.sVideoATArea, this.sTalkList).each(
 			function()
 			{
-				if (!$('video source', this).prop('src'))
+				let oVideo = $('video source', this);
+				if (!oVideo.prop('src') || oVideoEl.canPlayType(oVideo.prop('type')) == '')
 					aVideos.push($(this).data('video-id'));
 			});
 		
@@ -1882,7 +1885,7 @@ var oMessenger = (function($){
 		* Init settings, occurs when member opens the main messenger page
 		*@param int iLotId, if defined select this lot
 		*@param int iJotId, if defined select this jot
-		*@param int iProfileId if profile id oà the person whom to talk 
+		*@param int iProfileId if profile id of the person whom to talk 
 		*@param object oBuilder page builder class
 		*/
 		initMessengerPage:function(iLotId, iJotId, iProfileId, oBuilder){
@@ -2176,9 +2179,14 @@ var oMessenger = (function($){
 			});
 		},
 		sendVideoRecord:function(oFile, oCallback){
-			var fileName = (new Date().getTime()) + '.webm';
+			var fileName = (new Date().getTime()),
+				formData = new FormData();
 
-			var formData = new FormData();
+			if (oFile.type !== undefined) {
+                let sExt = (~oFile.type.indexOf(';') ? oFile.type.substring(0, oFile.type.lastIndexOf(';')) : oFile.type).replace('video/', '.');
+				fileName += sExt;
+            };
+
 			formData.append('name', fileName);
 			formData.append('file', oFile);
 

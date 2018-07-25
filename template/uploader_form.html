@@ -23,6 +23,7 @@ var AqbDropZone = new Dropzone("#bx-messenger-uploaded-files-area", {
 			dictRemoveFileConfirmation:'__delete_confirm__',
 			dictRemoveAllFilesConfirmation:'__all_files_confirm__',
 			clickable: ".dropzone",
+			timeout: 0,
 			onClose:function(){				
 				if (oMessenger.onCloseUploadingForm(AqbDropZone.options.dictRemoveAllFilesConfirmation, AqbDropZone.getAcceptedFiles().length))
 					AqbDropZone.removeAllFiles();

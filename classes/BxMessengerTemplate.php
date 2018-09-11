@@ -647,21 +647,25 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	public function loadConfig($iProfileId){
 		$aUrlInfo = parse_url(BX_DOL_URL_ROOT); 
 		$oEmbed = BxDolEmbed::getObjectInstance();
-        if($oEmbed)
+
+		if($oEmbed)
             $sEmbedTemplate = $oEmbed->getLinkHTML('__url__');
-				
+
+        $this->addJsTranslation(array(
+            '_bx_messenger_online',
+            '_bx_messenger_offline',
+            '_bx_messenger_away',
+            '_bx_messenger_repost_message',
+            '_bx_messenger_close_video_confirm',
+            '_bx_messenger_max_video_file_exceeds',
+            '_bx_messenger_video_record_is_not_supported',
+            '_bx_messenger_search_no_results',
+            '_bx_messenger_search_query_issue'
+        ));
+
 		$aVars = array(
 			'profile_id' => (int)$iProfileId,
 			'server_url' => $this->_oConfig-> CNF['SERVER_URL'],
-			'online' => bx_js_string(_t('_bx_messenger_online')),
-			'offline' => bx_js_string(_t('_bx_messenger_offline')),
-			'away' => bx_js_string(_t('_bx_messenger_away')),
-			'repost_of_the_message' => bx_js_string(_t('_bx_messenger_repost_message')),
-			'close_video_confirm' => bx_js_string(_t('_bx_messenger_close_video_confirm')),
-			'video_is_not_supported' => bx_js_string(_t('_bx_messenger_video_record_is_not_supported')),
-			'bx_messenger_search_no_results' => bx_js_string(_t('_bx_messenger_search_no_results')),
-			'bx_messenger_search_query_issue' => bx_js_string(_t('_bx_messenger_search_query_issue')),
-			'video_exceed' => bx_js_string(_t('_bx_messenger_max_video_file_exceeds', $this->_oConfig->CNF['MAX_VIDEO_LENGTH'])),	
 			'message_length' => (int)$this->_oConfig->CNF['MAX_SEND_SYMBOLS'] ? (int)$this->_oConfig-> CNF['MAX_SEND_SYMBOLS'] : 0,
 			'ip' => gethostbyname($aUrlInfo['host']),
 			'smiles' => (int)$this->_oConfig-> CNF['CONVERT_SMILES'],

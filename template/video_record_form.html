@@ -25,15 +25,16 @@
 <script>
 	/* Init SVG Icons*/
 	feather.replace();
-	
+
 	$(function(){
 		 var oOptions = 
 			{
 				start: function(oCamera){
 					var _this = this,
-                        mimeType = oJotRecorder.getMimeType();
+                        mimeType = oJotRecorder.getMimeType(),
+						iMaxLength = parseInt('__max_video_length__');
 
-					this.oRecorder = RecordRTC(oCamera, 
+					this.oRecorder = RecordRTC(oCamera,
 					{
 						mimeType: mimeType,
                         disableLogs: true
@@ -41,10 +42,10 @@
 					
 					this.oRecorder.clearRecordedData();
 					
-					this.oRecorder.setRecordingDuration(__max_video_length__, function(){
+					this.oRecorder.setRecordingDuration(iMaxLength, function(){
 							_this.stopRecording(this.getBlob());
 							$(_this.bstart).click();
-							alert(_t('_bx_messenger_max_video_file_exceeds'));
+							alert(_t('_bx_messenger_max_video_file_exceeds', iMaxLength/(1000*60)));
 						});
 					
 					this.oRecorder.startRecording();

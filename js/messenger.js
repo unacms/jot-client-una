@@ -132,6 +132,7 @@ var oMessenger = (function($){
 			if (this.emojiObject)
 			{
 				this.emojiObject.set_focus = !this.isBlockVersion();
+                this.emojiObject.popup_position = {'bottom' : '3rem'};
 				this.emojiPicker = new EmojiPicker(this.emojiObject).discover();
 			}	
 	
@@ -790,11 +791,12 @@ var oMessenger = (function($){
 										{
 											return $.trim(sText).localeCompare(sOriginalText) == 0
 										};
-										
-										
+
 										oEmoji.emojiable_selector = _this.sEditJotAreaId;
 										oEmoji.menu_wrapper = undefined;
-										oEmoji.popup_position = {'right':0};
+
+										let position = oJot.is(':last-child') ? 'bottom' : 'top';
+										oEmoji.popup_position = {'right':0, [position] : 0};
 										oEmoji.set_focus = true;
 										oEmoji.custom_events = 
 										{

@@ -73,6 +73,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	/**
 	* Returns block with messenger for any page
 	*@param string $sModule module name
+    *@return string block's content
 	*/
 	public function serviceGetBlockMessenger($sModule)
 	{		
@@ -84,9 +85,11 @@ class BxMessengerModule extends BxBaseModTextModule
 			$aLotInfo = $this -> _oDb -> getLotByClass($sModule);
 	   
 		$sConfig = $this -> _oTemplate -> loadConfig($this -> _iUserId);
-		return	$sConfig . $this -> _oTemplate -> getTalkBlock($this -> _iUserId, !empty($aLotInfo) ?
+		$aBlock = $this -> _oTemplate -> getTalkBlock($this -> _iUserId, !empty($aLotInfo) ?
 				(int)$aLotInfo[$this -> _oConfig -> CNF['FIELD_ID']] : BX_IM_EMPTY,
 				BX_IM_EMPTY, $this -> _oConfig -> getTalkType($sModule), true /* create messenger window even if chat doesn't exist yet */);
+
+		return $sConfig . $aBlock['content'];
 	}
    
 	/**
@@ -252,9 +255,10 @@ class BxMessengerModule extends BxBaseModTextModule
 	   	
 		if ((int)bx_get('mark_as_read'))
 			$this -> _oDb -> readAllMessages($iId, $this -> _iUserId);
-		
-		$sContent = $this -> _oTemplate -> getTalkBlock($this -> _iUserId, $iId, $iJotId, BX_IM_TYPE_PUBLIC, false, $sTitle);   
-		echoJson(array('code' => 0, 'html' =>  $sContent, 'title' => $sTitle));
+
+        $sTitle = '';
+		$aBlock = $this -> _oTemplate -> getTalkBlock($this -> _iUserId, $iId, $iJotId, BX_IM_TYPE_PUBLIC, false, $sTitle);
+		echoJson(array('code' => 0, 'html' =>  $aBlock['content'], 'title' => $aBlock['title']));
 	}
    
 	/**
@@ -277,7 +281,7 @@ class BxMessengerModule extends BxBaseModTextModule
    
 	/**
 	* Search for Lots by keywords in the right side block
-	* @return array with json 
+	* @return string with json
 	*/
 	public function actionSearch(){	   
 		if (!$this -> isLogged())
@@ -298,7 +302,7 @@ class BxMessengerModule extends BxBaseModTextModule
    
 	/**
 	* Update brief of the specified lot in the lots list
-	* @return array with json 
+	* @return string with json
 	*/
 	public function actionUpdateLotBrief(){
 		if (!$this -> isLogged())
@@ -685,12 +689,12 @@ class BxMessengerModule extends BxBaseModTextModule
 	* Returns number of lots with any unread messages member
 	* @return int
 	*/   
-	public function serviceGetUpdatedLotsNum()
-	{   
-		if (!$this -> isLogged())
-			return 0;
-		
-		$aLots = $this -> _oDb -> getMyLots($this -> _iUserId, BX_IM_EMPTY, BX_IM_EMPTY, true);
+	public function serviceGetUpdatedLotsNum($iProfileId = 0)
+	{
+        if (!$this -> isLogged() && !(int)$iProfileId)
+            return 0;
+
+        $aLots = $this -> _oDb -> getMyLots($iProfileId  ? (int)$iProfileId : $this -> _iUserId, BX_IM_EMPTY, BX_IM_EMPTY, true);
 		return sizeof($aLots);
 	}
    
@@ -1010,6 +1014,63 @@ class BxMessengerModule extends BxBaseModTextModule
                 'mi_child' => $aMenuItemChild
     		),  
     	);
+    }
+
+    /**
+     * @param int $iObjectId item's id
+     * @param strign $sType name of te module
+     * @param int $iProfileId comments' author, if this param is empty, then get all comments
+     * @return array comments list
+     */
+    public function serviceGetLiveComments($iObjectId, $sType, $iProfileId = 0){
+        $aComments = $this -> _oDb -> getLiveComments($iObjectId, $sType, $iProfileId);
+        if (empty($aComments))
+            return array();
+
+        $aResult = array();
+        foreach($aComments as $iKey => $aValue) {
+            $oProfile = $this -> _oTemplate -> getObjectUser($aValue[$this->_oConfig->CNF['FIELD_LCMTS_AUTHOR']]);
+            $aResult[$aValue[$this->_oConfig->CNF['FIELD_LCMTS_ID']]] = array(
+                'text' => $aValue[$this->_oConfig->CNF['FIELD_LCMTS_TEXT']],
+                'author' => array(
+                    'id' => $aValue[$this->_oConfig->CNF['FIELD_LCMTS_AUTHOR']],
+                    'name' => $oProfile -> getDisplayName(),
+                    'icon' => $oProfile -> getAvatar(),
+                    'url' => $oProfile -> getUrl()
+                ),
+                'id' => $aValue[$this->_oConfig->CNF['FIELD_LCMTS_ID']],
+                'date' => $aValue[$this->_oConfig->CNF['FIELD_LCMTS_DATE']],
+            );
+        }
+
+        return array('items' => $aResult, 'id' => $iObjectId, 'type' => $sType);
+    }
+
+    /**
+     * @param string $sText text of the comment
+     * @param int $iObjectId item's id
+     * @param string $sType $sType name of te module
+     * @param int $iProfileId comment's author
+     * @param int $iDate client's time when message is sent
+     * @return int added object's id
+     */
+    public function servicePostLiveComments($sText, $iObjectId, $sType, $iProfileId, $iDate = 0){
+        if (!$sText || !$iObjectId || !$sType || !$iProfileId)
+            return 0;
+
+        $aResult = array('code' => 1);
+        if ($iId = $this -> _oDb -> addLiveComment($sText, $iObjectId, $sType, $iProfileId, $iDate))
+            $aResult = array('code' => 0, 'id' => $iId, 'date' => $iDate ? $iDate : time());
+
+        return $aResult;
+    }
+
+    public function serviceRemoveLiveComment($iObjectId, $iProfileId){
+        if (!$iObjectId || !$iProfileId)
+            return false;
+
+        $aResult = array('code' => 0, 'id' => $iObjectId);
+        return $this -> _oDb -> removeLiveComment($iObjectId, $iProfileId) ? $aResult : array('code' => 1);
     }
 }
 

@@ -27,10 +27,29 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'TABLE_MESSAGES' => $aModule['db_prefix'] . 'jots',
 			'TABLE_TYPES' => $aModule['db_prefix'] . 'lots_types',
 			'TABLE_USERS_INFO' => $aModule['db_prefix'] . 'users_info',
-			'TABLE_ENTRIES_FULLTEXT' => 'search_title',
+            'TABLE_LIVE_COMMENTS' => $aModule['db_prefix'] . 'lcomments',
+            'TABLE_CMTS_OBJECTS' => 'sys_objects_cmts',
+            'TABLE_ENTRIES_FULLTEXT' => 'search_title',
+            'TABLE_ENTRIES_COMMENTS_FULLTEXT' => 'search_fields',
 				
 			// database fields
-			   
+
+            // fields of system table sys_objects_cmts
+            'FIELD_COBJ_ID' => 'ID',
+            'FIELD_COBJ_MODULE' => 'Module',
+
+            // live comments table fields
+            'FIELD_LCMTS_ID' => 'lcmt_id',
+            'FIELD_LCMTS_PARENT_ID' => 'lcmt_parent_id',
+            'FIELD_LCMTS_SYS_ID' => 'lcmt_system_id',
+            'FIELD_LCMTS_VPARENT_ID' => 'lcmt_vparent_id',
+            'FIELD_LCMTS_OBJECT_ID' => 'lcmt_object_id',
+            'FIELD_LCMTS_AUTHOR' => 'lcmt_author_id',
+            'FIELD_LCMTS_LEVEL' => 'lcmt_level',
+            'FIELD_LCMTS_TEXT' => 'lcmt_text',
+            'FIELD_LCMTS_DATE' => 'lcmt_time',
+            'FIELD_LCMTS_REPLIES' => 'lcmt_replies',
+
 			// main lot table fields 
 			'FIELD_ID' => 'id',
 			'FIELD_AUTHOR' => 'author',
@@ -49,7 +68,6 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'FIELD_ST_JOT' => 'jot_id',
 			'FIELD_ST_TYPE' => 'mime_type',
 			'FIELD_ST_EXT' => 'ext',
-
 
 			// messages/jots table fields
 			'FIELD_MESSAGE_ID' => 'id',

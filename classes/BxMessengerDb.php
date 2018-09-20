@@ -984,6 +984,68 @@ class BxMessengerDb extends BxBaseModTextDb
 		
 		return $iJotId;
 	}
+
+    /**
+     * @param int $iObjectId item's object ID
+     * @param string $sType module's name from sys_modules
+     * @param int $iProfileId comments' author
+     * @return array list of the comments
+     *
+     */
+    public function getLiveComments($iObjectId, $sType, $iProfileId = 0){
+        $aWhere = array('object' => $iObjectId, 'type' => $sType);
+        $sAuthor = '';
+        if ((int)$iProfileId) {
+            $aWhere['author'] = (int)$iProfileId;
+            $sAuthor = "AND `{$this->CNF['FIELD_LCMTS_AUTHOR']}`=:author";
+        }
+
+        $aComments = $this -> getAll("SELECT 
+                                                  `{$this->CNF['FIELD_LCMTS_ID']}`,
+                                                  `{$this->CNF['FIELD_LCMTS_TEXT']}`,
+                                                  `{$this->CNF['FIELD_LCMTS_AUTHOR']}`,
+                                                  `{$this->CNF['FIELD_LCMTS_DATE']}`,
+                                                  `{$this->CNF['FIELD_LCMTS_OBJECT_ID']}`
+                                                 FROM `{$this->CNF['TABLE_LIVE_COMMENTS']}` as `c`  
+                                                 LEFT JOIN `{$this->CNF['TABLE_CMTS_OBJECTS']}` as `s` ON `s`.`{$this->CNF['FIELD_COBJ_ID']}` = `c`.`{$this->CNF['FIELD_LCMTS_SYS_ID']}`                                                   
+                                                 WHERE `s`.`{$this->CNF['FIELD_COBJ_MODULE']}` = :type AND `{$this->CNF['FIELD_LCMTS_OBJECT_ID']}` = :object {$sAuthor}",
+            $aWhere);
+        return $aComments;
+    }
+
+    /**
+     * @param string $sText message body
+     * @param int $iObjectId item's object ID
+     * @param string $sName module's name from sys_modules
+     * @param int $iProfileId comments' author
+     * @param int $iDate comments' time
+     * @return mixed last added comments id or false
+     *
+     */
+
+    public function addLiveComment($sText, $iObjectId, $sName, $iProfileId, $iDate = 0){
+        $iSystem = $this -> getOne("SELECT `{$this->CNF['FIELD_COBJ_ID']}` 
+                                            FROM `{$this->CNF['TABLE_CMTS_OBJECTS']}`
+                                            WHERE `{$this->CNF['FIELD_COBJ_MODULE']}`=:name LIMIT 1", array('name' => $sName));
+        if (!$iSystem)
+            return false;
+
+        $sQuery = $this -> prepare("REPLACE INTO `{$this->CNF['TABLE_LIVE_COMMENTS']}`
+                                   SET 
+                                         `{$this->CNF['FIELD_LCMTS_TEXT']}`=?,
+                                         `{$this->CNF['FIELD_LCMTS_AUTHOR']}`=?,
+                                         `{$this->CNF['FIELD_LCMTS_DATE']}`=?,                                         
+                                         `{$this->CNF['FIELD_LCMTS_OBJECT_ID']}`=?,
+                                         `{$this->CNF['FIELD_LCMTS_SYS_ID']}`=?
+                                   ", $sText, $iProfileId, $iDate ? $iDate : time(), $iObjectId, $iSystem);
+
+        return $this -> query($sQuery) ? $this -> lastId() : false;
+    }
+
+    public function removeLiveComment($iObjectId, $iProfileId){
+        return $this -> query("DELETE FROM `{$this->CNF['TABLE_LIVE_COMMENTS']}` 
+                              WHERE `{$this->CNF['FIELD_LCMTS_AUTHOR']}`=:author AND `{$this->CNF['FIELD_LCMTS_ID']}`=:object_id", array('author' => $iProfileId, 'object_id' => $iObjectId));
+    }
 }
 
 /** @} */

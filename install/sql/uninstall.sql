@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS `bx_messenger_users_info`;
 DROP TABLE IF EXISTS `bx_messenger_files`;
 DROP TABLE IF EXISTS `bx_messenger_photos_resized`;
 DROP TABLE IF EXISTS `bx_messenger_videos_processed`;
+DROP TABLE IF EXISTS `bx_messenger_lcomments`;
 
 -- STORAGES & TRANSCODERS
 DELETE FROM `sys_objects_storage` WHERE `object` IN('bx_messenger_files', 'bx_messenger_photos_resized', 'bx_messenger_videos_processed');

@@ -135,10 +135,10 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@param int $iLotId id of conversation. It can be empty if new talk
 	*@param int $iJotId id of the message in history
 	*@param int $iType type of talk (Private, Public and etc..)
-	*@param boolean $bShowMessanger show empty chat window if there is no history
-	*@return string html code 
+	*@param boolean $bShowMessenger show empty chat window if there is no history
+	*@return array content and title of the block
 	*/
-	public function getTalkBlock($iProfileId, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $iType = BX_IM_TYPE_PUBLIC, $bShowMessanger = false, &$sReturnTitle = ''){
+	public function getTalkBlock($iProfileId, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $iType = BX_IM_TYPE_PUBLIC, $bShowMessenger = false){
 		$sTitle = '';
 		$aLotInfo = array(); 
 		if ($iLotId)
@@ -156,7 +156,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			$iType = $aLotInfo[$this -> _oConfig -> CNF['FIELD_TYPE']];
 			$sTitle = isset($aLotInfo[$this -> _oConfig -> CNF['FIELD_TITLE']]) && $aLotInfo[$this -> _oConfig -> CNF['FIELD_TITLE']] ? $aLotInfo[$this -> _oConfig -> CNF['FIELD_TITLE']] : $this -> getParticipantsNames($iProfileId, $iLotId);
 			$sTitle = $this -> _oDb -> isLinkedTitle($iType) ? _t('_bx_messenger_linked_title', '<a href ="'. $aLotInfo[$this -> _oConfig -> CNF['FIELD_URL']] .'">' . $sTitle . '</a>') : _t($sTitle);
-			$sReturnTitle = html2txt($sTitle);
 		}
 
 		$aMenu[] = array('name' => _t("_bx_messenger_lots_menu_leave"), 'title' => '', 'action' => "if (confirm('" . bx_js_string(_t('_bx_messenger_leave_chat_confirm')) . "')) oMessenger.onLeaveLot($iLotId);");
@@ -168,7 +167,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			$bIsStarred = $this -> _oDb -> isStarred($iLotId, $iProfileId);
 		}
 		
-		return $this -> parseHtmlByName('talk.html', array(
+		$sContent = $this -> parseHtmlByName('talk.html', array(
 				'bx_repeat:settings' => $aMenu,
 				'bx_if:count' => array(
 									'condition' => $iUnreadLotsJots,
@@ -194,10 +193,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				'star_color' => $bIsStarred ? $this -> _oConfig -> CNF['STAR_BACKGROUND_COLOR']: 'none',
 				'star_icon' => $this -> _oConfig -> CNF['STAR_ICON'],
 				'title' => $sTitle,
-				'post_area' => !$bShowMessanger && empty($aLotInfo) ?
+				'post_area' => !$bShowMessenger && empty($aLotInfo) ?
 								MsgBox(_t('_bx_messenger_txt_msg_no_results')) : 
 								$this-> getPostBoxWithHistory($iProfileId, $iLotId, $iType, $iJotId, MsgBox(_t('_bx_messenger_what_do_think')))
 		));
+
+		return array('content' => $sContent, 'title' => html2txt($sTitle));
 	}	
 	
 	/**
@@ -365,7 +366,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@param boolean $bShowTime display time(last message) in the right side of the lot
 	*@return string html code
 	*/
-	function getLotsPreview($iProfileId, &$aLots, $bShowTime = true){
+	function getLotsPreview($iProfileId, $aLots, $bShowTime = true){
 		$sContent = '';
 
 		foreach($aLots as $iKey => $aLot)
@@ -778,7 +779,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@param array $aJot jot info
 	*@return string html code
 	*/	
-	function getAttachment(&$aJot){
+	function getAttachment($aJot){
 		$sHTML = '';
 		$iViewer = bx_get_logged_profile_id();
 		
@@ -844,7 +845,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                                                         $sPoster,
                                                         $sMp4File,
                                                         $sWebMFile,
-														false, ''
+                                                        array('preload' => 'metadata')
+                                                        , ''
 													),
 										'delete_code' => $this -> deleteFileCode($aFile[$this->_oConfig->CNF['FIELD_ST_ID']], $isAuthor)
 									);
@@ -919,7 +921,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@param int $iProfileId profile id 
 	*@return object instance of Profile
 	*/
-	private function getObjectUser($iProfileId)
+	public function getObjectUser($iProfileId)
 	{
 		bx_import('BxDolProfile');
 		$oProfile = BxDolProfile::getInstance($iProfileId);

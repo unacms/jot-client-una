@@ -62,7 +62,7 @@
 
 .bx-messenger-status
 {
-	font-family: 'sys-user';
+	font-family: 'sys-user', 'sys-user-fal';
 	margin-right:0.2rem;
 	font-size:0.8rem;
 	font-weight:300;	
@@ -85,7 +85,7 @@
 
 .bx-messenger-status.offline:before
 {
-	font-family: 'sys-user-far';
+	font-family: 'sys-user-far', 'sys-user-fal';
 	content: "\f111";
 	color: #9b9b9b;
 }

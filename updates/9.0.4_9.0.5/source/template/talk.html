@@ -1,0 +1,47 @@
+<div class="bx-messenger-block jots bx-db-container bx-def-color-bg-block bx-def-image-bg-block bx-shadow-block">
+	<div class="bx-db-header">
+		<div class="bx-messenger-hide-mobile bx-db-menu left">
+			<a href="javascript:void(0);" onclick="oJotWindowBuilder.changeColumn();" title="__back_title__">	
+				<i data-feather="chevron-left"></i>
+				<bx_if:count>
+					<span class="bubble bx-menu-toolbar-item-addon bx-def-unit-alert-middle">__back_count__</span>
+				</bx_if:count>
+			</a>
+		</div>
+		<div class="bx-db-title bx-def-font-h4">
+			__title__
+		</div>
+		<bx_if:show_lot_menu>
+			<div class="bx-db-menu right">
+				<a id="star" href="javascript:void(0);" title="__star_title__" onclick="oMessenger.onStarLot(__id__, this);" data-value="__star__" data-color="__star_fill_color__">
+					<i data-feather="__star_icon__" /></i>
+				</a>
+				<a href="javascript:void(0);" title="__mute_title__" onclick="oMessenger.onMuteLot(__id__, this);" data-value="__mute__">
+					<i data-feather="__bell_icon__"></i>
+				</a>
+				<a href="javascript:void(0);"  title="__settings_title__"  onclick="bx_menu_slide_inline('#bx-menu-db-menu-settings', this)">
+					<i data-feather="info"></i>
+				</a>
+			</div>
+		</bx_if:show_lot_menu>
+		<div id="bx-menu-db-menu-settings" class="bx-popup-wrapper bx-popup-slide-wrapper bx-def-z-index-front bx-def-border-bottom bx-def-border-top bx-def-padding bx-def-box-sizing">
+			<ul class="bx-menu-inter-vert">
+				<bx_repeat:settings>
+					<li class="bx-menu-inter-pas bx-def-round-corners bx-def-color-bg-hl-hover">
+						<a class="" href="javascript:void(0)" onclick="__action__" title="__title__">
+							<div class="bx-def-padding-left bx-def-padding-sec-right bx-def-padding-sec-topbottom">__name__</div>
+						</a>
+					</li>
+				</bx_repeat:settings>
+			</ul>
+		</div>		
+	</div>
+	<div class="bx-db-divider bx-def-hr"></div>
+	<div class="bx-messenger-main-block">
+		__post_area__
+	</div>
+</div>
+<script>
+	$('#star')
+		.html(feather.toSvg('__star_icon__', { stroke: "currentColor", color: '__star_color__', fill: '__star_color__' }));
+</script>

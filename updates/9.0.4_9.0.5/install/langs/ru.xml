@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="ru" flag="ru" title="Russian">
+	<string name="_bx_messenger_jump_to_the_bottom"><![CDATA[Перейти к последнему сообщению]]></string>
+	<string name="_bx_messenger_mark_all_as_read"><![CDATA[Пометить все сообщения прочитанными]]></string>
+	<string name="_bx_messenger_search_no_results"><![CDATA[Поиск ничего не нашёл]]></string>
+	<string name="_bx_messenger_search_query_issue"><![CDATA[Появилась проблема при отправки запроса на сервер.]]></string>
+	<string name="_bx_messenger_search_desc"><![CDATA[Присоединился - {1}<br/>Последний раз был - {0}]]></string>
+</resources>

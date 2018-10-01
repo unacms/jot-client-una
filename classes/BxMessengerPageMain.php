@@ -17,12 +17,12 @@ class BxMessengerPageMain extends BxBaseModTextPageBrowse
 	public function __construct($aObject, $oTemplate = false)
 	{
 		$this->MODULE = 'bx_messenger';
-		parent::__construct($aObject, $oTemplate);	
+		parent::__construct($aObject, $oTemplate);
 	}
 	
 	public function getCode(){
 		if (!isLogged())
-			bx_login_form(false, false, $this->_oModule->_oConfig->CNF['URL_HOME']);		
+			bx_login_form(false, false, $this->_oModule->_oConfig->CNF['URL_HOME']);
 		
 		$this->_oModule->_oTemplate-> loadCssJS();	
 		return parent::getCode();

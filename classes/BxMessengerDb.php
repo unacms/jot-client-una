@@ -611,8 +611,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	
 	/**
 	* Get the latest posted jot(message)
-	*@param int $iLotId lot id
-	*@param int $iProfileId if not specified the just latest jot of any member
+	*@param int $iJotId id
 	*@return array with jot info
 	*/
 	public function getJotById($iJotId){
@@ -744,9 +743,23 @@ class BxMessengerDb extends BxBaseModTextDb
 		
 		if ($sParam)
 		{
-			$aSWhere[] = "(`j`.`{$this->CNF['FIELD_MESSAGE']}` LIKE :message OR `l`.`{$this->CNF['FIELD_TITLE']}` LIKE :title)";
+			$sParamWhere = "`j`.`{$this->CNF['FIELD_MESSAGE']}` LIKE :message OR `l`.`{$this->CNF['FIELD_TITLE']}` LIKE :title";
 			$aWhere['title'] = "%{$sParam}%";
 			$aWhere['message'] = "%{$sParam}%";
+			$aProfiles = BxDolService::call('system', 'profiles_search', array($sParam), 'TemplServiceProfiles');
+			if (!empty($aProfiles))
+            {
+                $aRegexp = array();
+                foreach($aProfiles as &$aProfile)
+                    $aRegexp[] = "(^|,){$aProfile['value']}(,|$)";
+
+                if (!empty($aRegexp)) {
+                    $aWhere['part_search'] = implode('|', $aRegexp);
+                    $sParamWhere .= " OR `participants` REGEXP :part_search";
+                }
+            }
+
+            $aSWhere[] = "({$sParamWhere})";
 		}
 
 		if ($iType)
@@ -774,7 +787,7 @@ class BxMessengerDb extends BxBaseModTextDb
 		
 		if (!empty($aSWhere))
 				$sWhere = ' AND ' . implode(' AND ', $aSWhere);
-		
+
 		return $this-> getAll("SELECT 
 			`l`.*,
 			`p`.`count` as `unread_num`,

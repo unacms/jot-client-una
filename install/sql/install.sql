@@ -3,7 +3,7 @@ SET @sName = 'bx_messenger';
 CREATE TABLE IF NOT EXISTS `bx_messenger_jots` (
    `id` int(11) NOT NULL auto_increment,
    `lot_id` int(11) unsigned NOT NULL default '0',   
-   `message` blob NOT NULL,
+   `message` text NOT NULL,
    `created` int(11) NOT NULL default '0',
    `user_id` int(11) unsigned NOT NULL default '0',
    `attachment_type` varchar(255) NOT NULL default '',

@@ -96,6 +96,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			// page URIs  			
 			'URL_HOME' => BX_DOL_URL_ROOT . 'page/messenger',
 			'URL_REPOST' => BX_DOL_URL_ROOT . 'm/messenger/archive/',
+			'URL_TEMPLATE' => BX_DOL_URL_ROOT . 'page.php?{link}',
 
 			// some params
 			'STAR_BACKGROUND_COLOR' => '#f5a623',
@@ -241,27 +242,29 @@ class BxMessengerConfig extends BxBaseModTextConfig
 	*@return string url
 	*/
 	public function getPageIdent()
-	{
-		$sUrl = $_SERVER['REQUEST_URI'];
-		$aUrl = array();
-		
-		if (!empty($_SERVER['QUERY_STRING']))
-		{
-			parse_str($_SERVER['QUERY_STRING'], $aUrl);			
-			if (!empty($aUrl))
-			{
-				$aValidUrl = array();
-				foreach($this->CNF['URL_IDENT_PARAMS'] as &$sParam)
-					if (!empty($aUrl[$sParam]))
-						$aValidUrl[$sParam] = $aUrl[$sParam];
-		
-				if (!empty($aValidUrl))
-					$sUrl = http_build_query($aValidUrl);
-			}
-		}
-		
-		return $sUrl;
-	}
+    {
+        $sUrl = $_SERVER['REQUEST_URI'];
+        $aUrl = array();
+
+        if (!empty($_SERVER['QUERY_STRING'])) {
+            parse_str($_SERVER['QUERY_STRING'], $aUrl);
+            if (!empty($aUrl)) {
+                $aValidUrl = array();
+                foreach ($this->CNF['URL_IDENT_PARAMS'] as &$sParam)
+                    if (!empty($aUrl[$sParam]))
+                        $aValidUrl[$sParam] = $aUrl[$sParam];
+
+                if (!empty($aValidUrl))
+                    $sUrl = http_build_query($aValidUrl);
+            }
+        }
+
+        return $sUrl;
+    }
+
+    public function getPageLink($sUrl){
+	    return str_replace('{link}', $sUrl, $this->CNF['URL_TEMPLATE']);
+    }
 }
 
 /** @} */

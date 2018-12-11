@@ -155,7 +155,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		{
 			$iType = $aLotInfo[$this -> _oConfig -> CNF['FIELD_TYPE']];
 			$sTitle = isset($aLotInfo[$this -> _oConfig -> CNF['FIELD_TITLE']]) && $aLotInfo[$this -> _oConfig -> CNF['FIELD_TITLE']] ? $aLotInfo[$this -> _oConfig -> CNF['FIELD_TITLE']] : $this -> getParticipantsNames($iProfileId, $iLotId);
-			$sTitle = $this -> _oDb -> isLinkedTitle($iType) ? _t('_bx_messenger_linked_title', '<a href ="'. $aLotInfo[$this -> _oConfig -> CNF['FIELD_URL']] .'">' . $sTitle . '</a>') : _t($sTitle);
+			$sTitle = $this -> _oDb -> isLinkedTitle($iType) ?
+                            _t('_bx_messenger_linked_title', '<a href ="'. $this->_oConfig->getPageLink($aLotInfo[$this -> _oConfig -> CNF['FIELD_URL']]) .'">' . $sTitle . '</a>') :
+                            _t($sTitle);
 		}
 
 		$aMenu[] = array('name' => _t("_bx_messenger_lots_menu_leave"), 'title' => '', 'action' => "if (confirm('" . bx_js_string(_t('_bx_messenger_leave_chat_confirm')) . "')) oMessenger.onLeaveLot($iLotId);");

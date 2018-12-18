@@ -1002,18 +1002,27 @@ class BxMessengerDb extends BxBaseModTextDb
      * @param int $iObjectId item's object ID
      * @param string $sType module's name from sys_modules
      * @param int $iProfileId comments' author
+     * @param int $iStart get comments from position
+     * @param int $iPerPage number of the comments to get at once
      * @return array list of the comments
      *
      */
-    public function getLiveComments($iObjectId, $sType, $iProfileId = 0){
+    public function getLiveComments($iObjectId, $sType, $iProfileId, $iStart = 0, $iPerPage = 0){
         $aWhere = array('object' => $iObjectId, 'type' => $sType);
-        $sAuthor = '';
+        $sLimit = $sAuthor = '';
         if ((int)$iProfileId) {
             $aWhere['author'] = (int)$iProfileId;
             $sAuthor = "AND `{$this->CNF['FIELD_LCMTS_AUTHOR']}`=:author";
         }
 
+        if ($iPerPage) {
+            $aWhere['start'] = (int)$iStart;
+            $aWhere['per_page'] = (int)$iPerPage;
+            $sLimit = "LIMIT :start, :per_page";
+        }
+
         $aComments = $this -> getAll("SELECT 
+                                                  SQL_CALC_FOUND_ROWS
                                                   `{$this->CNF['FIELD_LCMTS_ID']}`,
                                                   `{$this->CNF['FIELD_LCMTS_TEXT']}`,
                                                   `{$this->CNF['FIELD_LCMTS_AUTHOR']}`,
@@ -1021,9 +1030,11 @@ class BxMessengerDb extends BxBaseModTextDb
                                                   `{$this->CNF['FIELD_LCMTS_OBJECT_ID']}`
                                                  FROM `{$this->CNF['TABLE_LIVE_COMMENTS']}` as `c`  
                                                  LEFT JOIN `{$this->CNF['TABLE_CMTS_OBJECTS']}` as `s` ON `s`.`{$this->CNF['FIELD_COBJ_ID']}` = `c`.`{$this->CNF['FIELD_LCMTS_SYS_ID']}`                                                   
-                                                 WHERE `s`.`{$this->CNF['FIELD_COBJ_MODULE']}` = :type AND `{$this->CNF['FIELD_LCMTS_OBJECT_ID']}` = :object {$sAuthor}",
+                                                 WHERE `s`.`{$this->CNF['FIELD_COBJ_MODULE']}` = :type AND `{$this->CNF['FIELD_LCMTS_OBJECT_ID']}` = :object {$sAuthor}
+                                                 ORDER BY `{$this->CNF['FIELD_LCMTS_ID']}` DESC
+                                                 {$sLimit}",
             $aWhere);
-        return $aComments;
+        return array('result' => $aComments, 'total' => (int)$this->getOne("SELECT FOUND_ROWS()"));
     }
 
     /**

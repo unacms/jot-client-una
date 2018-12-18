@@ -262,7 +262,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	}
    
 	/**
-	* Loads messages for  specified lot(conversation)
+	* Loads messages for specified lot(conversation)
 	* @return array with json
 	*/
 	public function actionLoadJots(){	   
@@ -686,7 +686,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	}
 	
 	/**
-	* Returns number of lots with any unread messages member
+	* Returns number of lots with at least one unread message
 	* @return int
 	*/   
 	public function serviceGetUpdatedLotsNum($iProfileId = 0)
@@ -957,6 +957,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	*@param int $iStorageId file id
 	*@param int $iWidth widht of the window
 	*@param int $iHeight height of the window
+    *@return string html content
 	*/
 	function actionGetBigImage($iStorageId, $iWidth, $iHeight){
 		if (!$iStorageId) return '';
@@ -1020,15 +1021,17 @@ class BxMessengerModule extends BxBaseModTextModule
      * @param int $iObjectId item's id
      * @param strign $sType name of te module
      * @param int $iProfileId comments' author, if this param is empty, then get all comments
+     * @param int $iStart get comments from position
+     * @param int $iPerPage number of the comments to get at once
      * @return array comments list
      */
-    public function serviceGetLiveComments($iObjectId, $sType, $iProfileId = 0){
-        $aComments = $this -> _oDb -> getLiveComments($iObjectId, $sType, $iProfileId);
-        if (empty($aComments))
+    public function serviceGetLiveComments($iObjectId, $sType, $iProfileId = 0, $iStart = 0, $iPerPage = 0){
+        $aComments = $this -> _oDb -> getLiveComments($iObjectId, $sType, $iProfileId, $iStart, $iPerPage);
+        if (!(int)$aComments['total'])
             return array();
 
         $aResult = array();
-        foreach($aComments as $iKey => $aValue) {
+        foreach($aComments['result'] as $iKey => $aValue) {
             $oProfile = $this -> _oTemplate -> getObjectUser($aValue[$this->_oConfig->CNF['FIELD_LCMTS_AUTHOR']]);
             $aResult[$aValue[$this->_oConfig->CNF['FIELD_LCMTS_ID']]] = array(
                 'text' => $aValue[$this->_oConfig->CNF['FIELD_LCMTS_TEXT']],
@@ -1043,7 +1046,7 @@ class BxMessengerModule extends BxBaseModTextModule
             );
         }
 
-        return array('items' => $aResult, 'id' => $iObjectId, 'type' => $sType);
+        return array('items' => $aResult, 'id' => $iObjectId, 'type' => $sType, 'total' => (int)$aComments['total']);
     }
 
     /**
@@ -1071,6 +1074,186 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $aResult = array('code' => 0, 'id' => $iObjectId);
         return $this -> _oDb -> removeLiveComment($iObjectId, $iProfileId) ? $aResult : array('code' => 1);
+    }
+
+    public function serviceGetLotsList($iProfileId){
+        if (!$iProfileId)
+            return '';
+
+        $aLots = $this -> _oDb -> getMyLots($iProfileId);
+        if (empty($aLots))
+            return array();
+
+        $aLotsList = array();
+        foreach($aLots as $iKey => $aLot)
+        {
+            $aParticipantsList = $this -> _oDb -> getParticipantsList($aLot[$this -> _oConfig -> CNF['FIELD_ID']], true, $iProfileId);
+
+            $iParticipantsCount = count($aParticipantsList);
+            $aParticipantsList = $iParticipantsCount ? array_slice($aParticipantsList, 0, $this -> _oConfig -> CNF['PARAM_ICONS_NUMBER']) : array($iProfileId);
+
+            $aNickNames = array();
+            foreach($aParticipantsList as $iParticipant){
+                $oProfile = $this -> _oTemplate -> getObjectUser($iParticipant);
+                if ($oProfile) {
+                    $aNickNames[] = array(
+                        'name' => $oProfile->getDisplayName(),
+                        'url' => $oProfile->getUrl(),
+                        'thumb' => $oProfile->getThumb()
+                    );
+                }
+            }
+
+            if (!empty($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']]))
+                $sTitle = _t($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']]);
+            else
+            {
+                if ($iParticipantsCount > 3)
+                    $sTitle = implode(', ', array_slice($aNickNames, 0, $this -> _oConfig -> CNF['PARAM_ICONS_NUMBER'])) . '...';
+                else {
+
+                    $aTitle = array();
+
+                    foreach($aNickNames as $iKey => $aValue)
+                        $aTitle[] = $aValue['name'];
+
+                    $sTitle = implode(', ', $aTitle);
+                }
+            }
+
+            $sStatus = '';
+            if ($iParticipantsCount == 1 && $oProfile && empty($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']]))
+                $sStatus = (int)(method_exists($oProfile, 'isOnline') ? $oProfile -> isOnline() : false);
+            else
+                $sStatus = $iParticipantsCount;
+
+            $aLatestJots = $this -> _oDb -> getLatestJot($aLot[$this -> _oConfig -> CNF['FIELD_ID']]);
+            $iTime = $aLot[$this -> _oConfig -> CNF['FIELD_ADDED']];
+
+            $oSender = $sSender = $sMessage = '';
+            if (!empty($aLatestJots))
+            {
+                if (isset($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE']]))
+                {
+                    $sMessage = $aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE']];
+                    if ($aLatestJots[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_REPOST)
+                    {
+                        $sMessage = $this -> _oConfig -> cleanRepostLinks($sMessage, $aLatestJots[$this->_oConfig->CNF['FIELD_MESSAGE_AT']]);
+                        $sMessage = $sMessage ? $sMessage : _t('_bx_messenger_repost_message');
+                    }
+
+                    $sMessage = BxTemplFunctions::getInstance()->getStringWithLimitedLength($sMessage, $this->_oConfig-> CNF['MAX_PREV_JOTS_SYMBOLS']);
+                }
+
+                if (!$sMessage && $aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
+                    $sMessage = _t('_bx_messenger_attached_files_message', $this -> _oDb -> getJotFiles($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']], true));
+
+                $sSender = '';
+                if ($oSender = $this -> _oTemplate -> getObjectUser($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_AUTHOR']]))
+                    $sSender = $oSender -> id() == $iProfileId ? _t('_bx_messenger_you_username_title') : $oSender -> getDisplayName();
+
+                $iTime = $aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_ADDED']];
+            }
+
+            $aLotsList[] = array(
+                'participants_count' => $iParticipantsCount,
+                'participants_list' => $aNickNames,
+                'title' => $sTitle,
+                'lot_id' => $aLot[$this -> _oConfig -> CNF['FIELD_ID']],
+                'status' => $sStatus,
+                'latest_jot_message' => $sMessage,
+                'latest_jot_message_author' => $sSender,
+                'latest_jot_message_date' => $iTime,
+                'latest_jot_message_author_thumb' => $oSender ? $oSender -> getThumb() : '',
+            );
+        }
+
+        return $aLotsList;
+    }
+
+    public function servicePerformConnAction($iInitiator, $iContent, $sAction = 'add', $sConnectionObject = 'sys_profiles_subscriptions'){
+        require_once(BX_DIRECTORY_PATH_INC . "design.inc.php");
+
+        if (!$iInitiator || !$iContent)
+            return array();
+
+        $oConnections = BxDolConnection::getObjectInstance($sConnectionObject);
+        $sMethod = "{$sAction}Connection";
+        if (empty($oConnections) || !method_exists($oConnections, $sMethod))
+            return array();
+
+        return array(
+                       'result' => (int)$oConnections -> $sMethod($iInitiator, $iContent),
+                       'content_id' => (int)$iContent,
+                       'action' => $sAction
+                     );
+    }
+
+    public function serviceProfileConnections($sType = 'friends', $iContentId = 0, $iStart = 0, $iPerPage = 0, $iMutual = false){
+        $iProfileId = $iContentId ? $iContentId : bx_get_logged_profile_id();
+
+        if (!$iProfileId)
+            return array();
+
+        $aMembers = array();
+        $oFriends = BxDolConnection::getObjectInstance('sys_profiles_friends');
+        $oFollowers = BxDolConnection::getObjectInstance('sys_profiles_subscriptions');
+
+        switch($sType){
+            case 'friends':
+                if (!$oFriends)
+                    return array();
+
+                $aFriends = $oFriends->getConnectedContent($iProfileId, true, $iStart, $iPerPage);
+                if (!empty($aFriends))
+                    $aMembers = array_combine($aFriends, $aFriends);
+
+                break;
+            case 'connections':
+                if (!$oFollowers)
+                    return array();
+
+                $aFollowers = $oFollowers->getConnectedContent($iProfileId, false, $iStart, $iPerPage);
+                if (!empty($aFollowers))
+                    $aMembers = array_combine($aFollowers, $aFollowers);
+
+                break;
+            case 'recent':
+            case 'active':
+            case 'online':
+            case 'top':
+                if (BxDolRequest::serviceExists('bx_persons', 'get_members')) {
+                    $aPersons = BxDolService::call('bx_persons', 'get_members', array($sType, $iStart, $iPerPage));
+                    foreach($aPersons as &$aPerson)
+                        $aMembers[$aPerson['author']] = $aPerson;
+                }
+                break;
+        }
+
+        if (empty($aMembers))
+            return $aMembers;
+
+        $aRet = array();
+        foreach ($aMembers as $iId => $aInfo) {
+            if (($oProfile = BxDolProfile::getInstance($iId))) {
+                $aRet[] = array(
+                    'name' => $oProfile->getDisplayName(),
+                    'id' => $iId,
+                    'url' => $oProfile->getUrl(),
+                    'thumb' => $oProfile->getThumb(),
+                    'picture' => $oProfile->getPicture(),
+                    'avatar' => $oProfile->getAvatar(),
+                    'is_online' => $oProfile->isOnline(),
+                    'status' => $oProfile->getStatus(),
+                    'followers' => (int)$oFollowers->getConnectedInitiatorsCount($iId),
+                    'friends' => (int)$oFriends->getConnectedContentCount($iId, true),
+                    'is_friend' => (int)$oFriends->isConnected($iProfileId, $iId, true),
+                    'is_follow' => (int)$oFollowers->isConnected($iProfileId, $iId)
+                );
+            }
+        }
+
+        return $aRet;
     }
 }
 

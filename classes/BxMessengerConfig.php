@@ -93,7 +93,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'FIELD_INFO_STAR' => 'star',
 			'FIELD_INFO_PARAMS' => 'params', // means use link in title
 
-			// page URIs  			
+			// page URIs
 			'URL_HOME' => BX_DOL_URL_ROOT . 'page/messenger',
 			'URL_REPOST' => BX_DOL_URL_ROOT . 'm/messenger/archive/',
 			'URL_TEMPLATE' => BX_DOL_URL_ROOT . 'page.php?{link}',
@@ -104,8 +104,10 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'STAR_ICON' => 'star',
 			'BELL_ICON_OFF' => 'bell-off',
 			'PARAM_FRIENDS_NUM_BY_DEFAULT' => 10,
+			'PARAM_NTFS_INTERVAL' => 1, /* INTERVAL IN HOURS*/
 			'PARAM_SEARCH_DEFAULT_USERS' => 5,
 			'PARAM_MAX_HISTORY_MESSAGES' => 50,
+			'PARAM_MAX_JOT_NTFS_MESSAGE_LENGTH' => 50,
 			'PARAM_PUSH_NOTIFICATIONS_DEFAULT_SYMBOLS_NUM' => 190,
 			'PARAM_PRIVATE' => TRUE,
 			'PARAM_PUBLIC' => FALSE,
@@ -148,6 +150,11 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'CONVERT_SMILES' => getParam($aModule['db_prefix'] . 'typing_smiles') == 'on',
 			'MAX_FILES_TO_UPLOAD' => (int)getParam($aModule['db_prefix'] . 'max_files_send'),
 			'MAX_VIDEO_LENGTH'	=> (int)getParam($aModule['db_prefix'] . 'max_video_length_minutes'),
+			'MAX_NTFS_NUMBER'	=> (int)getParam($aModule['db_prefix'] . 'max_ntfs_number'),
+		);
+
+		$this->_aObjects = array(
+            'alert' => $this->_sName
 		);	   
 	}
 	

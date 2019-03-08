@@ -205,11 +205,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	
 	/**
 	* Create top of the block with participants names and statuses
-	*@param int $iProfileId logget member id
+	*@param int $iProfileId logged member id
 	*@param int $iLotId id of conversation. It can be empty if new talk
     *@return string HTML code
 	*/
-	private function getParticipantsNames($iProfileId, $iLotId){
+	public function getParticipantsNames($iProfileId, $iLotId){
 		$aNickNames = array();
 		$sCode = '';
 		

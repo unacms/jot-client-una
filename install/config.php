@@ -17,7 +17,7 @@ $aConfig = array(
 	'name' => 'bx_messenger',
 	'title' => 'Messenger',
 	'note' => 'Messenger module.',
-	'version' => '9.0.9.DEV',
+	'version' => '9.1.0.DEV',
 	'vendor' => 'BoonEx',
 	'help_url' => 'http://feed.una.io/?section={module_name}',
 
@@ -86,10 +86,12 @@ $aConfig = array(
 		'execute_sql' => 1,
 		'update_languages' => 1,
 		'clear_db_cache' => 1,
+        'update_relations' => 1
 	),
 	'enable' => array(
 		'execute_sql' => 1,
 		'clear_db_cache' => 1,
+        'update_relations' => 1
 	),
 	'enable_success' => array(
 		'process_page_triggers' => 1,
@@ -101,6 +103,7 @@ $aConfig = array(
 		'execute_sql' => 1,
 		'unregister_transcoders' => 1,
 		'clear_db_cache' => 1,
+        'update_relations' => 1
 	),
 	'disable_failed' => array (
 		'register_transcoders' => 1,
@@ -112,6 +115,9 @@ $aConfig = array(
 	 */
 	'dependencies' => array(),
 
+    'relations' => array(
+        'bx_notifications'
+    ),
 );
 
 /** @} */

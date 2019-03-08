@@ -99,8 +99,8 @@ class BxMessengerDb extends BxBaseModTextDb
 		$aJots = $this -> getJotsByLotId($iLotId);
 		foreach($aJots as $iKey => $aJot)
 			$this -> removeFilesByJotId($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
-		
-		$iResult = $this -> query("DELETE FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = :id", array('id' => $iLotId));
+
+        $iResult = $this -> query("DELETE FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = :id", array('id' => $iLotId));
 		$iResult += $this -> query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id", array('id' => $iLotId));
 		return $iResult;
 	}
@@ -318,38 +318,38 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@param int iProfileId	
 	*/
 	public function readMessage($iJotId, $iProfileId){
-		$sNotViewed = $this -> getOne("SELECT `{$this->CNF['FIELD_MESSAGE_NEW_FOR']}` 
+		$aNotViewed = $this -> getRow("SELECT `{$this->CNF['FIELD_MESSAGE_NEW_FOR']}`, `{$this->CNF['FIELD_MESSAGE_FK']}`, `{$this->CNF['FIELD_MESSAGE_AUTHOR']}`  
 										FROM `{$this->CNF['TABLE_MESSAGES']}`
 										WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('id' => $iJotId));
-		$sNewList = '';
-		if ($sNotViewed)
+		if ($aNotViewed[$this->CNF['FIELD_MESSAGE_NEW_FOR']])
 		{
-			$aParticipants = explode(',', $sNotViewed);
+			$aParticipants = explode(',', $aNotViewed[$this->CNF['FIELD_MESSAGE_NEW_FOR']]);
 			$iKey = array_search($iProfileId, $aParticipants);
 			if ($iKey !== FALSE)
 			{
 				unset($aParticipants[$iKey]);
 				$sNewList = count($aParticipants) > 0 ? implode(',', $aParticipants) : '';
 				$this -> query("UPDATE `{$this->CNF['TABLE_MESSAGES']}` SET `{$this->CNF['FIELD_MESSAGE_NEW_FOR']}` = :part WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('part' => $sNewList, 'id' => $iJotId));
+                bx_alert($this->_oConfig->getObject('alert'), 'read_jot', $iJotId, $iProfileId, array('author_id' => $aNotViewed[$this->CNF['FIELD_MESSAGE_AUTHOR']], 'lot_id' => $aNotViewed[$this->CNF['FIELD_MESSAGE_FK']]));
 			} 			
 		}
 	}
 
 	/**
 	* Mark all message as read in lot history for member
-	*@param int $iLot  lot id
+	*@param int $iLot lot id
 	*@param int iProfileId	
 	*/
 	public function readAllMessages($iLot, $iProfileId){
 		$aAll = $this-> getAll("SELECT * FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id AND FIND_IN_SET(:user, `{$this->CNF['FIELD_MESSAGE_NEW_FOR']}`)", array('id' => $iLot, 'user' => $iProfileId));
 		foreach($aAll as $iKey => $aValue){
-			$sNewList = '';
 			$aParticipants = explode(',', $aValue[$this->CNF['FIELD_MESSAGE_NEW_FOR']]);
 			$iPos = array_search($iProfileId, $aParticipants);
 			if ($iPos !== FALSE){
 				unset($aParticipants[$iPos]);
 				$sNewList = count($aParticipants) > 0 ? implode(',', $aParticipants) : '';
 				$this -> query("UPDATE `{$this->CNF['TABLE_MESSAGES']}` SET `{$this->CNF['FIELD_MESSAGE_NEW_FOR']}` = :part WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('part' => $sNewList, 'id' => $aValue[$this->CNF['FIELD_MESSAGE_ID']]));
+                bx_alert($this->_oConfig->getObject('alert'), 'read_jot', $aValue[$this->CNF['FIELD_MESSAGE_ID']], $iProfileId, array('author_id' => $aValue[$this->CNF['FIELD_MESSAGE_AUTHOR']], 'lot_id' => $iLot));
 			} 			
 		}		
 	}
@@ -363,7 +363,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	*/
 	private function addNewJot($iLotID, $sMessage, $iProfileId)
 	{
-		$sParticipants = $this -> getParticipantsList($iLotID, false /* as  string list*/, $iProfileId);
+		$sParticipants = $this -> getParticipantsList($iLotID, false /* as string list*/, $iProfileId);
 		$sQuery = $this->prepare("INSERT INTO `{$this->CNF['TABLE_MESSAGES']}` 
 												SET  `{$this->CNF['FIELD_MESSAGE']}` = ?, 
 													 `{$this->CNF['FIELD_MESSAGE_FK']}` = ?, 
@@ -460,7 +460,6 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@return string/array
 	*/
 	public function getParticipantsList($iLotId, $bArray = true, $bExcludeProfile = 0){
-		$aParticipants = array();
 		$sParticipants = $this -> getOne("SELECT `{$this->CNF['FIELD_PARTICIPANTS']}` FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = :value", array('value' => $iLotId));
 		
 		if (!$sParticipants) 
@@ -579,7 +578,7 @@ class BxMessengerDb extends BxBaseModTextDb
 			return array();
 		
 		return $bIdOnly ? $iLotId : $this -> getRow("SELECT * FROM `{$this->CNF['TABLE_ENTRIES']}` 
-						WHERE `{$this->CNF['FIELD_ID']}` = :lot LIMIT 1", array('lot' => $iLotId));
+						WHERE `{$this->CNF['FIELD_ID']}` = :lot", array('lot' => $iLotId));
 	}
 
 	/**
@@ -610,17 +609,12 @@ class BxMessengerDb extends BxBaseModTextDb
 	}
 	
 	/**
-	* Get the latest posted jot(message)
+	* Get jot(message) by id
 	*@param int $iJotId id
 	*@return array with jot info
 	*/
 	public function getJotById($iJotId){
-		$sQuery = $this -> prepare("SELECT *
-			FROM `{$this->CNF['TABLE_MESSAGES']}` 
-			WHERE  `{$this->CNF['FIELD_MESSAGE_ID']}` = ?				
-			ORDER BY `{$this->CNF['FIELD_MESSAGE_ADDED']}` DESC	
-			LIMIT 1", $iJotId);
-		
+		$sQuery = $this -> prepare("SELECT * FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE  `{$this->CNF['FIELD_MESSAGE_ID']}` = ?", $iJotId);
 		return $this -> getRow($sQuery);
 	}
 
@@ -869,7 +863,7 @@ class BxMessengerDb extends BxBaseModTextDb
 		$aJots = $this-> getAll("SELECT * 
 			FROM `{$this->CNF['TABLE_ENTRIES']}` 
 			WHERE FIND_IN_SET(:profile, `{$this->CNF['FIELD_PARTICIPANTS']}`)", $aWhere);
-		
+
 		if (empty($aJots)) 
 				return $bResult;
 		
@@ -1069,6 +1063,35 @@ class BxMessengerDb extends BxBaseModTextDb
     public function removeLiveComment($iObjectId, $iProfileId){
         return $this -> query("DELETE FROM `{$this->CNF['TABLE_LIVE_COMMENTS']}` 
                               WHERE `{$this->CNF['FIELD_LCMTS_AUTHOR']}`=:author AND `{$this->CNF['FIELD_LCMTS_ID']}`=:object_id", array('author' => $iProfileId, 'object_id' => $iObjectId));
+    }
+
+    public function isPushNotificationsEnabled(){
+        if (!$this->isModuleByName('bx_notifications'))
+            return false;
+
+        return $this -> getOne("SELECT `s`.`active`
+                                        FROM `bx_notifications_handlers` as `h` 
+                                        LEFT JOIN `bx_notifications_settings` as `s` ON `h`.`id` = `s`.`handler_id`
+                                        WHERE `h`.`group`=:module AND `h`.`type`='insert' AND `s`.`delivery` = 'push'", array('module' => $this->_oConfig->getName())) == 1;
+    }
+
+    public function isAllowedToSendNtfs($iProfileId, $iLotId){
+        if (!$this->isModuleByName('bx_notifications'))
+            return true;
+
+        $iNumber = (int)$this->CNF['MAX_NTFS_NUMBER'];
+        $iInterval = (int)$this->CNF['PARAM_NTFS_INTERVAL'];
+
+        return $this -> getOne("SELECT COUNT(*)
+                                        FROM `bx_notifications_events`                                        
+                                        WHERE `action`='got_jot_ntfs' AND `type`=:type AND `owner_id` = :profile AND `object_id`=:lot_id 
+                                              AND `date` > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL :interval HOUR))",
+                                array(
+                                        'type' => $this->_oConfig->getName(),
+                                        'profile' => $iProfileId,
+                                        'lot_id' => $iLotId,
+                                        'interval' => $iInterval
+                                    )) < $iNumber;
     }
 }
 

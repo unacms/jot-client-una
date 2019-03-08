@@ -1044,6 +1044,13 @@ div.bx-messenger-video-block div:first-child
 	padding-right:0rem !important;
 }
 
+/* fonts styles only for the home page */
+#bx-page-home .bx-messenger-main-block,
+#bx-page-home .bx-messenger-main-block div.bx-messenger-post-box-send-area div.bx-messenger-text-box
+{
+	font-size: 0.85rem;
+}
+
 @media (max-width:480px)
 {
 	.bx-messenger-video

@@ -143,4 +143,11 @@
 	<string name="_bx_messenger_search_no_results"><![CDATA[Search returned no results]]></string>
 	<string name="_bx_messenger_search_query_issue"><![CDATA[There was an issue with querying the server.]]></string>
 	<string name="_bx_messenger_search_desc"><![CDATA[Joined - {1}<br/>Last login - {0}]]></string>
+	<string name="_bx_messenger_message"><![CDATA[Message]]></string>
+	<string name="_bx_ntfs_alert_action_got_jot_ntfs_personal"><![CDATA[New message in talk where I'm participant]]></string>
+	<string name="_bx_messenger_txt_sample_comment_single"><![CDATA[message - <b>{0}</b> to]]></string>
+	<string name="_bx_messenger_txt_sample_comment_file_single"><![CDATA[message with <b>{0} file(s) </b> to]]></string>
+	<string name="_bx_messenger_max_ntfs_number"><![CDATA[Maximum notifications number per member from one Talk during 1 hour]]></string>
+	<string name="_bx_messenger_txt_subobject_added"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> send a {subentry_sample} <b class="bx-ntfs-content-entry">{entry_caption}</b>]]></string>
+
 </resources>

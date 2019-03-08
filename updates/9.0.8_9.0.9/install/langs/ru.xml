@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="ru" flag="ru" title="Russian">
+	<string_add name="_bx_messenger_message"><![CDATA[Сообщение]]></string_add>
+	<string_add name="_bx_ntfs_alert_action_got_jot_ntfs_personal"><![CDATA[Новое сообщение в болталке]]></string_add>
+	<string_add name="_bx_messenger_txt_sample_comment_single"><![CDATA[сообщение - <b>{0}</b> в]]></string_add>
+	<string_add name="_bx_messenger_txt_sample_comment_file_single"><![CDATA[сообщене с <b>{0} файлом(и) </b> в]]></string_add>
+	<string_add name="_bx_messenger_max_ntfs_number"><![CDATA[Максимальное количество оповещений от одного участника в одном разговоре в течении часа]]></string_add>
+	<string_add name="_bx_messenger_txt_subobject_added"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> отправил(а) {subentry_sample} <b class="bx-ntfs-content-entry">{entry_caption}</b>]]></string_add>
+	<string_upd name="_bx_messenger_lots_menu_mute_info_off"><![CDATA[При выключении оповещений, вы перестанете получать пуш нотификацию]]></string_upd>
+	<string_upd name="_bx_messenger_save_part_success"><![CDATA[Списко участников был успешно обновлён!]]></string_upd>
+	<string_upd name="_bx_messenger_can_not_delete"><![CDATA[Вы не можете удалить этот разговор!]]></string_upd>	
+</resources>

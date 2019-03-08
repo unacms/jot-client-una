@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="en" flag="gb" title="English">
+	<string_add name="_bx_messenger_message"><![CDATA[Message]]></string_add>
+	<string_add name="_bx_ntfs_alert_action_got_jot_ntfs_personal"><![CDATA[New message in talk where I'm participant]]></string_add>
+	<string_add name="_bx_messenger_txt_sample_comment_single"><![CDATA[message - <b>{0}</b> to]]></string_add>
+	<string_add name="_bx_messenger_txt_sample_comment_file_single"><![CDATA[message with <b>{0} file(s) </b> to]]></string_add>
+	<string_add name="_bx_messenger_max_ntfs_number"><![CDATA[Maximum notifications number per member from one Talk during 1 hour]]></string_add>
+	<string_add name="_bx_messenger_txt_subobject_added"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> send a {subentry_sample} <b class="bx-ntfs-content-entry">{entry_caption}</b>]]></string_add>
+</resources>

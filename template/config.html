@@ -47,7 +47,7 @@
         });
     }
 
-	if (oRTWSF != undefined)
+	if (oRTWSF !== undefined)
 	{
 			oRTWSF.init({
 				server:'__server_url__',
@@ -65,9 +65,7 @@
 						},
 						menu_wrapper:'a.smiles',
 						popup_position:{left:'0.5rem'},
-						menu_icon:'<svg width="24" height="24" viewBox="0 0 23 21" xmlns="http://www.w3.org/2000/svg">' +
-										'<g transform="translate(1 1)" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">' +
-										'<circle cx="10" cy="10" r="10"/><path d="M8 9V7M12 9V7M4.505 11c0 2.58 2.425 4.67 5.417 4.67S15.34 13.58 15.34 11"/></g></svg>'
+						menu_icon:'<i class="sys-icon smile"></i>'
 					  },
 				oRTWSF:oRTWSF,
 				user_id:__profile_id__,

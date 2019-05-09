@@ -26,7 +26,7 @@
 	display:none;
 }
 
-.bx-messanger-items-list
+.bx-messenger-items-list
 {
 	height:100%;
 	overflow-y:auto;
@@ -60,44 +60,17 @@
 	border:0px;
 }
 
-.bx-messenger-status
-{
-	font-family: 'sys-user', 'sys-user-fal';
-	margin-right:0.2rem;
-	font-size:0.8rem;
-	font-weight:300;	
+.bx-messenger-jots-snip-avatars .bx-base-pofile-unit-online{
+	bottom:0.8rem;
+	right:1rem;
+	z-index: 2;
 }
 
-.bx-messenger-jots-snip-title .bx-messenger-status
-{
-	display:table-cell;
+.bx-messenger-jots-snip-avatars .bx-base-pofile-unit-online.away{
+	background-color: #f5a623;
 }
 
-.bx-messenger-status.online:before{
-	content: "\f111";
-	color: #00c39b;
-}
-
-.bx-messenger-status.away:before{
-	content: "\f111"; 
-	color: #f5a623;
-}
-
-.bx-messenger-status.offline:before
-{
-	font-family: 'sys-user-far', 'sys-user-fal';
-	content: "\f111";
-	color: #9b9b9b;
-}
 .bx-messenger-jots-snip-title div.status
-{
-    vertical-align: middle;
-    padding: .07rem;
-    position: relative;
-    margin-right: 0.1rem;
-}
-
-.bx-messenger-jots-snip-title div.status div
 {
 	background-color: #9b9b9b;
 	color:#eee;
@@ -106,6 +79,8 @@
 	border-radius:3px;
 	text-align:center !important;
 	font-family:inherit;
+	padding: .08rem;
+	margin-right: 0.2rem;
 }
 
 .bx-messenger-jots-snip-title div.title
@@ -115,6 +90,7 @@
     text-overflow: ellipsis;
 	margin-right:0.3rem;
 	width:100%;
+	font-weight: 500;
 }
 
 .bx-messenger-jots-snip-title div.time
@@ -135,8 +111,8 @@ span.bubble
 	background-color: #d7e9fb;
     color: #4a90e2;
     margin-right: 0.2rem;
-	width:1rem;
-	float:left;
+	/*width:1rem;
+	float:left;*/
 }
 
 span.bubble.hidden
@@ -144,17 +120,22 @@ span.bubble.hidden
 	display:none;
 }
 
-.unread-lot .bx-messenger-preview-lot div:first-child span:first-child
+/*.unread-lot .bx-messenger-preview-lot div:first-child span:first-child
 {
 	font-weight:600;
-}
+}*/
 
 .bx-messenger-preview-lot
 {
     overflow: hidden;
-    display: block;
-	min-height: 1rem;
+    display: flex;
     margin: auto;
+	align-items: center;
+	justify-content: flex-start;
+}
+
+.bx-messenger-preview-lot div{
+	margin-top:0.2rem;
 }
 
 .bx-messenger-preview-lot div:first-child
@@ -165,7 +146,7 @@ span.bubble.hidden
 	white-space: nowrap;
 	overflow:hidden;
 	width:calc(100% - 2rem);
-	margin-top:0.2rem;
+	font-weight:400;
 }
 
 .bx-messenger-preview-lot div:first-child span:first-child
@@ -173,15 +154,9 @@ span.bubble.hidden
 	margin-right:0.2rem;
 }
 
-.bx-messenger-preview-lot div:last-child
-{
-	float:right;
-	width:2rem;
-}
-
-.bx-messenger-preview-lot div:last-child span
-{
-	width:1rem;
+.bx-messenger-jots-snip-info .info i {
+	padding: 0.2rem;
+	font-size: 0.7rem;
 }
 
 .bx-messenger-jots-snip-info span:last-child
@@ -228,10 +203,6 @@ span.bubble.hidden
 	font-weight:normal;
 }
 
-.bx-messenger-participants-usernames .bx-messenger-status
-{
-	display:inline-block;
-}
 
 .bx-messenger-participants-usernames div.name
 {

@@ -1,32 +1,38 @@
 <bx_repeat:jots>
-	<div class="bx-messenger-jots<bx_if:blink-jot> bx-messenger-blink-jot</bx_if:blink-jot>" data-id="__id__" __display__>
+	<div class="bx-messenger-jots<bx_if:blink-jot> bx-messenger-blink-jot</bx_if:blink-jot>" data-id="__id__" __display__ data-new="__new__">
 		<div class="bx-messenger-jots-avatars bx-def-padding-thd-right">
 			<a href="__url__"><img class="bx-def-thumb bx-def-thumb-size" title="__title__" src="__thumb__" /></a>
 		</div>
 		<div class="bx-messenger-jots-info">
 			<div class="bx-messenger-jots-title bx-def-font-semibold">
 				<div class="title">__title__</div>
+				<div class="bx-def-font-light bx-def-font-small time">__time__</div>
+				<div class="view">__views__</div>
 				<bx_if:jot_menu>
 					<div class="bx-messenger-jots-actions-list">
-						<i data-feather="more-horizontal"></i>
-							<div class="bx-messenger-jots-icons">
-								<bx_if:delete>
-									<a href="javascript:void(0);" title="<bx_text:_bx_messenger_remove_jot />" onclick="if (confirm('__confirm_delete__')) oMessenger.onDeleteJot(this);">
-										<i data-feather="delete"></i>
-									</a>
-									<a href="javascript:void(0);" title="<bx_text:_bx_messenger_edit_jot />" onclick="oMessenger.onEditJot(this);">
-										<i data-feather="edit"></i>
-									</a>
-								</bx_if:delete>
-								<a href="javascript:void(0);" title="<bx_text:_bx_messenger_share_jot />" onclick="oMessenger.onCopyJotLink(this);">
-									<i data-feather="copy"></i>
+						<i class="sys-icon ellipsis-h-alt"></i>
+						<div class="bx-messenger-jots-icons">
+							<bx_if:delete>
+								<a href="javascript:void(0);" title="<bx_text:_bx_messenger_remove_jot />" onclick="if (confirm('__confirm_delete__')) oMessenger.onDeleteJot(this);">
+									<i class="sys-icon backspace"></i>
 								</a>
-							</div>
+								<a href="javascript:void(0);" title="<bx_text:_bx_messenger_edit_jot />" onclick="oMessenger.onEditJot(this);">
+									<i class="sys-icon edit"></i>
+								</a>
+							</bx_if:delete>
+							<!--<bx_if:react>
+								<a href="javascript:void(0);" title="<bx_text:_bx_messenger_react_jot />" onclick="oMessenger.onReactJot(this);">
+									<i class="sys-icon edit"></i>
+								</a>
+							</bx_if:react>-->
+							<a href="javascript:void(0);" title="<bx_text:_bx_messenger_share_jot />" onclick="oMessenger.onCopyJotLink(this);">
+								<i class="sys-icon copy"></i>
+							</a>
+						</div>
 					</div>
 				</bx_if:jot_menu>
-				<div class="bx-def-font-light bx-def-font-small time">__time__</div>
 			</div>
-			<div class="bx-messenger-jots-message" __display_message__>__message____edit_icon__</div>				
+			<div class="bx-messenger-jots-message" __display_message__>__message____edit_icon__</div>
 			__attachment__
 		</div>
 	</div>

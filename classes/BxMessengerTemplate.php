@@ -33,6 +33,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$aJs = array(
 						'primus.js',
 						'connect.js',
+						'storage.js',
 						'messenger.js',
 						'emoji/js/util.js',
 						'emoji/js/config.js',
@@ -40,7 +41,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						'emoji/js/jquery.emojiarea.js',
 						'status.js',
 						'dropzone.js',
-						'feather.min.js',
 						'RecordRTC.min.js',
 						'adapter.js',
 						'record-video.js',
@@ -69,7 +69,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@return string html code 
 	*/
 	public function getPostBoxWithHistory($iProfileId, $iLotId = BX_IM_EMPTY, $iType = BX_IM_TYPE_PUBLIC, $iJotId = BX_IM_EMPTY, $sEmptyContent = ''){
-		$oCNF = $this->_oConfig-> CNF;
+		$oCNF = $this->_oConfig->CNF;
 		$aVars = $aJots = $aLotInfo = array();
 		$aParams = array(
 			'content' => $sEmptyContent,
@@ -77,6 +77,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'name'	  => '',
 			'user_id' => $iProfileId,
 			'type' => $iType,
+            'base_url' => BX_DOL_URL_ROOT . $this->_oConfig->getBaseUri(),
 			'bx_if:post_area' => array(
 				'condition' => $iProfileId,
 				'content' 	=> array(
@@ -84,12 +85,31 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				)
 			)
 		);
-		
+
 		$oProfile = $this -> getObjectUser($aParams['user_id']);
 	    if($oProfile)
 			$aParams['name'] = bx_js_string($oProfile -> getDisplayName());
-		
-		$iUnreadLotsJots = $this -> _oDb -> getUnreadJotsMessagesCount($iProfileId, $iLotId);
+
+
+        $aParams['files'] = MsgBox(_t('_bx_messenger_txt_msg_no_results'));
+        $aFiles = $this -> _oDb -> getLotFiles($iLotId);
+        if (!empty($aFiles)) {
+            $aFilesItems = array();
+            foreach ($aFiles as $iKey => $aValue) {
+                $oOwner = $this -> getObjectUser($aValue[$oCNF['FIELD_ST_AUTHOR']]);
+                $aFilesItems[] = array(
+                    'time' => bx_time_js($aValue[$oCNF['FIELD_ST_ADDED']]),
+                    'file' => $this->getFileContent($aValue),
+                    'username' => $oOwner -> getDisplayName(),
+                    'author_thumb' =>  $oOwner -> getThumb(),
+                );
+            }
+
+            if (!empty($aFilesItems))
+                $aParams['files'] = $this -> parseHtmlByName('files_feeds.html', array('bx_repeat:files' => $aFilesItems));
+        }
+
+    	$iUnreadLotsJots = $this -> _oDb -> getUnreadJotsMessagesCount($iProfileId, $iLotId);
 		if ($iUnreadLotsJots && !$iJotId)
 			$iJotId = $this -> _oDb -> getFirstUnreadJot($iProfileId, $iLotId);
 		
@@ -140,7 +160,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*/
 	public function getTalkBlock($iProfileId, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $iType = BX_IM_TYPE_PUBLIC, $bShowMessenger = false){
 		$sTitle = '';
-		$aLotInfo = array(); 
+        $aMenu = $aLotInfo = array();
 		if ($iLotId)
 		{
 			$aLotInfo = $this -> _oDb -> getLotInfoById($iLotId); 
@@ -160,7 +180,19 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                             _t($sTitle);
 		}
 
-		$aMenu[] = array('name' => _t("_bx_messenger_lots_menu_leave"), 'title' => '', 'action' => "if (confirm('" . bx_js_string(_t('_bx_messenger_leave_chat_confirm')) . "')) oMessenger.onLeaveLot($iLotId);");
+		$aMenu = array_merge($aMenu, array(
+                            array(
+		                            'name' => _t("_bx_messenger_lots_menu_leave"),
+                                    'title' => '',
+                                    'action' => "if (confirm('" . bx_js_string(_t('_bx_messenger_leave_chat_confirm')) . "')) oMessenger.onLeaveLot($iLotId);",
+                                ),
+                            array(
+                                    'name' => _t("_bx_messenger_lots_menu_media"),
+                                    'title' => '',
+                                    'action' => "$('.bx-messenger-conversation-block-wrapper .ui.sidebar').sidebar('toggle')"
+                                )
+                        ));
+
 		$iUnreadLotsJots = $bIsMuted = $bIsStarred = 0;		
 		if ($iProfileId)
 		{
@@ -186,13 +218,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 										'settings_title' => _t('_bx_messenger_lots_menu_settings_title'),
 										'star_title' => bx_js_string( !$bIsStarred ? _t('_bx_messenger_lots_menu_star_on') : _t('_bx_messenger_lots_menu_star_off')),
 										'star' => (int)$bIsStarred,										
-										'star_fill_color' => $this -> _oConfig -> CNF['STAR_BACKGROUND_COLOR'],										
 										'bell_icon' => $bIsMuted ? $this -> _oConfig -> CNF['BELL_ICON_OFF'] : $this -> _oConfig -> CNF['BELL_ICON_ON'],
-										'star_icon' => $this -> _oConfig -> CNF['STAR_ICON'],
+										'star_icon' => $this -> _oConfig -> CNF['STAR_ICON'] . ((int)$bIsStarred ? ' fill' : ''),
 									)
 								),				
 				'back_title' => bx_js_string(_t('_bx_messenger_lots_menu_back_title')),
-				'star_color' => $bIsStarred ? $this -> _oConfig -> CNF['STAR_BACKGROUND_COLOR']: 'none',
 				'star_icon' => $this -> _oConfig -> CNF['STAR_ICON'],
 				'title' => $sTitle,
 				'post_area' => !$bShowMessenger && empty($aLotInfo) ?
@@ -211,8 +241,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*/
 	public function getParticipantsNames($iProfileId, $iLotId){
 		$aNickNames = array();
-		$sCode = '';
-		
+
 		$aParticipantsList = $this -> _oDb -> getParticipantsList($iLotId, true, $iProfileId);
 		if (empty($aParticipantsList))
 			return '';
@@ -223,17 +252,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		if (count($aParticipantsList) == 1)
 		{
 			$oProfile = $this -> getObjectUser($aParticipantsList[0]);
-			
 			if ($oProfile)
 			{				
-				$bOnline = method_exists($oProfile, 'isOnline') ? $oProfile -> isOnline(): false;
 				$aNickNames['bx_repeat:users'][] = array(
 										'profile_username' => $oProfile -> getUrl(),
 										'username' =>  $oProfile -> getDisplayName(),
-										'status' => ($bOnline ? 
-													$this -> getOnlineStatus($oProfile-> id(), 1):
-													$this -> getOnlineStatus($oProfile-> id(), 0))
-									  );	
+									  );
 			}
 			$sCode = $this -> parseHtmlByName('status_usernames.html', $aNickNames);
 		}
@@ -247,7 +271,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			}
 			
 			$sOthers = $iCount > (int)$this -> _oConfig -> CNF['PARAM_ICONS_NUMBER'] ? _t('_bx_messenger_lot_title_participants_number', $iCount - (int)$this -> _oConfig -> CNF['PARAM_ICONS_NUMBER']) : '';
-			
 			$sCode = $this -> parseHtmlByName('simple_usernames.html', array('usernames' => implode(', ', $aNickNames) . " {$sOthers}"));
 		}
 		
@@ -386,7 +409,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 					$aVars['bx_repeat:avatars'][] = array(
 						'title' => $oProfile->getDisplayName(),
 						'thumb' => $oProfile->getThumb(),
-					);
+                        'status' => ''
+ 					);
 				 
 					$aNickNames[] = $oProfile-> getDisplayName();
 			      }
@@ -401,21 +425,22 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				else
 					$sTitle = implode(', ', $aNickNames);
 			}	
-			
-			$sStatus = '';
-			if ($iParticipantsCount == 1 && $oProfile && empty($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']])){
-				$sStatus = (method_exists($oProfile, 'isOnline') ? $oProfile -> isOnline() : false) ? 
+
+			$sStatus=$sCount = '';
+			if ($iParticipantsCount <= 1 && $oProfile && empty($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']])){
+                $sStatus = (method_exists($oProfile, 'isOnline') ? $oProfile -> isOnline() : false) ?
 					$this -> getOnlineStatus($oProfile-> id(), 1) : 
 					$this -> getOnlineStatus($oProfile-> id(), 0) ;
 			}
-			else	
-				$sStatus = '<div class="status">' . $iParticipantsCount .'</div>';
+			else
+                $sCount = '<div class="status">' . $iParticipantsCount .'</div>';
 	
 			
 			$aVars[$this -> _oConfig -> CNF['FIELD_ID']] = $aLot[$this -> _oConfig -> CNF['FIELD_ID']];
 			$aVars[$this -> _oConfig -> CNF['FIELD_TITLE']] = $sTitle;
+			$aVars['number'] = $sCount;
 			$aVars['status'] = $sStatus;
-			
+
 			$aLatestJots = $this -> _oDb -> getLatestJot($aLot[$this -> _oConfig -> CNF['FIELD_ID']]);
 			
 			$iTime = bx_time_js($aLot[$this -> _oConfig -> CNF['FIELD_ADDED']], BX_FORMAT_DATE);
@@ -474,7 +499,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@return string html code
 	*/
 	private function getOnlineStatus($iProfileId, $iStatus){
-		switch($iStatus){
+	    switch($iStatus){
 			case 0:
 					$sTitle = _t('_bx_messenger_offline');
 					$sClass = 'offline';
@@ -485,16 +510,47 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				break;
 			default:
 					$sTitle = _t('_bx_messenger_online');
-					$sClass = 'online';
+					$sClass = '';
 		}
-	
+
+
 		return $this -> parseHtmlByName('online_status.html', array(
 			'id' => (int)$iProfileId,
 			'title' => $sTitle,
 			'class' => $sClass
 		));
 	}
-	
+
+	public function getViewedJotProfiles($iJotId, $iExcludeProfile){
+        $oCNF = $this->_oConfig-> CNF;
+	    $aJotInfo = $this -> _oDb -> getJotById($iJotId);
+        if (empty($aJotInfo))
+            return false;
+
+        $aResult = $aParticipants = $this -> _oDb -> getParticipantsList($aJotInfo[$oCNF['FIELD_MESSAGE_FK']], true);
+
+        if ($oCNF['MAX_VIEWS_PARTS_NUMBER'] < count($aResult))
+            return '';
+
+        if (!empty($aJotInfo[$oCNF['FIELD_MESSAGE_NEW_FOR']]))
+            $aResult = array_diff($aParticipants, explode(',', $aJotInfo[$oCNF['FIELD_MESSAGE_NEW_FOR']]));
+
+        $aIcons = array();
+        foreach($aResult as &$iProfileId) {
+            if ($iExcludeProfile === $iProfileId)
+                continue;
+
+            $aIcons[] = array(
+                'id' => $iProfileId,
+                'icon' => BxDolProfile::getInstance($iProfileId)->getIcon(),
+                'name' => BxDolProfile::getInstance($iProfileId)->getDisplayName(),
+            );
+        }
+
+        return $this -> parseHtmlByName('viewed.html', array(
+            'bx_repeat:viewed' => $aIcons
+         ));
+    }
 	/**
 	* Get jots list by specified criteria
 	*@param int $iProfileId logged member id
@@ -510,7 +566,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
     *@return string HTML code
 	*/
 	public function getJotsOfLot($iProfileId, $aParams){
-		
+        $oCNF = &$this -> _oConfig -> CNF;
 		$iLotId = isset($aParams['lot_id']) ? (int)$aParams['lot_id'] : BX_IM_EMPTY;
 		$sUrl = isset($aParams['url']) ? $aParams['url'] : BX_IM_EMPTY_URL;
 		$iStart = isset($aParams['start']) ? (int)$aParams['start'] : BX_IM_EMPTY; 
@@ -518,7 +574,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$iLimit = isset($aParams['limit']) ? (int)$aParams['limit'] : BX_IM_EMPTY; 
 		$bDisplay = isset($aParams['display'])? (bool)$aParams['display'] : false;
 		$bSelectJot = isset($aParams['select'])? (bool)$aParams['select'] : false;
-		
+		$bMarkAsRead = isset($aParams['read']) ? (bool)$aParams['read'] : true;
+        $bShowViews = isset($aParams['views']);
+
 		$aLotInfo = $this -> _oDb -> getLotByIdOrUrl($iLotId, $sUrl, $iProfileId);
 		if (empty($aLotInfo))
 			return '';
@@ -526,44 +584,54 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$aStartMiddleJot = array();
 		if ($bSelectJot && $iStart)
 		{
-			$aStartMiddleJot = $this -> _oDb -> getJotsByLotId($aLotInfo[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']], $iStart, 'prev', (int)$this -> _oConfig -> CNF['MAX_JOTS_BY_DEFAULT']/2);
+			$aStartMiddleJot = $this -> _oDb -> getJotsByLotId($aLotInfo[$oCNF['FIELD_MESSAGE_ID']], $iStart, 'prev', (int)$oCNF['MAX_JOTS_BY_DEFAULT']/2);
 			if (!empty($aStartMiddleJot))
-				$iStart = $aStartMiddleJot[0][$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']];
+				$iStart = $aStartMiddleJot[0][$oCNF['FIELD_MESSAGE_ID']];
 		}
 		
-		$aJots = $this -> _oDb -> getJotsByLotId($aLotInfo[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']], $iStart, $sLoad, $iLimit, $bSelectJot && $iStart && empty($aStartMiddleJot)); 
+		$aJots = $this -> _oDb -> getJotsByLotId($aLotInfo[$oCNF['FIELD_MESSAGE_ID']], $iStart, $sLoad, $iLimit, $bSelectJot && $iStart && empty($aStartMiddleJot));
 		if (empty($aJots))
 			return '';
 					
 		$aVars['bx_repeat:jots'] = array(); 
 		foreach($aJots as $iKey => $aJot)
 		{
-			$oProfile = $this -> getObjectUser($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AUTHOR']]);
+			$oProfile = $this -> getObjectUser($aJot[$oCNF['FIELD_MESSAGE_AUTHOR']]);
+			$iJot = $aJot[$oCNF['FIELD_MESSAGE_ID']];
+
+            $aNewFor = array();
+			if (!empty($aJot[$oCNF['FIELD_MESSAGE_NEW_FOR']]))
+                $aNewFor = explode(',', $aJot[$oCNF['FIELD_MESSAGE_NEW_FOR']]);
+
 			if ($oProfile) 
 			{
 				$sAttachment = $sMessage = '';
-				$bIsTrash = (int)$aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_TRASH']];
+				$bIsTrash = (int)$aJot[$oCNF['FIELD_MESSAGE_TRASH']];
 				$bIsLotAuthor = $this -> _oDb -> isAuthor($iLotId, $iProfileId);
+				$isAllowedDelete = $this->_oDb->isAllowedToDeleteJot($aJot[$oCNF['FIELD_MESSAGE_ID']], $iProfileId, $aJot[$oCNF['FIELD_MESSAGE_AUTHOR']], $aJot[$oCNF['FIELD_MESSAGE_FK']]);
+
 				if ($bIsTrash)
-					$sMessage = $this -> getMessageIcons($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']], 'delete', isAdmin() || $bIsLotAuthor); 
+				    $sMessage = $this->getMessageIcons($aJot[$oCNF['FIELD_MESSAGE_ID']], 'delete', isAdmin() || $bIsLotAuthor);
 				else
 				{
-					$sMessage = $this -> _oConfig -> bx_linkify($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE']]);
-					$sAttachment = !empty($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']]) ? $this -> getAttachment($aJot) : '';
+					$sMessage = $this -> _oConfig -> bx_linkify($aJot[$oCNF['FIELD_MESSAGE']]);
+					$sAttachment = !empty($aJot[$oCNF['FIELD_MESSAGE_AT_TYPE']]) ? $this -> getAttachment($aJot) : '';
 				}
-				
-				
+
 				$aVars['bx_repeat:jots'][] = array(
 						'title' => $oProfile->getDisplayName(),
-						'time' => bx_time_js($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_DATE_TIME),
+						'time' => bx_time_js($aJot[$oCNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_DATE_TIME),
+                        'views' => $bShowViews ? $this -> getViewedJotProfiles($iJot, $iProfileId) : '',
+						'new' => (int)in_array($iProfileId, $aNewFor),
 						'url' => $oProfile->getUrl(),
+                        'immediately' => +$this -> _oConfig -> CNF['REMOVE_MESSAGE_IMMEDIATELY'],
 						'thumb' => $oProfile->getThumb(),
-						'id' => $aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']],
+						'id' => $aJot[$oCNF['FIELD_MESSAGE_ID']],
 						'message' => $sMessage,
 						'attachment' => $sAttachment,
 						'display' => !$bDisplay ? 'style="display:none;"' : '',
 						'bx_if:blink-jot' => array(
-							'condition' => $bSelectJot && $aParams['start'] == $aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']],
+							'condition' => $bSelectJot && $aParams['start'] == $iJot,
 							'content' => array()
 						),
 						'display_message' => '',
@@ -573,24 +641,26 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 							'content'	=> array(
 													'bx_if:delete' => array
 													(
-														'condition' => isAdmin() || $aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AUTHOR']] == $iProfileId || $bIsLotAuthor,
+														'condition' => $isAllowedDelete,
 														'content'	=> array(
-															'confirm_delete' => bx_js_string(_t('_bx_messenger_remove_jot_confirm'))
+															'confirm_delete' => bx_js_string(_t('_bx_messenger_remove_jot_confirm')),
+                                                            'immediately' => +$oCNF['REMOVE_MESSAGE_IMMEDIATELY'],
 														)
 													)
 												)
 						),
-						'edit_icon' => $aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_EDIT_BY']] && !$bIsTrash ? 
+						'edit_icon' => $aJot[$oCNF['FIELD_MESSAGE_EDIT_BY']] && !$bIsTrash ?
 							$this -> parseHtmlByName('edit_icon.html',
 									array(
 											'edit' => _t('_bx_messenger_edit_by', 
-											bx_process_output($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_LAST_EDIT']], BX_DATA_DATETIME_TS), 
-											$this -> getObjectUser($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_EDIT_BY']]) -> getDisplayName()),							
+											bx_process_output($aJot[$oCNF['FIELD_MESSAGE_LAST_EDIT']], BX_DATA_DATETIME_TS),
+											$this -> getObjectUser($aJot[$oCNF['FIELD_MESSAGE_EDIT_BY']]) -> getDisplayName()),
 										)
 									): ''
 					);
-				
-				$this -> _oDb -> readMessage($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']], $iProfileId);
+
+				if ($bMarkAsRead)
+				    $this -> _oDb -> readMessage($aJot[$oCNF['FIELD_MESSAGE_ID']], $iProfileId);
 			}
 		}	
 		return $this -> parseHtmlByName('jots.html',  $aVars);
@@ -716,10 +786,10 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 								'bx_if:allow_to_delete' => array(
 															'condition' => $isAdmin,
 															'content'	=>
-															array(
-																	'message' => bx_js_string(_t('_bx_messenger_confirm_delete_completely')),
-																	'id' => $iJotId
-																),
+                                                                            array(
+                                                                                    'message' => bx_js_string(_t('_bx_messenger_confirm_delete_completely')),
+                                                                                    'id' => $iJotId
+                                                                                ),
 															),
 								'info' => $sEditorName ? _t('_bx_messenger_deleted_by', $sDate, $sEditorName) : ''
 							)
@@ -739,17 +809,20 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		if (!$iProfileId) return '';
 		
 		$oProfile = $this -> getObjectUser($iProfileId);
+                $isAllowedDelete = $this -> _oConfig -> CNF['ALLOW_TO_REMOVE_MESSAGE'] || isAdmin();
 		if ($oProfile)
 		{
 			$aVars['bx_repeat:jots'][] = array
 			(
 				'title' => $oProfile->getDisplayName(),
+                'views' => '',
 				'time' => bx_time_js(time(), BX_FORMAT_TIME),
 				'url' => $oProfile->getUrl(),
 				'thumb' => $oProfile->getThumb(),
 				'display' => 'style="display:flex;"',
 				'display_message' => 'style="display:none;"',
 				'id' => 0,
+				'new' => '',
 				'message' => '',
 				'attachment' => '',
 				'bx_if:blink-jot' => array(
@@ -760,8 +833,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 					'condition' => $iProfileId,
 					'content'	=> array(
 							'bx_if:delete' => array(
-								'condition' => true,
+								'condition' => $isAllowedDelete,
 								'content'	=> array(
+                                    'immediately' => +$this -> _oConfig -> CNF['REMOVE_MESSAGE_IMMEDIATELY'],
 									'confirm_delete' => bx_js_string(_t('_bx_messenger_remove_jot_confirm'))
 								)
 							),
@@ -784,20 +858,23 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	function getAttachment($aJot){
 		$sHTML = '';
 		$iViewer = bx_get_logged_profile_id();
+		$oCNF = &$this -> _oConfig -> CNF;
 		
+		$bIsLotAuthor = $this -> _oDb -> isAuthor($aJot[$oCNF['FIELD_MESSAGE_FK']], $iViewer);
 		if (!empty($aJot))
 		{
 			switch($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']])
 			{
 				case 'repost':
-						$sHTML = $this -> getJotAsAttachment($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT']]);
+						$sHTML = $this -> getJotAsAttachment($aJot[$oCNF['FIELD_MESSAGE_AT']]);
 						break;
 				case 'files':
-						$aFiles = $this -> _oDb -> getJotFiles($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_ID']]);						
+						$aFiles = $this -> _oDb -> getJotFiles($aJot[$oCNF['FIELD_MESSAGE_ID']]);
 						$aItems = array(
 							'bx_repeat:images' => array(),
 							'bx_repeat:files' => array(),
-							'bx_repeat:videos' => array()
+							'bx_repeat:videos' => array(),
+							'bx_repeat:audios' => array(),
 						);
 						
 						$aTranscodersVideo = array();
@@ -809,40 +886,44 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 							);
 				
 						$oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);
+						$oTranscoderMp3 = BxDolTranscoderAudio::getObjectInstance($this -> _oConfig -> CNF['OBJECT_MP3_TRANSCODER']);
+
 						foreach($aFiles as $iKey => $aFile)
 						{
-								$isAuthor = $aFile[$this -> _oConfig -> CNF['FIELD_ST_AUTHOR']] == $iViewer || isAdmin();
-								$isVideo = !empty($aTranscodersVideo) && $aTranscodersVideo['mp4']->isMimeTypeSupported($aFile[$this->_oConfig->CNF['FIELD_ST_TYPE']]) && $aTranscodersVideo['webm']->isMimeTypeSupported($aFile[$this->_oConfig->CNF['FIELD_ST_TYPE']]);
+    						    $isAllowedDelete = $this->_oDb->isAllowedToDeleteJot($aJot[$oCNF['FIELD_MESSAGE_ID']], $iViewer, $aJot[$oCNF['FIELD_MESSAGE_AUTHOR']], $bIsLotAuthor);
+    							$isVideo = !empty($aTranscodersVideo) && $aTranscodersVideo['mp4']->isMimeTypeSupported($aFile[$oCNF['FIELD_ST_TYPE']]) && $aTranscodersVideo['webm']->isMimeTypeSupported($aFile[$oCNF['FIELD_ST_TYPE']]);
 								
-								if ($oStorage -> isImageFile($aFile[$this->_oConfig->CNF['FIELD_ST_TYPE']]))
+								if ($oStorage -> isImageFile($aFile[$oCNF['FIELD_ST_TYPE']]))
 								{
 									$sPhotoThumb = '';
-									if ($aFile[$this->_oConfig->CNF['FIELD_ST_TYPE']] != 'image/gif' && $oImagesTranscoder = BxDolTranscoderImage::getObjectInstance($this->_oConfig->CNF['OBJECT_IMAGES_TRANSCODER_PREVIEW']))
-										$sPhotoThumb = $oImagesTranscoder->getFileUrl((int)$aFile[$this->_oConfig->CNF['FIELD_ST_ID']]);					
+									if ($aFile[$oCNF['FIELD_ST_TYPE']] != 'image/gif' && $oImagesTranscoder = BxDolTranscoderImage::getObjectInstance($oCNF['OBJECT_IMAGES_TRANSCODER_PREVIEW']))
+										$sPhotoThumb = $oImagesTranscoder->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
 									
-									$sFileUrl = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$this->_oConfig->CNF['FIELD_ST_ID']]);
+									$sFileUrl = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$oCNF['FIELD_ST_ID']]);
 									$aItems['bx_repeat:images'][] = array(
 										'url' => $sPhotoThumb ? $sPhotoThumb : $sFileUrl,
-										'name' => $aFile[$this->_oConfig->CNF['FIELD_ST_NAME']],
-										'id' => $aFile[$this->_oConfig->CNF['FIELD_ST_ID']],
-										'delete_code' => $this -> deleteFileCode($aFile[$this->_oConfig->CNF['FIELD_ST_ID']], $isAuthor)
+										'name' => $aFile[$oCNF['FIELD_ST_NAME']],
+										'id' => $aFile[$oCNF['FIELD_ST_ID']],
+										'delete_code' => $this -> deleteFileCode($aFile[$oCNF['FIELD_ST_ID']], $isAllowedDelete)
 									);
 								}elseif ($isVideo)
 								{
-									$sFileUrl = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$this->_oConfig->CNF['FIELD_ST_ID']]);
+									$sFileUrl = BxDolStorage::getObjectInstance($oCNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$oCNF['FIELD_ST_ID']]);
 
-                                    $sMp4File = $aTranscodersVideo['mp4']->getFileUrl((int)$aFile[$this->_oConfig->CNF['FIELD_ST_ID']]);
-                                    $sWebMFile = $aTranscodersVideo['webm']->getFileUrl((int)$aFile[$this->_oConfig->CNF['FIELD_ST_ID']]);
+                                    $sMp4File = $aTranscodersVideo['mp4']->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
+                                    $sWebMFile = $aTranscodersVideo['webm']->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
 
-                                    $sPoster = $sMp4File && $sWebMFile ? $aTranscodersVideo['poster']->getFileUrl($aFile[$this->_oConfig->CNF['FIELD_ST_ID']]) : '';
+                                    $sPoster = $sMp4File && $sWebMFile ?
+                                               $aTranscodersVideo['poster']->getFileUrl($aFile[$oCNF['FIELD_ST_ID']]) :
+                                               ($aFile[$oCNF['FIELD_ST_EXT']] == 'webm' || $aFile[$oCNF['FIELD_ST_EXT']] == 'mp4' || $aFile[$oCNF['FIELD_ST_EXT']] == 'mov' ? '' : $aTranscodersVideo['poster']->getFileUrlNotReady($aFile[$oCNF['FIELD_ST_ID']]));
 
-                                    $sWebMFile = $sWebMFile ? $sWebMFile : ($aFile[$this->_oConfig->CNF['FIELD_ST_EXT']] == 'webm' ? $sFileUrl : '' );
+                                    $sWebMFile = $sWebMFile ? $sWebMFile : ($aFile[$oCNF['FIELD_ST_EXT']] == 'webm' ? $sFileUrl : '' );
                                     $sMp4File = $sMp4File ? $sMp4File :
-                                        ($aFile[$this->_oConfig->CNF['FIELD_ST_EXT']] == 'mp4' || $aFile[$this->_oConfig->CNF['FIELD_ST_EXT']] == 'mov'
+                                        ($aFile[$oCNF['FIELD_ST_EXT']] == 'mp4' || $aFile[$oCNF['FIELD_ST_EXT']] == 'mov'
                                             ? $sFileUrl : '' );
 
 									$aItems['bx_repeat:videos'][] = array(
-										'id' => $aFile[$this->_oConfig->CNF['FIELD_ST_ID']],
+										'id' => $aFile[$oCNF['FIELD_ST_ID']],
 										'video' => BxTemplFunctions::getInstance()->videoPlayer(
                                                         $sPoster,
                                                         $sMp4File,
@@ -850,16 +931,34 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                                                         array('preload' => 'metadata')
                                                         , ''
 													),
-										'delete_code' => $this -> deleteFileCode($aFile[$this->_oConfig->CNF['FIELD_ST_ID']], $isAuthor)
+										'delete_code' => $this -> deleteFileCode($aFile[$oCNF['FIELD_ST_ID']], $isAllowedDelete)
+									);
+								}
+                                elseif ($oTranscoderMp3 -> isMimeTypeSupported($aFile[$oCNF['FIELD_ST_TYPE']]))
+                                {
+                                   $sFileUrl = BxDolStorage::getObjectInstance($oCNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$oCNF['FIELD_ST_ID']]);
+                                   $sMp3File = $aFile[$oCNF['FIELD_ST_EXT']] == 'mp3' ? $sFileUrl : $oTranscoderMp3->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
+
+                                   $aItems['bx_repeat:audios'][] = array(
+                                        'id' => $aFile[$oCNF['FIELD_ST_ID']],
+                                        'title' => $aFile[$oCNF['FIELD_ST_NAME']],
+                                        'mp3' => $this -> audioPlayer($sMp3File, true),
+                                        'bx_if:loading' => array(
+                                            'condition' => !$sMp3File,
+                                            'content' => array(
+                                                'loading_img' => BxDolTemplate::getInstance()->getImageUrl('video-na.png')
+                                            )
+                                        ),
+                                        'delete_code' => $this -> deleteFileCode($aFile[$oCNF['FIELD_ST_ID']], $isAllowedDelete)
 									);
 								}
 								else
 									$aItems['bx_repeat:files'][] = array(
-										'type' => $oStorage -> getFontIconNameByFileName($aFile[$this->_oConfig->CNF['FIELD_ST_NAME']]),
-										'name' => $aFile[$this->_oConfig->CNF['FIELD_ST_NAME']],
-										'file_type' => $aFile[$this->_oConfig->CNF['FIELD_ST_TYPE']],
-										'id' => $aFile[$this->_oConfig->CNF['FIELD_MESSAGE_ID']],
-										'delete_code' => $this -> deleteFileCode($aFile[$this->_oConfig->CNF['FIELD_MESSAGE_ID']], $isAuthor),
+										'type' => $oStorage -> getFontIconNameByFileName($aFile[$oCNF['FIELD_ST_NAME']]),
+										'name' => $aFile[$oCNF['FIELD_ST_NAME']],
+										'file_type' => $aFile[$oCNF['FIELD_ST_TYPE']],
+										'id' => $aFile[$oCNF['FIELD_MESSAGE_ID']],
+										'delete_code' => $this -> deleteFileCode($aFile[$oCNF['FIELD_MESSAGE_ID']], $isAllowedDelete),
 										'url' => BX_DOL_URL_ROOT
 									);
 						}
@@ -873,7 +972,82 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		
 		return $sHTML;
 	}
-	
+
+	public function getFileContent($aFile){
+        $oCNF = &$this -> _oConfig -> CNF;
+
+        $oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);
+        if ($oStorage -> isImageFile($aFile[$oCNF['FIELD_ST_TYPE']]))
+        {
+            $sPhotoThumb = '';
+            if ($aFile[$oCNF['FIELD_ST_TYPE']] != 'image/gif' && $oImagesTranscoder = BxDolTranscoderImage::getObjectInstance($oCNF['OBJECT_IMAGES_TRANSCODER_PREVIEW']))
+                $sPhotoThumb = $oImagesTranscoder->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
+
+            $sFileUrl = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$oCNF['FIELD_ST_ID']]);
+            return $this -> parseHtmlByName('img.html', array(
+                                                                        'url' => $sPhotoThumb ? $sPhotoThumb : $sFileUrl,
+                                                                        'name' => $aFile[$oCNF['FIELD_ST_NAME']],
+                                                                        'id' => $aFile[$oCNF['FIELD_ST_ID']]
+                                                                    ));
+        }
+
+        $aTranscodersVideo = array();
+        if (isset($oCNF['OBJECT_VIDEOS_TRANSCODERS']) && $oCNF['OBJECT_VIDEOS_TRANSCODERS'])
+            $aTranscodersVideo = array (
+                'poster' => BxDolTranscoderImage::getObjectInstance($oCNF['OBJECT_VIDEOS_TRANSCODERS']['poster']),
+                'mp4' => BxDolTranscoderVideo::getObjectInstance($oCNF['OBJECT_VIDEOS_TRANSCODERS']['mp4']),
+                'webm' => BxDolTranscoderVideo::getObjectInstance($oCNF['OBJECT_VIDEOS_TRANSCODERS']['webm']),
+            );
+
+        $isVideo = !empty($aTranscodersVideo) && $aTranscodersVideo['mp4']->isMimeTypeSupported($aFile[$oCNF['FIELD_ST_TYPE']]) && $aTranscodersVideo['webm']->isMimeTypeSupported($aFile[$oCNF['FIELD_ST_TYPE']]);
+        if ($isVideo){
+           $sFileUrl = BxDolStorage::getObjectInstance($oCNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$oCNF['FIELD_ST_ID']]);
+
+           $sMp4File = $aTranscodersVideo['mp4']->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
+           $sWebMFile = $aTranscodersVideo['webm']->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
+
+           $sPoster = $sMp4File && $sWebMFile ?
+           $aTranscodersVideo['poster']->getFileUrl($aFile[$oCNF['FIELD_ST_ID']]) :
+           ($aFile[$oCNF['FIELD_ST_EXT']] == 'webm' || $aFile[$oCNF['FIELD_ST_EXT']] == 'mp4' || $aFile[$oCNF['FIELD_ST_EXT']] == 'mov' ? '' : $aTranscodersVideo['poster']->getFileUrlNotReady($aFile[$oCNF['FIELD_ST_ID']]));
+
+           $sWebMFile = $sWebMFile ? $sWebMFile : ($aFile[$oCNF['FIELD_ST_EXT']] == 'webm' ? $sFileUrl : '' );
+           $sMp4File = $sMp4File ? $sMp4File : ($aFile[$oCNF['FIELD_ST_EXT']] == 'mp4' || $aFile[$oCNF['FIELD_ST_EXT']] == 'mov' ? $sFileUrl : '' );
+
+           return $this -> parseHtmlByName('video.html', array(
+                                                                            'id' => $aFile[$oCNF['FIELD_ST_ID']],
+                                                                            'video' => BxTemplFunctions::getInstance()->videoPlayer(
+                                                                                $sPoster,
+                                                                                $sMp4File,
+                                                                                $sWebMFile,
+                                                                                array('preload' => 'metadata')
+                                                                                , ''
+                                                                            )
+                                                                        ));
+        };
+
+        $oTranscoderMp3 = BxDolTranscoderAudio::getObjectInstance($this -> _oConfig -> CNF['OBJECT_MP3_TRANSCODER']);
+        if ($oTranscoderMp3 -> isMimeTypeSupported($aFile[$oCNF['FIELD_ST_TYPE']]))
+        {
+                $sFileUrl = BxDolStorage::getObjectInstance($oCNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$oCNF['FIELD_ST_ID']]);
+                $sMp3File = $aFile[$oCNF['FIELD_ST_EXT']] == 'mp3' ? $sFileUrl : $oTranscoderMp3->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
+
+                return $this -> parseHtmlByName('audio.html', array(
+                                                                    'id' => $aFile[$oCNF['FIELD_ST_ID']],
+                                                                    'title' => $aFile[$oCNF['FIELD_ST_NAME']],
+                                                                    'mp3' => $this -> audioPlayer($sMp3File, true)
+                                                                ));
+        }
+
+
+         return $this -> parseHtmlByName('file.html', array(
+                    'type' => $oStorage -> getFontIconNameByFileName($aFile[$oCNF['FIELD_ST_NAME']]),
+                    'name' => $aFile[$oCNF['FIELD_ST_NAME']],
+                    'file_type' => $aFile[$oCNF['FIELD_ST_TYPE']],
+                    'id' => $aFile[$oCNF['FIELD_MESSAGE_ID']],
+                    'url' => BX_DOL_URL_ROOT
+                ));
+    }
+
 	/**
 	* Returns Jot content as attachment(repost) for a message
 	*@param int $iJotId jot id
@@ -937,17 +1111,17 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	}
 	
 	/**
-	* Returns right side file's menu in talk history. Allows to  remove or donwload the file
+	* Returns right side file's menu in talk history. Allows to  remove or download the file
 	*@param int $iFileId file id in storage table
-	*@param boolean $bAuthor is the vendor of the file
+	*@param boolean $bIsDeleteAllowed is the vendor of the file
 	*@return string html
 	*/
-	public function deleteFileCode($iFileId, $bAuthor = false){
+	public function deleteFileCode($iFileId, $bIsDeleteAllowed = false){
 		return $this -> parseHtmlByName('file_menu.html', array(
 					'id' => (int)$iFileId,
 					'url' => BX_DOL_URL_ROOT,
 					'bx_if:delete' => array(
-						'condition' => $bAuthor,
+						'condition' => $bIsDeleteAllowed,
 						'content'	=> array(
 							'delete_message' => bx_js_string(_t('_bx_messenger_post_confirm_delete_file')),
 							'id' => (int)$iFileId
@@ -1024,6 +1198,33 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	public function getVideoRecordingForm($iProfileId){
 		return $this -> parseHtmlByName('video_record_form.html', array('max_video_length' => (int)$this->_oConfig->CNF['MAX_VIDEO_LENGTH']  * 60 * 1000));
 	}
+
+    function audioPlayer($sUrlMP3, $bReturnBothIfEmpty = false, $aAttrs = false, $sStyles = '')
+    {
+        $aAttrsDefaults = array(
+            'controls' => '',
+            'loop' => '',
+            'preload' => 'metadata',
+            'download' => true
+        );
+
+        if ($bReturnBothIfEmpty && !$sUrlMP3)
+            unset($aAttrsDefaults['controls']);
+
+        $aAttrs = array_merge($aAttrsDefaults, is_array($aAttrs) ? $aAttrs : array());
+        $sAttrs = bx_convert_array2attrs($aAttrs, '', $sStyles);
+
+        $sLoading = '<img style="max-height:3rem;" src="' . $this->getImageUrl('audio-na.png') . '" />';
+
+        $sAudio = "<audio {$sAttrs}>
+                     " . ($sUrlMP3 ? '<source type="audio/mp3" src="' . $sUrlMP3 .'" />' : '') . "
+                   </audio>";
+
+        if ($bReturnBothIfEmpty && !$sUrlMP3)
+            return $sLoading . $sAudio;
+
+        return $sUrlMP3 ? $sAudio : $sLoading;
+    }
 }
 
 /** @} */

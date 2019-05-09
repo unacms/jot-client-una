@@ -331,6 +331,7 @@ class BxMessengerDb extends BxBaseModTextDb
 				$sNewList = count($aParticipants) > 0 ? implode(',', $aParticipants) : '';
 				$this -> query("UPDATE `{$this->CNF['TABLE_MESSAGES']}` SET `{$this->CNF['FIELD_MESSAGE_NEW_FOR']}` = :part WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('part' => $sNewList, 'id' => $iJotId));
                 bx_alert($this->_oConfig->getObject('alert'), 'read_jot', $iJotId, $iProfileId, array('author_id' => $aNotViewed[$this->CNF['FIELD_MESSAGE_AUTHOR']], 'lot_id' => $aNotViewed[$this->CNF['FIELD_MESSAGE_FK']]));
+                bx_alert($this->_oConfig->getObject('alert'), 'delete_jot_ntfs', $aNotViewed[$this->CNF['FIELD_MESSAGE_FK']],  $iProfileId, array('subobject_id' => $iJotId));
 			} 			
 		}
 	}
@@ -350,6 +351,7 @@ class BxMessengerDb extends BxBaseModTextDb
 				$sNewList = count($aParticipants) > 0 ? implode(',', $aParticipants) : '';
 				$this -> query("UPDATE `{$this->CNF['TABLE_MESSAGES']}` SET `{$this->CNF['FIELD_MESSAGE_NEW_FOR']}` = :part WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('part' => $sNewList, 'id' => $aValue[$this->CNF['FIELD_MESSAGE_ID']]));
                 bx_alert($this->_oConfig->getObject('alert'), 'read_jot', $aValue[$this->CNF['FIELD_MESSAGE_ID']], $iProfileId, array('author_id' => $aValue[$this->CNF['FIELD_MESSAGE_AUTHOR']], 'lot_id' => $iLot));
+                bx_alert($this->_oConfig->getObject('alert'), 'delete_jot_ntfs', $aValue[$this->CNF['FIELD_MESSAGE_FK']], $iProfileId, array('subobject_id' => $aValue[$this->CNF['FIELD_MESSAGE_ID']]));
 			} 			
 		}		
 	}
@@ -614,7 +616,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@return array with jot info
 	*/
 	public function getJotById($iJotId){
-		$sQuery = $this -> prepare("SELECT * FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE  `{$this->CNF['FIELD_MESSAGE_ID']}` = ?", $iJotId);
+		$sQuery = $this -> prepare("SELECT * FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = ?", $iJotId);
 		return $this -> getRow($sQuery);
 	}
 
@@ -1065,6 +1067,14 @@ class BxMessengerDb extends BxBaseModTextDb
                               WHERE `{$this->CNF['FIELD_LCMTS_AUTHOR']}`=:author AND `{$this->CNF['FIELD_LCMTS_ID']}`=:object_id", array('author' => $iProfileId, 'object_id' => $iObjectId));
     }
 
+    public function getLotFiles($iLotId){
+        return $this->getAll("SELECT `s`.* 
+                                         FROM `{$this->CNF['OBJECT_STORAGE']}` as `s`
+                                         LEFT JOIN `{$this->CNF['TABLE_MESSAGES']}` as `j` ON `s`.`{$this->CNF['FIELD_ST_JOT']}` = `j`.`{$this->CNF['FIELD_MESSAGE_ID']}`
+                                         LEFT JOIN `{$this->CNF['TABLE_ENTRIES']}` as `l` ON `l`.`{$this->CNF['FIELD_ID']}` = `j`.`{$this->CNF['FIELD_MESSAGE_FK']}` 
+                                         WHERE `l`.`{$this->CNF['FIELD_ID']}` = :id", array('id' => $iLotId));
+    }
+
     public function isPushNotificationsEnabled(){
         if (!$this->isModuleByName('bx_notifications'))
             return false;
@@ -1092,6 +1102,37 @@ class BxMessengerDb extends BxBaseModTextDb
                                         'lot_id' => $iLotId,
                                         'interval' => $iInterval
                                     )) < $iNumber;
+    }
+
+    /**
+     * @param int $iJotId id of the message
+     * @param int $iProfileId viewer id
+     * @param int $iJotAuthor message's author
+     * @param int $iLotAuthorId author id
+     * @return bool
+     */
+    public function isAllowedToDeleteJot($iJotId, $iProfileId=0, $iJotAuthor=0, $iLotAuthorId=0){
+        $oCNF = &$this -> _oConfig -> CNF;
+        if (!$iJotId)
+            return true;
+
+        if (!$iProfileId)
+            $iProfileId = bx_get_logged_profile_id();
+
+        if (!$iJotAuthor){
+            $aJot = $this->getJotById($iJotId);
+            $iJotAuthor = $aJot[$oCNF['FIELD_MESSAGE_AUTHOR']];
+        }
+
+        if (!$iLotAuthorId) {
+            $iLotId = $this->getLotByJotId($iJotId);
+            $bIsLotAuthor = $this -> isAuthor($iLotId, $iProfileId);
+        }
+        else
+            $bIsLotAuthor = $iLotAuthorId == $iProfileId;
+
+
+        return ($oCNF['ALLOW_TO_REMOVE_MESSAGE'] && $iJotAuthor == $iProfileId) || $bIsLotAuthor || isAdmin();
     }
 }
 

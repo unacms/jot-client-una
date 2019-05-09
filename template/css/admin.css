@@ -142,8 +142,8 @@ div.bx-messenger-lots-menu ul li a.active{
 
 .bx-messenger-block-jots  a,
 .bx-messenger-block-jots  a:hover,
-.bx-messanger-items-list a,
-.bx-messanger-items-list a:hover
+.bx-messenger-items-list a,
+.bx-messenger-items-list a:hover
 {
 	color:inherit;
 }
@@ -286,6 +286,12 @@ div.bx-messenger-lots-menu ul li a.active{
 .bx-messenger-jots-snip .unread-lot div
 {
 	font-size:1rem;
+}
+
+.unread-lot .bx-messenger-jots-snip-title div.title,
+.unread-lot .bx-messenger-preview-lot
+{
+	font-weight: 700;
 }
 
 .bx-messenger-jots-snip .unread-lot span

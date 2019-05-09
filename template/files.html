@@ -21,9 +21,23 @@
 		</div>
 	</bx_repeat:images>
 	<bx_repeat:videos>
-		<div class="bx-messenger-attachment-file-videos" data-video-id="__id__">
+		<div class="bx-messenger-attachment-file-videos" data-media-id="__id__">
 			__delete_code__
 			__video__
 		</div>
 	</bx_repeat:videos>
+	<bx_repeat:audios>
+		<div class="bx-messenger-attachment-file-audio" data-media-id="__id__">
+			__delete_code__
+			<div class="audio">
+				<span class="title">__title__</span>
+				<span class="file">
+					__mp3__
+					<!--<bx_if:loading>
+					 	<img src="__loading_img__"/>
+					</bx_if:loading>-->
+				</span>
+			</div>
+		</div>
+	</bx_repeat:audios>
 </div>

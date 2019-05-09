@@ -1,8 +1,8 @@
 <div class="bx-messenger-block jots bx-db-container bx-def-color-bg-block bx-def-image-bg-block bx-shadow-block bx-def-border-block">
 	<div class="bx-db-header">
 		<div class="bx-messenger-hide-mobile bx-db-menu left">
-			<a href="javascript:void(0);" onclick="oJotWindowBuilder.changeColumn();" title="__back_title__">	
-				<i data-feather="chevron-left"></i>
+			<a href="javascript:void(0);" onclick="oJotWindowBuilder.changeColumn();" title="__back_title__">
+				<i class="sys-icon chevron-left"></i>
 				<bx_if:count>
 					<span class="bubble bx-menu-toolbar-item-addon bx-def-unit-alert-middle">__back_count__</span>
 				</bx_if:count>
@@ -13,14 +13,14 @@
 		</div>
 		<bx_if:show_lot_menu>
 			<div class="bx-db-menu right">
-				<a id="star" href="javascript:void(0);" title="__star_title__" onclick="oMessenger.onStarLot(__id__, this);" data-value="__star__" data-color="__star_fill_color__">
-					<i data-feather="__star_icon__" /></i>
+				<a id="star" href="javascript:void(0);" title="__star_title__" onclick="oMessenger.onStarLot(__id__, this);" data-value="__star__">
+					<i class="sys-icon __star_icon__"></i>
 				</a>
 				<a href="javascript:void(0);" title="__mute_title__" onclick="oMessenger.onMuteLot(__id__, this);" data-value="__mute__">
-					<i data-feather="__bell_icon__"></i>
+					<i class="sys-icon __bell_icon__"></i>
 				</a>
 				<a href="javascript:void(0);"  title="__settings_title__"  onclick="bx_menu_slide_inline('#bx-menu-db-menu-settings', this)">
-					<i data-feather="info"></i>
+					<i class="sys-icon info-circle"></i>
 				</a>
 			</div>
 		</bx_if:show_lot_menu>
@@ -41,7 +41,3 @@
 		__post_area__
 	</div>
 </div>
-<script>
-	$('#star')
-		.html(feather.toSvg('__star_icon__', { stroke: "currentColor", color: '__star_color__', fill: '__star_color__' }));
-</script>

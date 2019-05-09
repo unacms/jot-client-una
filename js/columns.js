@@ -12,9 +12,9 @@
  * Adapt messenger main page for different devises
  */ 
 
-var oJotWindowBuilder = (function(){
-	var _oPrivate = {
-				sLeftAreaName: '.bx-messanger-items-list',
+const oJotWindowBuilder = (function(){
+	const _oPrivate = {
+				sLeftAreaName: '.bx-messenger-items-list',
 				sLotSelector: '.bx-messenger-jots-snip',
 				sRightAreaName: '.bx-messenger-main-block', //left column of the body without header
 				sLeftTopBlockArea: '#bx-messangger-block-head',
@@ -72,13 +72,13 @@ var oJotWindowBuilder = (function(){
 							if (sSide)
 								this.sActiveType = sSide;
 							else	
-								this.sActiveType = this.sActiveType == 'left' ? 'right' : 'left';	
-						}	
+								this.sActiveType = this.sActiveType === 'left' ? 'right' : 'left';
+						}
 						else
 							this.sActiveType = 'both';
 					
-						this.resizeColumns();	
-					},
+						this.resizeColumns();
+				},
 				activateLeft:function(){					
 						this.oRightCol.hide().width('0%');
 						this.iRightSize = '0%';
@@ -93,7 +93,7 @@ var oJotWindowBuilder = (function(){
 					},
 					
 				activateBoth:function(){
-						if (parseInt(this.iRightSize) == 0 || parseInt(this.iRightSize) == 100)
+						if (parseInt(this.iRightSize) === 0 || parseInt(this.iRightSize) === 100)
 						{
 							this.iLeftSize = '30%';
 							this.iRightSize = '70%';
@@ -140,13 +140,16 @@ var oJotWindowBuilder = (function(){
 			{
 				_oPrivate.resizeColumns();
 			},
-			changeColumn:function(sSide)
+			changeColumn:function(sSide, fCallback)
 			{
 				_oPrivate.changeColumn(sSide);
+
+				if (typeof fCallback === 'function')
+					fCallback();
 			},
 			isHistoryColActive:function()
 			{
-				return _oPrivate.sActiveType == 'both' || _oPrivate.sActiveType == 'right';
+				return _oPrivate.sActiveType === 'both' || _oPrivate.sActiveType === 'right';
 			},
 			loadRightColumn:function()
 			{

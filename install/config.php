@@ -17,7 +17,7 @@ $aConfig = array(
 	'name' => 'bx_messenger',
 	'title' => 'Messenger',
 	'note' => 'Messenger module.',
-	'version' => '9.0.9.DEV',
+	'version' => '9.0.11.DEV',
 	'vendor' => 'BoonEx',
 	'help_url' => 'http://feed.una.io/?section={module_name}',
 
@@ -60,7 +60,10 @@ $aConfig = array(
      * Note. Don't add storage objects used in transcoder objects.
      */
 	'storages' => array(
-		'bx_messenger_files'
+		'bx_messenger_files',
+		'bx_messenger_photos_resized',
+		'bx_messenger_videos_processed',
+		'bx_messenger_mp3_processed'
 	),
 
 	/**
@@ -71,7 +74,8 @@ $aConfig = array(
         'bx_messenger_preview',
 		'bx_messenger_videos_poster',
 		'bx_messenger_videos_mp4',
-		'bx_messenger_videos_webm'
+		'bx_messenger_videos_webm',
+		'bx_messenger_mp3',
 	),
 	
 	/**

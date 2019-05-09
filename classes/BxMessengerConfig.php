@@ -64,7 +64,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'FIELD_ST_ID' => 'id',
 			'FIELD_ST_AUTHOR' => 'profile_id',
 			'FIELD_ST_NAME' => 'file_name',
-			'FIELD_ST_ADDED' => 'created',
+			'FIELD_ST_ADDED' => 'added',
 			'FIELD_ST_JOT' => 'jot_id',
 			'FIELD_ST_TYPE' => 'mime_type',
 			'FIELD_ST_EXT' => 'ext',
@@ -102,7 +102,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'STAR_BACKGROUND_COLOR' => '#f5a623',
 			'BELL_ICON_ON' => 'bell',
 			'STAR_ICON' => 'star',
-			'BELL_ICON_OFF' => 'bell-off',
+			'BELL_ICON_OFF' => 'bell-slash',
 			'PARAM_FRIENDS_NUM_BY_DEFAULT' => 10,
 			'PARAM_NTFS_INTERVAL' => 1, /* INTERVAL IN HOURS*/
 			'PARAM_SEARCH_DEFAULT_USERS' => 5,
@@ -121,6 +121,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'OBJECT_STORAGE' => 'bx_messenger_files',
 			'OBJECT_IMAGES_TRANSCODER_GALLERY' => 'bx_messenger_photos_resized',
 			'OBJECT_IMAGES_TRANSCODER_PREVIEW' => 'bx_messenger_preview',
+            'OBJECT_MP3_TRANSCODER' => 'bx_messenger_mp3',
 			'OBJECT_VIDEOS_TRANSCODERS' => array(
 													'poster' => 'bx_messenger_videos_poster',
 													'mp4' => 'bx_messenger_videos_mp4',
@@ -151,6 +152,9 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'MAX_FILES_TO_UPLOAD' => (int)getParam($aModule['db_prefix'] . 'max_files_send'),
 			'MAX_VIDEO_LENGTH'	=> (int)getParam($aModule['db_prefix'] . 'max_video_length_minutes'),
 			'MAX_NTFS_NUMBER'	=> (int)getParam($aModule['db_prefix'] . 'max_ntfs_number'),
+			'MAX_VIEWS_PARTS_NUMBER' => (int)getParam($aModule['db_prefix'] . 'max_parts_views'),
+			'ALLOW_TO_REMOVE_MESSAGE' => getParam($aModule['db_prefix'] . 'allow_to_remove_messages') == 'on',
+                        'REMOVE_MESSAGE_IMMEDIATELY' => getParam($aModule['db_prefix'] . 'remove_messages_immediately') == 'on',
 		);
 
 		$this->_aObjects = array(

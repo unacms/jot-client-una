@@ -149,4 +149,9 @@
 	<string name="_bx_messenger_txt_sample_comment_file_single"><![CDATA[сообщене с <b>{0} файлом(и) </b> в]]></string>
 	<string name="_bx_messenger_max_ntfs_number"><![CDATA[Максимальное количество оповещений от одного участника в одном разговоре в течении часа]]></string>
 	<string name="_bx_messenger_txt_subobject_added"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> отправил(а) {subentry_sample} <b class="bx-ntfs-content-entry">{entry_caption}</b>]]></string>
+	<string name="_bx_messenger_max_parts_views"><![CDATA[Разрешать показывать просмотры сообщений в разговорах не превышающих указанное количество пользователей]]></string>
+	<string name="_bx_messenger_allow_to_remove_messages"><![CDATA[Разрешать пользователям удалять собственные сообщения]]></string>
+	<string name="_bx_messenger_remove_messages_immediately"><![CDATA[удалять сообщения сразу, без подтверждения администратора]]></string>
+	<string name="_bx_messenger_lots_menu_media"><![CDATA[Файлы]]></string>
+	<string name="_bx_messenger_no_permissions"><![CDATA[Вы не можете просматривать содержимое вкладки]]></string>
 </resources>

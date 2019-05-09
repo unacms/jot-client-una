@@ -1,24 +1,29 @@
 <div class="bx-messenger-table-wrapper">
 	<div class="bx-messenger-table-wrapper-rows">
-		<div class="cell">
-			<div class="bx-messenger-conversation-block-wrapper">
-				<div class="bx-messenger-conversation-block">
-					<div class="bx-messenger-conversations">
-						__content__
+			<div class="cell">
+				<div class="bx-messenger-conversation-block-wrapper pushable">
+					<div class="ui right vertical sidebar very wide bx-def-color-bg-block">
+						__files__
 					</div>
+					<div class="pusher">
+						<div class="bx-messenger-conversation-block">
+							<div class="bx-messenger-conversations">
+								__content__
+							</div>
+						</div>
+						<div id="bx-messenger-info-area">
+							<div class="bx-messenger-conversations-typing bx-def-font-light bx-def-font-small">
+								<span></span><bx_text:_bx_messenger_typing_message />
+							</div>
+							<div class="bx-messenger-info-area-connecting bx-def-font-light bx-def-font-small">
+								<bx_text:_bx_messenger_reconnecting_message /><span></span>
+							</div>
+							<div class="bx-messenger-info-area-connect-failed bx-def-font-light bx-def-font-small">
+								<bx_text:_bx_messenger_reconnecting_failed />
+							</div>
+						</div>
+				  </div>
 				</div>
-				<div id="bx-messenger-info-area">
-					<div class="bx-messenger-conversations-typing bx-def-font-light bx-def-font-small">
-						<span></span><bx_text:_bx_messenger_typing_message />
-					</div>
-					<div class="bx-messenger-info-area-connecting bx-def-font-light bx-def-font-small">
-						<bx_text:_bx_messenger_reconnecting_message /><span></span>
-					</div>
-					<div class="bx-messenger-info-area-connect-failed bx-def-font-light bx-def-font-small">
-						<bx_text:_bx_messenger_reconnecting_failed />
-					</div>
-				</div>
-			</div>
 			<bx_if:show_scroll_area>
 				<div class="bx-messenger-area-scroll bx-def-font-light bx-def-font-small">
 					<div>
@@ -50,17 +55,17 @@
 							</li>
 							<li class="video">
 								<a title="<bx_text:_bx_messenger_send_recorded_video />" onclick="oMessenger.showPopForm('get_record_video_form');">
-									<i data-feather="video"></i>
+									<i class="sys-icon video"></i>
 								</a>
 							</li>
 							<li>
 								<a title="<bx_text:_bx_messenger_post_attache_files />" onclick="oMessenger.showPopForm();">
-									<i data-feather="paperclip"></i>
+									<i class="sys-icon paperclip"></i>
 								</a>
 							</li>
 							<li>
 								<a title="<bx_text:_bx_messenger_post_view_actions />" id = "bx-messenger-send-area-menu">
-									<i data-feather="plus"></i>
+									<i class="sys-icon plus"></i>
 								</a>
 							</li>
 						</ul>
@@ -70,7 +75,7 @@
 						</div>
 						<div class="bx-messenger-post-box-send-button">
 							<a id="send-button" title="<bx_text:_bx_messenger_post_button_title />">
-								<i data-feather="arrow-up"></i>
+								<i class="sys-icon arrow-up"></i>
 							</a>
 						</div>
 					</div>
@@ -87,5 +92,12 @@
 			'lot'	:__id__,
 			'name'	:'__name__'
 		});
+
+		$('.bx-messenger-conversation-block-wrapper .ui.sidebar')
+				.sidebar({
+					context: $('.bx-messenger-conversation-block-wrapper'),
+					dimPage:true
+				})
+				.sidebar('setting', { transition: 'overlay', mobileTransition: 'overlay'});
 	});
 </script>

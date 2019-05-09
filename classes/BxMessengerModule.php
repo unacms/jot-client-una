@@ -261,6 +261,16 @@ class BxMessengerModule extends BxBaseModTextModule
 		$aBlock = $this -> _oTemplate -> getTalkBlock($this -> _iUserId, $iId, $iJotId, BX_IM_TYPE_PUBLIC, false, $sTitle);
 		echoJson(array('code' => 0, 'html' =>  $aBlock['content'], 'title' => $aBlock['title']));
 	}
+
+    public function actionMarkJotsAsRead(){
+        $iId = (int)bx_get('lot');
+	    if (!$this -> isLogged() || !$this -> _oDb -> isParticipant($iId, $this -> _iUserId)){
+            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
+        };
+
+        $this -> _oDb -> readAllMessages($iId, $this -> _iUserId);
+        echoJson(array('code' => 0));
+    }
    
 	/**
 	* Loads messages for specified lot(conversation)
@@ -340,18 +350,20 @@ class BxMessengerModule extends BxBaseModTextModule
 	* @return string with json
 	*/
 	public function actionUpdate(){	   
-		$sUrl = bx_get('url');
+		$oCNF = &$this -> _oConfig -> CNF;
+	    $sUrl = bx_get('url');
 		$iJot = (int)bx_get('jot');
 		$iLotId = (int)bx_get('lot');
 		$sLoad = bx_get('load');
-	   
+		$bRead = filter_var(bx_get('read'), FILTER_VALIDATE_BOOLEAN);
+
 		if ($sLoad == 'new' && !(int)$iJot)
 		{
 			$aMyLatestJot = $this -> _oDb -> getLatestJot($iLotId, $this -> _iUserId);
 			if (empty($aMyLatestJot))
 				return echoJson(array('code' => 1));
 			else
-				$iJot = (int)$aMyLatestJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']];
+				$iJot = (int)$aMyLatestJot[$oCNF['FIELD_MESSAGE_ID']];
 		}   
 		   
 	   	$sUrl = $sUrl ? $this -> getPreparedUrl($sUrl) : '';
@@ -365,7 +377,9 @@ class BxMessengerModule extends BxBaseModTextModule
 								'url' => $sUrl,
 								'start'	=> $iJot,
 								'load' => $sLoad,
-								'limit'	=> ($sLoad != 'new' ? $this -> _oConfig -> CNF['MAX_JOTS_LOAD_HISTORY'] : 0)								
+								'limit'	=> ($sLoad != 'new' ? $oCNF['MAX_JOTS_LOAD_HISTORY'] : 0),
+                                'read' => $bRead,
+                                'views' => true
 							 );
 					$sContent = $this -> _oTemplate -> getJotsOfLot($this -> _iUserId, $aOptions);
 				break;
@@ -373,7 +387,15 @@ class BxMessengerModule extends BxBaseModTextModule
 					$aJotInfo = $this -> _oDb -> getJotById($iJot);
 					$sContent = $aJotInfo[$this -> _oConfig -> CNF['FIELD_MESSAGE']];
 			case 'delete':
-					$sContent .= $this -> _oTemplate -> getMessageIcons($iJot, $sLoad, $this -> _oDb -> isAuthor($iLotId, $this -> _iUserId) || isAdmin());
+			        $sContent .= $this -> _oTemplate -> getMessageIcons($iJot, $sLoad, $this -> _oDb -> isAuthor($iLotId, $this -> _iUserId) || isAdmin());
+					break;
+            case 'check_viewed':
+                if ($iLotId && $iJot) {
+                    $aJotInfo = $this->_oDb->getJotById($iJot);
+                    if (!empty($aJotInfo))
+                        $sContent = $this-> _oTemplate -> getViewedJotProfiles($iJot, $this -> _iUserId);
+                }
+
 				break;
 		}
 			
@@ -436,34 +458,40 @@ class BxMessengerModule extends BxBaseModTextModule
 	
 	/**
 	* Returns processed videos by received videos ids
-	* @return string with json
+	* @return array with json
 	*/
-	public function actionGetProcessedVideos(){
-		$aVideos = bx_get('videos');
+	public function actionGetProcessedMedia(){
+        $oCNF = &$this->_oConfig-> CNF;
+	    $aMedia = bx_get('media');
 		$aResult = array();
 		
-		if (empty($aVideos))
+		if (empty($aMedia))
 			return echoJson($aResult);
 		
-		$aTranscodersVideo = array();
-		if (isset($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']) && $this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS'])
 			$aTranscodersVideo = array(
-				'poster' => BxDolTranscoderImage::getObjectInstance($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']['poster']),
-				'mp4' => BxDolTranscoderVideo::getObjectInstance($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']['mp4']),
-				'webm' => BxDolTranscoderVideo::getObjectInstance($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']['webm']),
+			'poster' => BxDolTranscoderImage::getObjectInstance($oCNF['OBJECT_VIDEOS_TRANSCODERS']['poster']),
+			'mp4' => BxDolTranscoderVideo::getObjectInstance($oCNF['OBJECT_VIDEOS_TRANSCODERS']['mp4']),
+			'webm' => BxDolTranscoderVideo::getObjectInstance($oCNF['OBJECT_VIDEOS_TRANSCODERS']['webm']),
 			);
 		
-		if (empty($aTranscodersVideo))
+        $oTranscoderAudio = BxDolTranscoderAudio::getObjectInstance($oCNF['OBJECT_MP3_TRANSCODER']);
+        $oStorage = BxDolStorage::getObjectInstance($oCNF['OBJECT_STORAGE']);
+
+        if (empty($oStorage))
 			return echoJson($aResult);
 				
-		foreach($aVideos as $iKey => $iValue)
+		foreach($aMedia as &$iMedia)
 		{
-			$sPoster = $aTranscodersVideo['poster']->getFileUrl($iValue);
-			$sMp4 = $aTranscodersVideo['mp4']->getFileUrl($iValue);
-			$sWebM = $aTranscodersVideo['webm']->getFileUrl($iValue);
+            $aFile = $oStorage -> getFile($iMedia);
+            if ($oTranscoderAudio -> isMimeTypeSupported($aFile['mime_type']) && $oTranscoderAudio -> isFileReady($iMedia))
+                $aResult[$iMedia] =  $this -> _oTemplate -> audioPlayer($oTranscoderAudio->getFileUrl($aFile[$oCNF['FIELD_ST_ID']]), true);
+
+		    $sPoster = $aTranscodersVideo['poster']->getFileUrl($iMedia);
+			$sMp4 = $aTranscodersVideo['mp4']->getFileUrl($iMedia);
+			$sWebM = $aTranscodersVideo['webm']->getFileUrl($iMedia);
 														
-			if ($aTranscodersVideo['poster'] -> isFileReady($iValue) && $aTranscodersVideo['mp4'] -> isFileReady($iValue) && $aTranscodersVideo['webm'] -> isFileReady($iValue))
-				$aResult[$iValue] = BxTemplFunctions::getInstance()->videoPlayer(
+			if ($aTranscodersVideo['poster'] -> isFileReady($iMedia) && $aTranscodersVideo['mp4'] -> isFileReady($iMedia) && $aTranscodersVideo['webm'] -> isFileReady($iMedia))
+				$aResult[$iMedia] = BxTemplFunctions::getInstance()->videoPlayer(
 																					$sPoster,
 																					$sMp4,
 																					$sWebM,
@@ -547,14 +575,14 @@ class BxMessengerModule extends BxBaseModTextModule
 		}
 
         $aLotInfo = $this -> _oDb -> getLotInfoById($iLotId);
-        $JotsList = $this -> getJotsByLotId($iLotId);
+        $aJotsList = $this -> _oDb -> getJotsByLotId($iLotId);
         $CNF = &$this->_oConfig->CNF;
 
 		if ($this -> _oDb -> deleteLot($iLotId)) {
 				$aResult = array('code' => 0);
             $this -> onDeleteLot($iLotId, $aLotInfo[$CNF['FIELD_AUTHOR']]);
 
-            foreach($JotsList as &$aJot)
+            foreach($aJotsList as &$aJot)
               $this->onDeleteJot($aJot[$CNF['FIELD_MESSAGE_FK']], $aJot[$CNF['FIELD_MESSAGE_ID']], $aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);
         }
 		   
@@ -569,19 +597,21 @@ class BxMessengerModule extends BxBaseModTextModule
 		$iJotId = bx_get('jot');
 		$bCompletely = (int)bx_get('completely');
 		$aJotInfo = $this -> _oDb -> getJotById($iJotId);
-        $CNF = &$this->_oConfig->CNF;
 
 		$aResult = array('code' => 1);
+        $oCNF = &$this->_oConfig->CNF;
+
 		if (empty($aJotInfo))
 			return echoJson($aResult);
-		
-		$bIsLotAuthor = $this -> _oDb -> isAuthor($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this -> _iUserId);
-		if (!(isAdmin() || (!$bCompletely && $this -> _oDb -> isAuthor($iJotId, $this -> _iUserId, false)) || $bIsLotAuthor))
+
+        $bIsLotAuthor = $this -> _oDb -> isAuthor($aJotInfo[$oCNF['FIELD_MESSAGE_FK']], $this -> _iUserId);
+		$bIsAllowedToDelete = $this -> _oDb -> isAllowedToDeleteJot($iJotId, $this -> _iUserId, $aJotInfo[$oCNF['FIELD_MESSAGE_AUTHOR']], $bIsLotAuthor);
+		if (!(isAdmin() || $bIsLotAuthor || ((!$bCompletely || $oCNF['REMOVE_MESSAGE_IMMEDIATELY']) && $bIsAllowedToDelete)))
 			return echoJson($aResult);
 					
-		if ($this -> _oDb -> deleteJot($iJotId, $this -> _iUserId, $bCompletely)) {
-			$aResult = array('code' => 0, 'html' => !$bCompletely ? $this -> _oTemplate -> getMessageIcons($iJotId, 'delete', isAdmin() || $bIsLotAuthor) : '');
-            $this -> onDeleteJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iJotId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
+		if ($this -> _oDb -> deleteJot($iJotId, $this -> _iUserId, $bCompletely || $oCNF['REMOVE_MESSAGE_IMMEDIATELY'])){
+            $this -> onDeleteJot($aJotInfo[$oCNF['FIELD_MESSAGE_FK']], $iJotId, $aJotInfo[$oCNF['FIELD_MESSAGE_AUTHOR']]);
+            $aResult = array('code' => 0, 'html' => !$bCompletely ? $this -> _oTemplate -> getMessageIcons($iJotId, 'delete', $bIsLotAuthor || isAdmin()) : '');
         }
 	   
 		echoJson($aResult);
@@ -652,7 +682,8 @@ class BxMessengerModule extends BxBaseModTextModule
 		$oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
 		$aFile = $oStorage -> getFile($iFileId);
 		
-		if ($aFile[$CNF['FIELD_ST_AUTHOR']] != $this -> _iUserId && !isAdmin())
+        $bIsAllowedToDelete = $this -> _oDb -> isAllowedToDeleteJot($aFile[$this -> _oConfig -> CNF['FIELD_ST_JOT']], $this -> _iUserId);
+		if (!$bIsAllowedToDelete && !isAdmin())
 			return echoJson($aResult);
 		
 		if ($oStorage -> deleteFile($iFileId, $this -> _iUserId))
@@ -1251,6 +1282,42 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $aResult = array('code' => 0, 'id' => $iObjectId);
         return $this -> _oDb -> removeLiveComment($iObjectId, $iProfileId) ? $aResult : array('code' => 1);
+    }
+
+    public function actionGetFilesList($iLotId){
+        if (!$iLotId || !$this -> _iUserId || !$this ->_oDb -> isParticipant($iLotId, $this -> _iUserId))
+            return false;
+
+        $aFiles = $this -> _oDb -> getLotFiles($iLotId);
+        if (empty($aFiles))
+            return array();
+
+        $aResult = array();
+        $oCNF = &$this->_oConfig->CNF;
+        foreach($aFiles as $iKey => $aValue)
+           $aResult[$aValue[$oCNF['FIELD_ST_ID']]] = $this -> _oTemplate -> getFileContent($aValue);
+
+        return $aResult;
+    }
+
+    public function actionGetLotTabs($iLotId, $sAction){
+        if (!$iLotId || !$this -> _iUserId || !$this ->_oDb -> isParticipant($iLotId, $this -> _iUserId))
+            return echoJson(array('code' => 1, 'msg' => _t('_bx_messenger_no_permissions')));
+
+        $sHTML = '';
+        switch($sAction){
+            case 'files':
+                    $aFiles = $this -> actionGetFilesList($iLotId);
+                    if (empty($aFiles))
+                        $sHTML = MsgBox(_t('_bx_messenger_txt_msg_no_results'));
+                    else
+                        $sHTML = $this -> _oTemplate -> parseHtmlByName('files_feeds.html', array('bx_repeat:files' => $aFiles));
+                break;
+        }
+
+        header('Content-type: text/html; charset=utf-8');
+        echo $sHTML;
+        exit;
     }
 
     public function serviceGetLotsList($iProfileId){

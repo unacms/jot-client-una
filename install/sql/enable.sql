@@ -24,7 +24,11 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_server_url', '', @iCategId, '_bx_messenger_server_url', 'digit', '', '', '', 11),
 ('bx_messenger_max_files_send', '5', @iCategId, '_bx_messenger_max_files_upload', 'digit', '', '', '', 12),
 ('bx_messenger_max_video_length_minutes', '5', @iCategId, '_bx_messenger_max_video_file_size', 'digit', '', '', '', 13),
-('bx_messenger_max_ntfs_number', '5', @iCategId, '_bx_messenger_max_ntfs_number', 'digit', '', '', '', 14);
+('bx_messenger_max_ntfs_number', '5', @iCategId, '_bx_messenger_max_ntfs_number', 'digit', '', '', '', 14),
+('bx_messenger_max_parts_views', '10', @iCategId, '_bx_messenger_max_parts_views', 'digit', '', '', '', 15),
+('bx_messenger_allow_to_remove_messages', 'on', @iCategId, '_bx_messenger_allow_to_remove_messages', 'checkbox', '', '', '', 16),
+('bx_messenger_remove_messages_immediately', '', @iCategId, '_bx_messenger_remove_messages_immediately', 'checkbox', '', '', '', 17);
+
 
 -- MENU: notifications
 SET @iMIOrder = (SELECT IFNULL(MAX(`order`), 0) FROM `sys_menu_items` WHERE `set_name` = 'sys_account_notifications' AND `order` < 9999);

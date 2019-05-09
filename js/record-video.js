@@ -106,13 +106,13 @@ oJotVideoRecorder.prototype.init = function()
 			.click(
 					function()
 					{
-						var iActivePos = $(this).data('click'); 						
+						var iActivePos = $(this).data('click');
 						
 						switch(iActivePos)
 						{
 							case 1:
 								$(this)
-									.html(feather.toSvg('play'))
+									.html('<i class="sys-icon play"></i>')
 									.data('click', 2);								
 									
 								$(_this.video)
@@ -124,7 +124,7 @@ oJotVideoRecorder.prototype.init = function()
 								
 								$(this)
 									.removeClass('empty')
-									.html(feather.toSvg('pause'))
+									.html('<i class="sys-icon pause"></i>')
 									.data('click', 1);					
 						}			
 					});
@@ -134,7 +134,7 @@ oJotVideoRecorder.prototype.init = function()
 						function(e)
 						{
 							$(_this.bplay)
-								.html(feather.toSvg('rotate-ccw'))
+								.html('<i class="sys-icon undo"></i>')
 								.addClass('empty')
 								.unbind()
 								.toggle(
@@ -164,7 +164,7 @@ oJotVideoRecorder.prototype.init = function()
 						case 1:
 							$(__this).removeClass('active');
 							__this
-								.html(feather.toSvg('circle'))
+								.html('<i class="sys-icon circle"></i>')
 								.data('click', 2);
 							
 							_this.stop(function()
@@ -183,10 +183,10 @@ oJotVideoRecorder.prototype.init = function()
 								$(_this.video)
 									.prop('muted', true)
 									.prop('autoplay', true)
-									.prepend(feather.toSvg('circle'));
+									.prepend('<i class="sys-icon circle"></i>');
 									
 								$(_this.bplay)
-									.html(feather.toSvg('play'))
+									.html('<i class="sys-icon play"></i>')
 									.addClass(_this.sDisableButtonClass)
 									.prop('disabled', true)
 									.removeClass('empty')
@@ -198,7 +198,7 @@ oJotVideoRecorder.prototype.init = function()
 								
 								
 								$(_this.title).css('display', 'flex');
-								__this.html(feather.toSvg('square')).data('click', 1);
+								__this.html('<i class="sys-icon square"></i>').data('click', 1);
 					}
 				});	
 }

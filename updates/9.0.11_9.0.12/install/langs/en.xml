@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="en" flag="gb" title="English">
+	<string_add name="_bx_messenger_max_parts_views"><![CDATA[Allow to show messages' views for Talks which contain maximum defined number of participants]]></string_add>
+	<string_add name="_bx_messenger_allow_to_remove_messages"><![CDATA[Allow members to remove their messages]]></string_add>
+	<string_add name="_bx_messenger_remove_messages_immediately"><![CDATA[Remove messages immediately, without administration confirmation]]></string_add>
+	<string_add name="_bx_messenger_lots_menu_media"><![CDATA[Files]]></string_add>
+	<string_add name="_bx_messenger_no_permissions"><![CDATA[You have no rights to view the content]]></string_add>
+</resources>

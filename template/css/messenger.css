@@ -66,6 +66,10 @@
 	z-index: 2;
 }
 
+.bx-messenger-jots-snip-avatars .bx-base-pofile-unit-online.offline{
+	display:none;
+}
+
 .bx-messenger-jots-snip-avatars .bx-base-pofile-unit-online.away{
 	background-color: #f5a623;
 }

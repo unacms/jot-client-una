@@ -713,8 +713,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	}
 
 	/**
-	* Create js configuration for the messenger depends on administratin settings
-	*@param int $iProfileId logget member id
+	* Create js configuration for the messenger depends on administration settings
+	*@param int $iProfileId logged member id
 	*@return string html code
 	*/
 	public function loadConfig($iProfileId){

@@ -150,9 +150,11 @@ const oMessenger = (function($){
 			// send message area init
 			$(this.sSendArea).on('keydown', function(oEvent)
 			{
-				const iKeyCode = oEvent.keyCode || oEvent.which;
+				const iKeyCode = oEvent.keyCode || oEvent.which,
+					  sMessage = oMessageBox.val();
 
-				if (iKeyCode === 38 && $(_this.sTalkListJotSelector).length){
+
+				if (iKeyCode === 38 && $(_this.sTalkListJotSelector).length && !sMessage.length){
 					const aJots = $(_this.sTalkListJotSelector).get().reverse();
 
 						for(let i=0; i < aJots.length; i++) {
@@ -1074,12 +1076,15 @@ const oMessenger = (function($){
 	*/
 	oMessenger.prototype.updatePageIcon = function(bEnable, iLot)
 	{
-		let iUnreadLotsCount = $(this.sBubble + ':visible').length;
-		
-		if (iUnreadLotsCount === 1 && iLot !== undefined && iLot == $(this.sBubble + ':visible')
-															.parents('.bx-messenger-jots-snip')
-															.data('lot'))
+		const oNewLots = $(`.${this.sUnreadLotClass}`),
+			  iCurrentLot = $(this.sLotsListSelector).first().data('lot');
+
+		let iUnreadLotsCount = oNewLots.length;
+
+		if (iUnreadLotsCount === 1 && iLot !== undefined && iLot === iCurrentLot && (!this.isMobile() || (this.isMobile() && this.oJotWindowBuilder.isHistoryColActive())))
 			iUnreadLotsCount = 0;
+
+		this.notifyNewUnreadChats(iUnreadLotsCount);
 
 		if (bEnable === true || iUnreadLotsCount)
 			$('link[rel="shortcut icon"]').attr('href', this.sInfoFavIcon);
@@ -1314,6 +1319,7 @@ const oMessenger = (function($){
 						{
 							if (typeof oData.lot_id !== 'undefined')
 								_this.oSettings.lot = parseInt(oData.lot_id);
+
 							if (typeof oData.tmp_id != 'undefined')
 								$('[data-tmp="' + oData.tmp_id + '"]', _this.sTalkList)
 									.attr('data-id', oData.jot_id)
@@ -1326,7 +1332,7 @@ const oMessenger = (function($){
 								_this.upLotsPosition(_this.oSettings);
                                 _this.broadcastView(iJotId);
 						}
-						
+
 						if (!_this.iAttachmentUpdate)
 							_this.broadcastMessage();
 						
@@ -1351,6 +1357,7 @@ const oMessenger = (function($){
 											name: this.oSettings.name,
 											user_id: this.oSettings.user_id
 										});
+
 		if (this.oRTWSF !== undefined)
 				this.oRTWSF.message(oMessage);
 	};
@@ -1439,7 +1446,15 @@ const oMessenger = (function($){
 						}
 					}
 				}, 'json');
-	}
+	};
+
+	oMessenger.prototype.notifyNewUnreadChats = function(iNewNumberOfUnreadChats) {
+		if (typeof window.glBxMessengerOnNotificationChange !== 'undefined' && window.glBxMessengerOnNotificationChange instanceof Array) {
+			for (let i = 0; i < window.glBxMessengerOnNotificationChange.length; i++)
+				if (typeof window.glBxMessengerOnNotificationChange[i] === "function")
+					window.glBxMessengerOnNotificationChange[i](iNewNumberOfUnreadChats);
+		}
+	};
 	
 	/**
 	* Show member's typing area when member is typing a message
@@ -1615,7 +1630,7 @@ const oMessenger = (function($){
 			sPosition = oAction.position || (sAction === 'new' ? 'bottom' : 'position'),
 			oObjects = $(this.sTalkListJotSelector);
 
-		let	iJotId = 0;
+			let	iJotId = 0;
 			
 			if (oAction.action === 'msg' && $(_this.sScrollArea).length)
 				return;
@@ -2018,6 +2033,8 @@ const oMessenger = (function($){
 				_oMessenger.oStorage = new oMessengerStorage();
 				_oMessenger.checkNotFinishedTalks();
 			}
+
+			_oMessenger.updatePageIcon();
 		},
 		
 		// init public methods
@@ -2090,7 +2107,7 @@ const oMessenger = (function($){
 		onMessage: function(oData){	
 			const bSilent = _oMessenger.oSettings.user_id === oData.user_id;
 
-			if (!_oMessenger.isBlockVersion() && (!_oMessenger.isMobile() || (_oMessenger.isMobile() && !_oMessenger.oJotWindowBuilder.isHistoryColActive())))
+			if (!_oMessenger.isBlockVersion() && (!_oMessenger.isMobile() || (_oMessenger.isMobile() && oData.lot !== _oMessenger.oSettings.lot))) //!_oMessenger.oJotWindowBuilder.isHistoryColActive()
 				_oMessenger.upLotsPosition(oData, bSilent);
 
 			if (oData.lot === _oMessenger.oSettings.lot)

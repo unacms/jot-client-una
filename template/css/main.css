@@ -171,7 +171,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 .bx-messenger-conversation-block-wrapper
 {
 	position:absolute;
-	overflow:hidden;
+	/*overflow:hidden;*/
 	height:100%;
 	width:100%;
 }
@@ -200,7 +200,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 .bx-messenger-block .bx-db-header
 {
 	position:relative;
-	min-height:2.5rem;
+	height:2.5rem;
 	vertical-align:middle;
 	padding:0 0.5rem 0 0.5rem;
 	display:flex;

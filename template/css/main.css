@@ -440,7 +440,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 	display:table-row;	
 	width:100%;	
 	height:auto;
-	background-color:#f3f8fe;
+	background-color:inherit;
 }
 
 .bx-messenger-table-wrapper  .bx-messenger-table-wrapper-rows .cell
@@ -491,7 +491,6 @@ div.bx-messenger-jots-icons
 	border:2px solid #4a90e2;
 	border-radius:0.25rem;
 	padding:0.25rem;
-	background-color:#f3f8fe;
 	z-index:100;
 	font-size:1.3rem;
 }

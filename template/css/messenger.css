@@ -26,6 +26,10 @@
 	display:none;
 }
 
+#bx-messenger-add-users .ui.search > .results{
+	background-color: inherit;
+}
+
 .bx-messenger-items-list
 {
 	height:100%;

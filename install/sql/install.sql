@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_lcomments` (
   PRIMARY KEY (`lcmt_id`),
   KEY `lcmt_object_id` (`lcmt_object_id`,`lcmt_parent_id`),
   FULLTEXT KEY `search_fields` (`lcmt_text`)
-) ENGINE=MyISAM;
+);
 
 -- STORAGES & TRANSCODERS
 

@@ -363,7 +363,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@param int iProfile Id	owner of the message
 	*@return  int affected rows
 	*/
-	private function addNewJot($iLotID, $sMessage, $iProfileId)
+	public function addNewJot($iLotID, $sMessage, $iProfileId)
 	{
 		$sParticipants = $this -> getParticipantsList($iLotID, false /* as string list*/, $iProfileId);
 		$sQuery = $this->prepare("INSERT INTO `{$this->CNF['TABLE_MESSAGES']}` 
@@ -1027,7 +1027,7 @@ class BxMessengerDb extends BxBaseModTextDb
                                                  FROM `{$this->CNF['TABLE_LIVE_COMMENTS']}` as `c`  
                                                  LEFT JOIN `{$this->CNF['TABLE_CMTS_OBJECTS']}` as `s` ON `s`.`{$this->CNF['FIELD_COBJ_ID']}` = `c`.`{$this->CNF['FIELD_LCMTS_SYS_ID']}`                                                   
                                                  WHERE `s`.`{$this->CNF['FIELD_COBJ_MODULE']}` = :type AND `{$this->CNF['FIELD_LCMTS_OBJECT_ID']}` = :object {$sAuthor}
-                                                 ORDER BY `{$this->CNF['FIELD_LCMTS_ID']}` DESC
+                                                 ORDER BY `{$this->CNF['FIELD_LCMTS_ID']}` ASC
                                                  {$sLimit}",
             $aWhere);
         return array('result' => $aComments, 'total' => (int)$this->getOne("SELECT FOUND_ROWS()"));
@@ -1133,6 +1133,31 @@ class BxMessengerDb extends BxBaseModTextDb
 
 
         return ($oCNF['ALLOW_TO_REMOVE_MESSAGE'] && $iJotAuthor == $iProfileId) || $bIsLotAuthor || isAdmin();
+    }
+
+    /*********************** REACT JOT Integration part *****************/
+
+    /**
+     * Returns installed list of modules with comments ability
+     * @param string $sModule
+     * @return array
+     */
+    function getAllCmtsModule($sModule = ''){
+        return $this -> getAllWithKey("SELECT 
+                    `c`.`Module` as `module`,
+                    `TriggerTable` as `table`,
+                    `TriggerFieldId` as `id`,
+                    `TriggerFieldAuthor` as `owner`,
+                    `TriggerFieldTitle` as `title`,
+                    `TriggerFieldComments` as `cmts`,
+                    `sm`.*,
+                    `m`.`icon`
+                FROM `sys_objects_cmts` as `c`
+                LEFT JOIN `sys_modules` as `sm` ON `sm`.`name` = `c`.`module`
+                LEFT JOIN `sys_menu_items` as `m` ON `c`.`module` = `m`.`module` AND `m`.`set_name` = 'sys_site'
+                WHERE `c`.`module` != 'bx_timeline' 
+                GROUP BY `c`.`module`
+                ", 'module');
     }
 }
 

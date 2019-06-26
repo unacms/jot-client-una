@@ -10,6 +10,10 @@
 	margin:0px;
 }
 
+#bx-menu-main-bar-wrapper {
+	display:none;
+}
+
 .cd-main-content .content-wrapper
 {
 	margin-left:0px !important;

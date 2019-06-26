@@ -884,7 +884,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 								'mp4' => BxDolTranscoderVideo::getObjectInstance($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']['mp4']),
 								'webm' => BxDolTranscoderVideo::getObjectInstance($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']['webm']),
 							);
-				
+
 						$oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);
 						$oTranscoderMp3 = BxDolTranscoderAudio::getObjectInstance($this -> _oConfig -> CNF['OBJECT_MP3_TRANSCODER']);
 
@@ -892,10 +892,10 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						{
     						    $isAllowedDelete = $this->_oDb->isAllowedToDeleteJot($aJot[$oCNF['FIELD_MESSAGE_ID']], $iViewer, $aJot[$oCNF['FIELD_MESSAGE_AUTHOR']], $bIsLotAuthor);
     							$isVideo = !empty($aTranscodersVideo) && $aTranscodersVideo['mp4']->isMimeTypeSupported($aFile[$oCNF['FIELD_ST_TYPE']]) && $aTranscodersVideo['webm']->isMimeTypeSupported($aFile[$oCNF['FIELD_ST_TYPE']]);
-								
+
 								if ($oStorage -> isImageFile($aFile[$oCNF['FIELD_ST_TYPE']]))
 								{
-									$sPhotoThumb = '';
+								    $sPhotoThumb = '';
 									if ($aFile[$oCNF['FIELD_ST_TYPE']] != 'image/gif' && $oImagesTranscoder = BxDolTranscoderImage::getObjectInstance($oCNF['OBJECT_IMAGES_TRANSCODER_PREVIEW']))
 										$sPhotoThumb = $oImagesTranscoder->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
 									
@@ -908,7 +908,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 									);
 								}elseif ($isVideo)
 								{
-									$sFileUrl = BxDolStorage::getObjectInstance($oCNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$oCNF['FIELD_ST_ID']]);
+                                    $sFileUrl = BxDolStorage::getObjectInstance($oCNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$oCNF['FIELD_ST_ID']]);
 
                                     $sMp4File = $aTranscodersVideo['mp4']->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
                                     $sWebMFile = $aTranscodersVideo['webm']->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
@@ -926,8 +926,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 										'id' => $aFile[$oCNF['FIELD_ST_ID']],
 										'video' => BxTemplFunctions::getInstance()->videoPlayer(
                                                         $sPoster,
+                                                        $sMp4File ? $sMp4File : $sWebMFile,
                                                         $sMp4File,
-                                                        $sWebMFile,
                                                         array('preload' => 'metadata')
                                                         , ''
 													),

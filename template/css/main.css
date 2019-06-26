@@ -39,7 +39,7 @@ div.bx-messenger-post-box-set svg
 	vertical-align:middle;
 }
 
-div.bx-messenger-post-box .bx-messenger-post-box-set div
+div.bx-messenger-post-box .bx-messenger-post-box-set > div
 {
 	vertical-align:middle;
 	padding:0.25rem;
@@ -58,7 +58,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 	line-height:1.1rem;
 	font-size:1rem;
 	overflow-y:auto;
-	min-height:1.5rem;
+	min-height:1rem;
 }
 
 .bx-messenger-post-box-disabled
@@ -200,7 +200,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 .bx-messenger-block .bx-db-header
 {
 	position:relative;
-	height:2.5rem;
+	min-height:2.5rem;
 	vertical-align:middle;
 	padding:0 0.5rem 0 0.5rem;
 	display:flex;
@@ -757,10 +757,11 @@ div.bx-messenger-attachment-file-images img
 	height:100% !important;
 }
 
+.bx-messenger-block #bx-messenger-add-users .save a,
 .bx-messenger-block .bx-db-menu a
 {
 	vertical-align:middle;
-	line-height:normal;
+	line-height:2.5rem;
 	display:inline-flex;
 	align-items:center;
 	margin:0.25rem;
@@ -792,6 +793,7 @@ div.bx-messenger-attachment-file-images img
 	font-size:1rem;
 	padding:0px;	
 	border-radius:0;
+	align-self: center;
 }
 
 #bx-messenger-add-users b
@@ -804,13 +806,6 @@ div.bx-messenger-attachment-file-images img
 	padding-right:0.5rem;
 }
 
-#bx-messenger-add-users .save
-{
-	position:relative;	
-	line-height:2rem;
-	display:flex;
-	align-items:center;
-}
 
 .bx-db-header{
 	min-height:2.5rem;
@@ -836,8 +831,12 @@ div.bx-messenger-attachment-file-images img
 {
 	padding-left:0;
 	margin-left:0;
-	display:inline-flex;
-	align-items:center;
+	/*display:inline-flex;
+	align-items:center;*/
+	display: grid;
+	align-items: center;
+	grid-template-columns: 1fr 3fr 1rem;
+	grid-gap: 0.3rem;
 }
 
 .bx-messenger-right-column  .bx-form-input-autotoken b:after
@@ -846,8 +845,6 @@ div.bx-messenger-attachment-file-images img
    content: "\f00d";  
    margin-left:0.1rem;
    position:relative;
-   padding-left:1rem;
-   vertical-align:middle;
 }
 
 #bx-messenger-add-users img
@@ -860,6 +857,7 @@ div.bx-messenger-attachment-file-images img
 	width:2rem;
 	height:2rem;
 	line-height: 2rem;
+	margin: 0;
 }
 
 div.bx-messenger-edit-jot

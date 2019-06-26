@@ -1797,18 +1797,26 @@ const oMessenger = (function($){
 	*@param boolean bMode if used for edit or to create new lot
 	*/
 	oMessenger.prototype.initUsersSelector = function(bMode){
-			var _this = this,
+			const _this = this,
 				onSelectFunc = function(fCallback)
 				{
-					if (bMode != 'edit')
+					if (bMode !== 'edit') {
 						_this.findLotByParticipantsList(fCallback);
+
+						setTimeout(() => {
+							$(_this.sUserSelectorInput)
+								.val('')
+								.focus();
+						}, 0);
+					}
 					else
-						if (_this.oJotWindowBuilder != undefined)
+						if (_this.oJotWindowBuilder !== undefined)
 							_this.oJotWindowBuilder.updateColumnSize();
 				};
-			
+
 				$(_this.sUserSelectorBlock + ' .ui.search')
 						.search({
+									clearable: true,
 									apiSettings:
 									{
 										url: 'modules/?r=messenger/get_auto_complete&term={query}&except={except}',
@@ -1852,7 +1860,7 @@ const oMessenger = (function($){
 														<input type="hidden" name="users[]" value="${result.id}" /></b>`);
 
 										onSelectFunc();
-										return false;
+										return true;
 									},
 									minCharacters : 1
 								})

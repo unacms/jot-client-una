@@ -30,6 +30,17 @@
 	display:none;
 }
 
+#bx-messenger-add-users .ui.search > .results .result:hover{
+	background-color: rgba(0,0,0,0.08);
+}
+
+#bx-messenger-add-users .ui.search > .results div,
+#bx-messenger-add-users .ui.input,
+#bx-messenger-add-users .ui.search > .results .result,
+#bx-messenger-add-users .ui.input > input{
+	color:inherit;
+}
+
 #bx-messenger-add-users .ui.search > .results{
 	background-color: inherit;
 }
@@ -387,6 +398,18 @@ div.bx-messenger-post-box
 	min-height:0;
 	padding: 0;
 	box-shadow:none;
+	display: grid;
+	align-items: center;
+	grid-template-columns: repeat(auto-fit, minmax(8rem, 13rem));
+	grid-auto-flow: row;
+	grid-gap: 0.2rem;
+	width: 100%;
+}
+
+#bx-messenger-add-users b span{
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 @media (max-width:720px)

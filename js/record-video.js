@@ -28,7 +28,7 @@ function oJotVideoRecorder(oOptions)
 	this.oRecorder = null;
 	this.sPopUpWrapper = '.bx-popup-wrapper';
 	this.sDisableButtonClass = 'bx-btn-disabled';
-}
+};
 
 oJotVideoRecorder.prototype.InitWebCam = function()
 {
@@ -51,7 +51,7 @@ oJotVideoRecorder.prototype.InitWebCam = function()
 		alert(_t('_bx_messenger_video_record_is_not_supported', e.toString()));
 		$(_this.bclose).click();
 	});
-}
+};
 
 oJotVideoRecorder.prototype.stopWebCamAndClose = function()
 {
@@ -67,7 +67,7 @@ oJotVideoRecorder.prototype.stopWebCamAndClose = function()
 	$(this.video)
 		.parents(this.sPopUpWrapper)
 		.dolPopupHide();
-}
+};
 
 oJotVideoRecorder.prototype.init = function()
 {		
@@ -201,7 +201,7 @@ oJotVideoRecorder.prototype.init = function()
 								__this.html('<i class="sys-icon square"></i>').data('click', 1);
 					}
 				});	
-}
+};
 
 oJotVideoRecorder.prototype.isMimeTypeSupported = function(mimeType){
 	return typeof MediaRecorder.isTypeSupported === 'function' ?
@@ -240,4 +240,4 @@ oJotVideoRecorder.prototype.stopRecording = function(oBlob)
 		.removeClass(_this.sDisableButtonClass)
 		.prop('disabled', false);
 	
- }
+};

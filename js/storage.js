@@ -11,8 +11,7 @@
  * Update Profile statuses (Online, Offline, Away)
  */
 
-
-const oMessengerStorage = class {
+;window.oMessengerStorage = class {
     constructor(sName = ''){
         this._sSubLot = 'lots';
         this._sName = typeof sName === 'string' && sName.length ? sName : 'Jot';

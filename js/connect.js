@@ -10,8 +10,8 @@
 /**
  * Primus class to work with the server and main messenger class
  */ 
-var oRTWSF = (function(){
-	var _oPrimus = null,
+;window.oRTWSF = (function(){
+	let _oPrimus = null,
 		_oData = Object.create(null),
 		_sIP = '0.0.0.0';
 	
@@ -21,14 +21,14 @@ var oRTWSF = (function(){
 			*@param object oOptions options
 			*/
 			init:function(oOptions){
-				var _this = this;			
+				const _this = this;
 					_this._sIP = oOptions.ip || _this._sIP;
 				
 				if (!oOptions.server.length)
 					return;
 				
-				if (_oPrimus == null)
-						_oPrimus = new Primus(oOptions.server);				
+				if (_oPrimus === null)
+						_oPrimus = new Primus(oOptions.server);
 
 				// on data received from the server
 				_oPrimus.on('data', function(oData) {					

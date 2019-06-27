@@ -718,11 +718,13 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@return string html code
 	*/
 	public function loadConfig($iProfileId){
-		$aUrlInfo = parse_url(BX_DOL_URL_ROOT); 
-		$oEmbed = BxDolEmbed::getObjectInstance();
+		$oCNF = &$this->_oConfig-> CNF;
+	    $aUrlInfo = parse_url(BX_DOL_URL_ROOT);
 
-		if($oEmbed)
-            $sEmbedTemplate = $oEmbed->getLinkHTML('__url__');
+	    $oEmbed = BxDolEmbed::getObjectInstance();
+        $sEmbedTemplate = '';
+		if($oEmbed && $oCNF['USE_EMBEDLY'])
+           $sEmbedTemplate = $oEmbed->getLinkHTML('__url__');
 
         $this->addJsTranslation(array(
             '_bx_messenger_online',

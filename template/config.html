@@ -47,14 +47,14 @@
         });
     }
 
-	if (oRTWSF !== undefined)
-	{
+    if (typeof oRTWSF !== 'undefined') {
 			oRTWSF.init({
 				server:'__server_url__',
 				ip:'__ip__'
 			});
 	}
 		
+   if (typeof oMessenger !== 'undefined')
 	oMessenger.init({
 				emoji:
 					  {
@@ -71,6 +71,7 @@
 				user_id:__profile_id__,
 				max:__message_length__,
 				ebmed_template:'__ebmed_template__'
+
 	});
 
 </script>

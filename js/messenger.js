@@ -10,51 +10,51 @@
 /**
  * Main messenger js file.
  */
-const oMessenger = (function($){
+;window.oMessenger = (function($){
 	let _oMessenger = null;
 	
 	function oMessenger(oOptions){
 		
 		//list of selectors
-		this.sJotsBlock = '.bx-messenger-block.jots',
-		this.sMessangerParentBox = '.bx-messenger-post-box',
-		this.sMessengerBox = '#bx-messenger-message-box',
-		this.sSendButton = '.bx-messenger-post-box-send-button > a',
-		this.sTalkBlock = '.bx-messenger-conversation-block',
-		this.sMainTalkBlock = '.bx-messenger-main-block',
-		this.sTalkList = '.bx-messenger-conversations',
-		this.sJot = '.bx-messenger-jots',
-		this.sLotsBlock = '.bx-messenger-block-lots',
-		this.sTalkListJotSelector = this.sTalkList + ' ' + this.sJot,
-		this.sSendArea = '.bx-messenger-text-box',
-		this.sJotMessage = '.bx-messenger-jots-message',
-		this.sLotInfo = '.bx-messenger-jots-snip-info',
-		this.sLotsListBlock = '.bx-messenger-items-list',
-		this.sLotSelector = '.bx-messenger-jots-snip',
-		this.sLotsListSelector = this.sLotsListBlock + ' ' + this.sLotSelector,
-		this.sUserTopInfo = '.bx-messenger-top-user-info',
-		this.sUserSelectorBlock = '#bx-messenger-add-users',
-		this.sUserSelector = this.sUserSelectorBlock + ' input[name="users[]"]',
-		this.sUserSelectorInput = '#bx-messenger-add-users-input',
-		this.sInputAreaDisabled = 'bx-messenger-post-box-disabled',
-		this.sActiveLotClass = 'active',
-		this.sUnreadLotClass = 'unread-lot',
+		this.sJotsBlock = '.bx-messenger-block.jots';
+		this.sMessangerParentBox = '.bx-messenger-post-box';
+		this.sMessengerBox = '#bx-messenger-message-box';
+		this.sSendButton = '.bx-messenger-post-box-send-button > a';
+		this.sTalkBlock = '.bx-messenger-conversation-block';
+		this.sMainTalkBlock = '.bx-messenger-main-block';
+		this.sTalkList = '.bx-messenger-conversations';
+		this.sJot = '.bx-messenger-jots';
+		this.sLotsBlock = '.bx-messenger-block-lots';
+		this.sTalkListJotSelector = this.sTalkList + ' ' + this.sJot;
+		this.sSendArea = '.bx-messenger-text-box';
+		this.sJotMessage = '.bx-messenger-jots-message';
+		this.sLotInfo = '.bx-messenger-jots-snip-info';
+		this.sLotsListBlock = '.bx-messenger-items-list';
+		this.sLotSelector = '.bx-messenger-jots-snip';
+		this.sLotsListSelector = this.sLotsListBlock + ' ' + this.sLotSelector;
+		this.sUserTopInfo = '.bx-messenger-top-user-info';
+		this.sUserSelectorBlock = '#bx-messenger-add-users';
+		this.sUserSelector = this.sUserSelectorBlock + ' input[name="users[]"]';
+		this.sUserSelectorInput = '#bx-messenger-add-users-input';
+		this.sInputAreaDisabled = 'bx-messenger-post-box-disabled';
+		this.sActiveLotClass = 'active';
+		this.sUnreadLotClass = 'unread-lot';
 		this.sStatus = '.bx-messenger-status';
-		this.sBubble = '.bubble',
-		this.sJotIcons = '.bx-messenger-jots-actions-list > i',
-		this.sJotMenu = '.bx-messenger-jots-icons',
-		this.sTypingArea = '.bx-messenger-conversations-typing span',
-		this.sConnectingArea = '.bx-messenger-info-area-connecting',
-		this.sConnectionFailedArea = '.bx-messenger-info-area-connect-failed',
-		this.sInfoArea = '#bx-messenger-info-area',
-		this.sSendAreaMenuIcons = '#bx-messenger-send-area-menu',
-		this.sAddFilesFormComments = '#bx-messenger-files-upload-comment',
-		this.sAddFilesForm = '#bx-messenger-files-uploader',
-		this.sEditJotArea = '.bx-messenger-edit-jot',
-		this.sEditJotAreaId = '#bx-messenger-edit-message-box',
-		this.sAttachmentArea = '.bx-messenger-attachment-area',
-		this.sAttachmentBlock = '.bx-messenger-attachment',
-		this.sAttachmentFiles = '.bx-messenger-attachment-files',
+		this.sBubble = '.bubble';
+		this.sJotIcons = '.bx-messenger-jots-actions-list > i';
+		this.sJotMenu = '.bx-messenger-jots-icons';
+		this.sTypingArea = '.bx-messenger-conversations-typing span';
+		this.sConnectingArea = '.bx-messenger-info-area-connecting';
+		this.sConnectionFailedArea = '.bx-messenger-info-area-connect-failed';
+		this.sInfoArea = '#bx-messenger-info-area';
+		this.sSendAreaMenuIcons = '#bx-messenger-send-area-menu';
+		this.sAddFilesFormComments = '#bx-messenger-files-upload-comment';
+		this.sAddFilesForm = '#bx-messenger-files-uploader';
+		this.sEditJotArea = '.bx-messenger-edit-jot';
+		this.sEditJotAreaId = '#bx-messenger-edit-message-box';
+		this.sAttachmentArea = '.bx-messenger-attachment-area';
+		this.sAttachmentBlock = '.bx-messenger-attachment';
+		this.sAttachmentFiles = '.bx-messenger-attachment-files';
 		this.sEmojiEditorClass = '.emoji-wysiwyg-editor';
 		this.sHiddenJot = '.bx-messenger-hidden-jot';
 		this.sDeletedJot = '.bx-messenger-jots-message-deleted';
@@ -65,29 +65,29 @@ const oMessenger = (function($){
 		this.sJotMessageViews = '.view';
 
 		//globa class options
-		this.oUsersTemplate	= null,
-		this.sJotUrl = sUrlRoot + 'm/messenger/archive/',
-		this.sInfoFavIcon = 'modules/boonex/messenger/template/images/icons/favicon-red-32x32.png',
-		this.sDefaultFavIcon = $('link[rel="shortcut icon"]').attr('href'),
-		this.iAttachmentUpdate = false,
-		this.iTimer = null,
-		this.sEmbedTemplate = (oOptions && oOptions.ebmed_template) || '<a class="bx-link" href="__url__"></a>';
-		this.iMaxLength = (oOptions && oOptions.max) || 0,
-		this.iStatus = document.hasFocus() ? 1 : 2, // 1- online, 2-away
+		this.oUsersTemplate	= null;
+		this.sJotUrl = sUrlRoot + 'm/messenger/archive/';
+		this.sInfoFavIcon = 'modules/boonex/messenger/template/images/icons/favicon-red-32x32.png';
+		this.sDefaultFavIcon = $('link[rel="shortcut icon"]').attr('href');
+		this.iAttachmentUpdate = false;
+		this.iTimer = null;
+		this.sEmbedTemplate = (oOptions && oOptions.ebmed_template) || '<a href="__url__">__url__</a>';
+		this.iMaxLength = (oOptions && oOptions.max) || 0;
+		this.iStatus = document.hasFocus() ? 1 : 2; // 1- online, 2-away
 		this.iActionsButtonWidth = '2.25';
 		this.iScrollDownSpeed = 1500;
 		this.iHideUnreadBadge = 1000;
-		this.iRunSearchInterval = 500, // seconds
-		this.iMinHeightToStartLoading = 0, // scroll height to start history loading 
-		this.iMinTimeBeforeToStartLoadingPrev = 500, // 2 seconds before to start loading history
-		this.iUpdateProcessedMedia = 30000, //  30 seconds to check updated media files
-		this.iTypingUsersTitleHide = 1000, //hide typing users div when users stop typing
-		this.iLoadTimout = 0,
-		this.iFilterType = 0,
-		this.iStarredTalks = false,
-		this.bActiveConnect = true,		
-		this.iPanding = false, // don't update jots while previous update is not finished
-		this.aUsers = [],
+		this.iRunSearchInterval = 500; // seconds
+		this.iMinHeightToStartLoading = 0; // scroll height to start history loading
+		this.iMinTimeBeforeToStartLoadingPrev = 500; // 2 seconds before to start loading history
+		this.iUpdateProcessedMedia = 30000; //  30 seconds to check updated media files
+		this.iTypingUsersTitleHide = 1000; //hide typing users div when users stop typing
+		this.iLoadTimout = 0;
+		this.iFilterType = 0;
+		this.iStarredTalks = false;
+		this.bActiveConnect = true;
+		this.iPanding = false; // don't update jots while previous update is not finished
+		this.aUsers = [];
 		this.lastEditText = '';
 		this.soundFile = 'modules/boonex/messenger/data/notify.wav'; //beep file, occurs when message received
 		this.emojiObject = oOptions.emoji || null;
@@ -732,7 +732,7 @@ const oMessenger = (function($){
 					_this.broadcastMessage(oInfo);
 				}
 			}, 'json');
-	}
+	};
 	
 	oMessenger.prototype.cancelEdit = function(oObject){
 		if (this.lastEditText.length);
@@ -910,15 +910,15 @@ const oMessenger = (function($){
 						.replace(sUrlPattern, function(str)
 						{
 							sUrl = str;
-							return !sJotLinkPattern.test(str) ? _oMessenger.sEmbedTemplate.replace('__url__', str) : `<a href="${str}">${str}</a>`;
+							return !sJotLinkPattern.test(str) ? _oMessenger.sEmbedTemplate.replace(/__url__/g, str) : `<a href="${str}">${str}</a>`;
 						})
 						.replace(sPUrlPattern, function(str, p1, p2)
 						{
 							sUrl = 'http://' + p2;
-							return p1 + (!sJotLinkPattern.test(str) ? _oMessenger.sEmbedTemplate.replace('__url__', p2) : `<a href="${p2}">${p2}</a>`);
+							return p1 + (!sJotLinkPattern.test(str) ? _oMessenger.sEmbedTemplate.replace(/__url__/g, p2) : `<a href="${p2}">${p2}</a>`);
 						})
 						.replace(sEmailPattern, '<a href="mailto:$&">$&</a>');
-		
+
 		$(oJot).html(sText);
 		
 		if ($(oJot).siblings(_oMessenger.sAttachmentFiles).length)
@@ -960,7 +960,7 @@ const oMessenger = (function($){
 	*/
 	$.fn.attacheLinkContent = function(sUrl, bDontAddAttachment, fCallback){
 		var _this = this;
-	
+
 		$.post('modules/?r=messenger/parse_link',
 			{
 				link:sUrl,
@@ -1269,7 +1269,7 @@ const oMessenger = (function($){
 		oParams.message = $.trim(sMessage);
 		if (!oParams.message.length && typeof oParams.files === 'undefined')
 			return;
-		
+
 		oParams.tmp_id = msgTime.getTime();
 
 		// remove MSG (if it exists) from clean history page

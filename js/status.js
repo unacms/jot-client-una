@@ -11,7 +11,7 @@
  * Update Profile statuses (Online, Offline, Away)
  */
  
-var oMessengerMemberStatus = {
+;window.oMessengerMemberStatus = {
 	iCheckOnline: 3000,
 	iTimeout: null,
 	iHidden: false,

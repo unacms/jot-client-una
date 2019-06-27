@@ -27,7 +27,8 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_max_ntfs_number', '5', @iCategId, '_bx_messenger_max_ntfs_number', 'digit', '', '', '', 14),
 ('bx_messenger_max_parts_views', '10', @iCategId, '_bx_messenger_max_parts_views', 'digit', '', '', '', 15),
 ('bx_messenger_allow_to_remove_messages', 'on', @iCategId, '_bx_messenger_allow_to_remove_messages', 'checkbox', '', '', '', 16),
-('bx_messenger_remove_messages_immediately', '', @iCategId, '_bx_messenger_remove_messages_immediately', 'checkbox', '', '', '', 17);
+('bx_messenger_remove_messages_immediately', '', @iCategId, '_bx_messenger_remove_messages_immediately', 'checkbox', '', '', '', 17),
+('bx_messenger_use_embedly', 'on', @iCategId, '_bx_messenger_use_embedly', 'checkbox', '', '', '', 18);
 
 
 -- MENU: notifications

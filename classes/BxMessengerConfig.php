@@ -154,7 +154,8 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'MAX_NTFS_NUMBER'	=> (int)getParam($aModule['db_prefix'] . 'max_ntfs_number'),
 			'MAX_VIEWS_PARTS_NUMBER' => (int)getParam($aModule['db_prefix'] . 'max_parts_views'),
 			'ALLOW_TO_REMOVE_MESSAGE' => getParam($aModule['db_prefix'] . 'allow_to_remove_messages') == 'on',
-                        'REMOVE_MESSAGE_IMMEDIATELY' => getParam($aModule['db_prefix'] . 'remove_messages_immediately') == 'on',
+            'REMOVE_MESSAGE_IMMEDIATELY' => getParam($aModule['db_prefix'] . 'remove_messages_immediately') == 'on',
+            'USE_EMBEDLY' => getParam($aModule['db_prefix'] . 'use_embedly') == 'on',
 		);
 
 		$this->_aObjects = array(
@@ -221,7 +222,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			else
 			{
 				$oEmbed = BxDolEmbed::getObjectInstance();
-				if($oEmbed)
+				if($oEmbed && $this -> CNF['USE_EMBEDLY'])
 					$sReplacement = $oEmbed->getLinkHTML($sUrl, $aMatches[$i][0]);
 				else
 					$sReplacement = "<a {$sAttrs} href=\"{$sUrl}\">{$aMatches[$i][0]}</a>";				

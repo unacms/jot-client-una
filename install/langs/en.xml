@@ -154,4 +154,5 @@
 	<string name="_bx_messenger_remove_messages_immediately"><![CDATA[Remove messages immediately, without administration confirmation]]></string>
 	<string name="_bx_messenger_lots_menu_media"><![CDATA[Files]]></string>
 	<string name="_bx_messenger_no_permissions"><![CDATA[You have no rights to view the content]]></string>
+	<string name="_bx_messenger_use_embedly"><![CDATA[Convert links in message using active Embeds provider]]></string>
 </resources>

@@ -12,7 +12,7 @@
  * Adapt messenger main page for different devises
  */ 
 
-const oJotWindowBuilder = (function(){
+;window.oJotWindowBuilder = (function(){
 	const _oPrivate = {
 				sLeftAreaName: '.bx-messenger-items-list',
 				sLotSelector: '.bx-messenger-jots-snip',

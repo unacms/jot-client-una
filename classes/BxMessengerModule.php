@@ -47,18 +47,19 @@ class BxMessengerModule extends BxBaseModTextModule
         $iProfile = $iProfile == $this->_iUserId ? 0 : $iProfile;
 
         $iLotId = 0;
-        if ($this->_iJotId) {
+		if ($this -> _iJotId)
+		{
             $iLotId = $this->_oDb->getLotByJotId($this->_iJotId);
-            if (!empty($iLotId) && !$this->_oDb->isParticipant($iLotId, $this->_iUserId)) {
+			if (!empty($iLotId) && !$this ->_oDb -> isParticipant($iLotId, $this -> _iUserId))
+			{
                 $this->_iJotId = BX_IM_EMPTY;
                 $iLotId = BX_IM_EMPTY;
             }
         }
 
-        return $this->_oTemplate->getLotsColumn($iLotId, $this->_iJotId, $this->_iUserId, (int)$iProfile) .
-            $this->_oTemplate->loadConfig($this->_iUserId);
+		$sConfig = $this -> _oTemplate -> loadConfig($this -> _iUserId);
+		return	$sConfig . $this -> _oTemplate -> getLotsColumn($iLotId, $this -> _iJotId, $this -> _iUserId, (int)$iProfile);
     }
-
     /**
      * Returns right side block for messenger page
      */
@@ -190,7 +191,8 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$iLotId && empty($aParticipants) && $iType == BX_IM_TYPE_PRIVATE)
             return echoJson(array('code' => 2, 'message' => _t('_bx_messenger_send_message_no_data')));
 
-        if ($sMessage) {
+		if ($sMessage)
+		{
             $sMessage = preg_replace('/\<br(\s*)?\/?\>/i', "\n", $sMessage);
             $sMessage = htmlspecialchars_adv($sMessage);
             $sMessage = BxTemplFunctions::getInstance()->getStringWithLimitedLength($sMessage, (int)$this->_oConfig->CNF['MAX_SEND_SYMBOLS']);
@@ -207,20 +209,25 @@ class BxMessengerModule extends BxBaseModTextModule
                 'url' => $sUrl,
                 'title' => $sTitle,
                 'lot' => $iLotId
-            ), $aParticipants))) {
+											), $aParticipants)))
+		{		   
             if (!$iLotId)
                 $aResult['lot_id'] = $this->_oDb->getLotByJotId($iId);
 
-            if (!empty($aFiles)) {
+			if (!empty($aFiles))
+			{
                 $oStorage = BxDolStorage::getObjectInstance($this->_oConfig->CNF['OBJECT_STORAGE']);
                 $aFilesNames = array();
-                foreach ($aFiles as $iKey => $sName) {
+				foreach($aFiles as $iKey => $sName)
+				{
                     $iFile = $oStorage->storeFileFromPath(BX_DIRECTORY_PATH_TMP . $sName, $iType == BX_IM_TYPE_PRIVATE, $this->_iUserId, (int)$iId);
-                    if ($iFile) {
+					if ($iFile)
+					{
                         $oStorage->afterUploadCleanup($iFile, $this->_iUserId);
                         $this->_oDb->updateFiles($iFile, $this->_oConfig->CNF['FIELD_ST_JOT'], $iId);
                         $aFilesNames[] = $sName;
-                    } else
+					}
+					else 
                         $aResult = array('code' => 2, 'message' => $oStorage->getErrorString());
                 }
 
@@ -232,7 +239,8 @@ class BxMessengerModule extends BxBaseModTextModule
             $aResult['tmp_id'] = $iTmpId;
             $this->onSendJot($iId);
 
-        } else
+        }
+		else
             $aResult = array('code' => 2, 'message' => _t('_bx_messenger_send_message_save_error'));
 
         BxDolSession::getInstance()->exists($this->_iUserId);
@@ -243,8 +251,7 @@ class BxMessengerModule extends BxBaseModTextModule
      * Loads talk to the right side block when member choose conversation or when open messenger page
      * @return array with json result
      */
-    public function actionLoadTalk()
-    {
+	public function actionLoadTalk(){
         $iId = (int)bx_get('lot_id');
         $iJotId = (int)bx_get('jot_id');
 
@@ -260,8 +267,7 @@ class BxMessengerModule extends BxBaseModTextModule
         echoJson(array('code' => 0, 'html' => $aBlock['content'], 'title' => $aBlock['title']));
     }
 
-    public function actionMarkJotsAsRead()
-    {
+    public function actionMarkJotsAsRead(){
         $iId = (int)bx_get('lot');
         if (!$this->isLogged() || !$this->_oDb->isParticipant($iId, $this->_iUserId)) {
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
@@ -275,8 +281,7 @@ class BxMessengerModule extends BxBaseModTextModule
      * Loads messages for specified lot(conversation)
      * @return array with json
      */
-    public function actionLoadJots()
-    {
+	public function actionLoadJots(){	   
         if (!$this->isLogged())
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 
@@ -294,8 +299,7 @@ class BxMessengerModule extends BxBaseModTextModule
      * Search for Lots by keywords in the right side block
      * @return string with json
      */
-    public function actionSearch()
-    {
+	public function actionSearch(){	   
         if (!$this->isLogged())
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 
@@ -316,8 +320,7 @@ class BxMessengerModule extends BxBaseModTextModule
      * Update brief of the specified lot in the lots list
      * @return string with json
      */
-    public function actionUpdateLotBrief()
-    {
+	public function actionUpdateLotBrief(){
         if (!$this->isLogged())
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 
@@ -326,7 +329,8 @@ class BxMessengerModule extends BxBaseModTextModule
             return echoJson(array('code' => 1));
 
         $aMyLots = $this->_oDb->getMyLots($this->_iUserId, BX_IM_EMPTY, BX_IM_EMPTY, BX_IM_EMPTY, $iLotId);
-        if (!empty($aMyLots)) {
+		if (!empty($aMyLots))
+		{
             $sContent = $this->_oTemplate->getLotsPreview($this->_iUserId, $aMyLots);
             return echoJson(array('code' => 0, 'html' => $sContent));
         }
@@ -350,8 +354,7 @@ class BxMessengerModule extends BxBaseModTextModule
      * Loads messages for  lot(conversation) (when member wants to view history or get new messages from participants)
      * @return string with json
      */
-    public function actionUpdate()
-    {
+	public function actionUpdate(){	   
         $oCNF = &$this->_oConfig->CNF;
         $sUrl = bx_get('url');
         $iJot = (int)bx_get('jot');
@@ -359,7 +362,8 @@ class BxMessengerModule extends BxBaseModTextModule
         $sLoad = bx_get('load');
         $bRead = filter_var(bx_get('read'), FILTER_VALIDATE_BOOLEAN);
 
-        if ($sLoad == 'new' && !(int)$iJot) {
+		if ($sLoad == 'new' && !(int)$iJot)
+		{
             $aMyLatestJot = $this->_oDb->getLatestJot($iLotId, $this->_iUserId);
             if (empty($aMyLatestJot))
                 return echoJson(array('code' => 1));
@@ -369,7 +373,8 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $sUrl = $sUrl ? $this->getPreparedUrl($sUrl) : '';
         $sContent = '';
-        switch ($sLoad) {
+		switch($sLoad)
+		{
             case 'new':
             case 'prev':
                 $aOptions = array(
@@ -412,8 +417,7 @@ class BxMessengerModule extends BxBaseModTextModule
      * Occurs when member wants to create new conversation(lot)
      * @return array with json
      */
-    public function actionCreateLot()
-    {
+	public function actionCreateLot(){
         if (!$this->isLogged())
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 
@@ -426,8 +430,7 @@ class BxMessengerModule extends BxBaseModTextModule
      * Occurs when member adds or edit participants list for new of specified lot
      * @return string with json code
      */
-    public function actionGetAutoComplete()
-    {
+	public function actionGetAutoComplete(){
         $sExcept = bx_get('except');
         $aResult = $aExcept = array();
         if ($sExcept)
@@ -462,8 +465,7 @@ class BxMessengerModule extends BxBaseModTextModule
      * Returns processed videos by received videos ids
      * @return array with json
      */
-    public function actionGetProcessedMedia()
-    {
+	public function actionGetProcessedMedia(){
         $oCNF = &$this->_oConfig->CNF;
         $aMedia = bx_get('media');
         $aResult = array();
@@ -483,7 +485,8 @@ class BxMessengerModule extends BxBaseModTextModule
         if (empty($oStorage))
             return echoJson($aResult);
 
-        foreach ($aMedia as &$iMedia) {
+		foreach($aMedia as &$iMedia)
+		{
             $aFile = $oStorage->getFile($iMedia);
             if ($oTranscoderAudio->isMimeTypeSupported($aFile['mime_type']) && $oTranscoderAudio->isFileReady($iMedia))
                 $aResult[$iMedia] = $this->_oTemplate->audioPlayer($oTranscoderAudio->getFileUrl($aFile[$oCNF['FIELD_ST_ID']]), true);
@@ -543,11 +546,13 @@ class BxMessengerModule extends BxBaseModTextModule
         $aRemoveParticipants = array();
 
         $aResult = array('message' => _t('_bx_messenger_save_part_success'), 'code' => 0);
-        if (!$iLotId) {
+		if (!$iLotId)
+		{
             $iLotId = $this->_oDb->createNewLot($this->_iUserId, BX_IM_EMPTY_URL, BX_IM_TYPE_PRIVATE, BX_IM_EMPTY_URL, $aParticipants);
             $aResult['lot'] = $iLotId;
             $this->onCreateLot($iLotId);
-        } else {
+		}
+		else {
             if (!$this->_oDb->savePariticipantsList($iLotId, $aParticipants))
                 $aResult = array('code' => 2, 'lot' => $iLotId);
 
@@ -694,7 +699,8 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$bIsAllowedToDelete && !isAdmin())
             return echoJson($aResult);
 
-        if ($oStorage->deleteFile($iFileId, $this->_iUserId)) {
+		if ($oStorage -> deleteFile($iFileId, $this -> _iUserId))
+		{
             $aResult = array('code' => 0);
 
             $aJotInfo = $this->_oDb->getJotById($aFile[$CNF['FIELD_ST_JOT']]);
@@ -703,7 +709,8 @@ class BxMessengerModule extends BxBaseModTextModule
             if (count($aJotFiles) == 0 && !$aJotInfo[$CNF['FIELD_MESSAGE']] && $this->_oDb->deleteJot($aJotInfo[$CNF['FIELD_MESSAGE_ID']], $this->_iUserId)) {
                 $aResult['empty_jot'] = 1;
                 $this->onDeleteJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $aJotInfo[$CNF['FIELD_MESSAGE_ID']], $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
-            } else
+			}
+			else
                 $this->onUpdateJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $aJotInfo[$CNF['FIELD_MESSAGE_ID']], $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
         }
 
@@ -714,8 +721,7 @@ class BxMessengerModule extends BxBaseModTextModule
      * Remove member from participants list
      * @return string with json
      */
-    public function actionLeave()
-    {
+	public function actionLeave(){
         $iLotId = bx_get('lot');
 
         if (!$iLotId || !$this->_oDb->isParticipant($iLotId, $this->_iUserId)) {
@@ -828,13 +834,17 @@ class BxMessengerModule extends BxBaseModTextModule
             'url' => $this->_oConfig->CNF['URL_REPOST'] . $aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE_ID']]
         );
 
-        foreach ($aParticipantList as $iKey => $iValue) {
+		foreach($aParticipantList as $iKey => $iValue)
+		{   
             if (array_search($iValue, $aSent) !== FALSE || $this->_oDb->isMuted($aLot[$this->_oConfig->CNF['FIELD_ID']], $iValue))
                 continue;
 
-            if ($bIsGlobalSettings) {
+			if ($bIsGlobalSettings)
+			{
                 BxDolPush::getInstance()->send($iValue, array_merge($aInfo, array('icon' => $oProfile->getThumb())), true);
-            } else {
+			}
+			else
+			{
                 $aWhere[] = array("field" => "tag", "key" => "user", "relation" => "=", "value" => $iValue);
                 $aWhere[] = array("operator" => "OR");
             }
@@ -903,7 +913,8 @@ class BxMessengerModule extends BxBaseModTextModule
         $bDontAttach = (int)bx_get('dont_attach');
 
         $aUrl = $this->_oConfig->isJotLink($sUrl);
-        if (!empty($aUrl)) {
+		if (!empty($aUrl))
+		{
             $aJotInfo = $this->_oDb->getJotById($aUrl['id']);
             if (!$this->_oDb->isParticipant($aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE_FK']], $this->_iUserId))
                 return echoJson(array('code' => 0));
@@ -927,7 +938,8 @@ class BxMessengerModule extends BxBaseModTextModule
     {
         $iJotId = (int)bx_get('jot_id');
 
-        if ($iJotId) {
+		if ($iJotId)
+		{
             $aJot = $this->_oDb->getJotById($iJotId);
             if ($this->_oDb->isParticipant($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_FK']], $this->_iUserId)) {
                 $sHTML = $this->_oTemplate->getAttachment($aJot);
@@ -1051,13 +1063,16 @@ class BxMessengerModule extends BxBaseModTextModule
         $aFile = BxDolStorage::getObjectInstance($this->_oConfig->CNF['OBJECT_STORAGE'])->getFile((int)$iStorageId);
         $sImagePath = BX_DIRECTORY_STORAGE . $this->_oConfig->CNF['OBJECT_STORAGE'] . '/' . $aFile['path'];
 
-        if (!empty($aFile) && file_exists($sImagePath)) {
+		if (!empty($aFile) && file_exists($sImagePath))
+		{
             $aInfo = getimagesize($sImagePath);
 
             if ($aInfo[0] <= $iWidth && $aInfo[1] <= $iHeight) {
                 $iWidth = (int)$aInfo[0];
                 $iHeight = (int)$aInfo[1];
-            } else {
+			}
+			else
+			{
                 $fImageRatio = (int)$aInfo[0] / (int)$aInfo[1];
                 $fXRatio = $aInfo[0] / $iWidth;
                 $fYRatio = $aInfo[1] / $iHeight;
@@ -1474,17 +1489,12 @@ class BxMessengerModule extends BxBaseModTextModule
                     return array();
 
                 $aMembers = $oFriends->getConnectedContent($iProfileId, $iMutual, $iStart, $iPerPage);
-                /*if (!empty($aFriends))
-                    $aMembers = array_combine($aFriends, $aFriends);*/
-
                 break;
             case 'connections':
                 if (!$oFollowers)
                     return array();
 
                 $aMembers = $oFollowers->getConnectedContent($iProfileId, $iMutual, $iStart, $iPerPage);
-                /*if (!empty($aFollowers))
-                    $aMembers = array_combine($aFollowers, $aFollowers);*/
 
                 break;
             case 'recent':

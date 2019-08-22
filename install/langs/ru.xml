@@ -154,4 +154,5 @@
 	<string name="_bx_messenger_remove_messages_immediately"><![CDATA[удалять сообщения сразу, без подтверждения администратора]]></string>
 	<string name="_bx_messenger_lots_menu_media"><![CDATA[Файлы]]></string>
 	<string name="_bx_messenger_no_permissions"><![CDATA[Вы не можете просматривать содержимое вкладки]]></string>
+	<string name="_bx_messenger_use_embedly"><![CDATA[Преобразовывать сcылки в сообщениях, использую выбранный Embeds провайдер]]></string>
 </resources>

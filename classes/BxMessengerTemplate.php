@@ -851,8 +851,65 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		
 		return '';
 	}
-	
-	/**
+
+    function videoPlayer ($sUrlPoster, $sUrlMP4, $sUrlMP4Hd = '', $aAttrs = false, $bDynamic = true)
+    {
+        $oPlayer = BxDolPlayer::getObjectInstance();
+        if (!$oPlayer)
+            return '';
+
+        return $oPlayer->getCodeVideo (BX_PLAYER_STANDARD, array(
+            'poster' => $sUrlPoster,
+            'mp4' => array('sd' => $sUrlMP4, 'hd' => $sUrlMP4Hd),
+            'attrs' => $aAttrs,
+            'styles' => 'width:90%; max-width:480px; height:auto;',
+        ), $bDynamic);
+    }
+
+    function getAttachmentsVideoTranscoders($sStorage = ''){
+	    $aTranscoders = parent::getAttachmentsVideoTranscoders($sStorage);
+	    if (!$aTranscoders)
+            return array();
+
+	    $oCNF = &$this -> _oConfig -> CNF;
+        $aTranscoders['webm'] = BxDolTranscoderImage::getObjectInstance($oCNF['OBJECT_VIDEOS_TRANSCODERS']['webm']);
+
+        return $aTranscoders;
+    }
+
+    function getVideoFilesToPlay($aFile){
+        $oCNF = &$this -> _oConfig -> CNF;
+
+        $sFileUrl = BxDolStorage::getObjectInstance($oCNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$oCNF['FIELD_ST_ID']]);
+        $aTranscodersVideo = $this -> getAttachmentsVideoTranscoders();
+        if (empty($aTranscodersVideo))
+            return '';
+
+        $sMp4File = $aTranscodersVideo['mp4']->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
+        $sMp4HDFile = $aTranscodersVideo['mp4_hd']->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
+        $sWebMFile = $aTranscodersVideo['webm']->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
+        $sPoster = $aTranscodersVideo['poster']->getFileUrl($aFile[$oCNF['FIELD_ST_ID']]);
+
+        if (!$sMp4File && !$sWebMFile){
+            if ($aFile[$oCNF['FIELD_ST_EXT']] == 'webm') {
+                $sWebMFile = $sFileUrl;
+                $sPoster = '';
+            }
+            if ($aFile[$oCNF['FIELD_ST_EXT']] == 'mp4' || $aFile[$oCNF['FIELD_ST_EXT']] == 'mov') {
+                $sMp4File = $sMp4HDFile = $sFileUrl;
+                $sPoster = '';
+            }
+        }
+
+       return ($sMp4File || $sWebMFile) ? $this -> videoPlayer(
+                $sPoster,
+                $sMp4File,
+                $sMp4HDFile,
+                array('preload' => 'metadata'),
+                true
+            ) : $this->parseHtmlByName('tmp_video.html', array('img' => $sPoster));
+    }
+    /**
 	* Returns attachment according jot's attachment type
 	*@param array $aJot jot info
 	*@return string html code
@@ -879,22 +936,14 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 							'bx_repeat:audios' => array(),
 						);
 						
-						$aTranscodersVideo = array();
-						if (isset($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']) && $this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS'])
-							$aTranscodersVideo = array (
-								'poster' => BxDolTranscoderImage::getObjectInstance($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']['poster']),
-								'mp4' => BxDolTranscoderVideo::getObjectInstance($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']['mp4']),
-								'webm' => BxDolTranscoderVideo::getObjectInstance($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']['webm']),
-							);
-
+						$aTranscodersVideo = $this -> getAttachmentsVideoTranscoders();
 						$oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);
 						$oTranscoderMp3 = BxDolTranscoderAudio::getObjectInstance($this -> _oConfig -> CNF['OBJECT_MP3_TRANSCODER']);
 
 						foreach($aFiles as $iKey => $aFile)
 						{
     						    $isAllowedDelete = $this->_oDb->isAllowedToDeleteJot($aJot[$oCNF['FIELD_MESSAGE_ID']], $iViewer, $aJot[$oCNF['FIELD_MESSAGE_AUTHOR']], $bIsLotAuthor);
-    							$isVideo = !empty($aTranscodersVideo) && $aTranscodersVideo['mp4']->isMimeTypeSupported($aFile[$oCNF['FIELD_ST_TYPE']]) && $aTranscodersVideo['webm']->isMimeTypeSupported($aFile[$oCNF['FIELD_ST_TYPE']]);
-
+    				            $isVideo = $aTranscodersVideo && (0 == strncmp('video/', $aFile['mime_type'], 6)) && $aTranscodersVideo['poster']->isMimeTypeSupported($aFile['mime_type']);
 								if ($oStorage -> isImageFile($aFile[$oCNF['FIELD_ST_TYPE']]))
 								{
 								    $sPhotoThumb = '';
@@ -910,29 +959,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 									);
 								}elseif ($isVideo)
 								{
-                                    $sFileUrl = BxDolStorage::getObjectInstance($oCNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$oCNF['FIELD_ST_ID']]);
-
-                                    $sMp4File = $aTranscodersVideo['mp4']->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
-                                    $sWebMFile = $aTranscodersVideo['webm']->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
-
-                                    $sPoster = $sMp4File && $sWebMFile ?
-                                               $aTranscodersVideo['poster']->getFileUrl($aFile[$oCNF['FIELD_ST_ID']]) :
-                                               ($aFile[$oCNF['FIELD_ST_EXT']] == 'webm' || $aFile[$oCNF['FIELD_ST_EXT']] == 'mp4' || $aFile[$oCNF['FIELD_ST_EXT']] == 'mov' ? '' : $aTranscodersVideo['poster']->getFileUrlNotReady($aFile[$oCNF['FIELD_ST_ID']]));
-
-                                    $sWebMFile = $sWebMFile ? $sWebMFile : ($aFile[$oCNF['FIELD_ST_EXT']] == 'webm' ? $sFileUrl : '' );
-                                    $sMp4File = $sMp4File ? $sMp4File :
-                                        ($aFile[$oCNF['FIELD_ST_EXT']] == 'mp4' || $aFile[$oCNF['FIELD_ST_EXT']] == 'mov'
-                                            ? $sFileUrl : '' );
-
 									$aItems['bx_repeat:videos'][] = array(
 										'id' => $aFile[$oCNF['FIELD_ST_ID']],
-										'video' => BxTemplFunctions::getInstance()->videoPlayer(
-                                                        $sPoster,
-                                                        $sMp4File ? $sMp4File : $sWebMFile,
-                                                        $sMp4File,
-                                                        array('preload' => 'metadata')
-                                                        , ''
-													),
+										'video' => $this -> getVideoFilesToPlay($aFile),
 										'delete_code' => $this -> deleteFileCode($aFile[$oCNF['FIELD_ST_ID']], $isAllowedDelete)
 									);
 								}
@@ -993,39 +1022,13 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                                                                     ));
         }
 
-        $aTranscodersVideo = array();
-        if (isset($oCNF['OBJECT_VIDEOS_TRANSCODERS']) && $oCNF['OBJECT_VIDEOS_TRANSCODERS'])
-            $aTranscodersVideo = array (
-                'poster' => BxDolTranscoderImage::getObjectInstance($oCNF['OBJECT_VIDEOS_TRANSCODERS']['poster']),
-                'mp4' => BxDolTranscoderVideo::getObjectInstance($oCNF['OBJECT_VIDEOS_TRANSCODERS']['mp4']),
-                'webm' => BxDolTranscoderVideo::getObjectInstance($oCNF['OBJECT_VIDEOS_TRANSCODERS']['webm']),
-            );
-
-        $isVideo = !empty($aTranscodersVideo) && $aTranscodersVideo['mp4']->isMimeTypeSupported($aFile[$oCNF['FIELD_ST_TYPE']]) && $aTranscodersVideo['webm']->isMimeTypeSupported($aFile[$oCNF['FIELD_ST_TYPE']]);
-        if ($isVideo){
-           $sFileUrl = BxDolStorage::getObjectInstance($oCNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$oCNF['FIELD_ST_ID']]);
-
-           $sMp4File = $aTranscodersVideo['mp4']->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
-           $sWebMFile = $aTranscodersVideo['webm']->getFileUrl((int)$aFile[$oCNF['FIELD_ST_ID']]);
-
-           $sPoster = $sMp4File && $sWebMFile ?
-           $aTranscodersVideo['poster']->getFileUrl($aFile[$oCNF['FIELD_ST_ID']]) :
-           ($aFile[$oCNF['FIELD_ST_EXT']] == 'webm' || $aFile[$oCNF['FIELD_ST_EXT']] == 'mp4' || $aFile[$oCNF['FIELD_ST_EXT']] == 'mov' ? '' : $aTranscodersVideo['poster']->getFileUrlNotReady($aFile[$oCNF['FIELD_ST_ID']]));
-
-           $sWebMFile = $sWebMFile ? $sWebMFile : ($aFile[$oCNF['FIELD_ST_EXT']] == 'webm' ? $sFileUrl : '' );
-           $sMp4File = $sMp4File ? $sMp4File : ($aFile[$oCNF['FIELD_ST_EXT']] == 'mp4' || $aFile[$oCNF['FIELD_ST_EXT']] == 'mov' ? $sFileUrl : '' );
-
-           return $this -> parseHtmlByName('video.html', array(
+        $aTranscodersVideo = $this -> getAttachmentsVideoTranscoders();
+        $isVideo = $aTranscodersVideo && (0 == strncmp('video/', $aFile['mime_type'], 6)) && $aTranscodersVideo['poster']->isMimeTypeSupported($aFile['mime_type']);
+        if ($isVideo)
+              return $this -> parseHtmlByName('video.html', array(
                                                                             'id' => $aFile[$oCNF['FIELD_ST_ID']],
-                                                                            'video' => BxTemplFunctions::getInstance()->videoPlayer(
-                                                                                $sPoster,
-                                                                                $sMp4File,
-                                                                                $sWebMFile,
-                                                                                array('preload' => 'metadata')
-                                                                                , ''
-                                                                            )
+                                                                            'video' => $this->getVideoFilesToPlay($aFile),
                                                                         ));
-        };
 
         $oTranscoderMp3 = BxDolTranscoderAudio::getObjectInstance($this -> _oConfig -> CNF['OBJECT_MP3_TRANSCODER']);
         if ($oTranscoderMp3 -> isMimeTypeSupported($aFile[$oCNF['FIELD_ST_TYPE']]))

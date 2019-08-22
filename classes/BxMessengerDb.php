@@ -1027,7 +1027,7 @@ class BxMessengerDb extends BxBaseModTextDb
                                                  FROM `{$this->CNF['TABLE_LIVE_COMMENTS']}` as `c`  
                                                  LEFT JOIN `{$this->CNF['TABLE_CMTS_OBJECTS']}` as `s` ON `s`.`{$this->CNF['FIELD_COBJ_ID']}` = `c`.`{$this->CNF['FIELD_LCMTS_SYS_ID']}`                                                   
                                                  WHERE `s`.`{$this->CNF['FIELD_COBJ_MODULE']}` = :type AND `{$this->CNF['FIELD_LCMTS_OBJECT_ID']}` = :object {$sAuthor}
-                                                 ORDER BY `{$this->CNF['FIELD_LCMTS_ID']}` ASC
+                                                 ORDER BY `{$this->CNF['FIELD_LCMTS_ID']}` DESC
                                                  {$sLimit}",
             $aWhere);
         return array('result' => $aComments, 'total' => (int)$this->getOne("SELECT FOUND_ROWS()"));

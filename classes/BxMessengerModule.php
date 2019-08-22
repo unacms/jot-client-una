@@ -473,15 +473,8 @@ class BxMessengerModule extends BxBaseModTextModule
         if (empty($aMedia))
             return echoJson($aResult);
 
-        $aTranscodersVideo = array(
-            'poster' => BxDolTranscoderImage::getObjectInstance($oCNF['OBJECT_VIDEOS_TRANSCODERS']['poster']),
-            'mp4' => BxDolTranscoderVideo::getObjectInstance($oCNF['OBJECT_VIDEOS_TRANSCODERS']['mp4']),
-            'webm' => BxDolTranscoderVideo::getObjectInstance($oCNF['OBJECT_VIDEOS_TRANSCODERS']['webm']),
-        );
-
         $oTranscoderAudio = BxDolTranscoderAudio::getObjectInstance($oCNF['OBJECT_MP3_TRANSCODER']);
         $oStorage = BxDolStorage::getObjectInstance($oCNF['OBJECT_STORAGE']);
-
         if (empty($oStorage))
             return echoJson($aResult);
 
@@ -491,18 +484,8 @@ class BxMessengerModule extends BxBaseModTextModule
             if ($oTranscoderAudio->isMimeTypeSupported($aFile['mime_type']) && $oTranscoderAudio->isFileReady($iMedia))
                 $aResult[$iMedia] = $this->_oTemplate->audioPlayer($oTranscoderAudio->getFileUrl($aFile[$oCNF['FIELD_ST_ID']]), true);
 
-            $sPoster = $aTranscodersVideo['poster']->getFileUrl($iMedia);
-            $sMp4 = $aTranscodersVideo['mp4']->getFileUrl($iMedia);
-            $sWebM = $aTranscodersVideo['webm']->getFileUrl($iMedia);
-
-            if ($aTranscodersVideo['poster']->isFileReady($iMedia) && $aTranscodersVideo['mp4']->isFileReady($iMedia) && $aTranscodersVideo['webm']->isFileReady($iMedia))
-                $aResult[$iMedia] = BxTemplFunctions::getInstance()->videoPlayer(
-                    $sPoster,
-                    $sMp4,
-                    $sWebM,
-                    false,
-                    ''
-                );
+            if (!strncmp('video/', $aFile['mime_type'], 6))
+                $aResult[$iMedia] = $this->_oTemplate->getVideoFilesToPlay($aFile);
         }
 
         echoJson($aResult);
@@ -1393,18 +1376,14 @@ class BxMessengerModule extends BxBaseModTextModule
             if (!empty($aLot[$this->_oConfig->CNF['FIELD_TITLE']]))
                 $sTitle = _t($aLot[$this->_oConfig->CNF['FIELD_TITLE']]);
             else {
-                if ($iParticipantsCount > 3)
-                    $sTitle = implode(', ', array_slice($aNickNames, 0, $this->_oConfig->CNF['PARAM_ICONS_NUMBER'])) . '...';
-                else {
-
                     $aTitle = array();
-
-                    foreach ($aNickNames as $iKey => $aValue)
+                    $aTmpNickNames = $iParticipantsCount > 3 ? array_slice($aNickNames, 0, $this->_oConfig->CNF['PARAM_ICONS_NUMBER']) : $aNickNames;
+                    foreach ($aTmpNickNames as &$aValue)
                         $aTitle[] = $aValue['name'];
 
                     $sTitle = implode(', ', $aTitle);
                 }
-            }
+
 
             $sStatus = '';
             if ($iParticipantsCount == 1 && $oProfile && empty($aLot[$this->_oConfig->CNF['FIELD_TITLE']]))
@@ -1453,14 +1432,15 @@ class BxMessengerModule extends BxBaseModTextModule
         return $aLotsList;
     }
 
-    public function servicePerformConnAction($iInitiator, $iContent, $sAction = 'add', $sConnectionObject = 'sys_profiles_subscriptions')
+    public function servicePerformConnAction($iInitiator, $iContent, $sAction = 'add', $sConnectionType = 'follow')
     {
         require_once(BX_DIRECTORY_PATH_INC . "design.inc.php");
 
         if (!$iInitiator || !$iContent)
             return array();
 
-        $oConnections = BxDolConnection::getObjectInstance($sConnectionObject);
+
+        $oConnections = BxDolConnection::getObjectInstance($sConnectionType === 'follow' ? 'sys_profiles_subscriptions' : 'sys_profiles_friends');
         $sMethod = "{$sAction}Connection";
         if (empty($oConnections) || !method_exists($oConnections, $sMethod))
             return array();
@@ -1516,14 +1496,19 @@ class BxMessengerModule extends BxBaseModTextModule
         $aRet = array();
         foreach ($aMembers as $iId => $aInfo) {
             if (($oProfile = BxDolProfile::getInstance($iId))) {
-                $aRet[] = array(
+                $oAccount = $oProfile->getAccountObject();
+                $aRet[$iId] = array(
                     'name' => $oProfile->getDisplayName(),
+                    'profile_display_name' => $oProfile->getDisplayName(),
+                    'email' => $oAccount->getEmail(),
                     'id' => $iId,
                     'url' => $oProfile->getUrl(),
+                    'info' => $oProfile->getInfo(),
                     'thumb' => $oProfile->getThumb(),
                     'picture' => $oProfile->getPicture(),
                     'avatar' => $oProfile->getAvatar(),
                     'is_online' => $oProfile->isOnline(),
+                    'cover' => $oProfile->getUnitCover(),
                     'status' => $oProfile->getStatus(),
                     'followers' => (int)$oFollowers->getConnectedInitiatorsCount($iId),
                     'friends' => (int)$oFriends->getConnectedContentCount($iId, true),

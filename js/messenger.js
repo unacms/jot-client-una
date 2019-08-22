@@ -62,6 +62,7 @@
 		this.sFilesUploadAreaOnForm = '.bx-messenger-upload-area';
 		this.sScrollArea = '.bx-messenger-area-scroll';
 		this.sSelectedJot = '.bx-messenger-blink-jot';
+		this.sTmpVideoFile = '.bx-messenger-attachment-temp-video';
 		this.sJotMessageViews = '.view';
 
 		//globa class options
@@ -1000,21 +1001,25 @@
 			function()
 			{
 				let __this = $(this);
-				$('video,audio', this).each(function(){
+				$(`${_this.sTmpVideoFile}, audio`, this).each(function(){
 					if (!$('source', this).prop('src') || fMedia($(this).prop('tagName'), $('source', this).prop('type')) === '')
 						aMedia.push($(__this).data('media-id'));
 				});
 			});
 		
 		if (aMedia.length)
-			$.post('modules/?r=messenger/get_processed_media',{media:aMedia},
+			$.post('modules/?r=messenger/get_processed_media',{ media: aMedia },
 			function(oData)
 			{
 				for(var i=0; i < aMedia.length; i++)
 				{
-					if (typeof oData[aMedia[i]] !== 'undefined')
-						$('[data-media-id="' + aMedia[i] + '"] video, [data-media-id="' + aMedia[i] + '"] .audio .file', _this.sTalkList)
+					if (typeof oData[aMedia[i]] !== 'undefined') {
+						$(`[data-media-id="${aMedia[i]}"] ${_this.sTmpVideoFile}`, _this.sTalkList)
 							.replaceWith(oData[aMedia[i]]);
+
+						$('[data-media-id="' + aMedia[i] + '"] .audio .file', _this.sTalkList)
+							.replaceWith(oData[aMedia[i]]);
+					}
 				}
 			}, 'json');
 	}

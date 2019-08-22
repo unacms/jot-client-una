@@ -695,6 +695,7 @@ div.bx-messenger-attachment-file-images span.title
 	padding:0.3rem;
 }
 
+div.bx-messenger-attachment-temp-video img,
 div.bx-messenger-attachment-file-videos video,
 div.bx-messenger-attachment-file-audio audio
 {
@@ -703,6 +704,10 @@ div.bx-messenger-attachment-file-audio audio
 	float: left;
 	margin-top: 0.3rem;
 	border-radius:0.2rem;
+}
+
+div.bx-messenger-attachment-file-videos video.bx-player-plyr{
+	width:100%;
 }
 
 div.bx-messenger-attachment-file-audio .audio{
@@ -1140,10 +1145,11 @@ div.bx-messenger-video-block div:first-child
 	{		
 		width:80%;
 	}
-	
+
 	div.bx-messenger-attachment-file-videos video
 	{
-		max-width: 80%;
+		max-width: 100%;
+		width: 100%
 	}
 	
 	div.bx-messenger-upload-area

@@ -155,6 +155,7 @@ INSERT INTO `sys_objects_transcoder` (`object`, `storage_object`, `source_type`,
 ('bx_messenger_preview', 'bx_messenger_photos_resized', 'Storage', 'a:1:{s:6:"object";s:18:"bx_messenger_files";}', 'no', '1', '2592000', '0', ''),
 ('bx_messenger_videos_poster', 'bx_messenger_videos_processed', 'Storage', 'a:1:{s:6:"object";s:18:"bx_messenger_files";}', 'no', '0', '0', '0', 'BxDolTranscoderVideo'),
 ('bx_messenger_videos_mp4', 'bx_messenger_videos_processed', 'Storage', 'a:1:{s:6:"object";s:18:"bx_messenger_files";}', 'no', '0', '0', '0', 'BxDolTranscoderVideo'),
+('bx_messenger_videos_mp4_hd', 'bx_messenger_videos_processed', 'Storage', 'a:1:{s:6:"object";s:18:"bx_messenger_files";}', 'no', '0', '0', '0', 'BxDolTranscoderVideo'),
 ('bx_messenger_videos_webm', 'bx_messenger_videos_processed', 'Storage', 'a:1:{s:6:"object";s:18:"bx_messenger_files";}', 'no', '0', '0', '0', 'BxDolTranscoderVideo'),
 ('bx_messenger_mp3', 'bx_messenger_mp3_processed', 'Storage', 'a:1:{s:6:"object";s:18:"bx_messenger_files";}', 'no', '0', '0', '0', 'BxDolTranscoderAudio');
 
@@ -162,6 +163,7 @@ INSERT INTO `sys_transcoder_filters` (`transcoder_object`, `filter`, `filter_par
 ('bx_messenger_preview', 'Resize', 'a:3:{s:1:"w";s:3:"720";s:1:"h";s:3:"720";s:11:"crop_resize";s:1:"0";}', 0),
 ('bx_messenger_videos_poster', 'Poster', 'a:2:{s:1:"h";s:3:"720";s:10:"force_type";s:3:"jpg";}', 0),
 ('bx_messenger_videos_mp4', 'Mp4', 'a:2:{s:1:"h";s:3:"480";s:10:"force_type";s:3:"mp4";}', 0),
+('bx_messenger_videos_mp4_hd', 'Mp4', 'a:3:{s:1:"h";s:3:"720";s:13:"video_bitrate";s:4:"1536";s:10:"force_type";s:3:"mp4";}', 0),
 ('bx_messenger_videos_webm', 'Webm', 'a:2:{s:1:"h";s:3:"480";s:10:"force_type";s:4:"webm";}', 0),
 ('bx_messenger_mp3', 'Mp3', 'a:2:{s:13:"audio_bitrate";s:3:"128";s:10:"force_type";s:3:"mp3";}', 0);
 

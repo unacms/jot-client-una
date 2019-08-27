@@ -852,7 +852,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		return '';
 	}
 
-    function videoPlayer ($sUrlPoster, $sUrlMP4, $sUrlMP4Hd = '', $aAttrs = false, $bDynamic = true)
+    function videoPlayer ($sUrlPoster, $sUrlMP4, $sUrlWebM = '', $sUrlMP4Hd = '', $aAttrs = false, $bDynamic = true)
     {
         $oPlayer = BxDolPlayer::getObjectInstance();
         if (!$oPlayer)
@@ -861,6 +861,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         return $oPlayer->getCodeVideo (BX_PLAYER_STANDARD, array(
             'poster' => $sUrlPoster,
             'mp4' => array('sd' => $sUrlMP4, 'hd' => $sUrlMP4Hd),
+            'webm' => array('sd' => $sUrlWebM ),
             'attrs' => $aAttrs,
             'styles' => 'width:90%; max-width:480px; height:auto;',
         ), $bDynamic);
@@ -871,9 +872,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	    if (!$aTranscoders)
             return array();
 
-	    $oCNF = &$this -> _oConfig -> CNF;
-        $aTranscoders['webm'] = BxDolTranscoderImage::getObjectInstance($oCNF['OBJECT_VIDEOS_TRANSCODERS']['webm']);
-
+        $aTranscoders['webm'] = BxDolTranscoderImage::getObjectInstance($this -> _oConfig -> CNF['OBJECT_VIDEOS_TRANSCODERS']['webm']);
         return $aTranscoders;
     }
 
@@ -904,6 +903,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
        return ($sMp4File || $sWebMFile) ? $this -> videoPlayer(
                 $sPoster,
                 $sMp4File,
+                $sWebMFile,
                 $sMp4HDFile,
                 array('preload' => 'metadata'),
                 true

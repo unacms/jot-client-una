@@ -32,25 +32,26 @@ function oJotVideoRecorder(oOptions)
 
 oJotVideoRecorder.prototype.InitWebCam = function()
 {
-	var _this = this;
-	navigator.mediaDevices.getUserMedia({
-		video: true,
-		audio: true
-	})
-	.then(function(oCamera)
-	{
-		_this.oStream = oCamera;									
-		$(_this.video).prop('srcObject', _this.oStream);
-		
-		$(_this.bstart)
-			.removeClass(_this.sDisableButtonClass)
-			.prop('disabled', false);
-		
-	}).catch(function(e)
-	{
+	const _this = this;
+	try {
+		navigator.mediaDevices.getUserMedia({
+			video: true,
+			audio: true
+		})
+		.then(async function (oCamera) {
+			_this.oStream = oCamera;
+			$(_this.video).prop('srcObject', _this.oStream);
+
+			$(_this.bstart)
+				.removeClass(_this.sDisableButtonClass)
+				.prop('disabled', false);
+
+		});
+	}
+	catch(e){
 		alert(_t('_bx_messenger_video_record_is_not_supported', e.toString()));
 		$(_this.bclose).click();
-	});
+	};
 };
 
 oJotVideoRecorder.prototype.stopWebCamAndClose = function()
@@ -158,7 +159,7 @@ oJotVideoRecorder.prototype.init = function()
 		.click(
 				function()
 				{
-					var __this = $(this);								
+					const __this = $(this);
 					switch(__this.data('click'))
 					{		
 						case 1:

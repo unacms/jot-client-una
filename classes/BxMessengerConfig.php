@@ -125,7 +125,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'OBJECT_VIDEOS_TRANSCODERS' => array(
 													'poster' => 'bx_messenger_videos_poster',
 													'mp4' => 'bx_messenger_videos_mp4',
-													'mp4_hd' => 'bx_messenger_videos_mp4',
+													'mp4_hd' => 'bx_messenger_videos_mp4_hd',
 													'webm' => 'bx_messenger_videos_webm',
 												),
 			'OBJECT_VIEWS' => 'bx_messenger_lots',

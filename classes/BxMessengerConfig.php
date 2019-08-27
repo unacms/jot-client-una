@@ -278,6 +278,10 @@ class BxMessengerConfig extends BxBaseModTextConfig
     public function getPageLink($sUrl){
 	    return str_replace('{link}', $sUrl, $this->CNF['URL_TEMPLATE']);
     }
+
+    public function isOneSignalEnabled(){
+	    return $this->CNF['IS_PUSH_ENABLED'] && $this->CNF['PUSH_APP_ID'] && $this->CNF['PUSH_REST_API'];
+    }
 }
 
 /** @} */

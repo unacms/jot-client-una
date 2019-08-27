@@ -30,6 +30,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						'semantic.min.css',
 						'main.css'
 					 );
+
 		$aJs = array(
 						'primus.js',
 						'connect.js',
@@ -46,10 +47,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						'record-video.js',
 						'semantic.min.js'
 					); 
-		
-		if ($this->_oConfig->CNF['IS_PUSH_ENABLED'] && !getParam('sys_push_app_id'))
-			array_push($aJs, 'https://cdn.onesignal.com/sdks/OneSignalSDK.js');
-		
+
 		if ($sMode == 'all'){
 			array_push($aCss, 'admin.css', 'messenger.css');
 			array_push($aJs, 'columns.js');
@@ -741,17 +739,17 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$aVars = array(
 			'profile_id' => (int)$iProfileId,
 			'server_url' => $this->_oConfig-> CNF['SERVER_URL'],
-			'message_length' => (int)$this->_oConfig->CNF['MAX_SEND_SYMBOLS'] ? (int)$this->_oConfig-> CNF['MAX_SEND_SYMBOLS'] : 0,
+			'message_length' => (int)$this->_oConfig->CNF['MAX_SEND_SYMBOLS'] ? (int)$oCNF['MAX_SEND_SYMBOLS'] : 0,
 			'ip' => gethostbyname($aUrlInfo['host']),
 			'smiles' => (int)$this->_oConfig-> CNF['CONVERT_SMILES'],
 			'ebmed_template' => $sEmbedTemplate,
 			'bx_if:onsignal' => array(
-										'condition'	=> (int)$iProfileId && $this->_oConfig-> CNF['IS_PUSH_ENABLED'] && !getParam('sys_push_app_id'),
+										'condition'	=> (int)$iProfileId && $this->_oConfig->isOneSignalEnabled() && !getParam('sys_push_app_id'),
 										'content' => array(
-											'one_signal_api' => $this->_oConfig-> CNF['PUSH_APP_ID'],
-											'short_name' => $this->_oConfig-> CNF['PUSH_SHORT_NAME'],
-											'safari_key' => $this->_oConfig-> CNF['PUSH_SAFARI_WEB_ID'],
-											'jot_chat_page_url' => $this->_oConfig-> CNF['URL_HOME'],
+											'one_signal_api' => $oCNF['PUSH_APP_ID'],
+											'short_name' => $oCNF['PUSH_SHORT_NAME'],
+											'safari_key' => $oCNF['PUSH_SAFARI_WEB_ID'],
+											'jot_chat_page_url' => $oCNF['URL_HOME'],
 											'notification_request' => bx_js_string(_t('_bx_messenger_notification_request')),
 											'notification_request_yes' => bx_js_string(_t('_bx_messenger_notification_request_yes')),
 											'notification_request_no' => bx_js_string(_t('_bx_messenger_notification_request_no')),

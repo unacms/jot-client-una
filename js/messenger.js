@@ -1855,6 +1855,11 @@
 									  title   : 'value',
 									  image	  : 'icon'
 									},
+									onResults: function(){
+										$(this)
+											.find('.results')
+											.css({'background-color': $('.bx-def-color-bg-page').css('background-color')});
+									},
 									onSelect: function(result, response){
 										$(this)
 											.find('input')

@@ -6,8 +6,8 @@
 .bx-page-block-container,
 .bx-layout-cell
 {
-	padding:0px;
-	margin:0px;
+	padding:0;
+	margin:0;
 }
 
 #bx-menu-main-bar-wrapper {
@@ -16,7 +16,7 @@
 
 .cd-main-content .content-wrapper
 {
-	margin-left:0px !important;
+	margin-left:0 !important;
 }
 
 #bx-content-wrapper .bx-def-page-width
@@ -39,10 +39,6 @@
 #bx-messenger-add-users .ui.search > .results .result,
 #bx-messenger-add-users .ui.input > input{
 	color:inherit;
-}
-
-#bx-messenger-add-users .ui.search > .results{
-	background-color: inherit;
 }
 
 .bx-messenger-items-list
@@ -76,7 +72,7 @@
 
 .bx-messenger-block-lots
 {
-	border:0px;
+	border:0;
 }
 
 .bx-messenger-jots-snip-avatars .bx-base-pofile-unit-online{
@@ -166,7 +162,6 @@ span.bubble.hidden
 	float:left;
 	white-space:nowrap;
 	text-overflow:ellipsis;
-	white-space: nowrap;
 	overflow:hidden;
 	width:calc(100% - 2rem);
 	font-weight:400;
@@ -255,7 +250,7 @@ div.bx-messenger-border.search div:first-child
 
 div.bx-messenger-border.search div:first-child input
 {
-	padding:0px;
+	padding:0;
 	background-color:rgba(0,0,0,0);
 }
 
@@ -298,7 +293,7 @@ div.bx-messenger-border.search .star a.active
 	display:none;	
 	width: 100%;	
 	position: absolute;
-	bottom: 0px;
+	bottom: 0;
 }
 
 .bx-messenger-area-scroll a

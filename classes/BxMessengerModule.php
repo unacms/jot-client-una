@@ -1085,7 +1085,7 @@ class BxMessengerModule extends BxBaseModTextModule
                 array('group' => $sModule, 'type' => 'delete', 'alert_unit' => $sModule, 'alert_action' => 'delete_jot_ntfs')
             ),
             'settings' => array(
-                array('group' => 'content', 'unit' => $sModule, 'action' => 'got_jot_ntfs', 'types' => array('personal'))
+                array('group' => $sModule, 'unit' => $sModule, 'action' => 'got_jot_ntfs', 'types' => array('personal'))
             ),
             'alerts' => array(
                 array('unit' => $sModule, 'action' => 'got_jot_ntfs'),

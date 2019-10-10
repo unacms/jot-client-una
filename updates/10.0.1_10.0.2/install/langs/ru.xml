@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="ru" flag="ru" title="Russian">	
+	<string_upd name="_bx_messenger_use_embedly"><![CDATA[Преобразовывать сcылки в сообщениях, использую выбранный Embeds провайдер]]></string_upd>
+</resources>

@@ -64,6 +64,8 @@
 		this.sSelectedJot = '.bx-messenger-blink-jot';
 		this.sTmpVideoFile = '.bx-messenger-attachment-temp-video';
 		this.sJotMessageViews = '.view';
+		this.sGiphyItems = '.bx-messenger-giphy-items';
+		this.sGiphyBlock = '.bx-messenger-giphy';
 
 		//globa class options
 		this.oUsersTemplate	= null;
@@ -922,7 +924,7 @@
 
 		$(oJot).html(sText);
 		
-		if ($(oJot).siblings(_oMessenger.sAttachmentFiles).length)
+		if ($(oJot).siblings(_oMessenger.sAttachmentArea).length)
 			return this;
 		
 		if (sUrl.length)
@@ -1030,8 +1032,7 @@
 	*@return object this
 	*/
 	oMessenger.prototype.attacheFiles = function(iJotId){
-		var _this = this;
-		
+		const _this = this;
 		_this.iAttachmentUpdate = true;
 		$.post('modules/?r=messenger/get_attachment', {jot_id:iJotId}, function(oData)
 		{
@@ -1258,21 +1259,31 @@
 	}
 
 	/**
-	* Main send message function, occurs when member send message
-	*/
-	oMessenger.prototype.sendMessage = function(sMessage, aFiles, fCallBack){
-		var _this = this, 
+	 * Main send message function, occurs when member send message
+	 * @param string sMessage text of the message
+	 * @param object mixedObjects, it may be array of files or object with elements
+	 * @param function fCallBack
+	 */
+	oMessenger.prototype.sendMessage = function(sMessage, mixedObjects, fCallBack){
+		const _this = this,
 			oParams = this.oSettings,
 			msgTime = new Date();
 		
-		if (typeof aFiles !== 'undefined' && aFiles.length)
-			oParams.files = aFiles;
-		else
+		if (typeof mixedObjects === 'object')
+		{
+			if (Array.isArray(mixedObjects) && mixedObjects.length)
+				oParams.files = mixedObjects;
+			else
+				oParams.ids = mixedObjects;
+		}
+		else {
 			oParams.files = undefined;
+			oParams.ids = undefined;
+		}
 
 		oParams.participants = _this.getPatricipantsList();
 		oParams.message = $.trim(sMessage);
-		if (!oParams.message.length && typeof oParams.files === 'undefined')
+		if (!oParams.message.length && typeof oParams.files === 'undefined' && typeof oParams.ids === 'undefined')
 			return;
 
 		oParams.tmp_id = msgTime.getTime();
@@ -1284,29 +1295,27 @@
 		if (oParams.message.length > this.iMaxLength) 
 			oParams.message = oParams.message.substr(0, this.iMaxLength);
 
-		if (oParams.message || typeof oParams.files !== 'undefined')
+		if (oParams.message || typeof oParams.files !== 'undefined' || typeof oParams.ids !== 'undefined')
 		{
 			// append content of the message to the history page
 			$(_this.sTalkList)
 				.append(
-									_this.oUsersTemplate
-									.clone()
-										.attr('data-tmp', oParams.tmp_id)
-										.find('time')
-										.attr('datetime', msgTime.toISOString())
-									.end()
-										.find(_this.sJotMessage)
-										.text(oParams.message)
-										.fadeIn('slow')
-									.end()
-										.bxTime()
-										//.onEditJot()
-								);
+							_this.oUsersTemplate
+								.clone()
+									.attr('data-tmp', oParams.tmp_id)
+									.find('time')
+									.attr('datetime', msgTime.toISOString())
+								.end()
+									.find(_this.sJotMessage)
+									.text(oParams.message)
+									.fadeIn('slow')
+								.end()
+									.bxTime()
+						);
 								
 			
 			_this.initJotIcons('[data-tmp="' + oParams.tmp_id + '"]');
 			$(_this.sSendArea).html('');
-			
 		}
 
 		if ($(_this.sScrollArea).length)
@@ -1330,7 +1339,7 @@
 									.attr('data-id', oData.jot_id)
 									.linkify();
 									
-							if (typeof oParams.files !== 'undefined')
+							if (typeof oParams.files !== 'undefined' || typeof oParams.ids !== 'undefined')
 								_this.attacheFiles(iJotId);
 							
 							if (!_this.isBlockVersion())
@@ -2245,6 +2254,43 @@
 				closeElement: true
 			});
 		},
+		/**
+		* Send selected gif file from giphy with message
+		*@param string sId giphy image file
+		*/
+		sendGiphy:function(sId) {
+
+			bx_loading($(_oMessenger.sFilesUploadAreaOnForm), true);
+			const sMessage = $(_oMessenger.sAddFilesFormComments).text();
+			_oMessenger.sendMessage(sMessage, { 'giphy': sId }, () => {
+				$(_oMessenger.sFilesUploadAreaOnForm)
+					.closest('.bx-popup-active')
+					.dolPopupHide({});
+
+				bx_loading($(_oMessenger.sFilesUploadAreaOnForm), false);
+				$('.bx-messenger-conversation-block-wrapper .ui.sidebar.giphy')
+					.sidebar('toggle');
+			});
+		},
+
+		/**
+		 * Select giphy item to send, allows to add message to gif image.
+		 *@param string sId of the image
+		 */
+		onSelectGiphy:function(sId){
+			$(window).dolPopupAjax({
+				url: 'modules/?r=messenger/get_giphy_upload_form/' + sId,
+				closeElement: true,
+				onShow: function() {
+					$('.bx-popup-active .bx-popup-element-close')
+						.click(
+							function()
+							{
+								$(this).closest('.bx-popup-applied:visible').dolPopupHide();
+							});
+				},
+			});
+		},
 		
 		/**
 		* Show only marked as important lot
@@ -2340,7 +2386,67 @@
 					});
 			
 			
-		}
+		},
+		initGiphy: function(e){
+			const $oContainer = $(_oMessenger.sGiphyItems),
+				  fGiphy = (sType, sValue) => {
+					const fWidth = $oContainer.width();
+
+					$oContainer
+						.append('<div class="giphy-loading" />');
+
+					bx_loading($oContainer.find('.giphy-loading'), true);
+
+					$.get('modules/?r=messenger/get_giphy', { width: fWidth, action: sType, filter: sValue },
+					function(oData)
+					{
+						const bHasMasonry = $oContainer.data('masonry') ? true : false;
+						// destroy masonry if already exists
+						if ($oContainer.length && bHasMasonry)
+							$oContainer.masonry('destroy');
+
+						$oContainer
+								.html(
+									oData.code
+									? oData.message
+									: oData.html
+								)
+								.imagesLoaded(() => {
+									$oContainer.masonry()
+								});
+
+						$oContainer.masonry({
+								itemSelector: 'img',
+								isAnimated: true,
+								gutter: 5,
+								fitWidth: true,
+							});
+					},
+					'json');
+            };
+
+            if ($('.ui.giphy').css('visibility') === 'visible')
+            {
+                let iTimer = 0;
+                $('input', _oMessenger.sGiphyBlock).keypress(function(e) {
+                    const sChar = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+
+                    if (/[a-zA-Z0-9-_ ]/.test(sChar)) {
+                        clearTimeout(iTimer);
+                        iTimer = setTimeout(() => {
+                        	fGiphy('search', $(this).val());
+                        }, 1500);
+                        return true;
+                    }
+
+                    e.preventDefault();
+                    return false;
+                });
+
+                if ($oContainer && !$oContainer.find('img').length)
+               		fGiphy();
+            }
+        }
 	}
 })(jQuery);
 

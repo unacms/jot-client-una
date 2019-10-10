@@ -117,7 +117,21 @@ class BxMessengerConfig extends BxBaseModTextConfig
 											'bx_events' => BX_IM_TYPE_EVENTS
 										),
 			'URL_IDENT_PARAMS' => array('i','r','id','profile_id'),
-			// objects
+
+            // GIPHY
+            'GIPHY' => array(
+                'api_key' => getParam($aModule['db_prefix'] . 'giphy_key'),
+                'type' => getParam($aModule['db_prefix'] . 'giphy_type'),
+                'rating' => getParam($aModule['db_prefix'] . 'giphy_content_rating'),
+                'limit' => (int)getParam($aModule['db_prefix'] . 'giphy_limit'),
+                'gifs' => 'https://api.giphy.com/v1/gifs/',
+                'stickers' => 'https://api.giphy.com/v1/stickers/',
+                'search' => 'search',
+                'trending' => 'trending',
+                'translate' => 'translate'
+            ),
+
+            // objects
 			'OBJECT_STORAGE' => 'bx_messenger_files',
 			'OBJECT_IMAGES_TRANSCODER_GALLERY' => 'bx_messenger_photos_resized',
 			'OBJECT_IMAGES_TRANSCODER_PREVIEW' => 'bx_messenger_preview',
@@ -281,6 +295,25 @@ class BxMessengerConfig extends BxBaseModTextConfig
 
     public function isOneSignalEnabled(){
 	    return $this->CNF['IS_PUSH_ENABLED'] && $this->CNF['PUSH_APP_ID'] && $this->CNF['PUSH_REST_API'];
+    }
+
+    public function getGiphyGifs($sAction = 'trending', $sValue = ''){
+        $oGiphy = &$this->CNF['GIPHY'];
+	    $aParams = array(
+            'api_key' => $oGiphy['api_key'],
+            'limit' => (int)$oGiphy['limit'],
+            'rating' => $oGiphy['rating']
+        );
+
+        $sUrl = $oGiphy[$oGiphy['type']];
+        if ($sAction === 'search' && $sValue){
+            $aParams['q'] = $sValue;
+            $aParams['lang'] = bx_lang_name();
+            $aParams['random_id'] = time();
+        }
+
+        $sAction = $sAction ? $oGiphy[$sAction] : $oGiphy['trending'];
+        return bx_file_get_contents("{$sUrl}{$sAction}", $aParams);
     }
 }
 

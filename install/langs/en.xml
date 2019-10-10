@@ -155,4 +155,10 @@
 	<string name="_bx_messenger_lots_menu_media"><![CDATA[Files]]></string>
 	<string name="_bx_messenger_no_permissions"><![CDATA[You have no rights to view the content]]></string>
 	<string name="_bx_messenger_use_embedly"><![CDATA[Convert links in message using active Embeds provider]]></string>
+	<string name="_bx_messenger_giphy_api_key"><![CDATA[Giphy Api Key. If you are going to use gifs animation for messages you need to register and get Api Key on giphy https://developers.giphy.com/dashboard/?create=true ]]></string>
+	<string name="_bx_messenger_giphy_type"><![CDATA[Use selected type by default. Gifs or Stickers (GIFs with transparent backgrounds)]]></string>
+	<string name="_bx_messenger_giphy_content_rating"><![CDATA[Content rating. More details you may find here https://developers.giphy.com/docs/optional-settings#rating]]></string>
+	<string name="_bx_messenger_giphy_limit"><![CDATA[Default gifs number]]></string>
+	<string name="_bx_messenger_giphy_gifs_button"><![CDATA[Giphy]]></string>
+	<string name="_bx_messenger_giphy_gifs_nothing_found"><![CDATA[Nothing found]]></string>
 </resources>

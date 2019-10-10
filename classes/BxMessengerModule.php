@@ -19,6 +19,7 @@ define('BX_IM_TYPE_EVENTS', 5);
 define('BX_IM_EMPTY_URL', '');
 define('BX_IM_EMPTY', 0);
 define('BX_ATT_TYPE_FILES', 'files');
+define('BX_ATT_TYPE_GIPHY', 'giphy');
 define('BX_ATT_TYPE_REPOST', 'repost');
 
 /**
@@ -173,11 +174,12 @@ class BxMessengerModule extends BxBaseModTextModule
         $iType = bx_get('type');
         $iTmpId = bx_get('tmp_id');
         $aFiles = bx_get('files');
+        $aIds = bx_get('ids');
 
         if (!$this->isLogged())
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_only_for_logged')));
 
-        if (!$sMessage && empty($aFiles))
+        if (!$sMessage && empty($aFiles) && empty($aIds))
             return echoJson(array('code' => 2, 'message' => _t('_bx_messenger_send_message_no_data')));
 
         $iType = $this->_oDb->isLotType($iType) ? $iType : BX_IM_TYPE_PUBLIC;
@@ -202,7 +204,7 @@ class BxMessengerModule extends BxBaseModTextModule
         }
 
         $aResult = array('code' => 0);
-        if (($sMessage || !empty($aFiles)) && ($iId = $this->_oDb->saveMessage(array(
+        if (($sMessage || !empty($aFiles) || !empty($aIds)) && ($iId = $this->_oDb->saveMessage(array(
                 'message' => $sMessage,
                 'type' => $iType,
                 'member_id' => $this->_iUserId,
@@ -210,7 +212,7 @@ class BxMessengerModule extends BxBaseModTextModule
                 'title' => $sTitle,
                 'lot' => $iLotId
 											), $aParticipants)))
-		{		   
+        {
             if (!$iLotId)
                 $aResult['lot_id'] = $this->_oDb->getLotByJotId($iId);
 
@@ -233,6 +235,11 @@ class BxMessengerModule extends BxBaseModTextModule
 
                 if (!empty($aFilesNames))
                     $this->_oDb->addAttachment($iId, implode(',', $aFilesNames), BX_ATT_TYPE_FILES);
+            }
+
+			if (!empty($aIds))
+            {
+                $this->_oDb->addAttachment($iId, current($aIds), BX_ATT_TYPE_GIPHY);
             }
 
             $aResult['jot_id'] = $iId;
@@ -355,7 +362,7 @@ class BxMessengerModule extends BxBaseModTextModule
      * @return string with json
      */
 	public function actionUpdate(){	   
-        $oCNF = &$this->_oConfig->CNF;
+        $CNF = &$this->_oConfig->CNF;
         $sUrl = bx_get('url');
         $iJot = (int)bx_get('jot');
         $iLotId = (int)bx_get('lot');
@@ -368,7 +375,7 @@ class BxMessengerModule extends BxBaseModTextModule
             if (empty($aMyLatestJot))
                 return echoJson(array('code' => 1));
             else
-                $iJot = (int)$aMyLatestJot[$oCNF['FIELD_MESSAGE_ID']];
+                $iJot = (int)$aMyLatestJot[$CNF['FIELD_MESSAGE_ID']];
         }
 
         $sUrl = $sUrl ? $this->getPreparedUrl($sUrl) : '';
@@ -382,7 +389,7 @@ class BxMessengerModule extends BxBaseModTextModule
                     'url' => $sUrl,
                     'start' => $iJot,
                     'load' => $sLoad,
-                    'limit' => ($sLoad != 'new' ? $oCNF['MAX_JOTS_LOAD_HISTORY'] : 0),
+                    'limit' => ($sLoad != 'new' ? $CNF['MAX_JOTS_LOAD_HISTORY'] : 0),
                     'read' => $bRead,
                     'views' => true
                 );
@@ -466,15 +473,15 @@ class BxMessengerModule extends BxBaseModTextModule
      * @return array with json
      */
 	public function actionGetProcessedMedia(){
-        $oCNF = &$this->_oConfig->CNF;
+        $CNF = &$this->_oConfig->CNF;
         $aMedia = bx_get('media');
         $aResult = array();
 
         if (empty($aMedia))
             return echoJson($aResult);
 
-        $oTranscoderAudio = BxDolTranscoderAudio::getObjectInstance($oCNF['OBJECT_MP3_TRANSCODER']);
-        $oStorage = BxDolStorage::getObjectInstance($oCNF['OBJECT_STORAGE']);
+        $oTranscoderAudio = BxDolTranscoderAudio::getObjectInstance($CNF['OBJECT_MP3_TRANSCODER']);
+        $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
         if (empty($oStorage))
             return echoJson($aResult);
 
@@ -482,7 +489,7 @@ class BxMessengerModule extends BxBaseModTextModule
 		{
             $aFile = $oStorage->getFile($iMedia);
             if ($oTranscoderAudio->isMimeTypeSupported($aFile['mime_type']) && $oTranscoderAudio->isFileReady($iMedia))
-                $aResult[$iMedia] = $this->_oTemplate->audioPlayer($oTranscoderAudio->getFileUrl($aFile[$oCNF['FIELD_ST_ID']]), true);
+                $aResult[$iMedia] = $this->_oTemplate->audioPlayer($oTranscoderAudio->getFileUrl($aFile[$CNF['FIELD_ST_ID']]), true);
 
             if (!strncmp('video/', $aFile['mime_type'], 6))
                 $aResult[$iMedia] = $this->_oTemplate->getVideoFilesToPlay($aFile);
@@ -591,18 +598,18 @@ class BxMessengerModule extends BxBaseModTextModule
         $aJotInfo = $this->_oDb->getJotById($iJotId);
 
         $aResult = array('code' => 1);
-        $oCNF = &$this->_oConfig->CNF;
+        $CNF = &$this->_oConfig->CNF;
 
         if (empty($aJotInfo))
             return echoJson($aResult);
 
-        $bIsLotAuthor = $this->_oDb->isAuthor($aJotInfo[$oCNF['FIELD_MESSAGE_FK']], $this->_iUserId);
-        $bIsAllowedToDelete = $this->_oDb->isAllowedToDeleteJot($iJotId, $this->_iUserId, $aJotInfo[$oCNF['FIELD_MESSAGE_AUTHOR']], $bIsLotAuthor);
-        if (!(isAdmin() || $bIsLotAuthor || ((!$bCompletely || $oCNF['REMOVE_MESSAGE_IMMEDIATELY']) && $bIsAllowedToDelete)))
+        $bIsLotAuthor = $this->_oDb->isAuthor($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iUserId);
+        $bIsAllowedToDelete = $this->_oDb->isAllowedToDeleteJot($iJotId, $this->_iUserId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']], $bIsLotAuthor);
+        if (!(isAdmin() || $bIsLotAuthor || ((!$bCompletely || $CNF['REMOVE_MESSAGE_IMMEDIATELY']) && $bIsAllowedToDelete)))
             return echoJson($aResult);
 
-        if ($this->_oDb->deleteJot($iJotId, $this->_iUserId, $bCompletely || $oCNF['REMOVE_MESSAGE_IMMEDIATELY'])) {
-            $this->onDeleteJot($aJotInfo[$oCNF['FIELD_MESSAGE_FK']], $iJotId, $aJotInfo[$oCNF['FIELD_MESSAGE_AUTHOR']]);
+        if ($this->_oDb->deleteJot($iJotId, $this->_iUserId, $bCompletely || $CNF['REMOVE_MESSAGE_IMMEDIATELY'])) {
+            $this->onDeleteJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iJotId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
             $aResult = array('code' => 0, 'html' => !$bCompletely ? $this->_oTemplate->getMessageIcons($iJotId, 'delete', $bIsLotAuthor || isAdmin()) : '');
         }
 
@@ -966,7 +973,6 @@ class BxMessengerModule extends BxBaseModTextModule
     public function actionUploadVideoFile()
     {
         $oStorage = new BxMessengerStorage($this->_oConfig->CNF['OBJECT_STORAGE']);
-
         if (!$oStorage || !isset($_POST['name']) || empty($_FILES)) {
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_no_video')));
         }
@@ -1315,9 +1321,9 @@ class BxMessengerModule extends BxBaseModTextModule
             return array();
 
         $aResult = array();
-        $oCNF = &$this->_oConfig->CNF;
+        $CNF = &$this->_oConfig->CNF;
         foreach ($aFiles as $iKey => $aValue)
-            $aResult[$aValue[$oCNF['FIELD_ST_ID']]] = $this->_oTemplate->getFileContent($aValue);
+            $aResult[$aValue[$CNF['FIELD_ST_ID']]] = $this->_oTemplate->getFileContent($aValue);
 
         return $aResult;
     }
@@ -1580,13 +1586,13 @@ class BxMessengerModule extends BxBaseModTextModule
         if ($iProfileId !== $this->_iUserId || !$this->_oDb->isParticipant($iLotId, $this->_iUserId))
             return array('code' => 1, _t('_bx_messenger_not_participant'));
 
-        $oCNF = $this->_oConfig->CNF;
-        $iJotsLimit = $iJotsLimit ? $iJotsLimit : $oCNF['MAX_JOTS_LOAD_HISTORY'];
+        $CNF = $this->_oConfig->CNF;
+        $iJotsLimit = $iJotsLimit ? $iJotsLimit : $CNF['MAX_JOTS_LOAD_HISTORY'];
         $aJotsList = $this->_oDb->getJotsByLotId($iLotId, $iStart, $sType, $iJotsLimit);
 
         $aJots = array();
         foreach ($aJotsList as &$aJot) {
-            $aAuthor = BxDolProfile::getInstance($aJot[$oCNF['FIELD_MESSAGE_AUTHOR']]);
+            $aAuthor = BxDolProfile::getInstance($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);
             $aJots[] = array_merge($aJot, array(
                 'thumb' => $aAuthor->getThumb(),
                 'name' => $aAuthor->getDisplayName(),
@@ -1618,6 +1624,53 @@ class BxMessengerModule extends BxBaseModTextModule
         $sMessage = BxTemplFunctions::getInstance()->getStringWithLimitedLength($sMessage, (int)$this->_oConfig->CNF['MAX_SEND_SYMBOLS']);
 
         return $sMessage;
+    }
+
+    function actionGetGiphy(){
+        if (!$this->isLogged())
+            return '';
+
+        $oResult = $this->_oConfig->getGiphyGifs(bx_get('action'), bx_get('filter'));
+
+        $iWidth = (float)bx_get('width');
+        $iCount = $iWidth/150;
+        $fGifWidth = $iWidth/round($iCount) - 8;
+        $fRate = 200/$fGifWidth;
+
+        if ($oResult && ($aResult = json_decode($oResult, true))){
+            if (!empty($aResult['data'])){
+                $aVars['bx_repeat:gifs'] = array();
+                foreach($aResult['data'] as &$aGif) {
+                    $aImage = $aGif['images']['fixed_width'];
+                    $aVars['bx_repeat:gifs'][] = array(
+                       'id' => $aGif['id'],
+                       'width' => $fGifWidth,
+                       'height' => $aImage['height']/$fRate,
+                       'gif' => $aImage['url']
+                    );
+                }
+
+                if (!empty($aVars['bx_repeat:gifs'])) {
+                    usort($aVars['bx_repeat:gifs'], function ($a, $b) {
+                        return $a['height'] < $b['height'];
+                    });
+
+                    return echoJson(array('code' => 0, 'html' => $this->_oTemplate->parseHtmlByName('giphy_items.html', $aVars)));
+                }
+            }
+        }
+
+        return echoJson(array('code' => 1, 'message' => MsgBox(_t('_bx_messenger_giphy_gifs_nothing_found'))));
+    }
+
+    public function actionGetGiphyUploadForm($sId)
+    {
+        if (!$this->isLogged())
+            return '';
+
+        header('Content-type: text/html; charset=utf-8');
+        echo $this->_oTemplate->getGiphyForm($sId);
+        exit;
     }
 }
 

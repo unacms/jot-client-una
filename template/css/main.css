@@ -417,13 +417,17 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
    padding-bottom:0.5rem;
 }
 
-.bx-messenger-main-block  .bx-loading-ajax{	
+.bx-messenger-main-block .bx-loading-ajax{
 	margin-top:auto;
-	left:50% !important;
+	/*left:50% !important;*/
 }
 
-.bx-messenger-main-block .pusher{
-	height:100%;
+.bx-messenger-main-block .pusher {
+    height: 100%;
+}
+
+.bx-messenger-conversation-block-wrapper.pushable{
+    overflow: hidden;
 }
 
 .bx-messenger-table-wrapper
@@ -568,6 +572,7 @@ div.bx-messenger-attachment-footer span.type
 .bx-messenger-files-upload-description-area
 {
 	overflow:hidden;
+	width:100%;
 }
 
 .bx-messenger-upload-area div[contenteditable="true"],
@@ -577,6 +582,12 @@ div.bx-messenger-attachment-footer span.type
 	outline:0;
 	margin-top:0.5rem;
 	margin-bottom:0.5rem;
+}
+
+.bx-messenger-files-upload-description-area div.bx-messenger-comment {
+	min-height: 1rem;
+	height:1rem;
+	margin-bottom:1rem;
 }
 
 .bx-messenger-comment
@@ -594,7 +605,8 @@ div.bx-messenger-attachment-footer span.type
 {
 	content:'';
 }
-	
+
+.bx-messenger-attachment-giphy,
 .bx-messenger-attachment-files
 {
 	position: relative;
@@ -602,6 +614,12 @@ div.bx-messenger-attachment-footer span.type
 	width: auto;
 	float:left;	
 	white-space:normal;
+}
+
+.bx-messenger-attachment-giphy img{
+	max-width: 320px;
+	float: left;
+	border-radius:0.2rem;
 }
 
 .bx-messenger-attachment-file
@@ -728,7 +746,6 @@ div.bx-messenger-attachment-file-audio .audio .file img{
 	max-height:3rem;
 }
 
-
 div.bx-messenger-attachment-file-images img
 {
 	max-width: 40%;
@@ -811,6 +828,11 @@ div.bx-messenger-attachment-file-images img
 	padding-right:0.5rem;
 }
 
+#bx-messenger-add-users .ui.input > input
+{
+	padding-left:0rem !important;
+	padding-right:0rem !important;
+}
 
 .bx-db-header{
 	min-height:2.5rem;
@@ -992,9 +1014,13 @@ div.bx-messenger-hidden-jot
 /* Video Recording Area */
 div.bx-messenger-upload-area
 {
-	margin:1rem;
 	overflow:hidden;
 	min-height:3rem;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.3rem;
 }
 
 div.bx-messenger-upload-area .bx-messenger-video-buttons
@@ -1185,11 +1211,6 @@ div.bx-messenger-video-block div:first-child
 {
 	margin:0 !important;
 }
-.ui.input > input
-{
-	padding-left:0rem !important;
-	padding-right:0rem !important;
-}
 
 /* fonts styles only for the home page */
 #bx-page-home .bx-messenger-main-block,
@@ -1198,13 +1219,89 @@ div.bx-messenger-video-block div:first-child
 	font-size: 0.85rem;
 }
 
+#bx-messenger-send-area-giphy{
+	font-weight: 700;
+	border-radius: 1rem;
+}
+
+div.bx-messenger-giphy div.bx-messenger-giphy-scroll {
+	width:100%;
+	position: relative;
+	overflow-y: auto;
+	margin: auto;
+	display: flex;
+	justify-content: center;
+	scrollbar-width: none;
+}
+
+div.bx-messenger-giphy{
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+	min-height: 100px;
+	overflow: hidden;
+	align-items: center;
+}
+
+div.bx-messenger-giphy div.search{
+    width:100%;
+}
+
+div.bx-messenger-giphy div.search input{
+    padding-left:0.3rem;
+}
+
+div.bx-messenger-giphy-items{
+	position:relative;
+	width:100%;
+	min-height: 8rem;
+}
+
+div.bx-messenger-giphy-items > div.giphy-loading{
+	width: 100%;
+	position: absolute;
+	height: 100%;
+	min-height: 8rem;
+	background-color: rgba(0, 0, 0, 0.3);
+	top: 0;
+	left: 0;
+}
+
+div.giphy-upload img{
+	max-width: 100%;
+}
+
+div.ui.sidebar.giphy {
+	max-height:40%;
+	min-height: 200px;
+	overflow: hidden !important;
+	display: flex;
+	flex-direction: column;
+}
+
+div.bx-messenger-uploading-form-buttons{
+	display: flex;
+	justify-content: space-evenly;
+	width: 100%;
+	margin: 0.5rem;
+}
+
+div.bx-messenger-giphy-items img{
+	max-width: 200px;
+	cursor: pointer;
+	margin-bottom: 0.5rem;
+}
+
 @media (max-width:480px)
 {
 	.bx-messenger-video
 	{
 		position:inherit;
 	}
-	
+	.bx-messenger-attachment-giphy img{
+		max-width: 70%;
+	}
 	.bx-messenger-video video
 	{
 		width:100%;

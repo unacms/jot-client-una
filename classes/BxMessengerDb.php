@@ -885,8 +885,6 @@ class BxMessengerDb extends BxBaseModTextDb
 	*/
 	public function addAttachment($iJotId, $mixedContent, $sType = BX_ATT_TYPE_REPOST){
 		$iJotId = (int)$iJotId;
-		$aJotInfo = array();
-
 		if (!$iJotId || !($aJotInfo = $this -> getJotById($iJotId)) || !$mixedContent)
 			return false;
 		
@@ -1112,7 +1110,7 @@ class BxMessengerDb extends BxBaseModTextDb
      * @return bool
      */
     public function isAllowedToDeleteJot($iJotId, $iProfileId=0, $iJotAuthor=0, $iLotAuthorId=0){
-        $oCNF = &$this -> _oConfig -> CNF;
+        $CNF = &$this -> _oConfig -> CNF;
         if (!$iJotId)
             return true;
 
@@ -1121,7 +1119,7 @@ class BxMessengerDb extends BxBaseModTextDb
 
         if (!$iJotAuthor){
             $aJot = $this->getJotById($iJotId);
-            $iJotAuthor = $aJot[$oCNF['FIELD_MESSAGE_AUTHOR']];
+            $iJotAuthor = $aJot[$CNF['FIELD_MESSAGE_AUTHOR']];
         }
 
         if (!$iLotAuthorId) {
@@ -1132,7 +1130,7 @@ class BxMessengerDb extends BxBaseModTextDb
             $bIsLotAuthor = $iLotAuthorId == $iProfileId;
 
 
-        return ($oCNF['ALLOW_TO_REMOVE_MESSAGE'] && $iJotAuthor == $iProfileId) || $bIsLotAuthor || isAdmin();
+        return ($CNF['ALLOW_TO_REMOVE_MESSAGE'] && $iJotAuthor == $iProfileId) || $bIsLotAuthor || isAdmin();
     }
 
     /*********************** REACT JOT Integration part *****************/

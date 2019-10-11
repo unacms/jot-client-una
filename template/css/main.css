@@ -281,18 +281,23 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 .bx-messenger-jots-title div
 {
 	height:1rem;
-    display: flex;
     align-items: center;
+	text-overflow: ellipsis;
+	white-space:nowrap;
+	line-height: 1rem;
 }
 
 .bx-messenger-jots-title div.title
 {
-	position:relative;
-	margin-right:1rem;
+	position: relative;
+	margin-right: 1rem;
+	overflow: hidden;
 }
 
 .bx-messenger-jots-title div.view{
 	display:none;
+	overflow: hidden;
+	white-space: normal;
 }
 
 .bx-messenger-jots-title div.view img
@@ -304,10 +309,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 
 .bx-messenger-jots-title div.time
 {
-	/*float: none;
-	left: 1rem;*/
 	overflow: hidden;
-	white-space: nowrap;
 	text-overflow: ellipsis;
 	opacity:0.7;
 }
@@ -477,11 +479,12 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 
 div.bx-messenger-jots-actions-list
 {
-	margin-right:1rem;
+	padding-right: 1rem;
     text-align: right;
     flex:1 1 auto;
-    display:flex;
+    display: flex;
     justify-content: flex-end;
+	padding-left: 0.5rem;
 }
 
 div.bx-messenger-jots-icons 

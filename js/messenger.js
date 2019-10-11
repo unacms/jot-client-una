@@ -565,8 +565,13 @@
 						}
 						
 		}, 'json');
-	}
+	};
 	
+	oMessenger.prototype.updateCommentsAreaWidth = function(fWidth){
+			$(this.sAddFilesFormComments)
+				.css('max-width', fWidth ? fWidth : $(this.sAddFilesFormComments).parent().width());
+	};
+
 	oMessenger.prototype.leaveLot = function(iLotId){
 		const _this = this;
 		if (!iLotId)
@@ -2181,38 +2186,30 @@
 		},
 		
 		/**
-		* Creates form for files uploading in popup
+		* Loads form for files uploading in popup
 		*@param string sUrl link, if not specify default one will be used
 		*@param function fCallback callback function,  executes on window show
 		*/		
-		showPopForm: function (sUrl, fCallback) {
-			var _this = this,
-				sUrl = 'modules/?r=messenger/' + (sUrl || 'get_upload_files_form'),
-				sText = $(_oMessenger.sMessengerBox).val();
+		showPopForm: function (sMethod, fCallback) {
+			const sUrl = 'modules/?r=messenger/' + (sMethod || 'get_upload_files_form'),
+				  sText = $(_oMessenger.sMessengerBox).val();
 
-			$(_oMessenger.sAddFilesForm).remove();
-			
 			$(window).dolPopupAjax({
 				url: sUrl,
-				id: {force: true, value: _oMessenger.sAddFilesForm.substr(1)},
+				id: { force: true, value: _oMessenger.sAddFilesForm.substr(1) },
 				onShow: function() {
-					$(_oMessenger.sAddFilesForm + ' .bx-popup-element-close')
-					.click(
-						function()
-						{
-							$(_oMessenger.sAddFilesForm + ' .bx-btn.close').click();
-						});
-					
+
 					if (typeof fCallback == 'function')
-					{
 						fCallback();
-					}
-					
+
 					if (sText.length)
 						$(_oMessenger.sAddFilesFormComments).text(sText);
-				},				
+
+					setTimeout(() => _oMessenger.updateCommentsAreaWidth(), 100);
+				},
 				closeElement: true,
 				closeOnOuterClick: false,
+				removeOnClose:true,
 				onHide:function()
 				{
 					_oMessenger.updateScrollPosition('bottom');
@@ -2259,7 +2256,6 @@
 		*@param string sId giphy image file
 		*/
 		sendGiphy:function(sId) {
-
 			bx_loading($(_oMessenger.sFilesUploadAreaOnForm), true);
 			const sMessage = $(_oMessenger.sAddFilesFormComments).text();
 			_oMessenger.sendMessage(sMessage, { 'giphy': sId }, () => {
@@ -2280,14 +2276,16 @@
 		onSelectGiphy:function(sId){
 			$(window).dolPopupAjax({
 				url: 'modules/?r=messenger/get_giphy_upload_form/' + sId,
+				id: { force: true, value: _oMessenger.sAddFilesForm.substr(1) },
 				closeElement: true,
+				removeOnClose: true,
 				onShow: function() {
-					$('.bx-popup-active .bx-popup-element-close')
-						.click(
-							function()
-							{
-								$(this).closest('.bx-popup-applied:visible').dolPopupHide();
-							});
+					$('.bx-popup-applied:visible img')
+						.load(function(){
+							if ($(this).get(0).width)
+								$(_oMessenger.sAddFilesFormComments, $('.bx-popup-applied:visible'))
+									.css('max-width', $(this).get(0).width);
+						 });
 				},
 			});
 		},
@@ -2386,6 +2384,9 @@
 					});
 			
 			
+		},
+		updateCommentsAreaWidth: function(fWidth){
+			_oMessenger.updateCommentsAreaWidth(fWidth);
 		},
 		initGiphy: function(e){
 			const $oContainer = $(_oMessenger.sGiphyItems),

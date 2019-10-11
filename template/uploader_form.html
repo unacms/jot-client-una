@@ -28,10 +28,9 @@ var AqbDropZone = new Dropzone("#bx-messenger-uploaded-files-area", {
 				if (oMessenger.onCloseUploadingForm(AqbDropZone.options.dictRemoveAllFilesConfirmation, AqbDropZone.getAcceptedFiles().length))
 					AqbDropZone.removeAllFiles();
 			},
-			
 			success: function(file) {
 				let _this = this;
-				$.post('modules/?r=messenger/is_valid_file', {name: file.name}, function(oData){
+				$.post('modules/?r=messenger/is_valid_file', { name: file.name }, function(oData){
 					if (parseInt(oData.code)){
 							file.accepted = false;
 							_this._errorProcessing([file], _this.options.dictInvalidFileType);
@@ -43,12 +42,15 @@ var AqbDropZone = new Dropzone("#bx-messenger-uploaded-files-area", {
 						}
 				},
 				'json');
+
+				oMessenger.updateCommentsAreaWidth($('#bx-messenger-uploaded-files-area').width());
 			},
 			removedfile:function(file){
 				var $this = this;
 				$(file.previewElement).remove();
 				$.post('modules/?r=messenger/remove_temporary_file', {name: file.name});
+
+				oMessenger.updateCommentsAreaWidth($('#bx-messenger-uploaded-files-area').width());
 			}
-			
 		});
 </script>

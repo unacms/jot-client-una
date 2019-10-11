@@ -585,8 +585,7 @@ div.bx-messenger-attachment-footer span.type
 }
 
 .bx-messenger-files-upload-description-area div.bx-messenger-comment {
-	min-height: 1rem;
-	height:1rem;
+	min-height: 2rem;
 	margin-bottom:1rem;
 }
 

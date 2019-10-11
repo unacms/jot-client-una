@@ -910,9 +910,14 @@
 		// Email addresses
 			sEmailPattern = /[\w.]+@[a-zA-Z_-]+?(?:\.[a-zA-Z]{2,6})+/gim,
 			sJotLinkPattern = new RegExp(_oMessenger.sJotUrl + '\\d+', 'i');
-	
-		var sUrl = '',
-			oJot = $(_oMessenger.sJotMessage, this).first(),
+
+
+		const oJot = $(_oMessenger.sJotMessage, this).first();
+
+		if (!$(oJot).length)
+		return ;
+
+		let sUrl = '',
 			sText = $(oJot)
 						.html()
 						.replace(sUrlPattern, function(str)
@@ -928,7 +933,6 @@
 						.replace(sEmailPattern, '<a href="mailto:$&">$&</a>');
 
 		$(oJot).html(sText);
-		
 		if ($(oJot).siblings(_oMessenger.sAttachmentArea).length)
 			return this;
 		
@@ -2139,11 +2143,23 @@
 		onMessage: function(oData){	
 			const bSilent = _oMessenger.oSettings.user_id === oData.user_id;
 
-			if (!_oMessenger.isBlockVersion() && (!_oMessenger.isMobile() || (_oMessenger.isMobile() && oData.lot !== _oMessenger.oSettings.lot))) //!_oMessenger.oJotWindowBuilder.isHistoryColActive()
-				_oMessenger.upLotsPosition(oData, bSilent);
+			try
+			{
+				if (!_oMessenger.isBlockVersion() && (!_oMessenger.isMobile() || (_oMessenger.isMobile() && oData.lot !== _oMessenger.oSettings.lot)))
+					_oMessenger.upLotsPosition(oData, bSilent);
+			}
+			catch(e) {
+				console.log('Lot list message update error', e);
+			}
 
-			if (oData.lot === _oMessenger.oSettings.lot)
-				_oMessenger.updateJots(oData, bSilent);
+			try
+			{
+				if (oData.lot === _oMessenger.oSettings.lot)
+					_oMessenger.updateJots(oData, bSilent);
+			}
+			catch(e) {
+				console.log('Talk history update error', e);
+			}
 
 			return this;
 		},

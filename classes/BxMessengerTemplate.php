@@ -46,7 +46,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						'adapter.js',
 						'record-video.js',
 						'semantic.min.js',
-                        'masonry.pkgd.min.js'
+                        'masonry.pkgd.min.js',
+                        'imagesloaded.pkgd.min.js'
 					); 
 
 		if ($sMode == 'all'){

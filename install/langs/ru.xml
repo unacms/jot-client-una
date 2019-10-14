@@ -155,4 +155,11 @@
 	<string name="_bx_messenger_lots_menu_media"><![CDATA[Файлы]]></string>
 	<string name="_bx_messenger_no_permissions"><![CDATA[Вы не можете просматривать содержимое вкладки]]></string>
 	<string name="_bx_messenger_use_embedly"><![CDATA[Преобразовывать сcылки в сообщениях, использую выбранный Embeds провайдер]]></string>
+    <string name="_bx_messenger_giphy_api_key"><![CDATA[Giphy Api Key. Еслим вы хотите подключить возможность использовать GIFs анимацию в сообщениях, вам нужно зарегистрироваться и получить Api Key тут https://developers.giphy.com/dashboard/?create=true]]></string>
+    <string name="_bx_messenger_giphy_type"><![CDATA[Использовать выбранный тип для анимации: GIFs или Стикеры (Стикеры это GIFs с прозрачным фотом)]]></string>
+    <string name="_bx_messenger_giphy_content_rating"><![CDATA[Рейтинг контента. Более подробно читать тут https://developers.giphy.com/docs/optional-settings#rating]]></string>
+    <string name="_bx_messenger_giphy_limit"><![CDATA[Отображать указанное количество картинок в блоке]]></string>
+    <string name="_bx_messenger_giphy_gifs_button"><![CDATA[Giphy]]></string>
+    <string name="_bx_messenger_giphy_gifs_nothing_found"><![CDATA[Ничего не найдено]]></string>
+	<string name="_bx_messenger_attached_giphy_message"><![CDATA[Вы получили анимацию]]></string>
 </resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="ru" flag="ru" title="Russian">	
+	<string_add name="_bx_messenger_giphy_api_key"><![CDATA[Giphy Api Key. Еслим вы хотите подключить возможность использовать GIFs анимацию в сообщениях, вам нужно зарегистрироваться и получить Api Key тут https://developers.giphy.com/dashboard/?create=true]]></string_add>
+    <string_add name="_bx_messenger_giphy_type"><![CDATA[Использовать выбранный тип для анимации: GIFs или Стикеры (Стикеры это GIFs с прозрачным фотом)]]></string_add>
+    <string_add name="_bx_messenger_giphy_content_rating"><![CDATA[Рейтинг контента. Более подробно читать тут https://developers.giphy.com/docs/optional-settings#rating]]></string_add>
+    <string_add name="_bx_messenger_giphy_limit"><![CDATA[Отображать указанное количество картинок в блоке]]></string_add>
+    <string_add name="_bx_messenger_giphy_gifs_button"><![CDATA[Giphy]]></string_add>
+    <string_add name="_bx_messenger_giphy_gifs_nothing_found"><![CDATA[Ничего не найдено]]></string_add>
+	<string_add name="_bx_messenger_attached_giphy_message"><![CDATA[Вы получили анимацию]]></string_add>
+</resources>

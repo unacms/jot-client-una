@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="en" flag="gb" title="English">	
+	<string_add name="_bx_messenger_giphy_api_key"><![CDATA[Giphy Api Key. If you are going to use GIFs animation, you should register and get Api Key here https://developers.giphy.com/dashboard/?create=true]]></string_add>
+	<string_add name="_bx_messenger_giphy_type"><![CDATA[Which type to use: GIfs or Stickers (Stickers its are GIFs but with transparent background)]]></string_add>
+	<string_add name="_bx_messenger_giphy_content_rating"><![CDATA[Content rating. More details you may find here https://developers.giphy.com/docs/optional-settings#rating]]></string_add>
+	<string_add name="_bx_messenger_giphy_limit"><![CDATA[Display defined GIFs number in animation block]]></string_add>
+	<string_add name="_bx_messenger_giphy_gifs_button"><![CDATA[Giphy]]></string_add>
+	<string_add name="_bx_messenger_giphy_gifs_nothing_found"><![CDATA[Nothing found]]></string_add>
+	<string_add name="_bx_messenger_attached_giphy_message"><![CDATA[Received animation]]></string_add>
+</resources>

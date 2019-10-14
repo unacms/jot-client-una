@@ -71,6 +71,7 @@
 		this.oUsersTemplate	= null;
 		this.sJotUrl = sUrlRoot + 'm/messenger/archive/';
 		this.sInfoFavIcon = 'modules/boonex/messenger/template/images/icons/favicon-red-32x32.png';
+		this.sJotSpinner = '<img src="modules/boonex/messenger/template/images/icons/jot-loading.gif" />';
 		this.sDefaultFavIcon = $('link[rel="shortcut icon"]').attr('href');
 		this.iAttachmentUpdate = false;
 		this.iTimer = null;
@@ -1313,13 +1314,12 @@
 								.clone()
 									.attr('data-tmp', oParams.tmp_id)
 									.find('time')
-									.attr('datetime', msgTime.toISOString())
+									.html(_this.sJotSpinner)
 								.end()
 									.find(_this.sJotMessage)
 									.text(oParams.message)
 									.fadeIn('slow')
 								.end()
-									.bxTime()
 						);
 								
 			
@@ -1331,13 +1331,14 @@
 			_this.loadTalk(oParams.lot);
 		else
 			_this.updateScrollPosition('bottom');
-		
+
 		// save message to database and broadcast to all participants
 		$.post('modules/?r=messenger/send', oParams, function(oData){
 				switch(parseInt(oData.code))
 				{
 					case 0:
 						const iJotId = parseInt(oData.jot_id);
+						const sTime = oData.time || msgTime.toISOString();
 						if (iJotId)
 						{
 							if (typeof oData.lot_id !== 'undefined')
@@ -1346,6 +1347,11 @@
 							if (typeof oData.tmp_id != 'undefined')
 								$('[data-tmp="' + oData.tmp_id + '"]', _this.sTalkList)
 									.attr('data-id', oData.jot_id)
+									.find('time')
+									.html('')
+									.attr('datetime', sTime)
+									.closest(_this.sJot)
+									.bxTime(undefined, true)
 									.linkify();
 									
 							if (typeof oParams.files !== 'undefined' || typeof oParams.ids !== 'undefined')
@@ -1531,8 +1537,10 @@
 		$(this.sTypingArea).parent().show();
 		
 		clearInterval(this.iTimer);
-		
 		this.blockSendMessages(false);
+		this.updateJots({
+			action: 'msg'
+		})
 	};
 	
 	oMessenger.prototype.onReconnectFailed = function(oData) {	

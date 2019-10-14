@@ -259,6 +259,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 	padding-bottom:0.8rem;
 	padding-top:0.8rem;
 	flex:1 1 auto;
+	max-width: calc( 100% - 4.6rem )
 }
 
 .bx-messenger-block-jots .bx-messenger-jots-info
@@ -298,6 +299,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 	display:none;
 	overflow: hidden;
 	white-space: normal;
+	min-width: 1.5rem;
 }
 
 .bx-messenger-jots-title div.view img

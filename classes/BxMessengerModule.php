@@ -175,6 +175,7 @@ class BxMessengerModule extends BxBaseModTextModule
         $iTmpId = bx_get('tmp_id');
         $aFiles = bx_get('files');
         $aIds = bx_get('ids');
+        $CNF = &$this->_oConfig->CNF;
 
         if (!$this->isLogged())
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_only_for_logged')));
@@ -203,7 +204,7 @@ class BxMessengerModule extends BxBaseModTextModule
                 $sUrl = $this->getPreparedUrl($sUrl);
         }
 
-        $aResult = array('code' => 0);
+        $aResult = array('code' => 0, 'tmp_id' => $iTmpId);
         if (($sMessage || !empty($aFiles) || !empty($aIds)) && ($iId = $this->_oDb->saveMessage(array(
                 'message' => $sMessage,
                 'type' => $iType,
@@ -218,7 +219,7 @@ class BxMessengerModule extends BxBaseModTextModule
 
 			if (!empty($aFiles))
 			{
-                $oStorage = BxDolStorage::getObjectInstance($this->_oConfig->CNF['OBJECT_STORAGE']);
+                $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
                 $aFilesNames = array();
 				foreach($aFiles as $iKey => $sName)
 				{
@@ -226,7 +227,7 @@ class BxMessengerModule extends BxBaseModTextModule
 					if ($iFile)
 					{
                         $oStorage->afterUploadCleanup($iFile, $this->_iUserId);
-                        $this->_oDb->updateFiles($iFile, $this->_oConfig->CNF['FIELD_ST_JOT'], $iId);
+                        $this->_oDb->updateFiles($iFile, $CNF['FIELD_ST_JOT'], $iId);
                         $aFilesNames[] = $sName;
 					}
 					else 
@@ -243,7 +244,10 @@ class BxMessengerModule extends BxBaseModTextModule
             }
 
             $aResult['jot_id'] = $iId;
-            $aResult['tmp_id'] = $iTmpId;
+			$aJot = $this->_oDb->getJotById($iId);
+			if (!empty($aJot))
+                $aResult['time'] = bx_time_utc($aJot[$CNF['FIELD_MESSAGE_ADDED']]);
+
             $this->onSendJot($iId);
 
         }

@@ -1065,12 +1065,34 @@ class BxMessengerDb extends BxBaseModTextDb
                               WHERE `{$this->CNF['FIELD_LCMTS_AUTHOR']}`=:author AND `{$this->CNF['FIELD_LCMTS_ID']}`=:object_id", array('author' => $iProfileId, 'object_id' => $iObjectId));
     }
 
-    public function getLotFiles($iLotId){
+    public function getLotFiles($iLotId, $iStart = 0, $iPerPage = 0){
+        $aWhere = array('id' => $iLotId);
+
+        $sLimit = '';
+        if ($iPerPage) {
+            $aWhere['start'] = (int)$iStart;
+            $aWhere['per_page'] = (int)$iPerPage;
+            $sLimit = "LIMIT :start, :per_page";
+        }
+
         return $this->getAll("SELECT `s`.* 
                                          FROM `{$this->CNF['OBJECT_STORAGE']}` as `s`
                                          LEFT JOIN `{$this->CNF['TABLE_MESSAGES']}` as `j` ON `s`.`{$this->CNF['FIELD_ST_JOT']}` = `j`.`{$this->CNF['FIELD_MESSAGE_ID']}`
                                          LEFT JOIN `{$this->CNF['TABLE_ENTRIES']}` as `l` ON `l`.`{$this->CNF['FIELD_ID']}` = `j`.`{$this->CNF['FIELD_MESSAGE_FK']}` 
-                                         WHERE `l`.`{$this->CNF['FIELD_ID']}` = :id", array('id' => $iLotId));
+                                         WHERE `l`.`{$this->CNF['FIELD_ID']}` = :id 
+                                         ORDER BY `s`.`{$this->CNF['FIELD_ST_ADDED']}` DESC
+                                         {$sLimit}
+                                         ", $aWhere);
+    }
+
+    public function getLotFilesCount($iLot){
+        return $this->getOne("SELECT COUNT(*)
+                                         FROM `{$this->CNF['OBJECT_STORAGE']}` as `s`
+                                         LEFT JOIN `{$this->CNF['TABLE_MESSAGES']}` as `j` ON `s`.`{$this->CNF['FIELD_ST_JOT']}` = `j`.`{$this->CNF['FIELD_MESSAGE_ID']}`
+                                         LEFT JOIN `{$this->CNF['TABLE_ENTRIES']}` as `l` ON `l`.`{$this->CNF['FIELD_ID']}` = `j`.`{$this->CNF['FIELD_MESSAGE_FK']}` 
+                                         WHERE `l`.`{$this->CNF['FIELD_ID']}` = :id 
+                                         ORDER BY `s`.`{$this->CNF['FIELD_ST_ADDED']}` DESC
+                                         ", array( 'id' => $iLot ));
     }
 
     public function isPushNotificationsEnabled(){

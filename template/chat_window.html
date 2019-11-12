@@ -2,8 +2,8 @@
 	<div class="bx-messenger-table-wrapper-rows">
 			<div class="cell">
 				<div class="bx-messenger-conversation-block-wrapper pushable">
-					<div class="ui right vertical sidebar very wide bx-def-color-bg-block">
-						__files__
+					<div class="ui right vertical sidebar very wide bx-def-color-bg-block files">
+						<div class="ui feed segment"></div>
 					</div>
 					<bx_if:giphy>
 						<div class="ui sidebar very wide bx-def-color-bg-block bottom horizontal giphy">
@@ -99,6 +99,7 @@
 </bx_if:post_area>
 </div>
 <script type="text/javascript">
+	const oSidebarPanel = $('.bx-messenger-conversation-block-wrapper');
 	$(function(){
 		oMessenger.initJotSettings({
 			'type'	:__type__,
@@ -119,11 +120,48 @@
 					},
 				);
 
-		$('.bx-messenger-conversation-block-wrapper .ui.sidebar')
+		$('.ui.sidebar', oSidebarPanel)
 				.sidebar({
-					context: $('.bx-messenger-conversation-block-wrapper'),
+					context: oSidebarPanel,
 					dimPage: true,
 					scrollLock: true,
+					onVisible:function(){
+						const { context } = $(this);
+						if ($(context).hasClass('files') && !$('.event', context).length){
+							oMessenger
+								.loadTalkFiles($('.segment', context), $('.event', context).length, (oData) =>
+										{
+											let bPassed = false;
+											const iTotal = (oData && oData.total) || 0;
+
+											if (!iTotal)
+												return ;
+
+											$('.segment', context)
+													.visibility({
+														once: false,
+														continuous: true,
+														context: context,
+														// load content when scroll passed 60%
+														onUpdate: function({ height, pixelsPassed, percentagePassed }){
+															const iItems = $('.event', $(this)).length,
+																  iViewArea = $(context).height(),
+																  iPassed = pixelsPassed >= (height-iViewArea)/2;
+
+															if (!iTotal || !percentagePassed || iItems >= iTotal || !iPassed)
+																return ;
+
+															if (!bPassed) {
+																bPassed = true;
+																oMessenger.loadTalkFiles($(this), iItems, () => setTimeout(() => bPassed = false, 0));
+															}
+														}
+													});
+										}
+								);
+						}
+
+					},
 					onShow: (e) => {
 							oMessenger.initGiphy(e);
 					}

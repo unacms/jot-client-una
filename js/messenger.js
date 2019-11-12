@@ -1705,6 +1705,7 @@
 			function(oData)
 			{
 				const oList = $(_this.sTalkList);
+				_this.iPanding = false;
 				if (!parseInt(oData.code))
 				{
 						if (iJotId === undefined)
@@ -1818,8 +1819,6 @@
 				if (sAction === 'prev')
 					bx_loading($(_this.sTalkBlock), false);
 				
-				_this.iPanding = false;
-					
 			}, 'json');
 	};
 		
@@ -2313,7 +2312,20 @@
 				},
 			});
 		},
-		
+		loadTalkFiles: function(oBlock, iCount, fCallback){
+			bx_loading(oBlock, true);
+			$.get('modules/?r=messenger/get_talk_files/', { number: iCount, lot_id: _oMessenger.oSettings.lot }, function(oData){
+				bx_loading(oBlock, false);
+				if (!+oData.code)
+					$(oBlock)
+						.append(oData.html)
+						.bxTime();
+
+				if (typeof(fCallback) === 'function')
+					fCallback(oData);
+			},'json');
+
+		},		
 		/**
 		* Show only marked as important lot
 		*@param object oEl 

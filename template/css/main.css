@@ -168,10 +168,14 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 	position:relative;
 }
 
+.bx-messenger-conversation-block-wrapper .ui.feed.segment{
+	border: 0;
+	border-radius:0;
+}
+
 .bx-messenger-conversation-block-wrapper
 {
 	position:absolute;
-	/*overflow:hidden;*/
 	height:100%;
 	width:100%;
 }

@@ -1676,6 +1676,19 @@ class BxMessengerModule extends BxBaseModTextModule
         echo $this->_oTemplate->getGiphyForm($sId);
         exit;
     }
+    
+    function actionGetTalkFiles(){
+        $iLotId = (int)bx_get('lot_id');
+        $iNumber = (int)bx_get('number');
+        if (!$iLotId)
+            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_found'))));
+
+        if (!($iTotal = $this->_oDb->getLotFilesCount($iLotId)))
+            return echoJson(array('code' => 0, 'html' => MsgBox(_t('_bx_messenger_txt_msg_no_results'))));
+
+        $sContent = $this->_oTemplate->getTalkFiles($this->_iProfileId, $iLotId, $iNumber);
+        return echoJson(array('code' => 0, 'html' => $sContent, 'total' => $iTotal));
+    }
 }
 
 /** @} */

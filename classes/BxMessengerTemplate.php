@@ -100,25 +100,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	    if($oProfile)
 			$aParams['name'] = bx_js_string($oProfile -> getDisplayName());
 
-
-        $aParams['files'] = MsgBox(_t('_bx_messenger_txt_msg_no_results'));
-        $aFiles = $this -> _oDb -> getLotFiles($iLotId);
-        if (!empty($aFiles)) {
-            $aFilesItems = array();
-            foreach ($aFiles as $iKey => $aValue) {
-                $oOwner = $this -> getObjectUser($aValue[$CNF['FIELD_ST_AUTHOR']]);
-                $aFilesItems[] = array(
-                    'time' => bx_time_js($aValue[$CNF['FIELD_ST_ADDED']]),
-                    'file' => $this->getFileContent($aValue),
-                    'username' => $oOwner -> getDisplayName(),
-                    'author_thumb' =>  $oOwner -> getThumb(),
-                );
-            }
-
-            if (!empty($aFilesItems))
-                $aParams['files'] = $this -> parseHtmlByName('files_feeds.html', array('bx_repeat:files' => $aFilesItems));
-        }
-
     	$iUnreadLotsJots = $this -> _oDb -> getUnreadJotsMessagesCount($iProfileId, $iLotId);
 		if ($iUnreadLotsJots && !$iJotId)
 			$iJotId = $this -> _oDb -> getFirstUnreadJot($iProfileId, $iLotId);
@@ -402,14 +383,15 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@return string html code
 	*/
 	function getLotsPreview($iProfileId, $aLots, $bShowTime = true){
+		$CNF = &$this->_oConfig->CNF;
 		$sContent = '';
 
 		foreach($aLots as $iKey => $aLot)
 		{
-			$aParticipantsList = $this -> _oDb -> getParticipantsList($aLot[$this -> _oConfig -> CNF['FIELD_ID']], true, $iProfileId);
+			$aParticipantsList = $this -> _oDb -> getParticipantsList($aLot[$CNF['FIELD_ID']], true, $iProfileId);
 			
 			$iParticipantsCount = count($aParticipantsList);
-			$aParticipantsList = $iParticipantsCount ? array_slice($aParticipantsList, 0, $this -> _oConfig -> CNF['PARAM_ICONS_NUMBER']) : array($iProfileId);
+			$aParticipantsList = $iParticipantsCount ? array_slice($aParticipantsList, 0, $CNF['PARAM_ICONS_NUMBER']) : array($iProfileId);
 			
 			$aVars['bx_repeat:avatars'] = array();
 			$aNickNames = array();
@@ -426,18 +408,18 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			      }
 			}
 			
-			if (!empty($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']]))
-				$sTitle = _t($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']]);
+			if (!empty($aLot[$CNF['FIELD_TITLE']]))
+				$sTitle = _t($aLot[$CNF['FIELD_TITLE']]);
 			else
 			{ 
 				if ($iParticipantsCount > 3)
-					$sTitle = implode(', ', array_slice($aNickNames, 0, $this -> _oConfig -> CNF['PARAM_ICONS_NUMBER'])) . '...';
+					$sTitle = implode(', ', array_slice($aNickNames, 0, $CNF['PARAM_ICONS_NUMBER'])) . '...';
 				else
 					$sTitle = implode(', ', $aNickNames);
 			}	
 
 			$sStatus=$sCount = '';
-			if ($iParticipantsCount <= 1 && $oProfile && empty($aLot[$this -> _oConfig -> CNF['FIELD_TITLE']])){
+			if ($iParticipantsCount <= 1 && $oProfile && empty($aLot[$CNF['FIELD_TITLE']])){
                 $sStatus = (method_exists($oProfile, 'isOnline') ? $oProfile -> isOnline() : false) ?
 					$this -> getOnlineStatus($oProfile-> id(), 1) : 
 					$this -> getOnlineStatus($oProfile-> id(), 0) ;
@@ -446,22 +428,22 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                 $sCount = '<div class="status">' . $iParticipantsCount .'</div>';
 	
 			
-			$aVars[$this -> _oConfig -> CNF['FIELD_ID']] = $aLot[$this -> _oConfig -> CNF['FIELD_ID']];
-			$aVars[$this -> _oConfig -> CNF['FIELD_TITLE']] = $sTitle;
+			$aVars[$CNF['FIELD_ID']] = $aLot[$CNF['FIELD_ID']];
+			$aVars[$CNF['FIELD_TITLE']] = $sTitle;
 			$aVars['number'] = $sCount;
 			$aVars['status'] = $sStatus;
 
-			$aLatestJots = $this -> _oDb -> getLatestJot($aLot[$this -> _oConfig -> CNF['FIELD_ID']]);
+			$aLatestJots = $this -> _oDb -> getLatestJot($aLot[$CNF['FIELD_ID']]);
 			
-			$iTime = bx_time_js($aLot[$this -> _oConfig -> CNF['FIELD_ADDED']], BX_FORMAT_DATE);
+			$iTime = bx_time_js($aLot[$CNF['FIELD_ADDED']], BX_FORMAT_DATE);
 			
-			$aVars[$this -> _oConfig -> CNF['FIELD_MESSAGE']] = $aVars['sender_username'] = '';
+			$aVars[$CNF['FIELD_MESSAGE']] = $aVars['sender_username'] = '';
 			if (!empty($aLatestJots))
 			{
 				$sMessage = '';
-				if (isset($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE']]))
+				if (isset($aLatestJots[$CNF['FIELD_MESSAGE']]))
 				{
-					$sMessage = $aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE']];
+					$sMessage = $aLatestJots[$CNF['FIELD_MESSAGE']];
 					
 					if ($aLatestJots[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_REPOST)
 					{
@@ -473,22 +455,22 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				}
 				
 				if (!$sMessage){
-				    if ($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
-					    $sMessage = _t('_bx_messenger_attached_files_message', $this -> _oDb -> getJotFiles($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_ID']], true));
+				    if ($aLatestJots[$CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
+					    $sMessage = _t('_bx_messenger_attached_files_message', $this -> _oDb -> getJotFiles($aLatestJots[$CNF['FIELD_MESSAGE_ID']], true));
 
-				    if ($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_GIPHY)
+				    if ($aLatestJots[$CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_GIPHY)
                         $sMessage = _t('_bx_messenger_attached_giphy_message');
                 }
 
-				$aVars[$this -> _oConfig -> CNF['FIELD_MESSAGE']] = $sMessage;
-				if ($oSender = $this -> getObjectUser($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_AUTHOR']]))
+				$aVars[$CNF['FIELD_MESSAGE']] = $sMessage;
+				if ($oSender = $this -> getObjectUser($aLatestJots[$CNF['FIELD_MESSAGE_AUTHOR']]))
 				{
 	
 					$aVars['sender_username'] = $oSender -> id() == $iProfileId ? _t('_bx_messenger_you_username_title') : $oSender -> getDisplayName();
 					$aVars['sender_username'] .= ':';
 				}
 				
-				$iTime = bx_time_js($aLatestJots[$this -> _oConfig -> CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_DATE);
+				$iTime = bx_time_js($aLatestJots[$CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_DATE);
 			}
 			
 			$aVars['class'] = (int)$aLot['unread_num'] ? 'unread-lot' : '';
@@ -780,17 +762,18 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	
 	public function getMessageIcons($iJotId, $sType = 'edit', $isAdmin = false)
 	{ 
+		$CNF = &$this->_oConfig->CNF;
 		$sContent = '';		
 		if (!($aJotInfo = $this -> _oDb -> getJotById($iJotId)))
 			return $sContent;
 		
-		$sDate = bx_process_output($aJotInfo[$this -> _oConfig -> CNF['FIELD_MESSAGE_LAST_EDIT']], BX_DATA_DATETIME_TS);
-		$sEditorName = $aJotInfo[$this -> _oConfig -> CNF['FIELD_MESSAGE_EDIT_BY']] ? $this -> getObjectUser($aJotInfo[$this -> _oConfig -> CNF['FIELD_MESSAGE_EDIT_BY']]) -> getDisplayName() : '';
+		$sDate = bx_process_output($aJotInfo[$CNF['FIELD_MESSAGE_LAST_EDIT']], BX_DATA_DATETIME_TS);
+		$sEditorName = $aJotInfo[$CNF['FIELD_MESSAGE_EDIT_BY']] ? $this -> getObjectUser($aJotInfo[$CNF['FIELD_MESSAGE_EDIT_BY']]) -> getDisplayName() : '';
 		
 		switch($sType)
 		{
 			case 'edit':
-				$sContent = $aJotInfo[$this -> _oConfig -> CNF['FIELD_MESSAGE_EDIT_BY']] ? 
+				$sContent = $aJotInfo[$CNF['FIELD_MESSAGE_EDIT_BY']] ?
 								$this -> parseHtmlByName('edit_icon.html',
 									array(
 											'edit' => _t('_bx_messenger_edit_by', $sDate, $sEditorName)
@@ -1261,6 +1244,32 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         return $this -> parseHtmlByName('giphy_form.html', array(
             'id' => $sId
         ));
+    }
+    public function getTalkFiles($iProfileId, $iLotId, $iStart = 0){
+        $CNF = &$this->_oConfig->CNF;
+        if (!$iLotId || !$iProfileId || !$this->_oDb->isParticipant($iLotId, $iProfileId))
+            return MsgBox(_t('_bx_messenger_no_permissions'));
+
+        $sContent = MsgBox(_t('_bx_messenger_txt_msg_no_results'));
+        $aFiles = $this -> _oDb -> getLotFiles($iLotId, $iStart, $CNF['PARAM_DEFAULT_TALK_FILES_NUM']);
+        if (!empty($aFiles)) {
+            $aFilesItems = array();
+            foreach ($aFiles as $iKey => $aValue) {
+                $oOwner = $this -> getObjectUser($aValue[$CNF['FIELD_ST_AUTHOR']]);
+                $aFilesItems[] = array(
+                    'time' => bx_time_js($aValue[$CNF['FIELD_ST_ADDED']]),
+                    'file' => $this->getFileContent($aValue),
+                    'id' => $aValue[$CNF['FIELD_ST_ID']],
+                    'username' => $oOwner -> getDisplayName(),
+                    'author_thumb' =>  $oOwner -> getThumb(),
+                );
+            }
+
+            if (!empty($aFilesItems))
+                $sContent = $this->parseHtmlByName('files_feeds.html', array('bx_repeat:files' => $aFilesItems));
+        }
+
+        return $iStart && !$sContent ? '' : $sContent;
     }
 }
 

@@ -139,11 +139,6 @@ span.bubble.hidden
 	display:none;
 }
 
-/*.unread-lot .bx-messenger-preview-lot div:first-child span:first-child
-{
-	font-weight:600;
-}*/
-
 .bx-messenger-preview-lot
 {
     overflow: hidden;

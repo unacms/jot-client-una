@@ -3,7 +3,10 @@
 		<div contenteditable="true" placeholder="<bx_text:_bx_messenger_upload_add_comment />" id="bx-messenger-files-upload-comment" class="bx-messenger-comment"></div>
 	</div>
 	<div class="bx-def-padding-top bx-clearfix giphy-upload">
-     	 <img src="//media1.giphy.com/media/__id__/giphy.webp" />
+		<picture>
+			<source srcset="//media1.giphy.com/media/__id__/giphy.webp" type="image/webp" />
+			<img src="//media1.giphy.com/media/__id__/giphy.gif?time=__time__" />
+		</picture>
     </div>
 	<div class="bx-messenger-uploading-form-buttons">
 		<button class="bx-btn" onclick="oMessenger.sendGiphy('__id__');">

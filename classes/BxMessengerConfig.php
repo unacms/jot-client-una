@@ -128,8 +128,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
                 'gifs' => 'https://api.giphy.com/v1/gifs/',
                 'stickers' => 'https://api.giphy.com/v1/stickers/',
                 'search' => 'search',
-                'trending' => 'trending',
-                'translate' => 'translate'
+                'trending' => 'trending'
             ),
 
             // objects
@@ -313,7 +312,8 @@ class BxMessengerConfig extends BxBaseModTextConfig
             $aParams['random_id'] = time();
         }
 
-        $sAction = $sAction ? $oGiphy[$sAction] : $oGiphy['trending'];
+        $sAction = $sAction ? $sAction : 'trending';
+        $sAction = isset($oGiphy[$sAction]) ? $oGiphy[$sAction] : $sAction;
         return bx_file_get_contents("{$sUrl}{$sAction}", $aParams);
     }
 }

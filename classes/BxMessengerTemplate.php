@@ -150,7 +150,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@return array content and title of the block
 	*/
 	public function getTalkBlock($iProfileId, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $iType = BX_IM_TYPE_PUBLIC, $bShowMessenger = false){
-		$sTitle = '';
+        $CNF = &$this -> _oConfig -> CNF;
         $aMenu = $aLotInfo = array();
 		if ($iLotId)
 		{
@@ -162,12 +162,16 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				}		
 		}
 			  
+        $sTitle = '';
 		if (!empty($aLotInfo))
 		{
-			$iType = $aLotInfo[$this -> _oConfig -> CNF['FIELD_TYPE']];
-			$sTitle = isset($aLotInfo[$this -> _oConfig -> CNF['FIELD_TITLE']]) && $aLotInfo[$this -> _oConfig -> CNF['FIELD_TITLE']] ? $aLotInfo[$this -> _oConfig -> CNF['FIELD_TITLE']] : $this -> getParticipantsNames($iProfileId, $iLotId);
+			$sTitle = isset($aLotInfo[$CNF['FIELD_TITLE']]) && $aLotInfo[$CNF['FIELD_TITLE']]
+                        ? $aLotInfo[$CNF['FIELD_TITLE']]
+                        : $this -> getParticipantsNames($iProfileId, $iLotId);
+
+			$iType = $aLotInfo[$CNF['FIELD_TYPE']];
 			$sTitle = $this -> _oDb -> isLinkedTitle($iType) ?
-                            _t('_bx_messenger_linked_title', '<a href ="'. $this->_oConfig->getPageLink($aLotInfo[$this -> _oConfig -> CNF['FIELD_URL']]) .'">' . $sTitle . '</a>') :
+                            _t('_bx_messenger_linked_title', '<a href ="'. $this->_oConfig->getPageLink($aLotInfo[$CNF['FIELD_URL']]) .'">' . $sTitle . '</a>') :
                             _t($sTitle);
 		}
 
@@ -209,12 +213,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 										'settings_title' => _t('_bx_messenger_lots_menu_settings_title'),
 										'star_title' => bx_js_string( !$bIsStarred ? _t('_bx_messenger_lots_menu_star_on') : _t('_bx_messenger_lots_menu_star_off')),
 										'star' => (int)$bIsStarred,										
-										'bell_icon' => $bIsMuted ? $this -> _oConfig -> CNF['BELL_ICON_OFF'] : $this -> _oConfig -> CNF['BELL_ICON_ON'],
-										'star_icon' => $this -> _oConfig -> CNF['STAR_ICON'] . ((int)$bIsStarred ? ' fill' : ''),
+										'bell_icon' => $bIsMuted ? $CNF['BELL_ICON_OFF'] : $CNF['BELL_ICON_ON'],
+										'star_icon' => $CNF['STAR_ICON'] . ((int)$bIsStarred ? ' fill' : ''),
 									)
 								),				
 				'back_title' => bx_js_string(_t('_bx_messenger_lots_menu_back_title')),
-				'star_icon' => $this -> _oConfig -> CNF['STAR_ICON'],
+				'star_icon' => $CNF['STAR_ICON'],
 				'title' => $sTitle,
 				'post_area' => !$bShowMessenger && empty($aLotInfo) ?
 								MsgBox(_t('_bx_messenger_txt_msg_no_results')) : 
@@ -926,7 +930,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						$sHTML = $this -> getJotAsAttachment($aJot[$CNF['FIELD_MESSAGE_AT']]);
 						break;
                 case 'giphy':
-                        $sHTML = $this -> parseHtmlByName('giphy.html', array('gif' => $aJot[$CNF['FIELD_MESSAGE_AT']]));
+                        $sHTML = $this -> parseHtmlByName('giphy.html', array('gif' => $aJot[$CNF['FIELD_MESSAGE_AT']], 'time' => time()));
                         break;
 				case 'files':
 						$aFiles = $this -> _oDb -> getJotFiles($aJot[$CNF['FIELD_MESSAGE_ID']]);
@@ -1242,7 +1246,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             return MsgBox(_t('_bx_messenger_giphy_gifs_nothing_found'));
 
         return $this -> parseHtmlByName('giphy_form.html', array(
-            'id' => $sId
+            'id' => $sId,
+            'time' => time()
         ));
     }
     public function getTalkFiles($iProfileId, $iLotId, $iStart = 0){

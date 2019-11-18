@@ -2434,6 +2434,7 @@
 
 					bx_loading($oContainer.find('.giphy-loading'), true);
 
+					$('div.search', _oMessenger.sGiphyBlock).addClass('loading');
 					$.get('modules/?r=messenger/get_giphy', { width: fWidth, action: sType, filter: sValue },
 					function(oData)
 					{
@@ -2458,6 +2459,8 @@
 								gutter: 5,
 								fitWidth: true,
 							});
+
+						$('div.search', _oMessenger.sGiphyBlock).removeClass('loading');
 					},
 					'json');
             };
@@ -2466,19 +2469,15 @@
             {
                 let iTimer = 0;
                 $('input', _oMessenger.sGiphyBlock).keypress(function(e) {
-                    const sChar = String.fromCharCode(!e.charCode ? e.which : e.charCode);
-
-                    if (/[a-zA-Z0-9-_ ]/.test(sChar)) {
-                        clearTimeout(iTimer);
+                	clearTimeout(iTimer);
                         iTimer = setTimeout(() => {
                         	fGiphy('search', $(this).val());
                         }, 1500);
                         return true;
-                    }
-
-                    e.preventDefault();
-                    return false;
-                });
+                }).on('keydown', function(e) {
+					if (e.keyCode === 8)
+						$(this).trigger('keypress');
+				});
 
                 if ($oContainer && !$oContainer.find('img').length)
                		fGiphy();

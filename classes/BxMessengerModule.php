@@ -1,4 +1,4 @@
-<?php defined('BX_DOL') or die('hack attempt');
+    <?php defined('BX_DOL') or die('hack attempt');
 /**
  * Copyright (c) UNA, Inc - https://una.io
  * MIT License - https://opensource.org/licenses/MIT
@@ -240,7 +240,9 @@ class BxMessengerModule extends BxBaseModTextModule
 
 			if (!empty($aIds))
             {
-                $this->_oDb->addAttachment($iId, current($aIds), BX_ATT_TYPE_GIPHY);
+                $sIdsKey = key($aIds);
+                if (BX_ATT_TYPE_GIPHY === $sIdsKey)
+                     $this->_oDb->addAttachment($iId, current($aIds), BX_ATT_TYPE_GIPHY);
             }
 
             $aResult['jot_id'] = $iId;
@@ -1634,7 +1636,7 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$this->isLogged())
             return '';
 
-        $oResult = $this->_oConfig->getGiphyGifs(bx_get('action'), bx_get('filter'));
+        $oResult = $this->_oConfig->getGiphyGifs(bx_get('action'), urlencode(bx_get('filter')));
 
         $iWidth = (float)bx_get('width');
         $iCount = $iWidth/150;

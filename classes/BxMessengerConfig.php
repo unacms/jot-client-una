@@ -297,10 +297,11 @@ class BxMessengerConfig extends BxBaseModTextConfig
 	    return $this->CNF['IS_PUSH_ENABLED'] && $this->CNF['PUSH_APP_ID'] && $this->CNF['PUSH_REST_API'];
     }
 
-    public function getGiphyGifs($sAction = 'trending', $sValue = ''){
+    public function getGiphyGifs($sAction = 'trending', $sValue = '', $iStart = 0){
         $oGiphy = &$this->CNF['GIPHY'];
 	    $aParams = array(
             'api_key' => $oGiphy['api_key'],
+            'offset' => $iStart,
             'limit' => (int)$oGiphy['limit'],
             'rating' => $oGiphy['rating']
         );

@@ -1236,7 +1236,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         return $sUrlMP3 ? $sAudio : $sLoading;
     }
 
-    function getGiphyPanel(){
+    public function getGiphyPanel(){
 	    return $this -> parseHtmlByName('giphy_panel.html', array());
     }
 
@@ -1250,6 +1250,45 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             'time' => time()
         ));
     }
+
+    public function getGiphyItems($sAction, $sQuery, $iWidth = 0, $iStart = 0){
+        $oResult = $this->_oConfig->getGiphyGifs($sAction, $sQuery, $iStart);
+
+        $iWidth = (float)$iWidth;
+        $iCount = $iWidth/150;
+        $fGifWidth = $iWidth/round($iCount) - 8;
+        $fRate = 200/$fGifWidth;
+        $iTime = time();
+
+        $aResult = array('pagination' => array(), 'content' => '');
+        if ($oResult && ($aResult = json_decode($oResult, true))){
+            if (!empty($aResult['data'])){
+                $aVars['bx_repeat:gifs'] = array();
+                foreach($aResult['data'] as &$aGif) {
+                    $aImage = $aGif['images']['fixed_width'];
+                    $aVars['bx_repeat:gifs'][] = array(
+                        'id' => $aGif['id'],
+                        'width' => $fGifWidth,
+                        'height' => $aImage['height']/$fRate,
+                        'gif' => $aGif['id'],
+                        'time' => $iTime,
+                        'title' => $aGif['title']
+                    );
+                }
+
+                if (!empty($aVars['bx_repeat:gifs'])) {
+                    usort($aVars['bx_repeat:gifs'], function ($a, $b) {
+                        return $a['height'] < $b['height'];
+                    });
+
+                    $aResult = array('pagination' => $aResult['pagination'], 'content' => $this->parseHtmlByName('giphy_items.html', $aVars));
+                }
+            }
+        }
+
+        return $aResult;
+    }
+
     public function getTalkFiles($iProfileId, $iLotId, $iStart = 0){
         $CNF = &$this->_oConfig->CNF;
         if (!$iLotId || !$iProfileId || !$this->_oDb->isParticipant($iLotId, $iProfileId))

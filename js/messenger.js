@@ -896,7 +896,19 @@
 				document.execCommand("copy");
 				$oInput.remove();
 			}
-	}
+	};
+
+	$.fn.setRandomBGColor = function() {
+		const aCharacters = "0123456789ABCDEF";
+		let sColor = '#';
+
+		$('img', this).each(function(){
+			let hex = Math.floor(Math.random() * 0xFFFFFF);
+			$(this).css('background-color', "#" + ("000000" + hex.toString(16)).substr(-6));
+		});
+
+		return this;
+	};
 
 	/**
 	* Convert plan text links/emails to urls, mailto
@@ -2425,42 +2437,68 @@
 			_oMessenger.updateCommentsAreaWidth(fWidth);
 		},
 		initGiphy: function(e){
-			const $oContainer = $(_oMessenger.sGiphyItems),
-				  fGiphy = (sType, sValue) => {
-					const fWidth = $oContainer.width();
+			let iTotal = 0;
+			let iScrollPosition = 0;
+			const oContainer = $(_oMessenger.sGiphyItems),
+				  oScroll = $('.bx-messenger-giphy-scroll'),
+				  fInitVisibility = (sType, sValue) => {
+					  let bPassed = false;
+					  oContainer
+						  .visibility({
+							  once: false,
+							  continuous: true,
+							  context: $('.bx-messenger-giphy-scroll'),
+							  // load content when scroll passed 60%
+							  onUpdate: function({ height, pixelsPassed, percentagePassed }){
+								  const iItems = $('picture', $(this)).length,
+									  iViewArea = oScroll.height(),
+									  iPassed = pixelsPassed >= (height-iViewArea - 1);
 
-					$oContainer
-						.append('<div class="giphy-loading" />');
+								  iScrollPosition = pixelsPassed;
+								  if (!percentagePassed || (iTotal && iItems && iItems >= iTotal) || !iPassed)
+									  return ;
 
-					bx_loading($oContainer.find('.giphy-loading'), true);
+								  if (!bPassed) {
+									  bPassed = true;
+									  fGiphy(sType, sValue, () => setTimeout(() => bPassed = false, 0));
+								  }
+							  }
+						  });
+				  },
+				  fGiphy = (sType, sValue, fCallback) => {
+					const fWidth = oContainer.width();
 
 					$('div.search', _oMessenger.sGiphyBlock).addClass('loading');
-					$.get('modules/?r=messenger/get_giphy', { width: fWidth, action: sType, filter: sValue },
-					function(oData)
-					{
-						const bHasMasonry = $oContainer.data('masonry') ? true : false;
-						// destroy masonry if already exists
-						if ($oContainer.length && bHasMasonry)
-							$oContainer.masonry('destroy');
+					$.get('modules/?r=messenger/get_giphy', { width: fWidth, action: sType, filter: sValue, start: $('picture', oContainer).length }, function(oData) {
+						const bHasMasonry = oContainer.data('masonry') ? true : false;
 
-						$oContainer
-								.html(
+						iTotal =  oData.total;
+						// destroy masonry if already exists
+						if (oContainer.length && bHasMasonry)
+							oContainer.masonry('destroy');
+
+						oContainer
+								.append(
 									oData.code
 									? oData.message
 									: oData.html
 								)
+								.setRandomBGColor()
 								.imagesLoaded(() => {
-									$oContainer.masonry()
+									oContainer.masonry()
 								});
 
-						$oContainer.masonry({
+						oContainer.masonry({
 								itemSelector: 'img',
 								isAnimated: true,
 								gutter: 5,
 								fitWidth: true,
 							});
 
+						oScroll.scrollTop(iScrollPosition);
 						$('div.search', _oMessenger.sGiphyBlock).removeClass('loading');
+						if (typeof fCallback === 'function')
+							fCallback(sType, sValue);
 					},
 					'json');
             };
@@ -2471,16 +2509,23 @@
                 $('input', _oMessenger.sGiphyBlock).keypress(function(e) {
                 	clearTimeout(iTimer);
                         iTimer = setTimeout(() => {
-                        	fGiphy('search', $(this).val());
-                        }, 1500);
+							iScrollPosition = 0;
+							iTotal = 0;
+							oContainer.html('');
+							oScroll.scrollTop(iScrollPosition);
+							const sFilter = $(this).val();
+							fGiphy(sFilter && 'search', sFilter, fInitVisibility);
+
+						}, 1000);
                         return true;
                 }).on('keydown', function(e) {
-					if (e.keyCode === 8)
+					if (e.keyCode === 8 || e.keyCode === 46)
 						$(this).trigger('keypress');
 				});
 
-                if ($oContainer && !$oContainer.find('img').length)
-               		fGiphy();
+                if (oContainer && !oContainer.find('img').length) {
+					fGiphy(undefined, undefined, fInitVisibility);
+				}
             }
         }
 	}

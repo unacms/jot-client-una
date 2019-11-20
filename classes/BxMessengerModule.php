@@ -1636,35 +1636,9 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$this->isLogged())
             return '';
 
-        $oResult = $this->_oConfig->getGiphyGifs(bx_get('action'), urlencode(bx_get('filter')));
-
-        $iWidth = (float)bx_get('width');
-        $iCount = $iWidth/150;
-        $fGifWidth = $iWidth/round($iCount) - 8;
-        $fRate = 200/$fGifWidth;
-
-        if ($oResult && ($aResult = json_decode($oResult, true))){
-            if (!empty($aResult['data'])){
-                $aVars['bx_repeat:gifs'] = array();
-                foreach($aResult['data'] as &$aGif) {
-                    $aImage = $aGif['images']['fixed_width'];
-                    $aVars['bx_repeat:gifs'][] = array(
-                       'id' => $aGif['id'],
-                       'width' => $fGifWidth,
-                       'height' => $aImage['height']/$fRate,
-                       'gif' => $aImage['url']
-                    );
-                }
-
-                if (!empty($aVars['bx_repeat:gifs'])) {
-                    usort($aVars['bx_repeat:gifs'], function ($a, $b) {
-                        return $a['height'] < $b['height'];
-                    });
-
-                    return echoJson(array('code' => 0, 'html' => $this->_oTemplate->parseHtmlByName('giphy_items.html', $aVars)));
-                }
-            }
-        }
+        $aContent = $this->_oTemplate->getGiphyItems(bx_get('action'), urlencode(bx_get('filter')), (int)bx_get('width'), (int)bx_get('start'));
+        if (isset($aContent['content']) && $aContent['content'])
+            return echoJson(array('code' => 0, 'html' => $aContent['content'], 'total' => isset($aContent['pagination']) ? $aContent['pagination']['total_count'] : (int)bx_get('start')));
 
         return echoJson(array('code' => 1, 'message' => MsgBox(_t('_bx_messenger_giphy_gifs_nothing_found'))));
     }

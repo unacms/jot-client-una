@@ -746,13 +746,14 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'ip' => gethostbyname($aUrlInfo['host']),
 			'smiles' => (int)$this->_oConfig-> CNF['CONVERT_SMILES'],
 			'ebmed_template' => $sEmbedTemplate,
+			'jot_url' => BxDolPermalinks::getInstance()->permalink($CNF['URL_REPOST']),
 			'bx_if:onsignal' => array(
 										'condition'	=> (int)$iProfileId && $this->_oConfig->isOneSignalEnabled() && !getParam('sys_push_app_id'),
 										'content' => array(
 											'one_signal_api' => $CNF['PUSH_APP_ID'],
 											'short_name' => $CNF['PUSH_SHORT_NAME'],
 											'safari_key' => $CNF['PUSH_SAFARI_WEB_ID'],
-											'jot_chat_page_url' => $CNF['URL_HOME'],
+											'jot_chat_page_url' => BxDolPermalinks::getInstance()->permalink($CNF['URL_HOME']),
 											'notification_request' => bx_js_string(_t('_bx_messenger_notification_request')),
 											'notification_request_yes' => bx_js_string(_t('_bx_messenger_notification_request_yes')),
 											'notification_request_no' => bx_js_string(_t('_bx_messenger_notification_request_no')),
@@ -1064,7 +1065,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@return string html code
 	*/
 	function getJotAsAttachment($iJotId){
-		$sMessage = $sHTML = '';
+		$sHTML = '';
 		
 		$aJot = $this -> _oDb -> getJotById($iJotId);
 		if (empty($aJot))
@@ -1076,11 +1077,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			$sOriginalMessage = $this->_oConfig->cleanRepostLinks($aJot[$this->_oConfig->CNF['FIELD_MESSAGE']], $iAttachedJotId);
 			if (!$sOriginalMessage)
 				$aJot = $this -> _oDb -> getJotById($iAttachedJotId);
-			
-			$sMessage = $aJot[$this->_oConfig->CNF['FIELD_MESSAGE']];
 		}
 		
-		if ($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
+		if ($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES || $aJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_GIPHY)
 			$sMessage = $aJot[$this->_oConfig->CNF['FIELD_MESSAGE']] . $this -> getAttachment($aJot);
 		else
 			$sMessage = $this -> _oConfig -> bx_linkify($aJot[$this->_oConfig->CNF['FIELD_MESSAGE']]);

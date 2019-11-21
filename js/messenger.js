@@ -69,7 +69,7 @@
 
 		//globa class options
 		this.oUsersTemplate	= null;
-		this.sJotUrl = sUrlRoot + 'm/messenger/archive/';
+		this.sJotUrl = (oOptions && oOptions.jot_url) || sUrlRoot + 'm/messenger/archive/';
 		this.sInfoFavIcon = 'modules/boonex/messenger/template/images/icons/favicon-red-32x32.png';
 		this.sJotSpinner = '<img src="modules/boonex/messenger/template/images/icons/jot-loading.gif" />';
 		this.sDefaultFavIcon = $('link[rel="shortcut icon"]').attr('href');
@@ -922,13 +922,11 @@
 			sPUrlPattern = /(^|[^\/])(www\.[\S]+(\b|$))/gim,
 		// Email addresses
 			sEmailPattern = /[\w.]+@[a-zA-Z_-]+?(?:\.[a-zA-Z]{2,6})+/gim,
-			sJotLinkPattern = new RegExp(_oMessenger.sJotUrl + '\\d+', 'i');
-
+			sJotLinkPattern = new RegExp(_oMessenger.sJotUrl.replace('?', '\\?') + '\\d+', 'i');
 
 		const oJot = $(_oMessenger.sJotMessage, this).first();
-
 		if (!$(oJot).length)
-		return ;
+			return ;
 
 		let sUrl = '',
 			sText = $(oJot)

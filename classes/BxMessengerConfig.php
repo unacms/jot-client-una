@@ -94,8 +94,8 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'FIELD_INFO_PARAMS' => 'params', // means use link in title
 
 			// page URIs
-			'URL_HOME' => BX_DOL_URL_ROOT . 'page/messenger',
-			'URL_REPOST' => BX_DOL_URL_ROOT . 'm/messenger/archive/',
+			'URL_HOME' => BX_DOL_URL_ROOT . 'page?i=messenger',
+			'URL_REPOST' => BX_DOL_URL_ROOT . 'modules/index.php?r=messenger/archive/',
 			'URL_TEMPLATE' => BX_DOL_URL_ROOT . 'page.php?{link}',
 
 			// some params
@@ -194,10 +194,10 @@ class BxMessengerConfig extends BxBaseModTextConfig
 	*/
 	public function isJotLink($sUrl){
 		$aResult = array();
-		$sJotPattern = '/^'. preg_replace(array('/\./', '/\//'), array('\.', '\/'), $this->CNF['URL_REPOST']) . '(\d+)/i';
+		$sJotPattern = '/^'. preg_replace(array('/\./', '/\//', '/\?/'), array('\.', '\/', '\?'), BxDolPermalinks::getInstance()->permalink($this->CNF['URL_REPOST'])) . '(\d+)/i';
 		if (preg_match($sJotPattern, $sUrl, $aMatches) && intval($aMatches[1]))
 			$aResult = array('url' => $aMatches[0], 'id' => $aMatches[1]);
-		
+
 		return $aResult;
 	}
 	
@@ -260,7 +260,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 	*/
 	public function cleanRepostLinks($sMessage, $iJotId)
 	{
-		$sArchiveUrl = $this->CNF['URL_REPOST'] . $iJotId;
+		$sArchiveUrl = BxDolPermalinks::getInstance()->permalink($this->CNF['URL_REPOST']) . $iJotId;
 		return str_replace($sArchiveUrl, '', $sMessage);
 	}
 	

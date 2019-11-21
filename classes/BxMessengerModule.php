@@ -822,12 +822,11 @@ class BxMessengerModule extends BxBaseModTextModule
         else
             return false;
 
-
         $aWhere = array();
         $aInfo = array(
             'contents' => $aContent,
             'headings' => $aHeadings,
-            'url' => $this->_oConfig->CNF['URL_REPOST'] . $aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE_ID']]
+            'url' => BxDolPermalinks::getInstance()->permalink($this->_oConfig->CNF['URL_REPOST']) . $aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE_ID']]
         );
 
 		foreach($aParticipantList as $iKey => $iValue)
@@ -1122,7 +1121,7 @@ class BxMessengerModule extends BxBaseModTextModule
         if (empty($aJotInfo) || empty($aLotInfo))
             return array();
 
-        $sEntryUrl = $CNF['URL_REPOST'] . $aJotInfo[$CNF['FIELD_MESSAGE_ID']];
+        $sEntryUrl = BxDolPermalinks::getInstance()->permalink($CNF['URL_REPOST']) . $aJotInfo[$CNF['FIELD_MESSAGE_ID']];
         $iType = $aLotInfo[$CNF['FIELD_TYPE']];
 
         $sTitle = isset($aLotInfo[$CNF['FIELD_TITLE']]) && $aLotInfo[$CNF['FIELD_TITLE']] ?

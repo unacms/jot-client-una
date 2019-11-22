@@ -33,8 +33,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
 		$aJs = array(
 						'primus.js',
+                        'storage.js',
 						'connect.js',
-						'storage.js',
 						'messenger.js',
 						'emoji/js/util.js',
 						'emoji/js/config.js',
@@ -134,7 +134,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		
 		$aParams['url'] = '';
 		if ($iType != BX_IM_TYPE_PRIVATE)
-			$aParams['url'] = isset($aLotInfo[$CNF['FIELD_URL']]) ? $aLotInfo[$CNF['FIELD_URL']] : $this-> _oConfig -> getPageIdent();
+			$aParams['url'] = isset($aLotInfo[$CNF['FIELD_URL']]) ? $aLotInfo[$CNF['FIELD_URL']] : $this->_oConfig->getPageIdent();
 		
 		BxDolSession::getInstance()-> exists($iProfileId);
 		return $this -> parseHtmlByName('chat_window.html', $aParams);

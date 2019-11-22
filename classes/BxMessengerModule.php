@@ -205,14 +205,15 @@ class BxMessengerModule extends BxBaseModTextModule
         }
 
         $aResult = array('code' => 0, 'tmp_id' => $iTmpId);
-        if (($sMessage || !empty($aFiles) || !empty($aIds)) && ($iId = $this->_oDb->saveMessage(array(
-                'message' => $sMessage,
-                'type' => $iType,
-                'member_id' => $this->_iUserId,
-                'url' => $sUrl,
-                'title' => $sTitle,
-                'lot' => $iLotId
-											), $aParticipants)))
+        if (($sMessage || !empty($aFiles) || !empty($aIds)) && ($iId = $this->_oDb->saveMessage(
+            array(
+                    'message' => $sMessage,
+                    'type' => $iType,
+                    'member_id' => $this->_iUserId,
+                    'url' => $sUrl,
+                    'title' => $sTitle,
+                    'lot' => $iLotId
+            ), $aParticipants)))
         {
             if (!$iLotId)
                 $aResult['lot_id'] = $this->_oDb->getLotByJotId($iId);
@@ -358,8 +359,11 @@ class BxMessengerModule extends BxBaseModTextModule
      */
     private function getPreparedUrl($sUrl)
     {
-        if (!$sUrl) return false;
+        if (!$sUrl)
+            return false;
+
         $aUrl = parse_url($sUrl);
+
         return strtolower($aUrl['path'] . (isset($aUrl['query']) ? '?' . $aUrl['query'] : ''));
     }
 

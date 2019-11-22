@@ -255,14 +255,31 @@
 			$(_this.sSendAreaMenuIcons).on('click', () => _this.triggerSendAreaButtons(false));
 
 			_this.triggerSendAreaButtons(_this.isMobile());
+
+			_this.checkNotFinishedTalks();
 	};
 
 	oMessenger.prototype.checkNotFinishedTalks = function(){
 		const oLots = this.oStorage.getLots(),
 			  oLotsKeys = (oLots && Object.keys(oLots)) || [];
 
+		$(`${this.sLotSelector} .info`).each(function(){
+			$(this).html('');
+		});
+
 		if (oLotsKeys.length)
 			oLotsKeys.map((iLot) =>  $(`${this.sLotSelector}[data-lot="${iLot}"] .info`).html( oLots[iLot].length ? '<i class="sys-icon pen"></i>' : ''));
+
+		/* If member didn't finish the message add it to post message area --- Begin */
+		let sStorageMessage = this.oStorage.getLot(this.oSettings.lot);
+
+		if (typeof sStorageMessage === 'string' && sStorageMessage.length){
+			let oObject = $('<div />').text(sStorageMessage);
+			$(this.sMessengerBox)
+				.html(oObject.text().replace(/\n/ig, '<br>'))
+				.change()
+				.focus();
+		}
 	};
 	
 	/**
@@ -1230,18 +1247,6 @@
 
 					_this.blockSendMessages();
 
-					/* If profile didn't finish the message add it to post message area --- Begin */
-					let sStorageMessage = _this.oStorage.getLot(iLotId);
-					if (typeof sStorageMessage === 'string' && sStorageMessage.length){
-						let oObject = $('<div />').text(sStorageMessage);
-						$(_this.sMessengerBox)
-							.html(oObject.text().replace(/\n/ig, '<br>'))
-							.change()
-							.focus();
-					}
-
-					_this.checkNotFinishedTalks();
-
 					if (parseInt($(_this.sTalkListJotSelector).last().data('new')))
                         _this.broadcastView();
 
@@ -1983,6 +1988,10 @@
 				console.log('Real-time frameworks was not initialized');
 				return false;
 			}
+
+			if (typeof oMessengerStorage !== 'undefined' && !_oMessenger.oStorage) {
+				_oMessenger.oStorage = new oMessengerStorage();
+			}
 			/* Init connector settings end */
 			return true;
 		},
@@ -2080,11 +2089,6 @@
 			else
 			{
 				console.log('Page Builder was not initialized');
-			}
-
-			if (typeof oMessengerStorage !== 'undefined' && !_oMessenger.oStorage) {
-				_oMessenger.oStorage = new oMessengerStorage();
-				_oMessenger.checkNotFinishedTalks();
 			}
 
 			_oMessenger.updatePageIcon();

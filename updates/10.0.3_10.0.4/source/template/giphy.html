@@ -1,0 +1,17 @@
+<div class="bx-messenger-attachment-area bx-messenger-attachment-giphy">
+   <picture style="display:none;">
+     <source srcset="//media1.giphy.com/media/__gif__/giphy.webp" type="image/webp" />
+     <img src="//media1.giphy.com/media/__gif__/giphy.gif" />
+   </picture>
+   <div class="bx-messenger-static-giphy">
+      <img src="//media1.giphy.com/media/__gif__/giphy_s.gif" onclick=""/>
+   </div>
+</div>
+<script>
+   $('.bx-messenger-static-giphy').on('click', function(){
+      $(this)
+        .hide()
+        .siblings('picture')
+        .show();
+   })
+</script>

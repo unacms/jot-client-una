@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="ru" flag="ru" title="Russian">	
+	<string_add name="_bx_messenger_max_drop_down_select"><![CDATA[Количество профайлов в результате поиска в выпадающем меню]]></string_add>
+</resources>

@@ -1,0 +1,174 @@
+<div class="bx-messenger-table-wrapper">
+	<div class="bx-messenger-table-wrapper-rows">
+			<div class="cell">
+				<div class="bx-messenger-conversation-block-wrapper pushable">
+					<div class="ui right vertical sidebar very wide bx-def-color-bg-block files">
+						<div class="ui feed segment"></div>
+					</div>
+					<bx_if:giphy>
+						<div class="ui sidebar very wide bx-def-color-bg-block bottom horizontal giphy">
+							__giphy__
+						</div>
+					</bx_if:giphy>
+					<div class="pusher">
+						<div class="bx-messenger-conversation-block">
+							<div class="bx-messenger-conversations">
+								__content__
+							</div>
+						</div>
+						<div id="bx-messenger-info-area">
+							<div class="bx-messenger-conversations-typing bx-def-font-light bx-def-font-small">
+								<span></span><bx_text:_bx_messenger_typing_message />
+							</div>
+							<div class="bx-messenger-info-area-connecting bx-def-font-light bx-def-font-small">
+								<bx_text:_bx_messenger_reconnecting_message /><span></span>
+							</div>
+							<div class="bx-messenger-info-area-connect-failed bx-def-font-light bx-def-font-small">
+								<bx_text:_bx_messenger_reconnecting_failed />
+							</div>
+						</div>
+				  </div>
+				</div>
+			<bx_if:show_scroll_area>
+				<div class="bx-messenger-area-scroll bx-def-font-light bx-def-font-small">
+					<div>
+						<span>
+							<a href="javascript:void(0);" onclick="oMessenger.loadTalk(__id__, $('#mark_all_as_read').is(':checked'));">
+								<span><bx_text:_bx_messenger_jump_to_the_bottom /></span>
+							</a>
+							<bx_if:check_as_read>
+								<label class="checkcontainer" title="<bx_text:_bx_messenger_mark_all_as_read />">
+									<input name="mark_all_as_read" value="text" id="mark_all_as_read" class="bx-def-font-inputs bx-form-input-checkbox" type="checkbox" />
+									<span class="checkmark"></span>
+								</label>
+							</bx_if:check_as_read>
+						</span>
+					</div>
+				</div>
+			</bx_if:show_scroll_area>
+		</div>
+	</div>
+<bx_if:post_area>
+	<div class="bx-messenger-table-wrapper-rows">
+		<div class="cell">
+			  <div class="bx-messenger-post-box">
+					<div class="bx-messenger-post-box-set">
+						<div class="bx-messenger-post-box-send-actions">
+						<ul>	
+							<li>
+								<a class="smiles" title="<bx_text:_bx_messenger_post_emoji />"></a>
+							</li>
+							<li class="video">
+								<a title="<bx_text:_bx_messenger_send_recorded_video />" onclick="oMessenger.showPopForm('get_record_video_form');">
+									<i class="sys-icon video"></i>
+								</a>
+							</li>
+							<li>
+								<a title="<bx_text:_bx_messenger_post_attache_files />" onclick="oMessenger.showPopForm();">
+									<i class="sys-icon paperclip"></i>
+								</a>
+							</li>
+							<bx_if:gif>
+								<li>
+									<a title="<bx_text:_bx_messenger_giphy_gifs_button />" id="bx-messenger-send-area-giphy" onclick="$('.bx-messenger-conversation-block-wrapper .ui.sidebar.giphy').sidebar('toggle')">
+										<svg height="24px" viewBox="-53 0 511 512" width="24px" xmlns="http://www.w3.org/2000/svg">
+											<path d="m315.386719 379v32h48c11.046875 0 20 8.953125 20 20s-8.953125 20-20 20h-48v41c0 11.046875-8.953125 20-20 20-11.042969 0-20-8.953125-20-20v-113c0-27.570312 22.429687-50 50-50h38c11.046875 0 20 8.953125 20 20s-8.953125 20-20 20h-38c-5.511719 0-10 4.484375-10 10zm73.429687-283.859375-77.570312-77.566406c-11.332032-11.332031-26.398438-17.574219-42.425782-17.574219h-188.320312c-44.113281 0-80 35.886719-80 80v190c0 11.046875 8.953125 20 20 20s20-8.953125 20-20v-190c0-22.054688 17.945312-40 40-40h188.320312c5.339844 0 10.363282 2.082031 14.140626 5.859375l77.570312 77.566406c3.777344 3.777344 5.855469 8.800781 5.855469 14.140625v132.433594c0 11.046875 8.957031 20 20 20 11.046875 0 20-8.953125 20-20v-132.433594c0-16.023437-6.238281-31.089844-17.570313-42.425781zm-253.429687 316.859375h-35c-11.042969 0-20 8.953125-20 20s8.957031 20 20 20h13.984375c-4.535156 11.992188-16.21875 20-29.984375 20-17.644531 0-32-14.355469-32-32v-38c0-17.644531 14.355469-32 32-32 11.265625 0 21.5 5.757812 27.367187 15.398438 5.742188 9.4375 18.046875 12.429687 27.484375 6.683593 9.433594-5.742187 12.425781-18.046875 6.683594-27.480469-13.1875-21.667968-36.191406-34.601562-61.535156-34.601562-39.699219 0-72 32.300781-72 72v38c0 39.699219 32.300781 72 72 72 16.722656 0 32.96875-5.683594 45.75-16 12.824219-10.355469 21.65625-24.953125 24.867187-41.097656.253906-1.285156.382813-2.59375.382813-3.902344v-19c0-11.046875-8.953125-20-20-20zm80-83c-11.042969 0-20 8.953125-20 20v143c0 11.046875 8.957031 20 20 20 11.046875 0 20-8.953125 20-20v-143c0-11.046875-8.953125-20-20-20zm0 0"/>
+										</svg>
+									</a>
+								</li>
+							</bx_if:gif>
+							<li>
+								<a title="<bx_text:_bx_messenger_post_view_actions />" id = "bx-messenger-send-area-menu">
+									<i class="sys-icon plus"></i>
+								</a>
+							</li>
+						</ul>
+						</div>
+						<div class="bx-messenger-post-box-send-area">
+							<div id="bx-messenger-message-box" contenteditable="true" placeholder="__place_holder__" class="bx-def-font-inputs bx-form-input-text bx-messenger-text-box"></div>
+						</div>
+						<div class="bx-messenger-post-box-send-button">
+							<a id="send-button" title="<bx_text:_bx_messenger_post_button_title />">
+								<i class="sys-icon arrow-up"></i>
+							</a>
+						</div>
+					</div>
+			</div>
+		</div>
+	</div>
+</bx_if:post_area>
+</div>
+<script type="text/javascript">
+	const oSidebarPanel = $('.bx-messenger-conversation-block-wrapper');
+	$(function(){
+		oMessenger.initJotSettings({
+			'type'	:__type__,
+			'url'	:'__url__',
+			'lot'	:__id__,
+			'name'	:'__name__'
+		});
+
+
+		$('#bx-messenger-send-area-giphy svg')
+				.css('fill', $('#bx-messenger-send-area-giphy').css('color'))
+				.hover(
+					function(){
+						$(this).css('opacity', '0.8')
+					},
+					function(){
+						$(this).css('opacity', '1')
+					},
+				);
+
+		$('.ui.sidebar', oSidebarPanel)
+				.sidebar({
+					context: oSidebarPanel,
+					dimPage: true,
+					scrollLock: true,
+					onVisible:function(){
+						const { context } = $(this);
+						if ($(context).hasClass('files') && !$('.event', context).length){
+							oMessenger
+								.loadTalkFiles($('.segment', context), $('.event', context).length, (oData) =>
+										{
+											let bPassed = false;
+											const iTotal = (oData && oData.total) || 0;
+
+											if (!iTotal)
+												return ;
+
+											$('.segment', context)
+													.visibility({
+														once: false,
+														continuous: true,
+														context: context,
+														// load content when scroll passed 60%
+														onUpdate: function({ height, pixelsPassed, percentagePassed }){
+															const iItems = $('.event', $(this)).length,
+																  iViewArea = $(context).height(),
+																  iPassed = pixelsPassed >= (height-iViewArea)/2;
+
+															if (!iTotal || !percentagePassed || iItems >= iTotal || !iPassed)
+																return ;
+
+															if (!bPassed) {
+																bPassed = true;
+																oMessenger.loadTalkFiles($(this), iItems, () => setTimeout(() => bPassed = false, 0));
+															}
+														}
+													});
+										}
+								);
+						}
+
+					},
+					onShow: (e) => {
+							oMessenger.initGiphy(e);
+					}
+				})
+				.sidebar('setting', {
+					transition: 'overlay',
+					mobileTransition: 'overlay'
+				});
+	});
+</script>

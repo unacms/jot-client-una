@@ -270,10 +270,8 @@ class BxMessengerConfig extends BxBaseModTextConfig
 	*/
 	public function getPageIdent()
     {
-        $sUrl = $_SERVER['REQUEST_URI'];
-        $aUrl = array();
-
-        if (!empty($_SERVER['QUERY_STRING'])) {
+       $sUrl = 'index.php';
+       if (!empty($_SERVER['QUERY_STRING'])) {
             parse_str($_SERVER['QUERY_STRING'], $aUrl);
             if (!empty($aUrl)) {
                 $aValidUrl = array();
@@ -290,7 +288,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
     }
 
     public function getPageLink($sUrl){
-	    return str_replace('{link}', $sUrl, $this->CNF['URL_TEMPLATE']);
+	    return BxDolPermalinks::getInstance()->permalink(str_replace('{link}', $sUrl, $this->CNF['URL_TEMPLATE']));
     }
 
     public function isOneSignalEnabled(){

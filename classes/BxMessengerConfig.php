@@ -105,7 +105,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'BELL_ICON_OFF' => 'bell-slash',
 			'PARAM_FRIENDS_NUM_BY_DEFAULT' => 10,
 			'PARAM_NTFS_INTERVAL' => 1, /* INTERVAL IN HOURS*/
-			'PARAM_SEARCH_DEFAULT_USERS' => 5,
+			'PARAM_SEARCH_DEFAULT_USERS' => (int)getParam($aModule['db_prefix'] . 'max_drop_down_select'),
 			'PARAM_MAX_HISTORY_MESSAGES' => 50,
 			'PARAM_DEFAULT_TALK_FILES_NUM' => 20,
 			'PARAM_MAX_JOT_NTFS_MESSAGE_LENGTH' => 50,

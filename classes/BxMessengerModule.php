@@ -443,22 +443,48 @@ class BxMessengerModule extends BxBaseModTextModule
         echoJson(array('title' => _t('_bx_messenger_lots_menu_create_lot_title'), 'html' => $this->_oTemplate->getLotWindow($iProfileId, $iLot, false)));
     }
 
+    public function searchProfiles($sTerm, $aExcept = array(), $iLimit = 10){
+        $aResult = array();
+        $aModules = BxDolService::call('system', 'get_profiles_modules', array(), 'TemplServiceProfiles');
+        if (empty($aModules))
+            return $aResult;
+
+        // search in each module
+        $a = array();
+        foreach ($aModules as $aModule) {
+            if (!BxDolService::call($aModule['name'], 'act_as_profile'))
+                continue;
+            $a = array_merge($a, BxDolService::call($aModule['name'], 'profiles_search', array('%' . $sTerm, $iLimit + count($aExcept))));
+        }
+
+        // sort result
+        usort($a, function($r1, $r2) {
+            return strcmp($r1['label'], $r2['label']);
+        });
+
+        if (!empty($aExcept))
+            $a = array_filter($a, function($a) use ($aExcept) {
+               return !in_array($a['value'], $aExcept);
+            });
+
+        return array_slice($a, 0, $iLimit);
+    }
     /**
      * Occurs when member adds or edit participants list for new of specified lot
      * @return string with json code
      */
 	public function actionGetAutoComplete(){
-        $sExcept = bx_get('except');
         $aResult = $aExcept = array();
-        if ($sExcept)
+        $sExcept = bx_get('except');
+	    if ($sExcept)
             $aExcept = explode(',', $sExcept);
 
-        $aUsers = BxDolService::call('system', 'profiles_search', array(bx_get('term'), $this->_oConfig->CNF['PARAM_SEARCH_DEFAULT_USERS'] + sizeof($aExcept)), 'TemplServiceProfiles');
+	    $aUsers = $this->searchProfiles(bx_get('term'), $aExcept,  $this->_oConfig->CNF['PARAM_SEARCH_DEFAULT_USERS']);
         if (empty($aUsers))
-            return echoJson(array('items' => $aResult));
+            return echoJson(array('items' => $aUsers));
 
         foreach ($aUsers as $iKey => $aValue) {
-            if ($aValue['value'] == $this->_iUserId || in_array($aValue['value'], $aExcept) || !$this->onCheckContact($this->_iUserId, $aValue['value'])) continue;
+            if ($aValue['value'] == $this->_iUserId  || !$this->onCheckContact($this->_iUserId, $aValue['value'])) continue;
 
             $oProfile = BxDolProfile::getInstance($aValue['value']);
             $aProfileInfo = $oProfile->getInfo();

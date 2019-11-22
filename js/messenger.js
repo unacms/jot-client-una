@@ -1845,15 +1845,8 @@
 			const _this = this,
 				onSelectFunc = function(fCallback)
 				{
-					if (bMode !== 'edit') {
+					if (bMode !== 'edit')
 						_this.findLotByParticipantsList(fCallback);
-
-						setTimeout(() => {
-							$(_this.sUserSelectorInput)
-								.val('')
-								.focus();
-						}, 0);
-					}
 					else
 						if (_this.oJotWindowBuilder !== undefined)
 							_this.oJotWindowBuilder.updateColumnSize();
@@ -1895,6 +1888,7 @@
 									  title   : 'value',
 									  image	  : 'icon'
 									},
+									maxResults: 20,
 									onResults: function(){
 										$(this)
 											.find('.results')
@@ -1902,15 +1896,19 @@
 									},
 									onSelect: function(result, response){
 										$(this)
+											.before(`<b class="bx-def-color-bg-hl bx-def-round-corners">
+														<img class="bx-def-thumb bx-def-thumb-size bx-def-margin-sec-right" src="${result.icon}" /><span>${result.value}</span>
+														<input type="hidden" name="users[]" value="${result.id}" /></b>`)
 											.find('input')
 											.val('')
 											.end()
-											.before(`<b class="bx-def-color-bg-hl bx-def-round-corners">
-														<img class="bx-def-thumb bx-def-thumb-size bx-def-margin-sec-right" src="${result.icon}" /><span>${result.value}</span>
-														<input type="hidden" name="users[]" value="${result.id}" /></b>`);
+											.find('.results.transition')
+											.hide()
+											.removeClass('visible')
+											.addClass('hidden');
 
 										onSelectFunc();
-										return true;
+										return false;
 									},
 									minCharacters : 1
 								})

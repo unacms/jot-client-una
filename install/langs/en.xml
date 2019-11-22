@@ -162,4 +162,5 @@
 	<string name="_bx_messenger_giphy_gifs_button"><![CDATA[Giphy]]></string>
 	<string name="_bx_messenger_giphy_gifs_nothing_found"><![CDATA[Nothing found]]></string>
 	<string name="_bx_messenger_attached_giphy_message"><![CDATA[Received animation]]></string>
+	<string name="_bx_messenger_max_drop_down_select"><![CDATA[Maximum users number in dropdown search result]]></string>
 </resources>

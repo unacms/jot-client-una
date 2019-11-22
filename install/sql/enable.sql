@@ -26,13 +26,14 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_max_video_length_minutes', '5', @iCategId, '_bx_messenger_max_video_file_size', 'digit', '', '', '', 13),
 ('bx_messenger_max_ntfs_number', '5', @iCategId, '_bx_messenger_max_ntfs_number', 'digit', '', '', '', 14),
 ('bx_messenger_max_parts_views', '10', @iCategId, '_bx_messenger_max_parts_views', 'digit', '', '', '', 15),
-('bx_messenger_allow_to_remove_messages', 'on', @iCategId, '_bx_messenger_allow_to_remove_messages', 'checkbox', '', '', '', 16),
-('bx_messenger_remove_messages_immediately', '', @iCategId, '_bx_messenger_remove_messages_immediately', 'checkbox', '', '', '', 17),
-('bx_messenger_use_embedly', 'on', @iCategId, '_bx_messenger_use_embedly', 'checkbox', '', '', '', 18),
-('bx_messenger_giphy_key', '', @iCategId, '_bx_messenger_giphy_api_key', 'digit', '', '', '', 19),
-('bx_messenger_giphy_type', 'gifs', @iCategId, '_bx_messenger_giphy_type', 'select', '', '', 'gifs,stickers', 20),
-('bx_messenger_giphy_content_rating', 'g', @iCategId, '_bx_messenger_giphy_content_rating', 'select', '', '', 'g,pg,pg-13,r', 21),
-('bx_messenger_giphy_limit', '30', @iCategId, '_bx_messenger_giphy_limit', 'digit', '', '', '', 22);
+('bx_messenger_max_drop_down_select', '5', @iCategId, '_bx_messenger_max_drop_down_select', 'digit', '', '', '', 16),
+('bx_messenger_allow_to_remove_messages', 'on', @iCategId, '_bx_messenger_allow_to_remove_messages', 'checkbox', '', '', '', 17),
+('bx_messenger_remove_messages_immediately', '', @iCategId, '_bx_messenger_remove_messages_immediately', 'checkbox', '', '', '', 18),
+('bx_messenger_use_embedly', 'on', @iCategId, '_bx_messenger_use_embedly', 'checkbox', '', '', '', 19),
+('bx_messenger_giphy_key', '', @iCategId, '_bx_messenger_giphy_api_key', 'digit', '', '', '', 20),
+('bx_messenger_giphy_type', 'gifs', @iCategId, '_bx_messenger_giphy_type', 'select', '', '', 'gifs,stickers', 21),
+('bx_messenger_giphy_content_rating', 'g', @iCategId, '_bx_messenger_giphy_content_rating', 'select', '', '', 'g,pg,pg-13,r', 22),
+('bx_messenger_giphy_limit', '30', @iCategId, '_bx_messenger_giphy_limit', 'digit', '', '', '', 23);
 
 
 -- MENU: notifications

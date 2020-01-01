@@ -739,6 +739,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             '_bx_messenger_search_query_issue'
         ));
 
+        $aTags = BxDolPush::getTags($iProfileId);
+        $sEmail = $aTags['email'];
+        $sEmailHash = $aTags['email_hash'];
+        unset($aTags['email']);
+        unset($aTags['email_hash']);
+
 		$aVars = array(
 			'profile_id' => (int)$iProfileId,
 			'server_url' => $this->_oConfig-> CNF['SERVER_URL'],
@@ -758,6 +764,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 											'notification_request_yes' => bx_js_string(_t('_bx_messenger_notification_request_yes')),
 											'notification_request_no' => bx_js_string(_t('_bx_messenger_notification_request_no')),
 											'profile_id' => (int)$iProfileId,
+                                            'email' => $sEmail,
+                                            'email_hash' => $sEmailHash,
+                                            'push_tags_encoded' => json_encode($aTags),
 										)
 									)
 		);

@@ -20,26 +20,28 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_push_rest_api', '', @iCategId, '_bx_messenger_push_rest_api', 'digit', '', '', '', 7),
 ('bx_messenger_push_short_name', '', @iCategId, '_bx_messenger_push_short_name', 'digit', '', '', '', 8),
 ('bx_messenger_push_safari_id', '', @iCategId, '_bx_messenger_push_safari_id', 'digit', '', '', '', 9),
-('bx_messenger_typing_smiles', '', @iCategId, '_bx_messenger_typing_smiles', 'checkbox', '', '', '', 10),
-('bx_messenger_server_url', '', @iCategId, '_bx_messenger_server_url', 'digit', '', '', '', 11),
-('bx_messenger_max_files_send', '5', @iCategId, '_bx_messenger_max_files_upload', 'digit', '', '', '', 12),
-('bx_messenger_max_video_length_minutes', '5', @iCategId, '_bx_messenger_max_video_file_size', 'digit', '', '', '', 13),
-('bx_messenger_max_ntfs_number', '5', @iCategId, '_bx_messenger_max_ntfs_number', 'digit', '', '', '', 14),
-('bx_messenger_max_parts_views', '10', @iCategId, '_bx_messenger_max_parts_views', 'digit', '', '', '', 15),
-('bx_messenger_max_drop_down_select', '5', @iCategId, '_bx_messenger_max_drop_down_select', 'digit', '', '', '', 16),
-('bx_messenger_allow_to_remove_messages', 'on', @iCategId, '_bx_messenger_allow_to_remove_messages', 'checkbox', '', '', '', 17),
-('bx_messenger_remove_messages_immediately', '', @iCategId, '_bx_messenger_remove_messages_immediately', 'checkbox', '', '', '', 18),
-('bx_messenger_use_embedly', 'on', @iCategId, '_bx_messenger_use_embedly', 'checkbox', '', '', '', 19),
-('bx_messenger_giphy_key', '', @iCategId, '_bx_messenger_giphy_api_key', 'digit', '', '', '', 20),
-('bx_messenger_giphy_type', 'gifs', @iCategId, '_bx_messenger_giphy_type', 'select', '', '', 'gifs,stickers', 21),
-('bx_messenger_giphy_content_rating', 'g', @iCategId, '_bx_messenger_giphy_content_rating', 'select', '', '', 'g,pg,pg-13,r', 22),
-('bx_messenger_giphy_limit', '30', @iCategId, '_bx_messenger_giphy_limit', 'digit', '', '', '', 23);
+('bx_messenger_server_url', '', @iCategId, '_bx_messenger_server_url', 'digit', '', '', '', 10),
+('bx_messenger_max_files_send', '5', @iCategId, '_bx_messenger_max_files_upload', 'digit', '', '', '', 11),
+('bx_messenger_max_video_length_minutes', '5', @iCategId, '_bx_messenger_max_video_file_size', 'digit', '', '', '', 12),
+('bx_messenger_max_ntfs_number', '5', @iCategId, '_bx_messenger_max_ntfs_number', 'digit', '', '', '', 13),
+('bx_messenger_max_parts_views', '10', @iCategId, '_bx_messenger_max_parts_views', 'digit', '', '', '', 14),
+('bx_messenger_max_drop_down_select', '5', @iCategId, '_bx_messenger_max_drop_down_select', 'digit', '', '', '', 15),
+('bx_messenger_allow_to_remove_messages', 'on', @iCategId, '_bx_messenger_allow_to_remove_messages', 'checkbox', '', '', '', 16),
+('bx_messenger_remove_messages_immediately', '', @iCategId, '_bx_messenger_remove_messages_immediately', 'checkbox', '', '', '', 17),
+('bx_messenger_use_embedly', 'on', @iCategId, '_bx_messenger_use_embedly', 'checkbox', '', '', '', 18),
+('bx_messenger_giphy_key', '', @iCategId, '_bx_messenger_giphy_api_key', 'digit', '', '', '', 19),
+('bx_messenger_giphy_type', 'gifs', @iCategId, '_bx_messenger_giphy_type', 'select', '', '', 'gifs,stickers', 20),
+('bx_messenger_giphy_content_rating', 'g', @iCategId, '_bx_messenger_giphy_content_rating', 'select', '', '', 'g,pg,pg-13,r', 21),
+('bx_messenger_giphy_limit', '15', @iCategId, '_bx_messenger_giphy_limit', 'digit', '', '', '', 22),
+('bx_messenger_emoji_set', 'native', @iCategId, '_bx_messenger_emoji_set', 'select', '', '', 'native,apple,google,twitter,emojione,facebook,messenger', 23),
+('bx_messenger_reactions_size', '16', @iCategId, '_bx_messenger_reactions_size', 'select', '', '', '16,20,24,32', 24),
+('bx_messenger_show_emoji_preview', '', @iCategId, '_bx_messenger_show_emoji_preview', 'checkbox', '', '', '', 25);
 
 
 -- MENU: notifications
-SET @iMIOrder = (SELECT IFNULL(MAX(`order`), 0) FROM `sys_menu_items` WHERE `set_name` = 'sys_account_notifications' AND `order` < 9999);
+SET @iMIOrder = (SELECT IFNULL(MAX(`order`), 0) FROM `sys_menu_items` WHERE `set_name` = 'sys_toolbar_member' AND `order` < 9999);
 INSERT INTO `sys_menu_items` (`set_name`, `module`, `name`, `title_system`, `title`, `link`, `onclick`, `target`, `icon`, `addon`, `submenu_object`, `visible_for_levels`, `active`, `copyable`, `order`, `visibility_custom`) VALUES
-('sys_account_notifications', @sName, 'notifications-messenger', '_bx_messenger_menu_notifications_item_sys_title', '_bx_messenger_menu_notifications_item_title', 'page.php?i=messenger', '', '', 'far comments col-green1', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:20:"get_updated_lots_num";}', '', 2147483646, 1, 1, @iMIOrder + 1, ''),
+('sys_toolbar_member', @sName, 'notifications-messenger', '_bx_messenger_menu_notifications_item_sys_title', '', 'page.php?i=messenger', '', '', 'far comments col-green1', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:20:"get_updated_lots_num";}', '', 2147483646, 1, 1, @iMIOrder + 1, ''),
 ('trigger_profile_view_actions', @sName, 'messenger', '_bx_messenger_menu_new_chat_sys_title', '_bx_messenger_menu_new_chat_action_title', 'page.php?i=messenger&profile_id={profile_id}', '', '', 'far comments', '', '', 2147483646, 1, 0, 0, 'a:3:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:18:"is_contact_allowed";s:6:"params";a:1:{i:0;s:12:"{profile_id}";}}');
 
 -- PAGE: module home

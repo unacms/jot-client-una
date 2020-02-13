@@ -32,7 +32,12 @@
                 OneSignal.setDefaultNotificationUrl('__jot_chat_page_url__');
                 OneSignal.isPushNotificationsEnabled().then(
                     function (isEnabled) {
+                        if ('__email__') {
+                            OneSignal.setEmail('__email__', '__email_hash__');
+                            OneSignal.sendTags(__push_tags_encoded__);
+                        } else
                         OneSignal.sendTag('user', __profile_id__); // set tag for onesiganl, this tag will be used to send notification
+
                         if (!isEnabled && isPushSupported)
                             OneSignal.showHttpPermissionRequest();
                     });
@@ -40,7 +45,14 @@
        });
 	/*  One Signal Push Notifications Init End */
 	</bx_if:onsignal>
-	
+
+    /* FilePond plugins begin*/
+    $.fn.filepond.registerPlugin(
+        FilePondPluginImagePreview,
+        FilePondPluginMediaPreview
+    );
+    /* end */
+
     if (navigator.userAgent.indexOf('gonative') > -1) {
         var data = {user: __profile_id__};
         var json = JSON.stringify(data);
@@ -58,21 +70,11 @@
 		
    if (typeof oMessenger !== 'undefined')
 	oMessenger.init({
-				emoji:
-					  {
-						emojiable_selector: '#bx-messenger-message-box',
-						convert_to_emoji:__smiles__,
-						onPaste:function(text){
-							return text;
-						},
-						menu_wrapper:'a.smiles',
-						popup_position:{left:'0.5rem'},
-						menu_icon:'<i class="sys-icon smile"></i>'
-					  },
-				oRTWSF:oRTWSF,
-				user_id:__profile_id__,
-				max:__message_length__,
-				ebmed_template:'__ebmed_template__',
+				oRTWSF: oRTWSF,
+				user_id: __profile_id__,
+				max: __message_length__,
+				embed_template: '__embed_template__',
+				reaction_template: `__reaction_template__`,
                 jot_url: '__jot_url__'
 	});
 

@@ -34,11 +34,12 @@
 	background-color: rgba(0,0,0,0.08);
 }
 
-#bx-messenger-add-users .ui.search > .results div,
 #bx-messenger-add-users .ui.input,
-#bx-messenger-add-users .ui.search > .results .result,
 #bx-messenger-add-users .ui.input > input{
 	color:inherit;
+	font-family: inherit;
+	font-size: inherit;
+	font-weight: inherit;
 }
 
 .bx-messenger-items-list
@@ -178,12 +179,6 @@ span.bubble.hidden
 	overflow-wrap:break-word;
 }
 
-.bx-messenger-block .bx-db-header .bx-db-menu.right{
-	position:relative;
-	max-width:7.5rem;
-	display:flex;
-}
-
 .bx-messenger-participants-usernames
 {
 	float:left;
@@ -232,8 +227,20 @@ span.bubble.hidden
 {
 	font-size:1rem;
 	font-weight:700;
-	margin-left:0.6rem;
 	display:inline-flex;
+}
+
+div.bx-messenger-border.search .menu{
+	display: flex;
+	align-items: center;
+}
+
+div.bx-messenger-border.search span i {
+	font-size: 1.3rem;
+}
+
+div.bx-messenger-border.search span.star {
+	margin-right: 1rem;
 }
 
 div.bx-messenger-border.search div:first-child 
@@ -243,7 +250,7 @@ div.bx-messenger-border.search div:first-child
 	flex:0 1 auto;
 }
 
-div.bx-messenger-border.search div:first-child input
+div.bx-messenger-border.search span:first-child input
 {
 	padding:0;
 	background-color:rgba(0,0,0,0);
@@ -251,23 +258,19 @@ div.bx-messenger-border.search div:first-child input
 
 div.bx-messenger-border.search div:first-child input::placeholder
 {
-	color:#ccc;
+	color:inherit;
+}
+
+div.bx-messenger-border.search > span:first-child{
+	flex: 1 auto;
 }
 
 div.bx-messenger-border.search .star a
 {
 	opacity:0.5;
-	margin:0.25rem;
-	display: inline-flex;
-	align-items: center;
 }
 
-div.bx-messenger-border.search .star a svg
-{
-	vertical-align:middle;
-}
-
-div.bx-messenger-border.search .star a.active 
+div.bx-messenger-border.search .star a.active
 {
 	opacity:1;
 }
@@ -379,20 +382,13 @@ div.bx-messenger-border.search .star a.active
 	transform: rotate(45deg);
 }
 
-div.bx-messenger-post-box
-{
-	padding-bottom:0.5rem;
-}
-
 #bx-messenger-add-users{
 	min-height:0;
 	padding: 0;
-	box-shadow:none;
-	display: grid;
+	box-shadow: none;
+	display: flex;
 	align-items: center;
-	grid-template-columns: repeat(auto-fit, minmax(8rem, 13rem));
-	grid-auto-flow: row;
-	grid-gap: 0.2rem;
+	flex-flow: wrap;
 	width: 100%;
 }
 

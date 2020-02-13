@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS `bx_messenger_photos_resized`;
 DROP TABLE IF EXISTS `bx_messenger_videos_processed`;
 DROP TABLE IF EXISTS `bx_messenger_mp3_processed`;
 DROP TABLE IF EXISTS `bx_messenger_lcomments`;
+DROP TABLE IF EXISTS `bx_messenger_jot_reactions`;
 
 -- STORAGES & TRANSCODERS
 DELETE FROM `sys_objects_storage` WHERE `object` LIKE 'bx_messenger%';

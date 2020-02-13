@@ -65,7 +65,7 @@ class BxMessengerDb extends BxBaseModTextDb
 		if ($iId)
 			return $this -> getLotInfoById($iId);
 		
-		if ($sUrl) 
+		if ($sUrl)
 			return $this -> getLotByUrl($sUrl);
 		
 		return array();
@@ -97,8 +97,10 @@ class BxMessengerDb extends BxBaseModTextDb
 	*/
 	public function deleteLot($iLotId){
 		$aJots = $this -> getJotsByLotId($iLotId);
-		foreach($aJots as $iKey => $aJot)
-			$this -> removeFilesByJotId($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
+		foreach($aJots as $iKey => $aJot) {
+            $this->removeFilesByJotId($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
+            $this->deleteJotReactions($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
+        }
 
         $iResult = $this -> query("DELETE FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = :id", array('id' => $iLotId));
 		$iResult += $this -> query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id", array('id' => $iLotId));
@@ -117,6 +119,7 @@ class BxMessengerDb extends BxBaseModTextDb
 		if ($bCompletely)
 		{
 			$this -> removeFilesByJotId($iJotId);
+			$this -> deleteJotReactions($iJotId);
 			return $this -> query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('id' => $iJotId));
 		}		
 		
@@ -271,7 +274,8 @@ class BxMessengerDb extends BxBaseModTextDb
 			$iLotID = $this -> createNewLot($aData['member_id'], $aData['title'], $aData['type'], $aData['url'], $aParticipants);  
 		} else 
 			$iLotID = $aLot[$this->CNF['FIELD_ID']];
-		
+
+		$aData['message'] = clear_xss($aData['message']);
 		return $this -> addNewJot($iLotID, $aData['message'], $aData['member_id']);
 	}	
 
@@ -565,6 +569,17 @@ class BxMessengerDb extends BxBaseModTextDb
 		return $this -> getAll( $iStart && $sMode == 'new' ? $sQuery : "({$sQuery}) ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}`", $aBindings);					
 	}
 
+	function getLotJotsCount($iLotId){
+        if (!$iLotId)
+            return false;
+
+        return $this-> getPairs( "SELECT 
+                                            COUNT(*) as `count`,
+                                            IF (`{$this->CNF['FIELD_MESSAGE_NEW_FOR']}` != '', 'unread', 'read') as `type`
+                                            FROM `{$this->CNF['TABLE_MESSAGES']}` 
+                                        WHERE `{$this->CNF['FIELD_MESSAGE_FK']}`=:id
+                                        GROUP BY `type`", 'type', 'count', array('id' => $iLotId));
+    }
 	/**
 	* Get lot id by jot id 
 	*@param int $iJotId jot id
@@ -855,8 +870,10 @@ class BxMessengerDb extends BxBaseModTextDb
 			FROM `{$this->CNF['TABLE_MESSAGES']}` 
 			WHERE `{$this->CNF['FIELD_MESSAGE_AUTHOR']}`=:profile", $aWhere);
 		
-		foreach($aJots as $iKey => $aJot)			
-			$this -> removeFilesByJotId($aJot[$this->CNF['FIELD_MESSAGE_ID']]);	
+		foreach($aJots as $iKey => $aJot) {
+           $this->removeFilesByJotId($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
+           $this->deleteJotReactions($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
+        }
 			
 		$bResult &= $this-> query("DELETE
 			FROM `{$this->CNF['TABLE_MESSAGES']}` 
@@ -916,7 +933,9 @@ class BxMessengerDb extends BxBaseModTextDb
 		$sWhere = '';
 		if ($aJotInfo[$this->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_REPOST)
 			$sWhere = ",`{$this->CNF['FIELD_MESSAGE_AT_TYPE']}` = '', `{$this->CNF['FIELD_MESSAGE_AT']}` = ''";
-	
+
+        $sMessage = clear_xss($sMessage);
+
 		$sQuery = $this->prepare("UPDATE `{$this->CNF['TABLE_MESSAGES']}` 
 												SET  `{$this->CNF['FIELD_MESSAGE']}` = ?,
 													 `{$this->CNF['FIELD_MESSAGE_LAST_EDIT']}` = UNIX_TIMESTAMP(),
@@ -1178,6 +1197,67 @@ class BxMessengerDb extends BxBaseModTextDb
                 WHERE `c`.`module` != 'bx_timeline' 
                 GROUP BY `c`.`module`
                 ", 'module');
+    }
+
+    function addJotReaction($iJotId, $iProfileId, $aEmoji){
+        $CNF = &$this->_oConfig->CNF;
+        return $this->query("REPLACE INTO `{$CNF['TABLE_JOR_REACTIONS']}` 
+                                        SET 
+                                            `{$CNF['FIELD_REACT_JOT_ID']}` = :jot_id,
+                                            `{$CNF['FIELD_REACT_NATIVE']}` = :native,
+                                            `{$CNF['FIELD_REACT_EMOJI_ID']}` = :emoji_id,
+                                            `{$CNF['FIELD_REACT_PROFILE_ID']}` = :profile_id,
+                                            `{$CNF['FIELD_REACT_ADDED']}` = UNIX_TIMESTAMP()
+                                        ", array(
+            'jot_id' => $iJotId,
+            'native' => $aEmoji['native'],
+            'emoji_id' => $aEmoji['id'],
+            'profile_id' => $iProfileId
+        ));
+    }
+
+    function deleteReaction($iJotId, $iProfileId, $sEmoji){
+        $CNF = &$this->_oConfig->CNF;
+        return $this->query("DELETE FROM `{$CNF['TABLE_JOR_REACTIONS']}` 
+                                        WHERE 
+                                            `{$CNF['FIELD_REACT_JOT_ID']}` = :jot_id AND 
+                                            `{$CNF['FIELD_REACT_PROFILE_ID']}` = :profile_id AND 
+                                            `{$CNF['FIELD_REACT_EMOJI_ID']}` = :emoji_id
+                                        ", array(
+            'jot_id' => $iJotId,
+            'profile_id' => $iProfileId,
+            'emoji_id' => $sEmoji
+        ));
+    }
+
+    function deleteJotReactions($iJotId){
+        $CNF = &$this->_oConfig->CNF;
+        return $this->query("DELETE FROM `{$CNF['TABLE_JOR_REACTIONS']}` 
+                                        WHERE 
+                                            `{$CNF['FIELD_REACT_JOT_ID']}` = :jot_id
+                                        ", array(
+            'jot_id' => $iJotId
+        ));
+    }
+
+    function updateReaction($iJotId, $iProfileId, $sEmojiId, $sAction = BX_JOT_REACTION_ADD){
+        $CNF = &$this->_oConfig->CNF;
+        if ($sAction === BX_JOT_REACTION_ADD) {
+           $sNative = $this->getOne("SELECT `{$CNF['FIELD_REACT_NATIVE']}` 
+                                                FROM `{$CNF['TABLE_JOR_REACTIONS']}` 
+                                                WHERE `{$CNF['FIELD_REACT_JOT_ID']}` = :jot_id LIMIT 1", array( 'jot_id' => $iJotId ));
+            return $this-> addJotReaction($iJotId, $iProfileId, array('native' => $sNative, 'id' => $sEmojiId));
+        }
+
+        return $this->deleteReaction($iJotId, $iProfileId, $sEmojiId);
+    }
+
+    function getJotReactions($iJotId){
+        $CNF = &$this->_oConfig->CNF;
+        return $this->getAll("SELECT * FROM `{$CNF['TABLE_JOR_REACTIONS']}` 
+                                        WHERE 
+                                            `{$CNF['FIELD_REACT_JOT_ID']}` = :jot_id
+                                        ORDER BY `{$CNF['FIELD_REACT_ADDED']}`", array( 'jot_id' => $iJotId ));
     }
 }
 

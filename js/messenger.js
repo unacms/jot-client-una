@@ -47,7 +47,7 @@
 		this.sConnectingArea = '.bx-messenger-info-area-connecting';
 		this.sConnectionFailedArea = '.bx-messenger-info-area-connect-failed';
 		this.sInfoArea = '#bx-messenger-info-area';
-		this.sSendAreaMenuIcons = '#bx-messenger-send-area-menu';
+		this.sSendAreaMenuPlus = '#bx-messenger-send-area-plus';
 		this.sAddFilesFormComments = '#bx-messenger-files-upload-comment';
 		this.sAddFilesForm = '#bx-messenger-files-uploader';
 		this.sEditJotArea = '.bx-messenger-edit-jot';
@@ -55,7 +55,9 @@
 		this.sAttachmentArea = '.bx-messenger-attachment-area';
 		this.sAttachmentBlock = '.bx-messenger-attachment';
 		this.sAttachmentFiles = '.bx-messenger-attachment-files';
-		this.sEmojiEditorClass = '.emoji-wysiwyg-editor';
+		this.sSendAreaActions = '.bx-messenger-post-box-send-actions';
+		this.sSendAreaActionsButtons = '.bx-messenger-post-box-send-actions-items';
+		this.sReactionsArea = '.bx-messenger-jot-reactions';
 		this.sHiddenJot = '.bx-messenger-hidden-jot';
 		this.sDeletedJot = '.bx-messenger-jots-message-deleted';
 		this.sMediaATArea = ['.bx-messenger-attachment-file-videos', ".bx-messenger-attachment-file-audio"];
@@ -64,11 +66,21 @@
 		this.sSelectedJot = '.bx-messenger-blink-jot';
 		this.sTmpVideoFile = '.bx-messenger-attachment-temp-video';
 		this.sJotMessageViews = '.view';
+		this.sReactionItem = '.bx-messenger-reaction';
+		this.sReactionMenu = '.bx-messenger-reactions-menu';
+		this.sBottomGroupsArea = '.bx-messenger-attachment-group';
 		this.sGiphyItems = '.bx-messenger-giphy-items';
+		this.sGiphySendArea = '#bx-messenger-send-area-giphy';
+		this.sGiphMain = '.giphy';
 		this.sGiphyBlock = '.bx-messenger-giphy';
+		this.sEmojiId = '#emoji-picker';
+		this.sTalkAreaWrapper = '.bx-messenger-table-wrapper';
+		this.sSendAttachmentArea = '.bx-messenger-send-area-attachments';
 
 		//globa class options
 		this.oUsersTemplate	= null;
+		this.sReactionTemplate = oOptions && oOptions.reaction_template;
+		this.oActiveEditQuill = null;
 		this.sJotUrl = (oOptions && oOptions.jot_url) || sUrlRoot + 'm/messenger/archive/';
 		this.sInfoFavIcon = 'modules/boonex/messenger/template/images/icons/favicon-red-32x32.png';
 		this.sJotSpinner = '<img src="modules/boonex/messenger/template/images/icons/jot-loading.gif" />';
@@ -92,17 +104,27 @@
 		this.bActiveConnect = true;
 		this.iPanding = false; // don't update jots while previous update is not finished
 		this.aUsers = [];
+		// quill toolbar settings
+		this.aToolbarSettings = [
+			['bold', 'italic', 'underline', 'strike', 'link'],
+			['blockquote', 'code-block'],
+			[{ 'color': [] }, { 'background': [] }]
+		];
 		this.lastEditText = '';
-		this.soundFile = 'modules/boonex/messenger/data/notify.wav'; //beep file, occurs when message received
+		this.incomingMessage = 'modules/boonex/messenger/data/notify.mp3'; //beep file, occurs when message received
+		this.reaction = 'modules/boonex/messenger/data/reaction.mp3'; //beep file, occurs when message received
 		this.emojiObject = oOptions.emoji || null;
-		this.aExcludeKeys = [9,16,17,18,19,20,27,35,36,37,38,39,40,91,93,224,116];
+		this.aPlatforms = ['MacIntel', 'MacPPC', 'Mac68K', 'Macintosh', 'iPhone', 'iPod', 'iPad', 'iPhone Simulator', 'iPod Simulator', 'iPad Simulator', 'Pike v7.6 release 92', 'Pike v7.8 release 517'];
 		this.oStorage = null;
 		this.oHistory = window.history || {};
+		this.oFilesUploader = null;
+		this.oActiveEmojiObject = Object.create(null);
+
 		const _this = this;
 		
 		$(this).on('message', () => this.beep());
 
-		// Lot's(Chat's) settings 
+		// Lot's(Chat's) settings
 		this.oSettings = {
 							'type'	: 1,
 							'url'	: '',
@@ -117,6 +139,9 @@
 		// main messenger window builder
 		this.oJotWindowBuilder = null;
 
+		// text editor
+		this.quill = null;
+
 		$(window).on('popstate', function(){
 			const iLot = _this.oHistory.state && _this.oHistory.state.lot;
 
@@ -124,7 +149,19 @@
 				_this.loadTalk(iLot);
 		});
 	}
-
+	oMessenger.prototype.playSound = function(sFile){
+		if (!_oMessenger[sFile])
+		{
+			console.log('Sound is not supported in your browser');
+			return;
+		}
+		try{
+			createjs.Sound.play(sFile);
+		}
+		catch(e){
+			console.log('Sound is not supported in your browser');
+		}
+	};
 	/**
 	* Init current chat/talk/lot settings
 	*/
@@ -136,80 +173,113 @@
 			this.oSettings.type = oOptions.type || this.oSettings.type;
 			this.oSettings.lot = oOptions.lot || 0;
 			this.oSettings.name = oOptions.name || '';
-	
-			// init Emoj
-			if (this.emojiObject)
-			{
-				this.emojiObject.set_focus = !this.isBlockVersion();
-                this.emojiObject.popup_position = {'bottom' : '3rem'};
-				this.emojiPicker = new EmojiPicker(this.emojiObject).discover();
-			}	
-	
+
+		if (oMessageBox.length && Quill) {
+			const QuillClipboard = Quill.import('modules/clipboard');
+			class Clipboard extends QuillClipboard {
+				onPaste (event) {
+					super.onPaste(event);
+					if (event.clipboardData.getData('text/plain').length > 0)
+						$(_this.sSendButton).fadeIn();
+				}
+			}
+
+			Quill.register('modules/clipboard', Clipboard, true);
+
+			this.quill = new Quill(this.sMessengerBox, {
+					placeholder: oOptions.placeholder,
+					theme: 'bubble',
+					bounds: this.sMessengerBox,
+					modules: {
+						toolbar: _this.isMobile() ? false : _this.aToolbarSettings,
+						clipboard: {
+							matchers: [
+								['IMG', () => {
+									return { ops: [] }
+								}]
+							]
+						},
+						keyboard: {
+							bindings: {
+								enter: {
+									key: 13,
+									shiftKey: false,
+									handler: () => {
+										$(_this.sSendButton).click();
+									}
+								},
+								up: {
+									key: 38,
+									shiftKey: false,
+									handler: () => {
+										if ($(_this.sTalkListJotSelector).length && _this.quill.getLength() <= 1){
+											const aJots = $(`${_this.sTalkListJotSelector}[data-my=1]`).get().reverse();
+
+											for(let i=0; i < aJots.length; i++) {
+												const oJot = $(`${_this.sJotMenu} i.backspace`, aJots[i]);
+												if (oJot.length) {
+													_this.editJot(oJot);
+													break;
+												}
+											}
+											return false;
+										}
+										return true;
+									}
+								}
+							}
+						}
+					}
+				});
+
+			_this.quill.on('text-change', function(delta, oldDelta, source) {
+					const { ops } = _this.quill.getContents(),
+						fMaxHeight = parseInt($(_this.sMessengerBox).css('max-height'));
+
+					if (source === 'user') {
+						if (_this.quill.getLength() > 1)
+							_this.oStorage.saveLot(_this.oSettings.lot, JSON.stringify(ops));
+						else
+							_this.oStorage.deleteLot(_this.oSettings.lot);
+
+					};
+
+					_this.oRTWSF.typing({
+						lot: _this.oSettings.lot,
+						name: _this.oSettings.name,
+						user_id: _this.oSettings.user_id
+					});
+
+					if (_this.quill.root.clientHeight >= fMaxHeight)
+						$(_this.sMessengerBox).css('overflow-y', 'auto');
+					else
+						$(_this.sMessengerBox).css('overflow-y', 'visible');
+
+					_this.updateSendButton();
+				});
+			}
+
 			if (!_this.oRTWSF.isInitialized())
 			{
 				this.blockSendMessages(true);
 				return;
 			}
 
-			// send message area init
-			$(this.sSendArea).on('keydown', function(oEvent)
-			{
-				const iKeyCode = oEvent.keyCode || oEvent.which,
-					  sMessage = oMessageBox.val();
-
-
-				if (iKeyCode === 38 && $(_this.sTalkListJotSelector).length && !sMessage.length){
-					const aJots = $(_this.sTalkListJotSelector).get().reverse();
-
-						for(let i=0; i < aJots.length; i++) {
-                          const oJot = $(`${_this.sJotMenu} i.backspace`, aJots[i]);
-						    if (oJot.length) {
-                                _this.editJot(oJot);
-                                break;
-                            }
-                        }
-
-					return false;
-				}
-
-				if (iKeyCode === 13)
-				{
-					if (oEvent.shiftKey !== true)
-					{
-						$(_this.sSendButton).click();
-						oEvent.preventDefault();
-					}
-				}
-
-				if (_this.oRTWSF !== undefined && !~$.inArray(iKeyCode, _this.aExcludeKeys)) /* exclude unnecessary key-down key codes  (Shift, Break and etc...) */
-				{
-					_this.oRTWSF.typing({
-						lot: _this.oSettings.lot,
-						name: _this.oSettings.name,
-						user_id: _this.oSettings.user_id
-					});
-				}
-			}).on('keyup', (oEvent) => {
-				const iKeyCode = oEvent.keyCode || oEvent.which;
-				if (!~$.inArray(iKeyCode, _this.aExcludeKeys)) {
-					const sMessage = oMessageBox.val();
-
-					if (sMessage.length)
-						_this.oStorage.saveLot(_this.oSettings.lot, sMessage);
-					else
-						_this.oStorage.deleteLot(_this.oSettings.lot);
-				}
-			});
-			
 			$(this.sSendButton).on('click', function(){
-				_this.sendMessage(oMessageBox.val());
-				oMessageBox.val('');
-				_this.oStorage.deleteLot(_this.oSettings.lot);
+				const { innerHTML } = _this.quill.root;
+
+				if (_this.sendMessage(_this.quill.getLength() === 1 ? '' : innerHTML)){
+					_this.quill.setContents([]);
+					_this.quill.focus();
+					_this.oFilesUploader.clean();
+					_this.oStorage.deleteLot(_this.oSettings.lot);
+					$(_this.sSendButton).hide();
+				}
 			});
-						
+
 			// start to load history depends on scrolling position
 			$(_this.sTalkBlock).scroll(function(){
-				var isScrollAvail = $(this).prop('scrollHeight') > $(this).prop('clientHeight'),
+				const isScrollAvail = $(this).prop('scrollHeight') > $(this).prop('clientHeight'),
 					isPrev = $(this).scrollTop() <= _this.iMinHeightToStartLoading,
 					isNew = ($(this).prop('scrollHeight') - $(this).scrollTop() - _this.iMinHeightToStartLoading == $(this).prop('clientHeight')) && $(_this.sScrollArea).is(':visible');
 
@@ -223,6 +293,7 @@
 				}
 				else
 					clearTimeout(_this.iLoadTimout);
+
 			});
 
 			/* runs periodic to find not processed videos in chat history and replace them with processed videos */
@@ -235,51 +306,107 @@
 			
 			this.updateSendAreaButtons();
 			this.initJotIcons(this.sTalkList);
+
+			$('span.info-menu > i').popup({
+				on: 'click',
+				hoverable: true,
+				boundary: $('.bx-messenger-block.jots')
+			});
+
 			this.updateScrollPosition('bottom');
 			
 			//remove all edit jot areas on their lost focus
 			$(document).on('mouseup', function(oEvent){
 				_this.removeEditArea(oEvent);
-			});
-			
-			// hide buttons on outside click
-			$(_this.sTalkBlock + ',' + _this.sSendArea).on('click', function(oEvent)
-			{
-				if (_this.isMobile())
-					_this.triggerSendAreaButtons(true);	
-				
-				_this.removeEditArea(oEvent);
-			});
-			
-			// show buttons on "+" icon click
-			$(_this.sSendAreaMenuIcons).on('click', () => _this.triggerSendAreaButtons(false));
-
-			_this.triggerSendAreaButtons(_this.isMobile());
+			})
+			.on('click', (oEvent) => _this.onOuterClick(oEvent));
 
 			_this.checkNotFinishedTalks();
+
+		$(_this.sSendAreaActionsButtons)
+			.find('a.smiles')
+			.on('click', function(){
+				const oEmoji = $(_this.sEmojiId),
+					bHidden = !$(_this.sEmojiId).height() || !oEmoji.is(":visible"),
+					iHeight = oEmoji.css('height', 'min-content').height(),
+					iParentHeight = oEmoji.closest(_this.sTalkAreaWrapper).height();
+
+				if (bHidden)
+					oEmoji.css({ display: 'block', top: iParentHeight - iHeight - $(_this.sMessangerParentBox).height(), left: '0.5rem', right:""});
+				else
+					oEmoji.fadeOut();
+
+				_this.oActiveEmojiObject = {'type': 'textarea'};
+			});
+
+		// enable video recorder if it is not IOS/Mac devices
+		if(!this.aPlatforms.includes(navigator.platform))
+			$(_this.sSendAreaActionsButtons)
+				.find('li.video').show();
+
+		// init system sounds
+		createjs.Sound.registerSound(this.incomingMessage, 'incomingMessage');
+		createjs.Sound.registerSound(this.reaction, 'reaction');
+	};
+
+	oMessenger.prototype.updateSendArea = function(bFilesEmpty){
+		if (bFilesEmpty)
+			$(this.sBottomGroupsArea).hide();
+		else
+			$(this.sBottomGroupsArea).show();
+
+		if (this.quill.getLength() <= 1 && bFilesEmpty)
+			$(this.sSendButton).fadeOut();
+		else
+			$(this.sSendButton).fadeIn();
+	};
+
+	oMessenger.prototype.updateSendButton = function(){
+		const { length } = this.getSendAreaAttachmentsIds(false);
+		const iFiles = this.oFilesUploader && this.oFilesUploader.getFiles().length;
+
+		if (this.quill.getLength() <= 1 && !length && !iFiles)
+			$(this.sSendButton).fadeOut();
+		else
+			$(this.sSendButton).fadeIn();
+	};
+
+	oMessenger.prototype.onOuterClick = function(oEvent){
+		if (!($(oEvent.target).is('[class*=smile]') || $(oEvent.target).closest(this.sEmojiId).length || $(oEvent.target).siblings('[class*=smile]').length))
+			$(`${this.sEmojiId}`).hide();
+
+		if ($(oEvent.target).closest(this.sMessengerBox).length)
+			return;
+
+		if (!$(oEvent.target).closest(this.sGiphySendArea).length && !$(oEvent.target).closest(this.sGiphMain).length)
+			$(this.sGiphMain).fadeOut();
 	};
 
 	oMessenger.prototype.checkNotFinishedTalks = function(){
-		const oLots = this.oStorage.getLots(),
-			  oLotsKeys = (oLots && Object.keys(oLots)) || [];
+		const 	_this = this,
+				oLots = this.oStorage.getLots(),
+			  	oLotsKeys = (oLots && Object.keys(oLots)) || [];
 
 		$(`${this.sLotSelector} .info`).each(function(){
 			$(this).html('');
 		});
 
 		if (oLotsKeys.length)
-			oLotsKeys.map((iLot) =>  $(`${this.sLotSelector}[data-lot="${iLot}"] .info`).html( oLots[iLot].length ? '<i class="sys-icon pen"></i>' : ''));
+			oLotsKeys.map((iLot) => $(`${this.sLotSelector}[data-lot="${iLot}"] .info`).html( oLots[iLot].length ? '<i class="sys-icon pen"></i>' : ''));
 
 		/* If member didn't finish the message add it to post message area --- Begin */
 		let sStorageMessage = this.oStorage.getLot(this.oSettings.lot);
 
 		if (typeof sStorageMessage === 'string' && sStorageMessage.length){
-			let oObject = $('<div />').text(sStorageMessage);
-			$(this.sMessengerBox)
-				.html(oObject.text().replace(/\n/ig, '<br>'))
-				.change()
-				.focus();
+			let mixedValue = JSON.parse(sStorageMessage);
+			if (Array.isArray(mixedValue)) {
+				_this.quill.setContents(mixedValue);
+				$(_this.sSendButton).fadeIn();
+			}
+			else
+				_this.quill.setText(mixedValue);
 		}
+
 	};
 	
 	/**
@@ -287,61 +414,17 @@
 	*/
 		
 	oMessenger.prototype.updateSendAreaButtons = function(){
-		var _this = this,			
-			oSmile = $(_this.sSendAreaMenuIcons)
-						.parents('ul')
-						.find('a.smiles')
-						.parent(),
-			bSmile = oSmile.data('hide');
-
-		if (typeof bSmile !== 'undefined' && ((_this.isMobile() && !!bSmile) || (!_this.isMobile() && !bSmile)))
-			return;
-		
-		oSmile.data('hide', _this.isMobile());	
-	}
-
-	/**
-	 * Show/hide send message area buttons
-	 *  
-	 *  @param boolean bHide if true - hide buttons
-	*/	
-	oMessenger.prototype.triggerSendAreaButtons = function(bHide)
-	{
 		const _this = this,
-			oParent = $(_this.sSendAreaMenuIcons).parent(),
-			isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent),
-			oSiblings = oParent
-							.prevAll(isSafari ? 'li:not(.video)' : '')
-							.filter(function()
-									{
-										return !$(this).data('hide');
-									});
-		if (!oSiblings.length)
-			return;
-					
-		if (bHide)
-		{
-			oSiblings.hide();
-			oParent.fadeIn();
-		}
-			
-		oParent
-			.closest('ul')
-			.parent()
-			.animate(
-					{
-						'width': !bHide ? oSiblings.length * _this.iActionsButtonWidth + 'rem' : _this.iActionsButtonWidth + 'rem'
-					}, 500, 
-					function()
-					{
-						if (!bHide)
-						{
-							oParent.hide();
-							oSiblings.show();
-						}
-					});	
+			oSmile = $(_this.sSendAreaActionsButtons)
+						.find('a.smiles')
+						.parent();
+
+		if (_this.isMobile())
+			oSmile.hide();
+		else
+			oSmile.show(100);
 	};
-	
+
 	oMessenger.prototype.blockSendMessages = function(bBlock){
 		if (bBlock !== undefined)
 			this.bActiveConnect = !bBlock;
@@ -362,46 +445,36 @@
 	}
 	
 	oMessenger.prototype.removeEditArea = function(oEvent){
-		const _this = this;
-		$(this.sEmojiEditorClass, this.sEditJotArea).each(function()
+		const _this = this,
+			  bEditArea = $(oEvent.target).parents(_this.sEditJotArea).length;
+
+		$(this.sEditJotArea).each(function()
 		{
-			if (!oEvent || !($(oEvent.target).parents(_this.sEditJotArea).length || $(oEvent.target).prop('tagName') === 'i'))
-				$(this).trigger('close');
+			if (!bEditArea)
+				_this.cancelEdit($(this));
 		});
-	}
+	};
 	
 	oMessenger.prototype.initJotIcons = function(oParent){
-		const _this = this,
-			   fFire = function() {
-				   $(this)
-					   .siblings(_this.sJotMenu)
-					   .mouseleave(function() {
-					   		$(this).hide(0, () => $(this).unbind())
-					   	})
-					   .fadeIn();
-			   };
-		
-		if (!_this.isMobile())
-			$(_this.sJotIcons, oParent).mouseenter(fFire);
-		else
-		{
-			$(_this.sJotIcons, oParent).on('click', function(){
-				$(_this.sJotMenu).hide();
-				fFire.call(this);
-				return false;
-			});			
-		}
-		
-	
-		$(_this.sTalkBlock).on('scroll click', function(e){
-			$(_this.sJotMenu).hide();
-		});
-			
-		$(`${_this.sJotMenu} a`, oParent).click(function(){
-			$(this).parent().hide();
-			return false;
-		});
-	}
+		const _this = this;
+
+		$(_this.sJotIcons, oParent)
+			.each(function(){
+				$(this).popup({
+					popup: $(_this.sJotMenu),
+					on: !_this.isMobile() ? 'hover' : 'click',
+					boundary: _this.sTalkBlock,
+					hoverable: true
+				});
+
+				if (_this.isMobile())
+					$(this)
+						.siblings(_this.sJotMenu)
+						.find('li')
+						.on('click', () => $(this).popup('hide'));
+
+			});
+	};
 		
 	/**
 	* Update status of the member
@@ -521,7 +594,7 @@
 			oParams = oOptions || {};
 		
 		bx_loading($(_this.sMainTalkBlock), true);
-		$.post('modules/?r=messenger/create_lot', {profile:oParams.user || 0, lot:oParams.lot || 0}, function(oData){			
+		$.post('modules/?r=messenger/create_lot', { profile:oParams.user || 0, lot:oParams.lot || 0 }, function(oData){
 			bx_loading($(_this.sMainTalkBlock), false);
 				if (parseInt(oData.code) === 1)
 					window.location.reload();
@@ -555,7 +628,7 @@
 		$.post('modules/?r=messenger/save_lots_parts', 
 		{
 			lot:_iLotId, 
-			participants:_this.getPatricipantsList()
+			participants:_this.getParticipantsList()
 		},
 		function(oData)
 		{
@@ -656,7 +729,7 @@
 		}
 		
 		bx_loading($(_this.sDeletedJot, oObject), true);
-		$.post('modules/?r=messenger/view_jot', {jot:iJotId}, function(oData)
+		$.post('modules/?r=messenger/view_jot', { jot: iJotId }, function(oData)
 		{
 			if (!parseInt(oData.code) && oData.html.length)
 				$(oObject)
@@ -667,13 +740,47 @@
 			
 			bx_loading($(_this.sDeletedJot, oObject), false);
 		}, 'json');
-	}
+	};
+
+	oMessenger.prototype.calculatePositionTop = function(oJot, oObject, bLocal) {
+		const iHeight = oObject.height(),
+			bIsFileMenu = $(oObject).hasClass('file-menu'),
+			iParentHeight = oJot.closest(this.sTalkAreaWrapper).height(),
+			iScrollTop = oJot.closest(this.sTalkBlock).scrollTop(),
+			iTop = oJot.position().top - iScrollTop;
+
+			if (bIsFileMenu)
+				return -iHeight/2;
+
+		let iTopPos = 0;
+		if ((iParentHeight > iHeight) && ((iParentHeight - iTop) < iHeight/2))
+			iTopPos = iTop - iHeight;
+		else if (iTop > iHeight/2)
+			iTopPos = iTop - iHeight/2;
+
+		return iTopPos - ( bLocal ? iTop : 0 ); // use this local in case if it is some internal popup not the global like reaction popup
+	};
+
+	oMessenger.prototype.onAddReaction = function(oObject, bNear){
+		const _this = this,
+			oJot = $(oObject).closest(this.sJot),
+			iJotId = oJot.data('id') || 0,
+			oEmoji = $(_this.sEmojiId);
+
+			oEmoji.css({
+				top: _this.calculatePositionTop(oJot, $(_this.sEmojiId).css({height: 'min-content'})),
+				display: 'block',
+				left: bNear && !_this.isMobile() ? $(oObject).position().left : '',
+			}).show(100);
+
+		_this.oActiveEmojiObject = {'type': 'reaction', 'param': iJotId};
+	};
 
 	oMessenger.prototype.deleteLot = function(iLotId){
 		const _this = this;
 		if (iLotId)
 				$.post('modules/?r=messenger/delete', {lot:iLotId}, function(oData){
-					if (parseInt(oData.code) == 1) 
+					if (parseInt(oData.conRemoveReactionode) === 1)
 							window.location.reload();
 		
 						if (!parseInt(oData.code))
@@ -684,7 +791,7 @@
 									if ($(_this.sLotsListSelector).length > 0)
 									{
 										$(_this.sLotsListSelector).first().click();
-										if (_this.oJotWindowBuilder != undefined) 
+										if (_this.oJotWindowBuilder !== undefined)
 											_this.oJotWindowBuilder.changeColumn('right');
 									}
 									else
@@ -766,22 +873,26 @@
 			$(oObject)
 				.closest(this.sJot)
 				.find(this.sJotMessage)
-				.text(this.lastEditText)
+				.html(this.lastEditText)
 				.parent()
-				.linkify(true, true); // don't update attachment for message and don't broadcast as new message 
+				.linkify(true, true); // don't update attachment for message and don't broadcast as new message*/
+
+			if (this.oActiveEditQuill) {
+				this.oActiveEditQuill.disable();
+				this.oActiveEditQuill = null;
+			}
 		}
 
-
-		$(this.sMessengerBox).focus();
+		this.quill.focus();
 	};
 		
 	oMessenger.prototype.saveJot = function(oObject){
 		const _this = this,
 			oJot = $(oObject).parents(this.sJot),
 			iJotId = oJot.data('id') || 0,
-			sMessage = $.trim($(_this.sEditJotAreaId).val());
+			sMessage = _this.oActiveEditQuill && _this.oActiveEditQuill.root.innerHTML;
 
-		if (!sMessage.length)
+		if (!_this.oActiveEditQuill.getText().trim().length)
 			return false;
 
 		if (sMessage.localeCompare(_this.lastEditText) === 0)
@@ -792,12 +903,12 @@
 		
 		if (iJotId)
 		{
-			$.post('modules/?r=messenger/edit_jot', {jot:iJotId, message:sMessage}, function(oData)
+			$.post('modules/?r=messenger/edit_jot', { jot: iJotId, message: sMessage  }, function(oData)
 			{
 				if (!parseInt(oData.code))
 				{
 					$(_this.sJotMessage, oJot)
-						.text(sMessage)
+						.html(sMessage)
 						.parent()
 						.linkify(false, true) // update attachment for the message, but don't broadcast as new message 
 						.end()
@@ -819,11 +930,11 @@
 		}
 			
 		return false;
-	}
+	};
 	
 	
 	oMessenger.prototype.editJot = function(oObject){
-		var oJot = $(oObject).parents(this.sJot),
+		const oJot = $(oObject).closest(this.sJot),
 			iJotId = oJot.data('id') || 0,
 			_this = this;
 		
@@ -838,81 +949,98 @@
 				bx_loading($(_this.sJotMessage, oJot).parent(), false);	
 				if (!parseInt(oData.code))
 				{						
-					const sTmpText = $.trim($(_this.sJotMessage, oJot).text()),
-						  sOriginalText = sTmpText.length ? sTmpText : $.trim($(_this.sEditJotAreaId, oData.html).text());
-						  _this.lastEditText = sOriginalText;
-						
+					const sTmpText = $(_this.sJotMessage, oJot).html();
+					_this.lastEditText = sTmpText.length ? sTmpText : $(_this.sEditJotAreaId, oData.html).html();
+					const updateScrollFunction = () => {
+						const fMaxHeight = parseInt($(_this.sEditJotAreaId).css('max-height'));
+						if (_this.oActiveEditQuill.root.clientHeight >= fMaxHeight)
+							$(_this.sEditJotAreaId).css('overflow-y', 'auto');
+						else
+							$(_this.sEditJotAreaId).css('overflow-y', 'visible');
+					};
+
 					$(_this.sJotMessage, oJot)
 						.html(oData.html)
 						.find(_this.sEditJotArea)
 						.fadeIn('slow', function()
 						{
-								if (_this.emojiObject)
-								{
-									const oEmoji = Object.create(_this.emojiObject),
-										isEqual	= (sText) => $.trim(sText).localeCompare(sOriginalText) === 0;
-
-										oEmoji.emojiable_selector = _this.sEditJotAreaId;
-										oEmoji.menu_wrapper = undefined;
-
-										let position = oJot.is(':last-child') ? 'bottom' : 'top';
-										oEmoji.popup_position = {'right':0, [position] : 0};
-										oEmoji.set_focus = true;
-										oEmoji.custom_events = 
-										{
-											'close': function()
-											{
-												if (isEqual($(this).text()))
-													_this.cancelEdit(this);
-											},
-											'keydown': function(oEvent)
-											{
-												const iKeyCode = oEvent.keyCode || oEvent.which,
-													sText = $(oEmoji.emojiable_selector).val().length ? $(oEmoji.emojiable_selector).val() : sOriginalText;
-
-												if (iKeyCode === 13)
-												{
-													if (oEvent.shiftKey !== true)
-													{
-														if (!isEqual(sText) && !_this.saveJot(this))
-															_this.cancelEdit(this);
-														
-														oEvent.preventDefault();
-													}
+							const __this = this;
+							const Keyboard = Quill.import('modules/keyboard');
+							_this.oActiveEditQuill = new Quill(_this.sEditJotAreaId, {
+								theme: 'bubble',
+								bounds: _this.sEditJotAreaId,
+								modules:{
+								toolbar: _this.aToolbarSettings,
+									keyboard: {
+										bindings : {
+											enter: {
+												key: 13,
+												shiftKey: false,
+												handler: () => {
+													_this.saveJot($(_this.sEditJotAreaId));
 												}
-
-												if (iKeyCode === 27 && isEqual(sText))
-													_this.cancelEdit(this);
-
 											}
-										};
-									
-										oEmoji.add = true;
-										new EmojiPicker(oEmoji).discover();
+										}
+									}
 								}
-								
-								if (oJot.is(':last-child'))
-									_this.updateScrollPosition('bottom');
+							});
+
+							_this.oActiveEditQuill.on('text-change', function(delta, oldDelta, source) {
+								updateScrollFunction();
+							});
+
+							updateScrollFunction();
+							_this.oActiveEditQuill.keyboard.addBinding({
+								key: Keyboard.keys.ESCAPE
+							}, () => _this.cancelEdit(__this));
+
+							_this.oActiveEditQuill.focus();
+
+							if (oJot.is(':last-child'))
+								_this.updateScrollPosition('bottom');
 						});
 				}
 			}, 'json');
 		}
-	}
+	};
 	
 	oMessenger.prototype.copyJotLink = function(oObject){
-		var _this = this,
-			iJotId = $(oObject)
-						.parents(_this.sJot)
-						.data('id') || 0,
-			$oInput = $('<input>');
-			
-			if (iJotId)
-			{
-				$('body').append($oInput);
-				$oInput.val(_this.sJotUrl + iJotId).select();
-				document.execCommand("copy");
-				$oInput.remove();
+		const _this = this,
+			  iJotId = $(oObject)
+				.parents(_this.sJot)
+				.data('id') || 0,
+				oTextArea = document.createElement('textArea');
+
+		oTextArea.readOnly = false;
+		oTextArea.contentEditable = true;
+		oTextArea.value = _this.sJotUrl + iJotId;
+		document.body.appendChild(oTextArea);
+
+		try {
+			if (document.body.createTextRange) {// IE
+				const oTextRange = document.body.createTextRange();
+				oTextRange.moveToElementText(oTextArea);
+				oTextRange.select();
+				oTextRange.execCommand("Copy");
+			} else if (window.getSelection && document.createRange) {// non-IE
+				const oRange = document.createRange();
+				oRange.selectNodeContents(oTextArea);
+				const oSel = window.getSelection();
+				oSel.removeAllRanges();
+				oSel.addRange(oRange); // Does not work for Firefox if a textarea or input
+				oTextArea.select(); // Firefox will only select a form element with select()
+
+				if (oTextArea.setSelectionRange && navigator.userAgent.match(/ipad|ipod|iphone/i))
+					oTextArea.setSelectionRange(0, 999999); // iOS only selects "form" elements with SelectionRange
+
+				if (document.queryCommandSupported("copy"))
+					document.execCommand('copy');
 			}
+		}catch (e) {
+			console.log(e.toString());
+		}
+
+		document.body.removeChild(oTextArea);
 	};
 
 	$.fn.setRandomBGColor = function() {
@@ -934,11 +1062,12 @@
 	*@param bool bDontAddAttachment don't add repost link to the jot 
 	*/
 	$.fn.linkify = function(bDontAddAttachment, bDontBroadcast){
-		let sUrlPattern = /\b(?:https?):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim,
+
+		let sUrlPattern = /((https?):\/\/[^"<\s]+)(?![^<>]*>|[^"]*?<\/a)/gim,
 		// www, http, https
-			sPUrlPattern = /(^|[^\/])(www\.[\S]+(\b|$))/gim,
+			sPUrlPattern = /(^|[^\/"'])(www\.[\S]+(\b|$))/gim,
 		// Email addresses
-			sEmailPattern = /[\w.]+@[a-zA-Z_-]+?(?:\.[a-zA-Z]{2,6})+/gim,
+			sEmailPattern = /([\w.]+@[a-zA-Z_-]+?(?:\.[a-zA-Z]{2,6}))(?![^<>]*>|[^"]*?<\/a)/gim,
 			sJotLinkPattern = new RegExp(_oMessenger.sJotUrl.replace('?', '\\?') + '\\d+', 'i');
 
 		const oJot = $(_oMessenger.sJotMessage, this).first();
@@ -947,18 +1076,24 @@
 
 		let sUrl = '',
 			sText = $(oJot)
-						.html()
-						.replace(sUrlPattern, function(str)
-						{
-							sUrl = str;
-							return !sJotLinkPattern.test(str) ? _oMessenger.sEmbedTemplate.replace(/__url__/g, str) : `<a href="${str}">${str}</a>`;
-						})
-						.replace(sPUrlPattern, function(str, p1, p2)
-						{
-							sUrl = 'http://' + p2;
-							return p1 + (!sJotLinkPattern.test(str) ? _oMessenger.sEmbedTemplate.replace(/__url__/g, p2) : `<a href="${p2}">${p2}</a>`);
-						})
-						.replace(sEmailPattern, '<a href="mailto:$&">$&</a>');
+				.html()
+				.replace(sUrlPattern, function(str, p1)
+				{
+					sUrl = p1;
+					return !sJotLinkPattern.test(str) ? _oMessenger.sEmbedTemplate.replace(/__url__/g, str) : `<a href="${str}">${str}</a>`;
+				})
+				.replace(sPUrlPattern, function(str, p1, p2)
+				{
+					sUrl = 'http://' + p2;
+					return p1 + (!sJotLinkPattern.test(str) ? _oMessenger.sEmbedTemplate.replace(/__url__/g, p2) : `<a href="${p2}">${p2}</a>`);
+				})
+				.replace(sEmailPattern, str => `<a href="mailto:${str}">${str}</a>`);
+
+		if (!sUrl){
+			const aMatch = sText.match(/<a.*href="(https?:\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|])".*a>/);
+			if (Array.isArray(aMatch) && aMatch.length >= 2)
+				sUrl = aMatch[1];
+		}
 
 		$(oJot).html(sText);
 		if ($(oJot).siblings(_oMessenger.sAttachmentArea).length)
@@ -999,8 +1134,7 @@
 	*@return object this
 	*/
 	$.fn.attacheLinkContent = function(sUrl, bDontAddAttachment, fCallback){
-		var _this = this;
-
+		const _this = this;
 		$.post('modules/?r=messenger/parse_link',
 			{
 				link:sUrl,
@@ -1013,11 +1147,10 @@
 			{
 				if (!parseInt(oData.code))
 					$(_this)
-						.parent()
-						.find(_oMessenger.sAttachmentBlock)
+						.siblings(_oMessenger.sAttachmentBlock)
 						.remove() /* remove attachment if exists */
 						.end()
-						.append(oData.html);
+						.after(oData.html);
 				
 				if (typeof fCallback == 'function')
 					fCallback();
@@ -1075,8 +1208,8 @@
 		{
 			if (!parseInt(oData['code']))
 			{
-				$(_this.sJotMessage, '[data-id="' + iJotId + '"]')
-					.after(
+				$(_this.sReactionsArea, '[data-id="' + iJotId + '"]')
+					.before(
 							$(oData['html'])
 								.waitForImages(
 									function()
@@ -1087,6 +1220,7 @@
 
 				_this.initJotIcons('[data-id="' + iJotId + '"]');
 				_this.broadcastMessage();
+				_this.updateScrollPosition('bottom');
 			}
 			
 			_this.iAttachmentUpdate = false;
@@ -1124,7 +1258,7 @@
 
 		let iUnreadLotsCount = oNewLots.length;
 
-		if (iUnreadLotsCount === 1 && iLot !== undefined && iLot === iCurrentLot && (!this.isMobile() || (this.isMobile() && this.oJotWindowBuilder.isHistoryColActive())))
+		if (iUnreadLotsCount === 1 && iLot === iCurrentLot && (!this.isMobile() || (this.isMobile() && this.oJotWindowBuilder.isHistoryColActive())))
 			iUnreadLotsCount = 0;
 
 		this.notifyNewUnreadChats(iUnreadLotsCount);
@@ -1166,7 +1300,7 @@
     };
 
     oMessenger.prototype.broadcastView = function(iJotId){
-        return this.broadcastMessage({
+    	return this.broadcastMessage({
             'jot_id': iJotId ? iJotId : $(this.sTalkListJotSelector).last().data('id'),
             'addon': 'check_viewed'
         });
@@ -1238,7 +1372,7 @@
 										});																
 									else
 										_this.updateScrollPosition('bottom');
-							});
+						})
 						
 					if (typeof oData.title !== 'undefined')
 						$(document).prop('title', oData.title);
@@ -1291,24 +1425,22 @@
 	 */
 	oMessenger.prototype.sendMessage = function(sMessage, mixedObjects, fCallBack){
 		const _this = this,
-			oParams = this.oSettings,
+			oParams = Object.assign({}, this.oSettings, _this.getSendAreaAttachmentsIds()),
 			msgTime = new Date();
-		
-		if (typeof mixedObjects === 'object')
+
+		if (_this.oFilesUploader)
 		{
-			if (Array.isArray(mixedObjects) && mixedObjects.length)
-				oParams.files = mixedObjects;
+			if (!_this.oFilesUploader.isReady()) {
+				bx_alert(_t('_bx_messenger_wait_for_uploading'));
+				return false;
+			}
 			else
-				oParams.ids = mixedObjects;
-		}
-		else {
-			oParams.files = undefined;
-			oParams.ids = undefined;
+				oParams.files = _this.oFilesUploader.getFiles();
 		}
 
-		oParams.participants = _this.getPatricipantsList();
+		oParams.participants = _this.getParticipantsList();
 		oParams.message = $.trim(sMessage);
-		if (!oParams.message.length && typeof oParams.files === 'undefined' && typeof oParams.ids === 'undefined')
+		if (!oParams.message.length && !oParams.files.length && typeof oParams.giphy === 'undefined')
 			return;
 
 		oParams.tmp_id = msgTime.getTime();
@@ -1320,7 +1452,7 @@
 		if (oParams.message.length > this.iMaxLength) 
 			oParams.message = oParams.message.substr(0, this.iMaxLength);
 
-		if (oParams.message || typeof oParams.files !== 'undefined' || typeof oParams.ids !== 'undefined')
+		if (oParams.message || oParams.files.length || (typeof oParams.giphy !== 'undefined' && oParams.giphy.length))
 		{
 			// append content of the message to the history page
 			$(_this.sTalkList)
@@ -1332,14 +1464,13 @@
 									.html(_this.sJotSpinner)
 								.end()
 									.find(_this.sJotMessage)
-									.text(oParams.message)
+									.html(oParams.message)
 									.fadeIn('slow')
 								.end()
 						);
 								
 			
 			_this.initJotIcons('[data-tmp="' + oParams.tmp_id + '"]');
-			$(_this.sSendArea).html('');
 		}
 
 		if ($(_this.sScrollArea).length)
@@ -1369,12 +1500,11 @@
 									.bxTime(undefined, true)
 									.linkify();
 									
-							if (typeof oParams.files !== 'undefined' || typeof oParams.ids !== 'undefined')
+							if (oParams.files.length || typeof oParams.giphy !== 'undefined')
 								_this.attacheFiles(iJotId);
 							
 							if (!_this.isBlockVersion())
 								_this.upLotsPosition(_this.oSettings);
-                                _this.broadcastView(iJotId);
 						}
 
 						if (!_this.iAttachmentUpdate)
@@ -1394,14 +1524,13 @@
 		
 		return true;
 	};
-	
+
 	oMessenger.prototype.broadcastMessage = function(oInfo){
 		const oMessage = Object.assign(oInfo || {}, {
 											lot: this.oSettings.lot, 
 											name: this.oSettings.name,
 											user_id: this.oSettings.user_id
 										});
-
 		if (this.oRTWSF !== undefined)
 				this.oRTWSF.message(oMessage);
 	};
@@ -1409,7 +1538,7 @@
 	/**
 	* Get all participants from users selector area
 	*/
-	oMessenger.prototype.getPatricipantsList = function(){ 
+	oMessenger.prototype.getParticipantsList = function(){
 		var list = [];
 		
 		if ($(this.sUserSelector).length){
@@ -1555,7 +1684,7 @@
 		this.blockSendMessages(false);
 		this.updateJots({
 			action: 'msg'
-		})
+		});
 	};
 	
 	oMessenger.prototype.onReconnectFailed = function(oData) {	
@@ -1571,7 +1700,7 @@
 	*@return boolean
 	*/
 	oMessenger.prototype.isActiveLot = function(iId){
-		return parseInt(this.oSettings.lot) == iId;	
+		return +this.oSettings.lot === +iId;
 	}
 
 	/**
@@ -1581,7 +1710,7 @@
 	*/	
 	oMessenger.prototype.findLotByParticipantsList = function(fCallback){
 		var _this = this;
-		$.post('modules/?r=messenger/find_lot', {participants:this.getPatricipantsList()}, 
+		$.post('modules/?r=messenger/find_lot', {participants:this.getParticipantsList()},
 			function(oData){
 				if (oData.lotId) {
 					_this.oJotWindowBuilder.resizeWindow();
@@ -1626,21 +1755,37 @@
 	* Sound when message received
 	*/
 	oMessenger.prototype.beep = function(){
-		let playSound = null;
+		if (!document.hasFocus())
+		{
+			this.playSound('incomingMessage');
+			this.updatePageIcon(true);
+		}
+	};
 
-		try{
-			playSound = new Audio(this.soundFile);
-			if (!document.hasFocus()) 
-			{
-				playSound.play();
-				this.updatePageIcon(true);
-			}
-			
-		}catch(e){
-			console.log('Sound is not supported in your browser');
-		}		
-	}
-	
+	oMessenger.prototype.getSendAreaAttachmentsIds = function(bClean = true){
+		const oObject = { length: 0 };
+		$(_oMessenger.sSendAttachmentArea)
+			.children()
+			.each(function(){
+				const oPicture = $('picture', $(this)),
+				 	  iId = $(oPicture).data('id'),
+					  sType = $(oPicture).data('type');
+
+				if (iId && sType) {
+					if (typeof oObject[sType] === 'undefined' || !Array.isArray(oObject[sType]))
+						oObject[sType] = [];
+
+					oObject[sType].push(iId);
+					oObject.length++;
+				}
+			});
+
+		if (bClean === true)
+			$(_oMessenger.sSendAttachmentArea).html('');
+
+		return oObject;
+	};
+
 	/**
 	* Attach dblclick on message to call edit function
 	*@return object
@@ -1677,7 +1822,6 @@
 			oObjects = $(this.sTalkListJotSelector);
 
 			let	iJotId = 0;
-			
 			if (oAction.action === 'msg' && $(_this.sScrollArea).length)
 				return;
 						
@@ -1695,6 +1839,7 @@
 						bx_loading($(this.sTalkBlock), true);
 						break;
 				case 'check_viewed':
+				case 'reaction':
 				case 'delete':
 				case 'edit':
 						iJotId = oAction.jot_id || 0;
@@ -1707,19 +1852,24 @@
 						_this.iPanding = true;
 						break;
 			}
-					   	
+
+			const iLotId = _this.oSettings.lot; // additional check for case when ajax request is not finished yet but another talk is selected
 			$.post('modules/?r=messenger/update',
 			{
 				url: this.oSettings.url,
 				type: this.oSettings.type,
 				jot: iJotId,
 				lot: this.oSettings.lot,
-				load:sAction,
+				load: sAction,
                 read:(_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive()) || !_this.isMobile()
 			},
 			function(oData)
 			{
 				const oList = $(_this.sTalkList);
+
+				if (iLotId !== _this.oSettings.lot)
+						return ;
+
 				_this.iPanding = false;
 				if (!parseInt(oData.code))
 				{
@@ -1743,12 +1893,18 @@
 									.filter(_this.sJot)
 									.each(function()
 										{
-											if ($('div[data-id="' + $(this).data('id') + '"]', oList).length !== 0)
+											if ($('div[data-id="' + $(this).data('id') + '"]', oList).length)
 												$(this).remove();
 
-                                            if ($(_this.sJotMessageViews, this).length)
-                                                $(_this.sJotMessageViews, this).fadeIn();
-
+                                            if ($(_this.sJotMessageViews, this).length) {
+                                            	$(_this.sJotMessageViews, this)
+													.find('img')
+													.each(function(){
+														$(`${_this.sJot} ${_this.sJotMessageViews} img[data-viewer-id="${$(this).data('viewer-id')}"]`).remove();
+													})
+													.end()
+													.fadeIn();
+											}
 										})
 									.appendTo(oList)
 									.waitForImages(
@@ -1783,8 +1939,7 @@
 										.linkify(true, true); // don't update attachment for message and don't broadcast as new message 								
 								break;
 							case 'delete':
-									const onRemove = function()
-											{
+									const onRemove = function(){
 												$(this).remove();
 												_this.updateScrollPosition('bottom');
 											};
@@ -1803,7 +1958,7 @@
 										$('div[data-id="' + iJotId + '"]', oList)
 											.fadeOut('slow', onRemove);
 									}
-
+									break;
 							case 'check_viewed':
 							    const aUsers = $(oData.html).filter('img');
 
@@ -1817,6 +1972,34 @@
 										.html(oData.html)
 										.fadeIn();
 								}
+								break;
+							case 'reaction':
+									let iOriginalCount = 0;
+								
+									$(oData.html)
+										.each(function(){
+										iOriginalCount += $(this).data('count');
+									});
+										
+									$(`div[data-id="${iJotId}"] ${_this.sReactionsArea} > span`, oList)
+										.each(function(){
+											iOriginalCount -= $(this).data('count');
+										});
+
+									if (iOriginalCount > 0)
+										_this.playSound('reaction');
+
+									const oReaction = $(`div[data-id="${iJotId}"] ${_this.sReactionsArea}`, oList);
+
+									$('> span', oReaction).remove();
+
+									oReaction
+										.prepend(oData.html);
+
+									if (oData.html.length)
+										$(_this.sReactionMenu, oReaction).fadeIn();
+									else
+										$(_this.sReactionMenu, oReaction).fadeOut();
 						}
 						
 						oList
@@ -1896,7 +2079,7 @@
 									},
 									onSelect: function(result, response){
 										$(this)
-											.before(`<b class="bx-def-color-bg-hl bx-def-round-corners">
+											.before(`<b class="bx-def-color-bg-hl bx-def-round-corners bx-def-label">
 														<img class="bx-def-thumb bx-def-thumb-size bx-def-margin-sec-right" src="${result.icon}" /><span>${result.value}</span>
 														<input type="hidden" name="users[]" value="${result.id}" /></b>`)
 											.find('input')
@@ -1921,68 +2104,122 @@
 					$(_this.sUserSelectorInput).focus();
 			});
 	};
-	
+
+	oMessenger.prototype.onJotAddReaction = function(oEmoji, iJotId) {
+		const { id } = oEmoji,
+			_this = this;
+
+		if (id && iJotId) {
+			const oReactionsArea = $(`div[data-id="${iJotId}"] ${this.sReactionsArea}`, this.sTalkList),
+				oReaction = $(`span[data-emoji="${id}"]`, oReactionsArea);
+
+			if (!oReaction.length) {
+				oReactionsArea.prepend(
+					this.sReactionTemplate
+						.replace(/__emoji_id__/g, id)
+						.replace(/__parts__/g, this.oSettings.user_id)
+						.replace(/__count__/g, 1)
+				)
+					.fadeIn(() => _this.playSound('reaction'));
+			} else {
+				let iCount = +$(oReaction).data('count'),
+					aParts = $(oReaction).data('part').toString().split(',');
+
+				if (!~aParts.indexOf(this.oSettings.user_id + '')) {
+					iCount++;
+					aParts.push(this.oSettings.user_id);
+					$(oReaction).data('part', aParts.join(','));
+					$(oReaction).data('count', iCount);
+
+					if ($('> span', oReaction).length)
+						$('> span', oReaction).text(iCount);
+
+					_this.playSound('reaction');
+				}
+			}
+
+			$.post('modules/?r=messenger/jot_reaction', { jot: iJotId, emoji: oEmoji, action: 'add'}, function (oData) {
+
+				if ($(_this.sReactionItem, oReactionsArea).length === 1)
+					$(_this.sReactionMenu, oReactionsArea).fadeIn();
+
+				if (+!oData.code)
+					_this.broadcastMessage({
+						jot_id: iJotId,
+						addon: 'reaction'
+					});
+
+			}, 'json');
+		}
+	};
+
+	oMessenger.prototype.onTextAreaAddEmoji = function (oEmoji) {
+		let range = this.quill.getSelection(true);
+		this.quill.insertText(range.index, oEmoji.native, Quill.sources.USER);
+		this.quill.setSelection(range.index + oEmoji.native.length, 1, Quill.sources.API);
+	};
+
 	/**
 	* Returns object with public methods 
 	*/
 	return {
 		/**
-		* Init main Lot's settings and object to work with (settings, real-time frame work, page builder and etc...)
-		*@param object oOptions options
-		*/
-		init:function(oOptions){			
+		 * Init main Lot's settings and object to work with (settings, real-time frame work, page builder and etc...)
+		 *@param object oOptions options
+		 */
+		init: function (oOptions) {
 			const _this = this;
-			if (_oMessenger != null) return true; 
-				
+			if (_oMessenger != null) return true;
+
 			_oMessenger = new oMessenger(oOptions);
-			
+
 			/* Init users Jot template  begin */
 			_oMessenger.loadMembersTemplate();
 			/* Init users Jot template  end */
-									
-			/* Init sockets settings begin*/	
-			if (_oMessenger.oRTWSF != undefined && _oMessenger.oRTWSF.isInitialized()){
 
-				$(window).on('beforeunload', function(){
+			/* Init sockets settings begin*/
+			if (_oMessenger.oRTWSF != undefined && _oMessenger.oRTWSF.isInitialized()) {
+
+				$(window).on('beforeunload', function () {
 					if (_oMessenger.oRTWSF != undefined)
-							_oMessenger.oRTWSF.end({
-												user_id:oOptions.user_id
-											 });
+						_oMessenger.oRTWSF.end({
+							user_id: oOptions.user_id
+						});
 				});
-				
-				_oMessenger.oRTWSF.onTyping = function(oData){
-					_this.onTyping(oData);
-				};		
 
-				_oMessenger.oRTWSF.onMessage = function(oData){
+				_oMessenger.oRTWSF.onTyping = function (oData) {
+					_this.onTyping(oData);
+				};
+
+				_oMessenger.oRTWSF.onMessage = function (oData) {
 					_this.onMessage(oData);
 				};
-				
-				_oMessenger.oRTWSF.onStatusUpdate = function(oData){
+
+				_oMessenger.oRTWSF.onStatusUpdate = function (oData) {
 					_this.onStatusUpdate(oData);
-				};				
-				
-				_oMessenger.oRTWSF.onServerResponse = function(oData){
+				};
+
+				_oMessenger.oRTWSF.onServerResponse = function (oData) {
 					_this.onServerResponse(oData);
-				};				
-		
-				_oMessenger.oRTWSF.onReconnecting = function(oData){
+				};
+
+				_oMessenger.oRTWSF.onReconnecting = function (oData) {
 					_oMessenger.onReconnecting(oData);
 				};
 
-				_oMessenger.oRTWSF.onReconnected = function(oData){
+				_oMessenger.oRTWSF.onReconnected = function (oData) {
 					_oMessenger.onReconnected(oData);
 				};
-				
-				_oMessenger.oRTWSF.onReconnectFailed = function(oData){
+
+				_oMessenger.oRTWSF.onReconnectFailed = function (oData) {
 					_oMessenger.onReconnectFailed(oData);
 				};
-				
-				_oMessenger.oRTWSF.getSettings = function(){
-					return $.extend({status:_oMessenger.iStatus}, _oMessenger.oSettings);
+
+				_oMessenger.oRTWSF.getSettings = function () {
+					return $.extend({status: _oMessenger.iStatus}, _oMessenger.oSettings);
 				};
-				
-			}else{
+
+			} else {
 				console.log('Real-time frameworks was not initialized');
 				return false;
 			}
@@ -1995,244 +2232,175 @@
 		},
 
 		/**
-		* Init Lot settings only (occurs when member selects any lot from lots list)
-		*@param object oOptions options
-		*/
-		initJotSettings: function(oOptions){
+		 * Init Lot settings only (occurs when member selects any lot from lots list)
+		 *@param object oOptions options
+		 */
+		initJotSettings: function (oOptions) {
 			const _this = this;
 
 			_oMessenger.initJotSettings(oOptions);
-
-			$(document).on('dragenter dragover drop', function (e){
-				e.stopPropagation();
-				e.preventDefault();
-			});
-			
-			$(window).on('focus', () =>_oMessenger.updatePageIcon());
-			
-			$(_oMessenger.sTalkList + ',' + _oMessenger.sMessangerParentBox)
-				.on('drop paste', function (e)
-				{
-					const files = (e.type === 'drop' && e.originalEvent.dataTransfer && e.originalEvent.dataTransfer.files) || [];
-					if (e.type === 'paste')
-					{
-						const aItems = (e.clipboardData || e.originalEvent.clipboardData).items;
-						
-						for (let i in aItems)
-						{
-							const oItem = aItems[i];
-							if (oItem.kind === 'file')
-								files.push(oItem.getAsFile());
-						}
-					}
-					
-					
-					if (files.length)
-						_this.showPopForm(undefined, function()
-						{
-							AqbDropZone.handleFiles(files);
-						});
-				});
+			$(window).on('focus', () => _oMessenger.updatePageIcon());
 		},
-		
+
 		/**
-		* Init settings, occurs when member opens the main messenger page
-		*@param int iLotId, if defined select this lot
-		*@param int iJotId, if defined select this jot
-		*@param int iProfileId if profile id of the person whom to talk
-		*@param object oBuilder page builder class
-		*/
-		initMessengerPage:function(iLotId, iJotId, iProfileId, oBuilder){
+		 * Init settings, occurs when member opens the main messenger page
+		 *@param int iLotId, if defined select this lot
+		 *@param int iJotId, if defined select this jot
+		 *@param int iProfileId if profile id of the person whom to talk
+		 *@param object oBuilder page builder class
+		 */
+		initMessengerPage: function (iLotId, iJotId, iProfileId, oBuilder) {
 			_oMessenger.oJotWindowBuilder = oBuilder || window.oJotWindowBuilder;
 
-			if (typeof oMessengerMemberStatus !== 'undefined')
-			{
-				oMessengerMemberStatus.init(function(iStatus)
-				{
+			if (typeof oMessengerMemberStatus !== 'undefined') {
+				oMessengerMemberStatus.init(function (iStatus) {
 					_oMessenger.iStatus = iStatus;
 					if (typeof _oMessenger.oRTWSF !== "undefined")
 						_oMessenger.oRTWSF.updateStatus({
-											user_id:_oMessenger.oSettings.user_id,
-											status:iStatus,
-										 });
+							user_id: _oMessenger.oSettings.user_id,
+							status: iStatus,
+						});
 				});
 			}
-		
-			if (_oMessenger.oJotWindowBuilder !== undefined){
-				$(window).on('load resize', function(e){
-						if (e.type === 'load')
-						{
-								if (iLotId && iJotId)
-									_oMessenger.loadTalk(iLotId, iJotId, false, false);
-								else
-									if(iProfileId || $(_oMessenger.sLotsListSelector).length === 0)
-										_oMessenger.createLot({user:iProfileId});
-								else
-									if (!_oMessenger.isMobile() && $(_oMessenger.sLotsListSelector).length > 0)
-										$(_oMessenger.sLotsListSelector).first().click();
-						}
-						else 
-							_oMessenger.updateSendAreaButtons();
-					
+
+			if (_oMessenger.oJotWindowBuilder !== undefined) {
+				$(window).on('load resize', function (e) {
+					if (e.type === 'load') {
+						if (iLotId && iJotId)
+							_oMessenger.loadTalk(iLotId, iJotId, false, false);
+						else if (iProfileId || $(_oMessenger.sLotsListSelector).length === 0)
+							_oMessenger.createLot({user: iProfileId});
+						else if (!_oMessenger.isMobile() && $(_oMessenger.sLotsListSelector).length > 0)
+							$(_oMessenger.sLotsListSelector).first().click();
+					} else
+						_oMessenger.updateSendAreaButtons();
+
 					_oMessenger.oJotWindowBuilder.resizeWindow();
 				});
 
-				_oMessenger.oJotWindowBuilder.loadRightColumn = function(){
+				_oMessenger.oJotWindowBuilder.loadRightColumn = function () {
 					if ($(_oMessenger.sLotsListSelector).length > 0)
 						$(_oMessenger.sLotsListSelector).first().click();
 					else
 						_oMessenger.createLot();
 				};
-			}
-			else
-			{
+			} else {
 				console.log('Page Builder was not initialized');
 			}
 
 			_oMessenger.updatePageIcon();
 		},
-		
+
 		// init public methods
-		loadTalk:function(iLotId, bMakeAllAsRead){
+		loadTalk: function (iLotId, bMakeAllAsRead) {
 			_oMessenger.loadTalk(iLotId, undefined, false, !!bMakeAllAsRead);
 			if (typeof _oMessenger.oHistory.pushState === 'function') {
-				let oHistory ={'lot': iLotId};
+				let oHistory = {'lot': iLotId};
 				_oMessenger.oHistory.pushState(oHistory, null);
 			}
 			return this;
 		},
-		searchByItems:function(sText){
+		searchByItems: function (sText) {
 			_oMessenger.searchByItems(_oMessenger.iFilterType, sText);
 			return this;
 		},
-		createLot:function createLot(oObject){
+		createLot: function createLot(oObject) {
 			_oMessenger.createLot(oObject);
 			return this;
 		},
-		onSaveParticipantsList:function(iLotId){ 
+		onSaveParticipantsList: function (iLotId) {
 			_oMessenger.saveParticipantsList(iLotId);
 			return this;
 		},
-		onLeaveLot: function(iLotId) {
+		onLeaveLot: function (iLotId) {
 			_oMessenger.leaveLot(iLotId);
 			return this;
 		},
-		onViewDeletedJot: function(iJotId) {
+		onViewDeletedJot: function (iJotId) {
 			_oMessenger.viewJot(iJotId);
 			return this;
-		},	
-		onMuteLot: function(iLotId, oEl){
+		},
+		onMuteLot: function (iLotId, oEl) {
 			_oMessenger.muteLot(iLotId, oEl);
 			return this;
 		},
-		onStarLot: function(iLotId, oEl){
+		onStarLot: function (iLotId, oEl) {
 			_oMessenger.starLot(iLotId, oEl);
 			return this;
 		},
-		onDeleteLot: function(iLotId){ 
+		onDeleteLot: function (iLotId) {
 			_oMessenger.deleteLot(iLotId);
 			return this;
 		},
-		showLotsByType: function(iType){
+
+		showLotsByType: function (iType) {
 			_oMessenger.searchByItems(iType);
 			return this;
 		},
-		onDeleteJot:function(oObject, bCompletely){
+		onDeleteJot: function (oObject, bCompletely) {
 			_oMessenger.deleteJot(oObject, bCompletely);
 		},
-		onEditJot:function(oObject){
+		onEditJot: function (oObject) {
 			_oMessenger.editJot(oObject);
-		},		
-		onSaveJot:function(oObject){
+		},
+		onSaveJot: function (oObject) {
 			_oMessenger.saveJot(oObject);
 		},
-		onCancelEdit:function(oObject){
+		onCancelEdit: function (oObject) {
 			_oMessenger.cancelEdit(oObject);
 		},
-		onCopyJotLink:function(oObject){
+		onCopyJotLink: function (oObject) {
 			_oMessenger.copyJotLink(oObject);
-		},		
+		},
 		/**
-		* Methods below occur when messenger gets data from the server
-		*/
-		onTyping: function(oData){
+		 * Methods below occur when messenger gets data from the server
+		 */
+		onTyping: function (oData) {
 			_oMessenger.showTyping(oData);
 			return this;
-		},		
-		onMessage: function(oData){	
+		},
+		onMessage: function (oData) {
 			const bSilent = _oMessenger.oSettings.user_id === oData.user_id;
 
-			try
-			{
+			try {
 				if (!_oMessenger.isBlockVersion() && (!_oMessenger.isMobile() || (_oMessenger.isMobile() && oData.lot !== _oMessenger.oSettings.lot)))
 					_oMessenger.upLotsPosition(oData, bSilent);
-			}
-			catch(e) {
+			} catch (e) {
 				console.log('Lot list message update error', e);
 			}
 
-			try
-			{
+			try {
 				if (oData.lot === _oMessenger.oSettings.lot)
 					_oMessenger.updateJots(oData, bSilent);
-			}
-			catch(e) {
+			} catch (e) {
 				console.log('Talk history update error', e);
 			}
 
 			return this;
 		},
-		onStatusUpdate: function(oData){
+		onStatusUpdate: function (oData) {
 			_oMessenger.updateStatuses(oData);
 			return this;
 		},
-		onServerResponse: function(oData){
+		onServerResponse: function (oData) {
 			if (oData.addon === undefined || !oData.addon.length)
 				_oMessenger.sendPushNotification(oData);
 			return this;
 		},
-		
+
 		/**
-		* Sends uploaded files to the talk
-		*@param object oDropZone dropzone plugin object
-		*/
-		onSendFiles: function(oDropZone){
-			var aFiles = [],
-				sMessage = $(_oMessenger.sAddFilesFormComments).text();
-			
-			oDropZone.getAcceptedFiles().map(function(oFile){
-				aFiles.push(oFile.name);
-			});
-			
-			if (aFiles.length)
-			{				
-				if (_oMessenger.sendMessage(sMessage, aFiles, 
-					function(){
-						oDropZone.removeAllFiles();
-						$(_oMessenger.sAddFilesFormComments).html('');
-					}))
-				{
-					$(_oMessenger.sAddFilesForm).dolPopupHide({});
-				}
-			}
-			else
-				oDropZone.hiddenFileInput.click();
-			
-		},
-		
-		/**
-		* Loads form for files uploading in popup
-		*@param string sUrl link, if not specify default one will be used
-		*@param function fCallback callback function,  executes on window show
-		*/		
+		 * Loads form for files uploading in popup
+		 *@param string sUrl link, if not specify default one will be used
+		 *@param function fCallback callback function,  executes on window show
+		 */
 		showPopForm: function (sMethod, fCallback) {
 			const sUrl = 'modules/?r=messenger/' + (sMethod || 'get_upload_files_form'),
-				  sText = $(_oMessenger.sMessengerBox).val();
+				sText = _oMessenger.quill.getText();
 
 			$(window).dolPopupAjax({
 				url: sUrl,
-				id: { force: true, value: _oMessenger.sAddFilesForm.substr(1) },
-				onShow: function() {
+				id: {force: true, value: _oMessenger.sAddFilesForm.substr(1)},
+				onShow: function () {
 
 					if (typeof fCallback == 'function')
 						fCallback();
@@ -2244,63 +2412,44 @@
 				},
 				closeElement: true,
 				closeOnOuterClick: false,
-				removeOnClose:true,
-				onHide:function()
-				{
+				removeOnClose: true,
+				onHide: function () {
 					_oMessenger.updateScrollPosition('bottom');
 				}
 			});
 		},
-		
+
 		/**
-		* Executes on files uploading window close 
-		*@param string sMessage confirmation message
-		*@param int iFilesNumber files number
-		*/				
-		onCloseUploadingForm:function(sMessage, iFilesNumber){
-			if (!iFilesNumber || (iFilesNumber && confirm(sMessage)))
-			{
+		 * Executes on files uploading window close
+		 *@param string sMessage confirmation message
+		 *@param int iFilesNumber files number
+		 */
+		onCloseUploadingForm: function (sMessage, iFilesNumber) {
+			if (!iFilesNumber || (iFilesNumber && confirm(sMessage))) {
 				$(_oMessenger.sAddFilesFormComments).html('');
 				$(_oMessenger.sAddFilesForm).dolPopupHide();
 				return true;
 			}
-						
+
 			return false;
 		},
-		
+
 		/**
-		* Occurs on image click, allows to make image bigger in popup.
-		*@param int iId image file id
-		*/	
-		zoomImage:function(iId){
+		 * Occurs on image click, allows to make image bigger in popup.
+		 *@param int iId image file id
+		 */
+		zoomImage: function (iId) {
 			$(window).dolPopupAjax({
 				url: 'modules/?r=messenger/get_big_image/' + iId + '/' + $(window).width() + '/' + $(window).height(),
 				id: {force: true, value: 'bx-messenger-big-img'},
-				top:'0px',
-				left:'0px',
-				onBeforeShow: function() {
-					$('#bx-messenger-big-img, #bx-messenger-big-img .bx-popup-element-close, #bx-messenger-big-img img, #bx-popup-fog').click(function() {
+				top: '0px',
+				left: '0px',
+				onBeforeShow: function () {
+					$('#bx-messenger-big-img, #bx-messenger-big-img .bx-popup-element-close, #bx-messenger-big-img img, #bx-popup-fog').click(function () {
 						$('#bx-messenger-big-img').dolPopupHide().remove();
 					});
 				},
 				closeElement: true
-			});
-		},
-		/**
-		* Send selected gif file from giphy with message
-		*@param string sId giphy image file
-		*/
-		sendGiphy:function(sId) {
-			bx_loading($(_oMessenger.sFilesUploadAreaOnForm), true);
-			const sMessage = $(_oMessenger.sAddFilesFormComments).text();
-			_oMessenger.sendMessage(sMessage, { 'giphy': sId }, () => {
-				$(_oMessenger.sFilesUploadAreaOnForm)
-					.closest('.bx-popup-active')
-					.dolPopupHide({});
-
-				bx_loading($(_oMessenger.sFilesUploadAreaOnForm), false);
-				$('.bx-messenger-conversation-block-wrapper .ui.sidebar.giphy')
-					.sidebar('toggle');
 			});
 		},
 
@@ -2308,49 +2457,69 @@
 		 * Select giphy item to send, allows to add message to gif image.
 		 *@param string sId of the image
 		 */
-		onSelectGiphy:function(sId){
-			$(window).dolPopupAjax({
-				url: 'modules/?r=messenger/get_giphy_upload_form/' + sId,
-				id: { force: true, value: _oMessenger.sAddFilesForm.substr(1) },
-				closeElement: true,
-				removeOnClose: true,
-				onShow: function() {
-					$('.bx-popup-applied:visible img')
-						.load(function(){
-							if ($(this).get(0).width)
-								$(_oMessenger.sAddFilesFormComments, $('.bx-popup-applied:visible'))
-									.css('max-width', $(this).get(0).width);
-						 });
-				},
-			});
+		onSelectGiphy: function (oElement) {
+			const oUploader = _oMessenger.oFilesUploader;
+
+			if (oUploader && (oUploader.getFiles().length || oUploader.isLoadingStarted())) {
+				$(_oMessenger.sGiphMain).fadeOut();
+				return; 
+			}
+			else
+				$(_oMessenger.sGiphMain)
+					.fadeOut(() => {
+						const oObject = $(oElement)
+										.clone()
+										.wrap('<div class="giphy-item"></div>')
+										.parent();
+
+						_oMessenger.updateSendArea(false);
+						$(_oMessenger.sSendAttachmentArea)
+							.html(
+								oObject
+									.append(
+											$(`<i class="sys-icon times"></i>`)
+												.on('click', function(){
+													$(this)
+														.closest('.giphy-item')
+														.fadeOut()
+														.remove();
+
+													_oMessenger.updateSendArea(true);
+												})
+										)
+						);
+				});
+
 		},
-		loadTalkFiles: function(oBlock, iCount, fCallback){
+		loadTalkFiles: function (oBlock, iCount, fCallback) {
 			bx_loading(oBlock, true);
-			$.get('modules/?r=messenger/get_talk_files/', { number: iCount, lot_id: _oMessenger.oSettings.lot }, function(oData){
+			$.get('modules/?r=messenger/get_talk_files/', {
+				number: iCount,
+				lot_id: _oMessenger.oSettings.lot
+			}, function (oData) {
 				bx_loading(oBlock, false);
-				if (!+oData.code)
+
+				if (!+oData.code && !($('.bx-msg-box-container', oBlock).length && $(oData.html).hasClass('bx-msg-box-container')))
 					$(oBlock)
 						.append(oData.html)
 						.bxTime();
 
-				if (typeof(fCallback) === 'function')
+				if (typeof (fCallback) === 'function')
 					fCallback(oData);
-			},'json');
+			}, 'json');
 
-		},		
+		},
 		/**
-		* Show only marked as important lot
-		*@param object oEl 
-		*/
-		showStarred:function(oEl){
-			if (!_oMessenger.iStarredTalks)
-			{
+		 * Show only marked as important lot
+		 *@param object oEl
+		 */
+		showStarred: function (oEl) {
+			if (!_oMessenger.iStarredTalks) {
 				$(oEl)
 					.addClass('active')
 					.find('i.star')
 					.addClass('fill')
-			}
-			else
+			} else
 				$(oEl)
 					.removeClass('active')
 					.find('i.star')
@@ -2360,174 +2529,241 @@
 			this.searchByItems($('#items').val());
 		},
 
-		removeFile:function(oEl, id){
-			$.get('modules/?r=messenger/delete_file', {id: id}, function(oData){
-				if (!parseInt(oData.code))
-				{
+		removeFile: function (oEl, id) {
+			$.get('modules/?r=messenger/delete_file', {id: id}, function (oData) {
+				if (!parseInt(oData.code)) {
 					if (!oData.empty_jot)
 						$(oEl)
 							.parents('.delete')
 							.parent()
 							.fadeOut('slow',
-							function()
-							{
-								$(this).remove();
-							});
+								function () {
+									$(this).remove();
+								});
 					else
 						$(oEl)
 							.parents(_oMessenger.sJot)
-							.fadeOut('slow', 
-							function()
-							{
-								$(this).remove();
-							});
-				} 
-				else
+							.fadeOut('slow',
+								function () {
+									$(this).remove();
+								});
+				} else
 					alert(oData.message);
 			}, 'json');
 		},
-		
-		downloadFile:function(iFileId){
-			$.get('modules/?r=messenger/download_file/' + iFileId, {id: iFileId}, function(oData){
+
+		downloadFile: function (iFileId) {
+			$.get('modules/?r=messenger/download_file/' + iFileId, {id: iFileId}, function (oData) {
 				if (parseInt(oData.code))
 					alert(oData.message);
 			});
 		},
-		sendVideoRecord:function(oFile, oCallback){
-			var fileName = (new Date().getTime()),
+		sendVideoRecord: function (oFile, oCallback) {
+			let fileName = (new Date().getTime()),
 				formData = new FormData();
 
 			if (oFile.type !== undefined) {
-                let sExt = (~oFile.type.indexOf(';') ? oFile.type.substring(0, oFile.type.lastIndexOf(';')) : oFile.type).replace('video/', '.');
+				let sExt = (~oFile.type.indexOf(';') ? oFile.type.substring(0, oFile.type.lastIndexOf(';')) : oFile.type).replace('video/', '.');
 				fileName += sExt;
-            };
+			}
+			;
 
 			formData.append('name', fileName);
 			formData.append('file', oFile);
 
 			bx_loading($(_oMessenger.sFilesUploadAreaOnForm), true);
 			$.ajax({
-				url:'modules/?r=messenger/upload_video_file',
-				data:formData,
-				type:'POST',
-				dataType:'json',
+				url: 'modules/?r=messenger/upload_video_file',
+				data: formData,
+				type: 'POST',
+				dataType: 'json',
 				contentType: false,
 				processData: false,
 			})
-			.done(
-					function(oData)
-					{
+				.done(
+					function (oData) {
 						bx_loading($(_oMessenger.sFilesUploadAreaOnForm), false);
-						if (!parseInt(oData.code))
-						{
-							var sMessage = $(_oMessenger.sAddFilesFormComments).text();
-							_oMessenger.sendMessage(sMessage, [fileName], function()
-								{
-									if (typeof oCallback == 'function')
-										oCallback();
-								});
-						}
-						else
+						if (!parseInt(oData.code)) {
+							const sMessage = $(_oMessenger.sAddFilesFormComments).text();
+							_oMessenger.sendMessage(sMessage, { files: [fileName] }, function () {
+								if (typeof oCallback == 'function')
+									oCallback();
+							});
+						} else
 							alert(oData.message);
 					});
-			
-			
+
+
 		},
-		updateCommentsAreaWidth: function(fWidth){
+		updateCommentsAreaWidth: function (fWidth) {
 			_oMessenger.updateCommentsAreaWidth(fWidth);
 		},
-		initGiphy: function(e){
+		onAddReaction: function (oObject, bNear) {
+			_oMessenger.onAddReaction(oObject, bNear);
+		},
+		onRemoveReaction: function (oObject) {
+			const _this = this,
+				oEmoji = $(oObject),
+				oReactionArea = oEmoji.closest(_oMessenger.sReactionsArea),
+				iJotId = +$(oEmoji).closest(_oMessenger.sJot).data('id'),
+				sEmojiId = $(oEmoji).data('emoji'),
+				fUpdateParams = () => {
+					$(oEmoji).data('part', aParts.join(','));
+					$(oEmoji).data('count', aParts.length);
+					_oMessenger.broadcastMessage({
+						jot_id: iJotId,
+						addon: 'reaction'
+					});
+				};
+
+			if (!iJotId)
+				return;
+
+			let iCount = +$(oEmoji).data('count'),
+				aParts = $(oEmoji)
+							.data('part')
+							.toString()
+							.split(',');
+
+			if (~aParts.indexOf(_oMessenger.oSettings.user_id + '')) {
+				if (iCount === 1)
+					$(oEmoji)
+						.fadeOut()
+						.remove();
+				else
+					$('> span.count', oEmoji)
+						.text(--iCount);
+
+				aParts = aParts.filter((iPart) => {
+					return +iPart !== _oMessenger.oSettings.user_id
+				});
+
+				$.get('modules/?r=messenger/update_reaction', {
+					jot: iJotId,
+					emoji_id: sEmojiId,
+					action: 'remove'
+				}, function (oData) {
+					if (!parseInt(oData.code)) {
+						fUpdateParams();
+						if (!$(_oMessenger.sReactionItem, oReactionArea).length)
+							$(_oMessenger.sReactionMenu, oReactionArea).fadeOut();
+					}
+				}, 'json');
+			} else {
+				iCount++;
+				aParts.push(_oMessenger.oSettings.user_id);
+				if ($('> span.count', oEmoji).length)
+					$('> span.count', oEmoji).text(iCount);
+				else
+					$(oEmoji).append(`<span>${iCount}</span>`);
+
+				_oMessenger.playSound('reaction');
+				$.get('modules/?r=messenger/update_reaction', {
+					jot: iJotId,
+					emoji_id: sEmojiId,
+					action: 'add'
+				}, function (oData) {
+					if (!parseInt(oData.code))
+						fUpdateParams();
+				}, 'json');
+			}
+		},
+		onEmojiInsert: (oEmoji) => {
+			if (_oMessenger.oActiveEmojiObject['type'] === 'reaction' && +_oMessenger.oActiveEmojiObject['param'])
+				_oMessenger.onJotAddReaction(oEmoji, +_oMessenger.oActiveEmojiObject['param']);
+			else
+			if (_oMessenger.oActiveEmojiObject['type'] === 'textarea')
+				_oMessenger.onTextAreaAddEmoji(oEmoji);
+
+			setTimeout(() => $(`${_oMessenger.sEmojiId}`)
+				.hide(), 0); // if to close in the same time, emoji categories will not work in the next open
+		},
+		cleanGiphyAreas: () => {
+			if ($(_oMessenger.sSendAttachmentArea).children().length) {
+				$(_oMessenger.sGiphMain).fadeOut();
+				$(_oMessenger.sSendAttachmentArea).html('');
+			}
+		},
+		initGiphy: function () {
 			let iTotal = 0;
 			let iScrollPosition = 0;
 			const oContainer = $(_oMessenger.sGiphyItems),
-				  oScroll = $('.bx-messenger-giphy-scroll'),
-				  fInitVisibility = (sType, sValue) => {
-					  let bPassed = false;
-					  oContainer
-						  .visibility({
-							  once: false,
-							  continuous: true,
-							  context: $('.bx-messenger-giphy-scroll'),
-							  // load content when scroll passed 60%
-							  onUpdate: function({ height, pixelsPassed, percentagePassed }){
-								  const iItems = $('picture', $(this)).length,
-									  iViewArea = oScroll.height(),
-									  iPassed = pixelsPassed >= (height-iViewArea - 1);
+				oScroll = $('.bx-messenger-giphy-scroll'),
+				fInitVisibility = (sType, sValue) => {
+					let stopLoading = false;
+					oScroll.on('scroll', (e) => {
+							const { scrollLeft,  scrollWidth, clientWidth} = e.currentTarget;
+							const iItems = $('picture', oContainer).length;
+							const scrollLeftMax = scrollWidth - clientWidth;
+							let	bPassed = scrollLeft >= scrollLeftMax*0.6; // 60% passed
+							iScrollPosition = scrollLeft;
 
-								  iScrollPosition = pixelsPassed;
-								  if (!percentagePassed || (iTotal && iItems && iItems >= iTotal) || !iPassed)
-									  return ;
+							if (!bPassed || (iTotal && iItems && iItems >= iTotal))
+								return;
 
-								  if (!bPassed) {
-									  bPassed = true;
-									  fGiphy(sType, sValue, () => setTimeout(() => bPassed = false, 0));
-								  }
-							  }
-						  });
-				  },
-				  fGiphy = (sType, sValue, fCallback) => {
-					const fWidth = oContainer.width();
-
+							if (!stopLoading) {
+								stopLoading = true;
+								fGiphy(sType, sValue, () => setTimeout(() => {
+									stopLoading = false;
+									oScroll.scrollLeft(iScrollPosition);
+								}, 0));
+							}
+					});
+				},
+				fGiphy = (sType, sValue, fCallback) => {
+					const fHeight = oContainer.height();
 					$('div.search', _oMessenger.sGiphyBlock).addClass('loading');
-					$.get('modules/?r=messenger/get_giphy', { width: fWidth, action: sType, filter: sValue, start: $('picture', oContainer).length }, function(oData) {
-						const bHasMasonry = oContainer.data('masonry') ? true : false;
+					$.get('modules/?r=messenger/get_giphy', {
+							height: fHeight,
+							action: sType,
+							filter: sValue,
+							start: $('picture', oContainer).length
+						}, function (oData) {
+							iTotal = oData.total;
 
-						iTotal =  oData.total;
-						// destroy masonry if already exists
-						if (oContainer.length && bHasMasonry)
-							oContainer.masonry('destroy');
-
-						oContainer
+							oContainer
 								.append(
 									oData.code
-									? oData.message
-									: oData.html
+										? oData.message
+										: oData.html
 								)
-								.setRandomBGColor()
-								.imagesLoaded(() => {
-									oContainer.masonry()
-								});
+								.setRandomBGColor();
 
-						oContainer.masonry({
-								itemSelector: 'img',
-								isAnimated: true,
-								gutter: 5,
-								fitWidth: true,
-							});
+							$('div.search', _oMessenger.sGiphyBlock).removeClass('loading');
+							if (typeof fCallback === 'function')
+								fCallback(sType, sValue);
+						},
+						'json');
+				};
 
-						oScroll.scrollTop(iScrollPosition);
-						$('div.search', _oMessenger.sGiphyBlock).removeClass('loading');
-						if (typeof fCallback === 'function')
-							fCallback(sType, sValue);
-					},
-					'json');
-            };
+			if ($(_oMessenger.sGiphMain).css('visibility') === 'visible') {
+				let iTimer = 0;
+				$('input', _oMessenger.sGiphyBlock).keypress(function (e) {
+					clearTimeout(iTimer);
+					iTimer = setTimeout(() => {
+						iScrollPosition = 0;
+						iTotal = 0;
+						oContainer.html('');
+						oScroll.scrollLeft(0);
+						const sFilter = $(this).val();
+						fGiphy(sFilter && 'search', sFilter, fInitVisibility);
 
-            if ($('.ui.giphy').css('visibility') === 'visible')
-            {
-                let iTimer = 0;
-                $('input', _oMessenger.sGiphyBlock).keypress(function(e) {
-                	clearTimeout(iTimer);
-                        iTimer = setTimeout(() => {
-							iScrollPosition = 0;
-							iTotal = 0;
-							oContainer.html('');
-							oScroll.scrollTop(iScrollPosition);
-							const sFilter = $(this).val();
-							fGiphy(sFilter && 'search', sFilter, fInitVisibility);
-
-						}, 1000);
-                        return true;
-                }).on('keydown', function(e) {
+					}, 1000);
+					return true;
+				}).on('keydown', function (e) {
 					if (e.keyCode === 8 || e.keyCode === 46)
 						$(this).trigger('keypress');
 				});
 
-                if (oContainer && !oContainer.find('img').length) {
+				if (oContainer && !oContainer.find('img').length) {
 					fGiphy(undefined, undefined, fInitVisibility);
 				}
-            }
-        }
+			}
+		},
+		updateAttachmentArea: function(bCanHide){
+			return _oMessenger.updateSendArea(bCanHide);
+		},
+		initUploader: oUploader => _oMessenger.oFilesUploader = oUploader
 	}
 })(jQuery);
 

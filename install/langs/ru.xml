@@ -21,7 +21,7 @@
 	<string name="_bx_messenger_send_message_no_data"><![CDATA[Пустое сообщение!]]></string>
 	<string name="_bx_messenger_lots_type_all"><![CDATA[Все]]></string>
 	<string name="_bx_messenger_symbols_num_brief_jot"><![CDATA[Количество символов сообщения в списке разговоров]]></string>
-	<string name="_bx_messenger_post_area_message"><![CDATA[Отправить сообщение ...]]></string>
+	<string name="_bx_messenger_post_area_message"><![CDATA[Cообщение ...]]></string>
 	<string name="_bx_messenger_title_search"><![CDATA[Найти..]]></string>
 	<string name="_bx_messenger_not_logged"><![CDATA[Вам необходимо зарегистрироваться!]]></string>
 	<string name="_bx_messenger_not_found"><![CDATA[Разговор не найден!]]></string>
@@ -95,12 +95,10 @@
 	<string name="_bx_messenger_reconnecting_message"><![CDATA[Подключение]]></string>
 	<string name="_bx_messenger_reconnecting_failed"><![CDATA[Связь потеряна]]></string>
 	<string name="_bx_messenger_upload_invalid_file_type"><![CDATA[Извините, но этот тип файла не может быть загружен из соображений безопасности!]]></string>
-	<string name="_bx_messenger_upload_drop_area_message"><![CDATA[Перетащите файлы сюда или нажмите на кнопку загрузить]]></string>
 	<string name="_bx_messenger_upload_delete"><![CDATA[Удалить]]></string>
 	<string name="_bx_messenger_upload_send_button"><![CDATA[Оправить]]></string>
 	<string name="_bx_messenger_upload_close"><![CDATA[Закрыть]]></string>
 	<string name="_bx_messenger_delete_confirm"><![CDATA[Вы уверены, что хотите удалить этот файл?]]></string>
-	<string name="_bx_messenger_delete_all_files_confirm"><![CDATA[Все файлы из списка будут удалены, продолжить и закрыть форму?]]></string>
 	<string name="_bx_messenger_post_view_actions"><![CDATA[Показать действия]]></string>
 	<string name="_bx_messenger_post_attache_files"><![CDATA[Прикрепить Файлы]]></string>
 	<string name="_bx_messenger_post_emoji"><![CDATA[Добавить смайл]]></string>
@@ -163,4 +161,8 @@
     <string name="_bx_messenger_giphy_gifs_nothing_found"><![CDATA[Ничего не найдено]]></string>
 	<string name="_bx_messenger_attached_giphy_message"><![CDATA[Вы получили анимацию]]></string>
 	<string name="_bx_messenger_max_drop_down_select"><![CDATA[Количество профайлов в результате поиска в выпадающем меню]]></string>
+	<string name="_bx_messenger_uploading_file"><![CDATA[Загрузка]]></string>
+	<string name="_bx_messenger_upload_is_complete"><![CDATA[Загрузка файлов завершена]]></string>
+	<string name="_bx_messenger_upload_cancelled"><![CDATA[Запрос отменён]]></string>
+	<string name="_bx_messenger_uploading_remove_button"><![CDATA[Удалить]]></string>
 </resources>

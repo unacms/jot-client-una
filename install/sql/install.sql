@@ -16,6 +16,16 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_jots` (
    KEY `lot_id` (`lot_id`)   
 );
 
+CREATE TABLE IF NOT EXISTS `bx_messenger_jot_reactions` (
+   `jot_id` int(11) unsigned NOT NULL default '0',
+   `native` varchar(10) NOT NULL,
+   `emoji_id` varchar(50) NOT NULL,
+   `user_id` int(11) unsigned NOT NULL default '0',
+   `added` int(11) NOT NULL default '0',
+   KEY `jot_id` (`jot_id`),
+   UNIQUE KEY `jot` (`jot_id`,`emoji_id`, `user_id`)
+);
+
 CREATE TABLE IF NOT EXISTS `bx_messenger_lots` (
    `id` int(11) NOT NULL auto_increment,
    `title` varchar(255) collate utf8_unicode_ci NOT NULL,

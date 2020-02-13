@@ -28,6 +28,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'TABLE_TYPES' => $aModule['db_prefix'] . 'lots_types',
 			'TABLE_USERS_INFO' => $aModule['db_prefix'] . 'users_info',
             'TABLE_LIVE_COMMENTS' => $aModule['db_prefix'] . 'lcomments',
+            'TABLE_JOR_REACTIONS' => $aModule['db_prefix'] . 'jot_reactions',
             'TABLE_CMTS_OBJECTS' => 'sys_objects_cmts',
             'TABLE_ENTRIES_FULLTEXT' => 'search_title',
             'TABLE_ENTRIES_COMMENTS_FULLTEXT' => 'search_fields',
@@ -93,13 +94,21 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'FIELD_INFO_STAR' => 'star',
 			'FIELD_INFO_PARAMS' => 'params', // means use link in title
 
+            // jot reactions fields
+			'FIELD_REACT_JOT_ID' => 'jot_id',
+			'FIELD_REACT_NATIVE' => 'native',
+			'FIELD_REACT_EMOJI_ID' => 'emoji_id',
+			'FIELD_REACT_PROFILE_ID' => 'user_id',
+			'FIELD_REACT_ADDED' => 'added',
+
 			// page URIs
-			'URL_HOME' => BX_DOL_URL_ROOT . 'page?i=messenger',
-			'URL_REPOST' => BX_DOL_URL_ROOT . 'modules/index.php?r=messenger/archive/',
+			'URL_HOME' => BX_DOL_URL_ROOT . 'page.php?i=messenger',
+			'URL_REPOST' => 'archive/',
 			'URL_TEMPLATE' => BX_DOL_URL_ROOT . 'page.php?{link}',
 
 			// some params
 			'STAR_BACKGROUND_COLOR' => '#f5a623',
+			'FILES_UPLOADER' => 'filepond',
 			'BELL_ICON_ON' => 'bell',
 			'STAR_ICON' => 'star',
 			'BELL_ICON_OFF' => 'bell-slash',
@@ -130,7 +139,6 @@ class BxMessengerConfig extends BxBaseModTextConfig
                 'search' => 'search',
                 'trending' => 'trending'
             ),
-
             // objects
 			'OBJECT_STORAGE' => 'bx_messenger_files',
 			'OBJECT_IMAGES_TRANSCODER_GALLERY' => 'bx_messenger_photos_resized',
@@ -163,7 +171,6 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'PUSH_SAFARI_WEB_ID' => getParam('sys_push_safari_id') ? getParam('sys_push_safari_id') : getParam($aModule['db_prefix'] . 'push_safari_id'),
 			'PUSH_SHORT_NAME' => getParam('sys_push_short_name') ? getParam('sys_push_short_name') : getParam($aModule['db_prefix'] . 'push_short_name'),
 			'SERVER_URL' => getParam($aModule['db_prefix'] . 'server_url'),
-			'CONVERT_SMILES' => getParam($aModule['db_prefix'] . 'typing_smiles') == 'on',
 			'MAX_FILES_TO_UPLOAD' => (int)getParam($aModule['db_prefix'] . 'max_files_send'),
 			'MAX_VIDEO_LENGTH'	=> (int)getParam($aModule['db_prefix'] . 'max_video_length_minutes'),
 			'MAX_NTFS_NUMBER'	=> (int)getParam($aModule['db_prefix'] . 'max_ntfs_number'),
@@ -171,6 +178,10 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'ALLOW_TO_REMOVE_MESSAGE' => getParam($aModule['db_prefix'] . 'allow_to_remove_messages') == 'on',
             'REMOVE_MESSAGE_IMMEDIATELY' => getParam($aModule['db_prefix'] . 'remove_messages_immediately') == 'on',
             'USE_EMBEDLY' => getParam($aModule['db_prefix'] . 'use_embedly') == 'on',
+            'EMOJI_SET' => getParam($aModule['db_prefix'] . 'emoji_set'),
+            'REACTIONS_SIZE' => (int)getParam($aModule['db_prefix'] . 'reactions_size'),
+            'EMOJI_PREVIEW' => getParam($aModule['db_prefix'] . 'show_emoji_preview') == 'on',
+            'JSMain' => 'oMessenger'
 		);
 
 		$this->_aObjects = array(
@@ -194,14 +205,28 @@ class BxMessengerConfig extends BxBaseModTextConfig
 	*/
 	public function isJotLink($sUrl){
 		$aResult = array();
-		$sJotPattern = '/^'. preg_replace(array('/\./', '/\//', '/\?/'), array('\.', '\/', '\?'), BxDolPermalinks::getInstance()->permalink($this->CNF['URL_REPOST'])) . '(\d+)/i';
+		$sJotPattern = '/^'. preg_replace(array('/\./', '/\//', '/\?/'), array('\.', '\/', '\?'), $this->getRepostUrl()) . '(\d+)/i';
 		if (preg_match($sJotPattern, $sUrl, $aMatches) && intval($aMatches[1]))
 			$aResult = array('url' => $aMatches[0], 'id' => $aMatches[1]);
 
 		return $aResult;
 	}
-	
-	/**
+
+	public function getBaseUri()
+    {
+        $sLink = parent::getBaseUri();
+        if(strncmp($sLink, BX_DOL_URL_ROOT, strlen(BX_DOL_URL_ROOT)) !== 0)
+            $sLink = BX_DOL_URL_ROOT . $sLink;
+
+        return $sLink;
+    }
+
+    public function getRepostUrl($iJotId = 0)
+    {
+        return $this->getBaseUri() . $this->CNF['URL_REPOST'] . ( $iJotId ? $iJotId : '');
+    }
+
+    /**
 	* Converts text link to url (wraps text url to <a>)
 	*@param string $sText url
 	*@param string $sAttrs special attributes for the link
@@ -212,7 +237,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 		if ($bHtmlSpecialChars)
 			$sText = htmlspecialchars($sText, ENT_NOQUOTES, 'UTF-8');
 
-		$sRe = "@\b((https?://)|(www\.))(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@";
+		$sRe = "@(((https?://)|(www\.))[^\"<\s]+)(?![^<>]*>|[^\"]*?<\/a)@";
 		preg_match_all($sRe, $sText, $aMatches, PREG_OFFSET_CAPTURE);
 
 		$aMatches = $aMatches[0];
@@ -231,7 +256,6 @@ class BxMessengerConfig extends BxBaseModTextConfig
 					$sAttrs .= ' rel="nofollow" ';
 			}
 
-			$sReplacement = '';
 			if ($this -> isJotLink($sUrl))
 				$sReplacement = "<a href=\"{$sUrl}\">{$aMatches[$i][0]}</a>";
 			else
@@ -240,14 +264,14 @@ class BxMessengerConfig extends BxBaseModTextConfig
 				if($oEmbed && $this -> CNF['USE_EMBEDLY'])
 					$sReplacement = $oEmbed->getLinkHTML($sUrl, $aMatches[$i][0]);
 				else
-					$sReplacement = "<a {$sAttrs} href=\"{$sUrl}\">{$aMatches[$i][0]}</a>";				
+					$sReplacement = "<a {$sAttrs} href=\"{$sUrl}\">{$aMatches[$i][0]}</a>";
 			}
 			
 			$sText = substr_replace($sText, $sReplacement, $aMatches[$i][1], strlen($aMatches[$i][0]));
 		}
 		
-		$mail_pattern = "/([A-z0-9\._-]+\@[A-z0-9_-]+\.)([A-z0-9\_\-\.]{1,}[A-z])/";
-		$sText = preg_replace($mail_pattern, '<a href="mailto:$1$2">$1$2</a>', $sText);
+		$mail_pattern = "/([\w.]+@[a-zA-Z_-]+?(?:\.[a-zA-Z]{2,6}))(?![^<>]*>|[^\"]*?<\/a)/";
+		$sText = preg_replace($mail_pattern, '<a href="mailto:$1">$1</a>', $sText);
 
 		return $sText;
 	}
@@ -260,7 +284,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 	*/
 	public function cleanRepostLinks($sMessage, $iJotId)
 	{
-		$sArchiveUrl = BxDolPermalinks::getInstance()->permalink($this->CNF['URL_REPOST']) . $iJotId;
+		$sArchiveUrl = $this->getRepostUrl($iJotId);
 		return str_replace($sArchiveUrl, '', $sMessage);
 	}
 	

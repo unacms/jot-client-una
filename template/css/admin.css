@@ -1,7 +1,11 @@
 .bx-messenger-border{
-	padding:0rem 0.5rem 0rem 0.5rem;
+	padding:0 1rem 0 1rem;
 	background-color:rgba(0, 0, 0, 0);
-	border-bottom:1px solid #d7e9fb;
+	border-left: none;
+	border-top: none;
+	border-right: none;
+	border-bottom:1px solid inherit;
+	border-radius: 0;
 	overflow:hidden;
 	display:flex;
 	align-items:center;
@@ -114,8 +118,10 @@ div.bx-messenger-lots-menu ul li a.active{
 
 #bx-content-main .bx-messenger-block.jots
 {
-	border-left:1px solid #d7e9fb;
 	border-radius:0;
+	border-bottom: 0;
+	border-right: 0;
+	border-top: 0;
 }
 
 .bx-messenger-friends-list
@@ -136,7 +142,7 @@ div.bx-messenger-lots-menu ul li a.active{
 
 .bx-messenger-main-block
 {
-	overflow:auto;
+	overflow:hidden;
 	position:relative;
 }
 
@@ -283,10 +289,10 @@ div.bx-messenger-lots-menu ul li a.active{
 	padding-bottom:1rem;
 }
 
-.bx-messenger-jots-snip .unread-lot div
+/*.bx-messenger-jots-snip .unread-lot div
 {
-	font-size:1rem;
-}
+	font-size: 1rem;
+}*/
 
 .unread-lot .bx-messenger-jots-snip-title div.title,
 .unread-lot .bx-messenger-preview-lot

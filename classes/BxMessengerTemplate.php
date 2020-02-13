@@ -24,11 +24,16 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@param string $sMode 
 	*/
 	public function loadCssJs($sMode = 'all'){
-		$aCss = array(
-						BX_DIRECTORY_PATH_PLUGINS_PUBLIC . 'emoji/css/|emoji.css', 
-						'dropzone.css',
+		$sFilePondPath = BX_DOL_URL_MODULES . 'boonex/messenger/js/filepond/';
+	    $aCss = array(
+						'filepode.css',
 						'semantic.min.css',
-						'main.css'
+						'main.css',
+                        BX_DOL_URL_MODULES . 'boonex/messenger/js/quill/quill.bubble.css',
+                        BX_DOL_URL_MODULES . 'boonex/messenger/js/emoji-mart/css/emoji-mart.css',
+                        $sFilePondPath . 'filepond.min.css',
+                        $sFilePondPath . 'filepond-plugin-image-preview.min.css',
+                        $sFilePondPath . 'filepond-plugin-media-preview.min.css'
 					 );
 
 		$aJs = array(
@@ -36,19 +41,19 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                         'storage.js',
 						'connect.js',
 						'messenger.js',
-						'emoji/js/util.js',
-						'emoji/js/config.js',
-						'emoji/js/emoji-picker.js',
-						'emoji/js/jquery.emojiarea.js',
+                        BX_DOL_URL_MODULES . 'boonex/messenger/js/quill/quill.js',
+                        $sFilePondPath . 'filepond.min.js',
+                        $sFilePondPath . 'filepond.jquery.js',
+                        $sFilePondPath . 'filepond-plugin-image-preview.min.js',
+                        $sFilePondPath . 'filepond-plugin-media-preview.min.js',
 						'status.js',
-						'dropzone.js',
 						'RecordRTC.min.js',
 						'adapter.js',
 						'record-video.js',
 						'semantic.min.js',
-                        'masonry.pkgd.min.js',
-                        'imagesloaded.pkgd.min.js'
-					); 
+                        'emoji-mart.js',
+                        'soundjs.min.js'
+					);
 
 		if ($sMode == 'all'){
 			array_push($aCss, 'admin.css', 'messenger.css');
@@ -58,36 +63,39 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$this->addCss($aCss);
 		$this->addJs($aJs); 
 	}
-	
+
 	/**
 	* Main function to build post messages area with messages history
 	*@param int $iProfileId logged member id
 	*@param int $iLotId id of conversation. It can be empty if new talk
 	*@param int $iType type of talk (Private, Public and etc..)
-	*@param int $iJotId jot id, allows to load history from jot's position  
+	*@param int $iJotId jot id, allows to load history from jot's position
 	*@param string $sEmptyContent  html content which may be added to the center of the talk when there are no messages yet
-	*@return string html code 
+	*@return string html code
 	*/
 	public function getPostBoxWithHistory($iProfileId, $iLotId = BX_IM_EMPTY, $iType = BX_IM_TYPE_PUBLIC, $iJotId = BX_IM_EMPTY, $sEmptyContent = ''){
 		$CNF = $this->_oConfig->CNF;
 		$aLotInfo = array();
+        $sBaseUrl = $this->_oConfig->getBaseUri();
 		$aParams = array(
 			'content' => $sEmptyContent,
 			'id'	  => $iLotId,
 			'name'	  => '',
 			'user_id' => $iProfileId,
 			'type' => $iType,
-            'base_url' => BX_DOL_URL_ROOT . $this->_oConfig->getBaseUri(),
+            'place_holder' => $CNF['SERVER_URL'] ? _t('_bx_messenger_post_area_message') : _t('_bx_messenger_server_is_not_installed'),
+            'base_url' => $sBaseUrl,
             'bx_if:giphy' => array(
                 'condition' => $iProfileId && $CNF['GIPHY']['api_key'],
                 'content' 	=> array(
                     'giphy' => $this -> getGiphyPanel()
                 )
             ),
+            'emoji_picker' => $this->getEmojiCode(),
 			'bx_if:post_area' => array(
 				'condition' => $iProfileId,
-				'content' 	=> array(
-					'place_holder' => $CNF['SERVER_URL'] ? _t('_bx_messenger_post_area_message') : _t('_bx_messenger_server_is_not_installed'),
+				'content' => array(
+                    'files_uploader' => $CNF['FILES_UPLOADER'],
                     'bx_if:gif' => array(
                         'condition' => $iProfileId && $CNF['GIPHY']['api_key'],
                         'content' 	=> array()
@@ -103,11 +111,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
     	$iUnreadLotsJots = $this -> _oDb -> getUnreadJotsMessagesCount($iProfileId, $iLotId);
 		if ($iUnreadLotsJots && !$iJotId)
 			$iJotId = $this -> _oDb -> getFirstUnreadJot($iProfileId, $iLotId);
-		
+
 		$iLeftJots = 0;
 		if ($iJotId)
 			$iLeftJots = $this -> _oDb -> getLeftJots($iLotId, $iJotId);
-		
+
 		$aParams['bx_if:show_scroll_area'] = array(
 				'condition' => $iJotId && $iLeftJots > (int)$CNF['MAX_JOTS_BY_DEFAULT']/2,
 				'content' => array(
@@ -119,8 +127,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				)
 		);
 		
-		if ($iLotId)
-		{
+		if ($iLotId){
 			$aOptions = array(
 								'lot_id' => $iLotId,
 								'limit' => $CNF['MAX_JOTS_BY_DEFAULT'],
@@ -131,15 +138,123 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						
 			$aParams['content'] = $this -> getJotsOfLot($iProfileId, $aOptions);
 		}
-		
+
 		$aParams['url'] = '';
 		if ($iType != BX_IM_TYPE_PRIVATE)
 			$aParams['url'] = isset($aLotInfo[$CNF['FIELD_URL']]) ? $aLotInfo[$CNF['FIELD_URL']] : $this->_oConfig->getPageIdent();
-		
-		BxDolSession::getInstance()-> exists($iProfileId);
-		return $this -> parseHtmlByName('chat_window.html', $aParams);
+
+		BxDolSession::getInstance()->exists($iProfileId);
+		return $this -> parseHtmlByName('chat_window.html', $aParams) . $this->initFilesUploader($iProfileId);
 	}
-  
+
+	public function getEmojiCode($bTextArea = true){
+        $CNF = $this->_oConfig->CNF;
+
+	    return $this->parseHtmlByName('emoji-picker.html', array(
+            'title' => $bTextArea ? _t('_bx_messenger_emoji_text_title') : _t('_bx_messenger_emoji_reaction_title'),
+            'function' => "{$CNF['JSMain']}.onEmojiInsert",
+            'set' => $CNF['EMOJI_SET'],
+            'native' => $CNF['EMOJI_SET'] === 'native' ? 'true' : 'false',
+            'preview' => $CNF['EMOJI_PREVIEW']  ? 'true' : 'false',
+            'localization' => addslashes(json_encode(
+                array(
+                    'search' => _t('_bx_messenger_emoji_search'),
+                    'clear' => _t('_bx_messenger_emoji_clear'),
+                    'notfound' => _t('_bx_messenger_emoji_not_found'),
+                    'skintext' => _t('_bx_messenger_emoji_skintext'),
+                    'categories' => array(
+                        'search' => _t('_bx_messenger_emoji_categ_search'),
+                        'recent' => _t('_bx_messenger_emoji_categ_recent'),
+                        'people' => _t('_bx_messenger_emoji_categ_people'),
+                        'nature' => _t('_bx_messenger_emoji_categ_nature'),
+                        'foods' => _t('_bx_messenger_emoji_categ_foods'),
+                        'activity' => _t('_bx_messenger_emoji_categ_activity'),
+                        'places' => _t('_bx_messenger_emoji_categ_places'),
+                        'objects' => _t('_bx_messenger_emoji_categ_objects'),
+                        'symbols' => _t('_bx_messenger_emoji_categ_symbols'),
+                        'flags' => _t('_bx_messenger_emoji_categ_flags'),
+                        'custom' => _t('_bx_messenger_emoji_categ_custom'),
+                    ),
+                    'categorieslabel' => _t('_bx_messenger_emoji_categ_search'),
+                    'skintones' => array(
+                        1 => _t('_bx_messenger_emoji_skintones_1'),
+                        2 => _t('_bx_messenger_emoji_skintones_2'),
+                        3 => _t('_bx_messenger_emoji_skintones_3'),
+                        4 => _t('_bx_messenger_emoji_skintones_4'),
+                        5 => _t('_bx_messenger_emoji_skintones_5'),
+                        6 => _t('_bx_messenger_emoji_skintones_6'),
+                    ),
+                )))));
+    }
+	public function initFilesUploader($iProfileId){
+        $CNF = &$this -> _oConfig -> CNF;
+        $sBaseUrl = $this->_oConfig->getBaseUri();
+        $aParams = array();
+	    if ($oStorage = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE'])) {
+            $aParams = array(
+                'files_uploader' => $CNF['FILES_UPLOADER'],
+                'server_files_uploader_url' => $sBaseUrl . 'upload_temp_file',
+                'remove_temp_file_url' => $sBaseUrl . 'upload_temp_file',
+                'delete' => bx_js_string(_t('_bx_messenger_upload_delete')),
+                'delete_confirm' => bx_js_string(_t('_bx_messenger_delete_confirm')),
+                'invalid_file_type' => bx_js_string(_t('_bx_messenger_upload_invalid_file_type')),
+                'file_size' => (int)$oStorage->getMaxUploadFileSize($iProfileId)/(1024*1024),// in bytes
+                'max_files_exceeded' => bx_js_string(_t('_bx_messenger_max_files_upload_error')),
+                'upload_is_complete' => bx_js_string(_t('_bx_messenger_upload_is_complete')),
+                'upload_cancelled' => bx_js_string(_t('_bx_messenger_upload_cancelled')),
+                'uploading' => bx_js_string(_t('_bx_messenger_uploading_file')),
+                'number_of_files' => (int)$this->_oConfig->CNF['MAX_FILES_TO_UPLOAD'],
+                'response_error' => bx_js_string(_t('_bx_messenger_invalid_server_response')),
+                'remove_button' => bx_js_string(_t('_bx_messenger_uploading_remove_button')),
+            );
+        }
+
+        return !empty($aParams) ? $this->parseHtmlByName('filepond_config.html', $aParams) : '';
+    }
+
+    private function getJotMenuCode(&$aJot, $iProfileId){
+	    $CNF = &$this->_oConfig->CNF;
+
+	    $iJotAuthor = !empty($aJot) ? (int)$aJot[$CNF['FIELD_MESSAGE_AUTHOR']] : (int)$iProfileId;
+	    $iLotId = !empty($aJot) ? (int)$aJot[$CNF['FIELD_MESSAGE_FK']] : 0;
+	    $iJotId = !empty($aJot) ? (int)$aJot[$CNF['FIELD_MESSAGE_ID']] : 0;
+	    $bAllowToDelete = $this->_oDb->isAllowedToDeleteJot($iJotId, $iProfileId, $iJotAuthor, $iLotId);
+        $aMenuItems = array(
+            array(
+                'click' => "{$CNF['JSMain']}.onAddReaction(this);",
+                'title' => _t('_bx_messenger_reaction_jot'),
+                'icon' => 'smile'
+            ),
+            array(
+                'visibility' => $bAllowToDelete,
+                'click' => "{$CNF['JSMain']}.onEditJot(this);",
+                'title' => _t('_bx_messenger_edit_jot'),
+                'icon' => 'edit'
+            ),
+            array(
+                'click' => "{$CNF['JSMain']}.onCopyJotLink(this);",
+                'title' => _t('_bx_messenger_share_jot'),
+                'icon' => 'link'
+            ),
+            array(
+                'visibility' => $bAllowToDelete,
+                'click' => "if (confirm('" . bx_js_string(_t('_bx_messenger_remove_jot_confirm')) . "')) 
+                                                {$CNF['JSMain']}.onDeleteJot(this);",
+                'title' => _t('_bx_messenger_remove_jot'),
+                'icon' => 'backspace'
+            ),
+        );
+
+        $aVars = array('class' => '', 'position' => 'left center');
+        foreach ($aMenuItems as &$aItem) {
+                if (isset($aItem['visibility']) && $aItem['visibility'] !== TRUE)
+                    continue;
+
+                $aVars['bx_repeat:menu'][] = $aItem;
+        }
+
+	    return $this->parseHtmlByName('popup-menu-item.html', $aVars);
+    }
   	/**
 	* Main function to build post message block for any page
 	*@param int $iProfileId logged member id
@@ -151,21 +266,14 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*/
 	public function getTalkBlock($iProfileId, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $iType = BX_IM_TYPE_PUBLIC, $bShowMessenger = false){
         $CNF = &$this -> _oConfig -> CNF;
-        $aMenu = $aLotInfo = array();
+        $aLotInfo = array();
 		if ($iLotId)
+    		$aLotInfo = $this -> _oDb -> getLotInfoById($iLotId);
+
+        $sTitle = _t('_bx_messenger_linked_title', '<a href ="'. $this->_oConfig->getPageLink($this->_oConfig->getPageIdent()) .'">' . BxDolTemplate::getInstance()->aPage['header'] . '</a>');
+        if (!empty($aLotInfo))
 		{
-			$aLotInfo = $this -> _oDb -> getLotInfoById($iLotId); 
-				if ($this -> _oDb -> isAuthor($iLotId, $iProfileId) || isAdmin())
-				{
-					$aMenu[] = array('name' => _t("_bx_messenger_lots_menu_add_part"), 'title' => '', 'action' => "oMessenger.createLot({lot:{$iLotId}});");
-					$aMenu[] = array('name' => _t("_bx_messenger_lots_menu_delete"), 'title' => '', 'action' => "if (confirm('" . bx_js_string(_t('_bx_messenger_delete_lot')) . "')) oMessenger.onDeleteLot($iLotId);");
-				}		
-		}
-			  
-        $sTitle = '';
-		if (!empty($aLotInfo))
-		{
-			$sTitle = isset($aLotInfo[$CNF['FIELD_TITLE']]) && $aLotInfo[$CNF['FIELD_TITLE']]
+		    $sTitle = isset($aLotInfo[$CNF['FIELD_TITLE']]) && $aLotInfo[$CNF['FIELD_TITLE']]
                         ? $aLotInfo[$CNF['FIELD_TITLE']]
                         : $this -> getParticipantsNames($iProfileId, $iLotId);
 
@@ -174,19 +282,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                             _t('_bx_messenger_linked_title', '<a href ="'. $this->_oConfig->getPageLink($aLotInfo[$CNF['FIELD_URL']]) .'">' . $sTitle . '</a>') :
                             _t($sTitle);
 		}
-
-		$aMenu = array_merge($aMenu, array(
-                            array(
-		                            'name' => _t("_bx_messenger_lots_menu_leave"),
-                                    'title' => '',
-                                    'action' => "if (confirm('" . bx_js_string(_t('_bx_messenger_leave_chat_confirm')) . "')) oMessenger.onLeaveLot($iLotId);",
-                                ),
-                            array(
-                                    'name' => _t("_bx_messenger_lots_menu_media"),
-                                    'title' => '',
-                                    'action' => "$('.bx-messenger-conversation-block-wrapper .ui.sidebar:not(.giphy)').sidebar('toggle')"
-                                )
-                        ));
 
 		$iUnreadLotsJots = $bIsMuted = $bIsStarred = 0;		
 		if ($iProfileId)
@@ -197,7 +292,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		}
 		
 		$sContent = $this -> parseHtmlByName('talk.html', array(
-				'bx_repeat:settings' => $aMenu,
 				'bx_if:count' => array(
 									'condition' => $iUnreadLotsJots,
 									'content' => array(
@@ -207,6 +301,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				'bx_if:show_lot_menu' => array(
 									'condition' => $iProfileId,
 									'content' => array(
+                                        'lot_menu' => $this -> getLotMenuCode($iLotId, $this -> _oDb -> isAuthor($iLotId, $iProfileId) || isAdmin()),
 										'id' => $iLotId,
 										'mute' => (int)$bIsMuted,
 										'mute_title' => bx_js_string( $bIsMuted ? _t('_bx_messenger_lots_menu_mute_info_on') : _t('_bx_messenger_lots_menu_mute_info_off')),
@@ -226,8 +321,47 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		));
 
 		return array('content' => $sContent, 'title' => html2txt($sTitle));
-	}	
-	
+	}
+
+    private function getLotMenuCode($iLotId, $bAllowed){
+        $CNF = &$this->_oConfig->CNF;
+        $aMenuItems = array(
+            array(
+                'permissions' => true,
+                'click' => "{$CNF['JSMain']}.createLot({lot:{$iLotId}});",
+                'title' => _t("_bx_messenger_lots_menu_add_part"),
+                'icon' => 'plus-circle'
+            ),
+            array(
+                'permissions' => true,
+                'click' => "if (confirm('" . bx_js_string(_t('_bx_messenger_delete_lot')) . "')) 
+                                                {$CNF['JSMain']}.onDeleteLot($iLotId);",
+                'title' => _t('_bx_messenger_lots_menu_delete'),
+                'icon' => 'backspace'
+            ),
+            array(
+                'title' => _t("_bx_messenger_lots_menu_leave"),
+                'click' => "if (confirm('" . bx_js_string(_t('_bx_messenger_leave_chat_confirm')) . "')) oMessenger.onLeaveLot($iLotId);",
+                'icon' => 'sign-out-alt'
+            ),
+            array(
+                'title' => _t("_bx_messenger_lots_menu_media"),
+                'click' => "$('.bx-messenger-conversation-block-wrapper .ui.sidebar').sidebar('toggle')",
+                'icon' => 'photo-video'
+            )
+        );
+
+        $aVars = array('class' => '', 'position' => 'bottom');
+        foreach ($aMenuItems as &$aItem) {
+            if (isset($aItem['permissions']) && $aItem['permissions'] === true && !$bAllowed)
+                continue;
+
+            $aVars['bx_repeat:menu'][] = $aItem;
+        }
+
+        return $this->parseHtmlByName('popup-menu-item.html', $aVars);
+    }
+
 	/**
 	* Create top of the block with participants names and statuses
 	*@param int $iProfileId logged member id
@@ -447,8 +581,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				$sMessage = '';
 				if (isset($aLatestJots[$CNF['FIELD_MESSAGE']]))
 				{
-					$sMessage = $aLatestJots[$CNF['FIELD_MESSAGE']];
-					
+					$sMessage = html2txt($aLatestJots[$CNF['FIELD_MESSAGE']]);
 					if ($aLatestJots[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_REPOST)
 					{
 						$sMessage = $this -> _oConfig -> cleanRepostLinks($sMessage, $aLatestJots[$this->_oConfig->CNF['FIELD_MESSAGE_AT']]);
@@ -522,14 +655,19 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		));
 	}
 
+    /**
+     * Returns html with users show viewed the message
+     * @param $iJotId int message id
+     * @param $iExcludeProfile int exclude defined profile id from the list
+     * @return bool|string
+     */
 	public function getViewedJotProfiles($iJotId, $iExcludeProfile){
-        $CNF = $this->_oConfig-> CNF;
+        $CNF = $this->_oConfig->CNF;
 	    $aJotInfo = $this -> _oDb -> getJotById($iJotId);
         if (empty($aJotInfo))
-            return false;
+            return '';
 
         $aResult = $aParticipants = $this -> _oDb -> getParticipantsList($aJotInfo[$CNF['FIELD_MESSAGE_FK']], true);
-
         if ($CNF['MAX_VIEWS_PARTS_NUMBER'] < count($aResult))
             return '';
 
@@ -538,7 +676,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
         $aIcons = array();
         foreach($aResult as &$iProfileId) {
-            if ($iExcludeProfile === $iProfileId)
+            if ($iExcludeProfile == $iProfileId)
                 continue;
 
             $aIcons[] = array(
@@ -577,6 +715,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$bSelectJot = isset($aParams['select'])? (bool)$aParams['select'] : false;
 		$bMarkAsRead = isset($aParams['read']) ? (bool)$aParams['read'] : true;
         $bShowViews = isset($aParams['views']);
+        $bDynamic = isset($aParams['dynamic']);
 
 		$aLotInfo = $this -> _oDb -> getLotByIdOrUrl($iLotId, $sUrl, $iProfileId);
 		if (empty($aLotInfo))
@@ -593,7 +732,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$aJots = $this -> _oDb -> getJotsByLotId($aLotInfo[$CNF['FIELD_MESSAGE_ID']], $iStart, $sLoad, $iLimit, $bSelectJot && $iStart && empty($aStartMiddleJot));
 		if (empty($aJots))
 			return '';
-					
+
+		$iJotCount = count($aJots);
 		$aVars['bx_repeat:jots'] = array(); 
 		foreach($aJots as $iKey => $aJot)
 		{
@@ -616,13 +756,14 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				else
 				{
 					$sMessage = $this -> _oConfig -> bx_linkify($aJot[$CNF['FIELD_MESSAGE']]);
-					$sAttachment = !empty($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']]) ? $this -> getAttachment($aJot) : '';
+					$sAttachment = !empty($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']]) ? $this -> getAttachment($aJot, true, $bDynamic) : '';
 				}
 
+				$sReactions = $this->getJotReactions($iJot);
 				$aVars['bx_repeat:jots'][] = array(
 						'title' => $oProfile->getDisplayName(),
 						'time' => bx_time_js($aJot[$CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_DATE_TIME),
-                        'views' => $bShowViews ? $this -> getViewedJotProfiles($iJot, $iProfileId) : '',
+                        'views' => $bShowViews && ($iJotCount-1 == $iKey) ? $this -> getViewedJotProfiles($iJot, $iProfileId) : '',
 						'new' => (int)in_array($iProfileId, $aNewFor),
 						'url' => $oProfile->getUrl(),
                         'immediately' => +$this -> _oConfig -> CNF['REMOVE_MESSAGE_IMMEDIATELY'],
@@ -630,26 +771,35 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						'id' => $aJot[$CNF['FIELD_MESSAGE_ID']],
 						'message' => $sMessage,
 						'attachment' => $sAttachment,
+                        'my' => (int)$iProfileId === (int)$aJot[$CNF['FIELD_MESSAGE_AUTHOR']] ? 1 : 0,
+                        'bx_if:jot_menu' => array(
+                            'condition' => $iProfileId && !$bIsTrash,
+                            'content'	=> array(
+                                'jot_menu' => $this -> getJotMenuCode($aJot, $iProfileId)
+                            )
+                        ),
+                        'bx_if:show_reactions_area' => array(
+                            'condition' => !$bIsTrash,
+                            'content' => array(
+                                'bx_if:reactions' => array(
+                                    'condition' => true,
+                                    'content' => array(
+                                        'reactions' => $sReactions,
+                                        'display' => $sReactions ? 'block' : 'none'
+                                    )
+                                ),
+                                'bx_if:edit' => array(
+                                    'condition' => $isAllowedDelete,
+                                    'content'	=> array()
+                                ),
+                            )
+                        ),
 						'display' => !$bDisplay ? 'style="display:none;"' : '',
 						'bx_if:blink-jot' => array(
 							'condition' => $bSelectJot && $aParams['start'] == $iJot,
 							'content' => array()
 						),
 						'display_message' => '',
-						'bx_if:jot_menu' => array
-						(
-							'condition' => $iProfileId && !$bIsTrash,
-							'content'	=> array(
-													'bx_if:delete' => array
-													(
-														'condition' => $isAllowedDelete,
-														'content'	=> array(
-															'confirm_delete' => bx_js_string(_t('_bx_messenger_remove_jot_confirm')),
-                                                            'immediately' => +$CNF['REMOVE_MESSAGE_IMMEDIATELY'],
-														)
-													)
-												)
-						),
 						'edit_icon' => $aJot[$CNF['FIELD_MESSAGE_EDIT_BY']] && !$bIsTrash ?
 							$this -> parseHtmlByName('edit_icon.html',
 									array(
@@ -736,7 +886,10 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             '_bx_messenger_max_video_file_exceeds',
             '_bx_messenger_video_record_is_not_supported',
             '_bx_messenger_search_no_results',
-            '_bx_messenger_search_query_issue'
+            '_bx_messenger_search_query_issue',
+            '_bx_messenger_wait_for_uploading',
+            '_bx_messenger_can_not_upload_simultaneously',
+
         ));
 
 		$aVars = array(
@@ -744,9 +897,21 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'server_url' => $this->_oConfig-> CNF['SERVER_URL'],
 			'message_length' => (int)$this->_oConfig->CNF['MAX_SEND_SYMBOLS'] ? (int)$CNF['MAX_SEND_SYMBOLS'] : 0,
 			'ip' => gethostbyname($aUrlInfo['host']),
-			'smiles' => (int)$this->_oConfig-> CNF['CONVERT_SMILES'],
-			'ebmed_template' => $sEmbedTemplate,
-			'jot_url' => BxDolPermalinks::getInstance()->permalink($CNF['URL_REPOST']),
+			'embed_template' => $sEmbedTemplate,
+			'reaction_template' => $this->parseHtmlByName('reaction.html', array(
+			    'emoji_id' => '__emoji_id__',
+			    'parts' => '__parts__',
+			    'title' => _t('_bx_messenger_reaction_title_author'),
+                'number' => 1,
+                'count' => 1,
+                'params' => json_encode(array(
+                    'id' => '__emoji_id__',
+                    'size' => $CNF['REACTIONS_SIZE'],
+                    'native' => $CNF['EMOJI_SET'] === 'native',
+                    'set' => $CNF['EMOJI_SET']
+                ))
+            )),
+			'jot_url' => $this->_oConfig->getRepostUrl(),
 			'bx_if:onsignal' => array(
 										'condition'	=> (int)$iProfileId && $this->_oConfig->isOneSignalEnabled() && !getParam('sys_push_app_id'),
 										'content' => array(
@@ -758,13 +923,58 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 											'notification_request_yes' => bx_js_string(_t('_bx_messenger_notification_request_yes')),
 											'notification_request_no' => bx_js_string(_t('_bx_messenger_notification_request_no')),
 											'profile_id' => (int)$iProfileId,
+                                            'email' => '',
+                                            'email_hash' => '',
+                                            'push_tags_encoded' => ''
 										)
 									)
 		);
 
+		// For compatibility with UNA 11.x.x
+        if(class_exists('BxDolPush', false) && method_exists('BxDolPush', 'getTags')){
+            $aTags = BxDolPush::getTags($iProfileId);
+            $aVars['bx_if:onsignal']['email'] = $aTags['email'];
+            $aVars['bx_if:onsignal']['email_hash'] = $aTags['email_hash'];
+
+            unset($aTags['email']);
+            unset($aTags['email_hash']);
+            $aVars['bx_if:onsignal']['push_tags_encoded'] = json_encode($aTags);
+        }
+
 		return $this -> parseHtmlByName('config.html', $aVars);
 	}
-	
+	public function getJotReactions($iJotId){
+        $CNF = &$this->_oConfig->CNF;
+	    $aReactions = $this->_oDb->getJotReactions($iJotId);
+
+	    $aJotReactions = array();
+        $iViewer = bx_get_logged_profile_id();
+        foreach($aReactions as &$aReaction)
+            $aJotReactions[$aReaction[$CNF['FIELD_REACT_EMOJI_ID']]][$aReaction[$CNF['FIELD_REACT_PROFILE_ID']]] =
+                $aReaction[$CNF['FIELD_REACT_PROFILE_ID']] == $iViewer
+                    ? _t('_bx_messenger_reaction_title_author') : $this->getObjectUser($aReaction[$CNF['FIELD_REACT_PROFILE_ID']])->getDisplayName();
+
+        $sReactions = '';
+        foreach($aJotReactions as $sEmojiId => $aProfiles) {
+            $iCount = count($aProfiles);
+            $sReactions .= $this->parseHtmlByName('reaction.html', array(
+                'title' => _t('_bx_messenger_reaction_title', implode(', ', $aProfiles), $sEmojiId),
+                'emoji_id' => $sEmojiId,
+                'number' => $iCount,
+                'parts' => implode(',', array_keys($aProfiles)),
+                'count' => $iCount,
+                'params' => json_encode(array(
+                    'id' => $sEmojiId,
+                    'size' => $CNF['REACTIONS_SIZE'],
+                    'native' => $CNF['EMOJI_SET'] === 'native',
+                    'set' => $CNF['EMOJI_SET']
+                ))
+            ));
+        }
+
+        return $sReactions;
+    }
+
 	public function getMessageIcons($iJotId, $sType = 'edit', $isAdmin = false)
 	{ 
 		$CNF = &$this->_oConfig->CNF;
@@ -811,13 +1021,15 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@return string html code
 	*/
 	public function getMembersJotTemplate($iProfileId){
-		if (!$iProfileId) return '';
+		if (!$iProfileId)
+		    return '';
 		
 		$oProfile = $this -> getObjectUser($iProfileId);
-                $isAllowedDelete = $this -> _oConfig -> CNF['ALLOW_TO_REMOVE_MESSAGE'] || isAdmin();
+        $isAllowedDelete = $this -> _oConfig -> CNF['ALLOW_TO_REMOVE_MESSAGE'] || isAdmin();
 		if ($oProfile)
 		{
-			$aVars['bx_repeat:jots'][] = array
+			$aJot = array();
+		    $aVars['bx_repeat:jots'][] = array
 			(
 				'title' => $oProfile->getDisplayName(),
                 'views' => '',
@@ -828,25 +1040,37 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				'display_message' => 'style="display:none;"',
 				'id' => 0,
 				'new' => '',
+				'my' => 1,
 				'message' => '',
 				'attachment' => '',
+                'bx_if:jot_menu' => array(
+                    'condition' => $iProfileId,
+                    'content'	=> array(
+                        'jot_menu' => $this -> getJotMenuCode($aJot, $iProfileId),
+                    )
+                ),
+                'bx_if:show_reactions_area' => array(
+                    'condition' => true,
+                    'content' => array(
+                        'bx_if:reactions' => array(
+                            'condition' => true,
+                            'content' => array(
+                                'reactions' => '',
+                                'display' => 'none'
+                            )
+                        ),
+                        'bx_if:edit' => array(
+                            'condition' => $isAllowedDelete,
+                            'content'	=> array()
+                        ),
+                    )
+                ),
 				'bx_if:blink-jot' => array(
 					'condition' => false,
 					'content' => array()
 				),
-				'bx_if:jot_menu' => array(
-					'condition' => $iProfileId,
-					'content'	=> array(
-							'bx_if:delete' => array(
-								'condition' => $isAllowedDelete,
-								'content'	=> array(
-                                    'immediately' => +$this -> _oConfig -> CNF['REMOVE_MESSAGE_IMMEDIATELY'],
-									'confirm_delete' => bx_js_string(_t('_bx_messenger_remove_jot_confirm'))
-								)
-							),
-						)
-				),
-				'edit_icon' => ''
+				'edit_icon' => '',
+                'reactions' => ''
 			);
 					
 			return $this -> parseHtmlByName('jots.html',  $aVars);
@@ -912,12 +1136,15 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                 true
             ) : $this->parseHtmlByName('tmp_video.html', array('img' => $sPoster));
     }
+
     /**
-	* Returns attachment according jot's attachment type
-	*@param array $aJot jot info
-	*@return string html code
-	*/	
-	function getAttachment($aJot){
+     * Returns attachment according jot's attachment type
+     * @param array $aJot jot info
+     * @param bool $bMenu show menu in attached items
+     * @param bool $bIsDynamicallyLoad true when message is dynamically loaded to the history
+     * @return string html code
+     */
+	function getAttachment($aJot, $bMenu = true, $bIsDynamicallyLoad = false){
 		$sHTML = '';
 		$iViewer = bx_get_logged_profile_id();
 		$CNF = &$this -> _oConfig -> CNF;
@@ -931,7 +1158,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						$sHTML = $this -> getJotAsAttachment($aJot[$CNF['FIELD_MESSAGE_AT']]);
 						break;
                 case 'giphy':
-                        $sHTML = $this -> parseHtmlByName('giphy.html', array('gif' => $aJot[$CNF['FIELD_MESSAGE_AT']], 'time' => time()));
+                        $sHTML = $this -> parseHtmlByName('giphy.html', array(
+                            'gif' => $aJot[$CNF['FIELD_MESSAGE_AT']],
+                            'time' => time(),
+                            'static' => $bIsDynamicallyLoad ? 'none' : 'flex',
+                            'dynamic' => $bIsDynamicallyLoad ? 'block' : 'none',
+                        ));
                         break;
 				case 'files':
 						$aFiles = $this -> _oDb -> getJotFiles($aJot[$CNF['FIELD_MESSAGE_ID']]);
@@ -959,16 +1191,16 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 									$sFileUrl = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$CNF['FIELD_ST_ID']]);
 									$aItems['bx_repeat:images'][] = array(
 										'url' => $sPhotoThumb ? $sPhotoThumb : $sFileUrl,
-										'name' => $aFile[$CNF['FIELD_ST_NAME']],
 										'id' => $aFile[$CNF['FIELD_ST_ID']],
-										'delete_code' => $this -> deleteFileCode($aFile[$CNF['FIELD_ST_ID']], $isAllowedDelete)
+										'name' => $aFile[$CNF['FIELD_ST_NAME']],
+										'delete_code' => $bMenu ? $this -> deleteFileCode($aFile[$CNF['FIELD_ST_ID']], $isAllowedDelete) : ''
 									);
 								}elseif ($isVideo)
 								{
 									$aItems['bx_repeat:videos'][] = array(
 										'id' => $aFile[$CNF['FIELD_ST_ID']],
 										'video' => $this -> getVideoFilesToPlay($aFile),
-										'delete_code' => $this -> deleteFileCode($aFile[$CNF['FIELD_ST_ID']], $isAllowedDelete)
+										'delete_code' => $bMenu ? $this -> deleteFileCode($aFile[$CNF['FIELD_ST_ID']], $isAllowedDelete) : ''
 									);
 								}
                                 elseif ($oTranscoderMp3 -> isMimeTypeSupported($aFile[$CNF['FIELD_ST_TYPE']]))
@@ -986,7 +1218,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                                                 'loading_img' => BxDolTemplate::getInstance()->getImageUrl('video-na.png')
                                             )
                                         ),
-                                        'delete_code' => $this -> deleteFileCode($aFile[$CNF['FIELD_ST_ID']], $isAllowedDelete)
+                                        'delete_code' => $bMenu ? $this -> deleteFileCode($aFile[$CNF['FIELD_ST_ID']], $isAllowedDelete) : ''
 									);
 								}
 								else
@@ -995,7 +1227,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 										'name' => $aFile[$CNF['FIELD_ST_NAME']],
 										'file_type' => $aFile[$CNF['FIELD_ST_TYPE']],
 										'id' => $aFile[$CNF['FIELD_MESSAGE_ID']],
-										'delete_code' => $this -> deleteFileCode($aFile[$CNF['FIELD_MESSAGE_ID']], $isAllowedDelete),
+										'delete_code' => $bMenu ? $this -> deleteFileCode($aFile[$CNF['FIELD_MESSAGE_ID']], $isAllowedDelete) : '',
 										'url' => BX_DOL_URL_ROOT
 									);
 						}
@@ -1080,7 +1312,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		}
 		
 		if ($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES || $aJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_GIPHY)
-			$sMessage = $aJot[$this->_oConfig->CNF['FIELD_MESSAGE']] . $this -> getAttachment($aJot);
+			$sMessage = $aJot[$this->_oConfig->CNF['FIELD_MESSAGE']] . $this -> getAttachment($aJot, false);
 		else
 			$sMessage = $this -> _oConfig -> bx_linkify($aJot[$this->_oConfig->CNF['FIELD_MESSAGE']]);
 		
@@ -1118,7 +1350,35 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
 		return $oProfile;
 	}
-	
+
+    private function getFileMenuCode($iFileId, $bAllowedDelete){
+        $CNF = &$this->_oConfig->CNF;
+        $aMenuItems = array(
+            array(
+                'click' => "window.location.href='" . $this->_oConfig->getBaseUri() . "download_file/{$iFileId}'",
+                'title' => _t('_bx_messenger_file_download'),
+                'icon' => 'download'
+            ),
+            array(
+                'permissions' => true,
+                'click' => "if (confirm('" . bx_js_string(_t('_bx_messenger_post_confirm_delete_file')) . "')) 
+                                                {$CNF['JSMain']}.removeFile(this, {$iFileId})",
+                'title' => _t('_bx_messenger_upload_delete'),
+                'icon' => 'backspace'
+            ),
+        );
+
+         $aVars = array('class' => 'file-menu', 'position' => 'left center');
+         foreach ($aMenuItems as &$aItem) {
+                if (isset($aItem['permissions']) && $aItem['permissions'] === true && !$bAllowedDelete)
+                    continue;
+
+                $aVars['bx_repeat:menu'][] = $aItem;
+         }
+
+        return $this->parseHtmlByName('popup-menu-item.html', $aVars);
+    }
+
 	/**
 	* Returns right side file's menu in talk history. Allows to  remove or download the file
 	*@param int $iFileId file id in storage table
@@ -1126,16 +1386,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@return string html
 	*/
 	public function deleteFileCode($iFileId, $bIsDeleteAllowed = false){
-		return $this -> parseHtmlByName('file_menu.html', array(
-					'id' => (int)$iFileId,
-					'url' => BX_DOL_URL_ROOT,
-					'bx_if:delete' => array(
-						'condition' => $bIsDeleteAllowed,
-						'content'	=> array(
-							'delete_message' => bx_js_string(_t('_bx_messenger_post_confirm_delete_file')),
-							'id' => (int)$iFileId
-						)
-					 )
+
+	    return $this -> parseHtmlByName('file_menu.html', array(
+                    'file_menu' => $this -> getFileMenuCode($iFileId, $bIsDeleteAllowed)
 				));
 	}
 	
@@ -1250,13 +1503,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         ));
     }
 
-    public function getGiphyItems($sAction, $sQuery, $iWidth = 0, $iStart = 0){
+    public function getGiphyItems($sAction, $sQuery, $fHeight = 0, $iStart = 0){
         $oResult = $this->_oConfig->getGiphyGifs($sAction, $sQuery, $iStart);
-
-        $iWidth = (float)$iWidth;
-        $iCount = $iWidth/150;
-        $fGifWidth = $iWidth/round($iCount) - 8;
-        $fRate = 200/$fGifWidth;
+        $fGifHeight = $fHeight/200;
         $iTime = time();
 
         $aResult = array('pagination' => array(), 'content' => '');
@@ -1264,24 +1513,19 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             if (!empty($aResult['data'])){
                 $aVars['bx_repeat:gifs'] = array();
                 foreach($aResult['data'] as &$aGif) {
-                    $aImage = $aGif['images']['fixed_width'];
+                    $aImage = $aGif['images']['fixed_height'];
                     $aVars['bx_repeat:gifs'][] = array(
                         'id' => $aGif['id'],
-                        'width' => $fGifWidth,
-                        'height' => $aImage['height']/$fRate,
+                        'width' => $aImage['width'] * $fGifHeight,
+                        'height' => $fHeight,
                         'gif' => $aGif['id'],
                         'time' => $iTime,
                         'title' => $aGif['title']
                     );
                 }
 
-                if (!empty($aVars['bx_repeat:gifs'])) {
-                    usort($aVars['bx_repeat:gifs'], function ($a, $b) {
-                        return $a['height'] < $b['height'];
-                    });
-
+                if (!empty($aVars['bx_repeat:gifs']))
                     $aResult = array('pagination' => $aResult['pagination'], 'content' => $this->parseHtmlByName('giphy_items.html', $aVars));
-                }
             }
         }
 

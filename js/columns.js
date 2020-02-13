@@ -65,19 +65,18 @@
 				},
 			
 				changeColumn:function(sSide){
-						this.init();
-						
-						if (this.isMobile())
-						{
-							if (sSide)
-								this.sActiveType = sSide;
-							else	
-								this.sActiveType = this.sActiveType === 'left' ? 'right' : 'left';
-						}
+					this.init();
+					if (this.isMobile())
+					{
+						if (sSide)
+							this.sActiveType = sSide;
 						else
-							this.sActiveType = 'both';
+							this.sActiveType = this.sActiveType === 'left' ? 'right' : 'left';
+					}
+					else
+						this.sActiveType = 'both';
 					
-						this.resizeColumns();
+					this.resizeColumns();
 				},
 				activateLeft:function(){					
 						this.oRightCol.hide().width('0%');
@@ -143,7 +142,6 @@
 			changeColumn:function(sSide, fCallback)
 			{
 				_oPrivate.changeColumn(sSide);
-
 				if (typeof fCallback === 'function')
 					fCallback();
 			},

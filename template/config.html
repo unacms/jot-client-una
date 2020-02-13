@@ -32,6 +32,7 @@
                 OneSignal.setDefaultNotificationUrl('__jot_chat_page_url__');
                 OneSignal.isPushNotificationsEnabled().then(
                     function (isEnabled) {
+
                         if ('__email__') {
                             OneSignal.setEmail('__email__', '__email_hash__');
                             OneSignal.sendTags(__push_tags_encoded__);

@@ -1115,7 +1115,7 @@ var oMessenger = (function($){
 		
 		/**
 		* Init settings, occurs when member opens the main messenger page
-		*@param int iProfileId if profile id o‡ the person whom to talk 
+		*@param int iProfileId if profile id o–∞ the person whom to talk 
 		*@param object oBuilder page builder class
 		*/
 		initMessengerPage:function(iProfileId, oBuilder){

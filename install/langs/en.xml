@@ -73,7 +73,6 @@
 	<string name="_bx_messenger_friends_page_all_friends_block"><![CDATA[My Friends talk]]></string>		
 	<string name="_bx_messenger_push_short_name"><![CDATA[Short name (required only for http sites. It must match the Subdomain you entered on the Web Push settings on the OneSignal dashboard)]]></string>
 	<string name="_bx_messenger_push_safari_id"><![CDATA[Apple Safari Web ID on the Web Push settings]]></string>
-	<string name="_bx_messenger_typing_smiles"><![CDATA[Allow to type smiles]]></string>
 	<string name="_bx_messenger_notification_request"><![CDATA[Would you like to get notifications about new messages?]]></string>
 	<string name="_bx_messenger_notification_request_yes"><![CDATA[Yes]]></string>	
 	<string name="_bx_messenger_notification_request_no"><![CDATA[No, thanks]]></string>
@@ -147,7 +146,6 @@
 	<string name="_bx_messenger_txt_sample_comment_file_single"><![CDATA[<b>{0} file(s) </b>]]></string>
 	<string name="_bx_messenger_max_ntfs_number"><![CDATA[Maximum notifications number per member from one Talk during 1 hour]]></string>
 	<string name="_bx_messenger_txt_subobject_added"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> sent a {subentry_sample}]]></string>
-	<string name="_bx_messenger_txt_subobject_added_single"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> sent {subentry_sample}]]></string>
 	<string name="_bx_messenger_max_parts_views"><![CDATA[Allow to show messages' views for Talks which contain maximum defined number of participants]]></string>
 	<string name="_bx_messenger_allow_to_remove_messages"><![CDATA[Allow members to remove their messages]]></string>
 	<string name="_bx_messenger_remove_messages_immediately"><![CDATA[Remove messages immediately, without administration confirmation]]></string>
@@ -194,10 +192,10 @@
 	<string name="_bx_messenger_emoji_skintones_4"><![CDATA[Medium Skin Tone]]></string>
 	<string name="_bx_messenger_emoji_skintones_5"><![CDATA[Medium-Dark Skin Tone]]></string>
 	<string name="_bx_messenger_emoji_skintones_6"><![CDATA[Dark Skin Tone]]></string>
-	<string name="_bx_messenger_emoji_set"><![CDATA[Emoji set of which to select reactions and text area]]></string>
-	<string name="_bx_messenger_reactions_size"><![CDATA[Size of the emoji in reactions area]]></string>
-	<string name="_bx_messenger_show_emoji_preview"><![CDATA[Show emoji preview with skin tones area]]></string>
-	<string name="_bx_messenger_can_not_upload_simultaneously"><![CDATA[Message can not contain files with another content simultaneously!]]></string>
+	<string name="_bx_messenger_emoji_set"><![CDATA[Select set of Emoji to use for reactions and in text messages]]></string>
+	<string name="_bx_messenger_reactions_size"><![CDATA[Size of the emoji in reactions]]></string>
+	<string name="_bx_messenger_show_emoji_preview"><![CDATA[Show emoji preview with skin tones]]></string>
 	<string name="_bx_messenger_file_download"><![CDATA[Download file]]></string>
 	<string name="_bx_messenger_notification_subject"><![CDATA[Message from {0}]]></string>
-</resources>s
+	<string name="_bx_messenger_txt_subobject_added_single"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> sent {subentry_sample}]]></string>
+</resources>

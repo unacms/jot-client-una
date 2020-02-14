@@ -1489,6 +1489,7 @@ div.bx-messenger-giphy-items img{
 	width: min-content;
 	margin-right: 0.5rem;
 	display: unset;
+	visibility: hidden;
 }
 
 .bx-messenger-attachment-giphy picture,

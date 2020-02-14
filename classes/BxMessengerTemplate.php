@@ -785,7 +785,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                                     'condition' => true,
                                     'content' => array(
                                         'reactions' => $sReactions,
-                                        'display' => $sReactions ? 'block' : 'none'
+                                        'bx_if:reactions_menu' => array(
+                                            'condition' => $iProfileId,
+                                            'content' => array(
+                                                'display' => $sReactions ? 'block' : 'none',
+                                            )
+                                        ),
                                     )
                                 ),
                                 'bx_if:edit' => array(
@@ -887,9 +892,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             '_bx_messenger_video_record_is_not_supported',
             '_bx_messenger_search_no_results',
             '_bx_messenger_search_query_issue',
-            '_bx_messenger_wait_for_uploading',
-            '_bx_messenger_can_not_upload_simultaneously',
-
+            '_bx_messenger_wait_for_uploading'
         ));
 
 		$aVars = array(
@@ -900,6 +903,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'embed_template' => $sEmbedTemplate,
 			'reaction_template' => $this->parseHtmlByName('reaction.html', array(
 			    'emoji_id' => '__emoji_id__',
+			    'on_click' => 'oMessenger.onRemoveReaction(this);',
 			    'parts' => '__parts__',
 			    'title' => _t('_bx_messenger_reaction_title_author'),
                 'number' => 1,
@@ -963,6 +967,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                 'number' => $iCount,
                 'parts' => implode(',', array_keys($aProfiles)),
                 'count' => $iCount,
+                'on_click' => $iViewer ? 'oMessenger.onRemoveReaction(this);' : 'javascript:void(0);',
                 'params' => json_encode(array(
                     'id' => $sEmojiId,
                     'size' => $CNF['REACTIONS_SIZE'],
@@ -1056,7 +1061,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                             'condition' => true,
                             'content' => array(
                                 'reactions' => '',
-                                'display' => 'none'
+                                'bx_if:reactions_menu' => array(
+                                    'condition' => true,
+                                    'content' => array(
+                                        'display' => 'none',
+                                    )
+                                ),
                             )
                         ),
                         'bx_if:edit' => array(

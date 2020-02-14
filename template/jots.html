@@ -23,13 +23,15 @@
 				<div class="bx-messenger-jot-reactions">
 					<bx_if:reactions>
 						__reactions__
-						<div class="bx-messenger-reactions-menu" style="display:__display__">
-								<span class="bx-messenger-reactions-menu-opened">
-									<a href="javascript:void(0);" title="<bx_text:_bx_messenger_reaction_jot />" onclick="oMessenger.onAddReaction(this, true);" class="reactions bx-def-label">
-										<i class="sys-icon smile-wink bx-def-label"></i>
-									</a>
-								</span>
-						</div>
+						<bx_if:reactions_menu>
+							<div class="bx-messenger-reactions-menu" style="display:__display__">
+									<span class="bx-messenger-reactions-menu-opened">
+										<a href="javascript:void(0);" title="<bx_text:_bx_messenger_reaction_jot />" onclick="oMessenger.onAddReaction(this, true);" class="reactions bx-def-label">
+											<i class="sys-icon smile-wink bx-def-label"></i>
+										</a>
+									</span>
+							</div>
+						</bx_if:reactions_menu>
 					</bx_if:reactions>
 				</div>
 			</bx_if:show_reactions_area>

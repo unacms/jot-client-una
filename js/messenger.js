@@ -332,7 +332,7 @@
 					iParentHeight = oEmoji.closest(_this.sTalkAreaWrapper).height();
 
 				if (bHidden)
-					oEmoji.css({ display: 'block', top: iParentHeight - iHeight - $(_this.sMessangerParentBox).height(), left: '0.5rem', right:""});
+					oEmoji.css({ visibility: 'visible', display: 'block', top: iParentHeight - iHeight - $(_this.sMessangerParentBox).height(), left: '0.5rem', right:""});
 				else
 					oEmoji.fadeOut();
 
@@ -770,6 +770,7 @@
 			oEmoji.css({
 				top: _this.calculatePositionTop(oJot, $(_this.sEmojiId).css({height: 'min-content'})),
 				display: 'block',
+				visibility: 'visible',
 				left: bNear && !_this.isMobile() ? $(oObject).position().left : '',
 			}).show(100);
 
@@ -1044,8 +1045,6 @@
 	};
 
 	$.fn.setRandomBGColor = function() {
-		const aCharacters = "0123456789ABCDEF";
-		let sColor = '#';
 
 		$('img', this).each(function(){
 			let hex = Math.floor(Math.random() * 0xFFFFFF);
@@ -1372,7 +1371,7 @@
 										});																
 									else
 										_this.updateScrollPosition('bottom');
-						})
+						});
 						
 					if (typeof oData.title !== 'undefined')
 						$(document).prop('title', oData.title);

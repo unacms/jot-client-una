@@ -1,0 +1,96 @@
+<script>
+$(function($, oMessenger) {
+    let aFiles = [];
+    let bClean = false;
+    let bLoading = false;
+    const oFilePond = $('[name=__files_uploader__]')
+        .filepond({
+            server: {
+                url: '__server_files_uploader_url__',
+                revert: null,
+            },
+            beforeDropFile: (oFile) => {
+                const sPreg = /\.(jpeg|jpg|gif|png)$/;
+
+                if (typeof oFile === 'string')
+                    return sPreg.test(oFile);
+
+                return oFile instanceof File && oFile.type !== 'text/html';
+            },
+            beforeAddFile: ({ file }) => {
+                const { type } = file;
+
+                return !(file instanceof Blob && !(file instanceof File) && type === 'text/html');
+            },
+            imagePreviewMaxHeight: 96,
+            dropValidation: true,
+            dropOnPage: true,
+            allowMultiple: true,
+            allowBrowse: true,
+            dropOnElement: false,
+            allowPaste: true,
+            checkValidity: true,
+            allowFileTypeValidation: true,
+            maxFiles: '__number_of_files__',
+            labelInvalidField: '__invalid_file_type__',
+            labelFileProcessing: '__uploading__',
+            labelFileProcessingComplete: '__upload_is_complete__',
+            labelFileProcessingAborted: '__upload_cancelled__',
+            labelFileProcessingError: '__response_error__',
+            labelButtonRemoveItem: '__remove_button__',
+            maxFileSize: '__file_size__MB',
+            onaddfilestart: () => {
+                bClean = false;
+                bLoading = true;
+            },
+            onupdatefiles: (files) => {
+                aFiles = files;
+                bLoading = false;
+
+                const aFilteredFiles = aFiles.filter(({ fileType }) => fileType !== 'application/octet-stream');
+                /*$('.bx-messenger-attachment-group')
+                      .css({
+                          display: aFilteredFiles.length ? 'flex' : 'none'
+                      });*/
+
+               if (typeof oMessenger.updateAttachmentArea === 'function')
+                  oMessenger.updateAttachmentArea(!aFilteredFiles.length);
+            },
+            onremovefile: (error, oFile) => {
+                const { file } = oFile;
+                bLoading = false;
+                if (!bClean && file && file.name)
+                    $.ajax({
+                        url: '__remove_temp_file_url__',
+                        type: 'DELETE',
+                        data:  { name: file.name }
+                    });
+            }
+        });
+
+    $('div.filepond--root')
+        .on('FilePond:init', () =>{
+            $('a.attachefile').on('click', () => {
+                $('.filepond--browser').click();
+            });
+        })
+        .on('FilePond:addfile', () => oMessenger.cleanGiphyAreas());
+
+    const oFilePondUploader = {
+        isLoadingStarted: () =>  +oFilePond.filepond('status') === 3,
+        isReady: () => !aFiles.length || (aFiles.length === aFiles.filter((oFile) => oFile.status === 5).length),
+        getFiles: () => aFiles
+                              .filter((oFile) => oFile.status === 5)
+                              .map(({ file }) => file.name),
+        clean: () => {
+            bClean = true;
+            return oFilePond.filepond('removeFiles');
+        }
+    };
+
+    if (oMessenger)
+        oMessenger.initUploader(oFilePondUploader);
+
+}($, oMessenger));
+
+</script>

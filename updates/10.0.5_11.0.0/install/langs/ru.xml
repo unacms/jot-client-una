@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="ru" flag="ru" title="Russian">
+	<string_upd name="_bx_messenger_post_area_message"><![CDATA[Cообщение ...]]></string_upd>
+	<string_upd name="_bx_messenger_remove_messages_immediately"><![CDATA[Удалять сообщения сразу, без подтверждения администратора]]></string_upd>
+
+	<string_add name="_bx_messenger_reaction_title_author"><![CDATA[Вы]]></string_add>
+	<string_add name="_bx_messenger_reaction_title"><![CDATA[{0} отреагировал: {1}]]></string_add>
+	<string_add name="_bx_messenger_reaction_jot"><![CDATA[Добавить реакцию]]></string_add>
+	<string_add name="_bx_messenger_uploading_file"><![CDATA[Загрузка]]></string_add>
+	<string_add name="_bx_messenger_upload_is_complete"><![CDATA[Загрузка файлов завершена]]></string_add>
+	<string_add name="_bx_messenger_upload_cancelled"><![CDATA[Запрос отменён]]></string_add>
+	<string_add name="_bx_messenger_uploading_remove_button"><![CDATA[Удалить]]></string_add>
+	<string_add name="_bx_messenger_wait_for_uploading"><![CDATA[Пожалуйста, подожди полной загрузки всех файлов!]]></string_add>
+	<string_add name="_bx_messenger_emoji_text_title"><![CDATA[Выбрать Эмоцию]]></string_add>
+	<string_add name="_bx_messenger_emoji_text_reaction"><![CDATA[Выбрать Реакцию]]></string_add>
+	<string_add name="_bx_messenger_emoji_search"><![CDATA[Поиск]]></string_add>
+	<string_add name="_bx_messenger_emoji_clear"><![CDATA[Очистить]]></string_add>
+	<string_add name="_bx_messenger_emoji_not_found"><![CDATA[Эмоция не найдена]]></string_add>
+	<string_add name="_bx_messenger_emoji_skintext"><![CDATA[Выберите оттенок кожи по умолчанию]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_search"><![CDATA[Результаты поиска]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_recent"><![CDATA[Часто используемые]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_people"><![CDATA[Улыбка & Люди]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_nature"><![CDATA[Животыне & Природа]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_foods"><![CDATA[Еда & Напитки]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_activity"><![CDATA[Активность]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_places"><![CDATA[Путешествия & Местность]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_objects"><![CDATA[Объекты]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_symbols"><![CDATA[Символы]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_flags"><![CDATA[Флаги]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_custom"><![CDATA[Пользовательские]]></string_add>
+	<string_add name="_bx_messenger_emoji_categorieslabel"><![CDATA[Категории]]></string_add>
+	<string_add name="_bx_messenger_emoji_skintones_1"><![CDATA[Оттенок кожи]]></string_add>
+	<string_add name="_bx_messenger_emoji_skintones_2"><![CDATA[Светлый тон]]></string_add>
+	<string_add name="_bx_messenger_emoji_skintones_3"><![CDATA[Средне-светлый тон]]></string_add>
+	<string_add name="_bx_messenger_emoji_skintones_4"><![CDATA[Средний тон]]></string_add>
+	<string_add name="_bx_messenger_emoji_skintones_5"><![CDATA[Смуглый тон]]></string_add>
+	<string_add name="_bx_messenger_emoji_skintones_6"><![CDATA[Тёмный тон]]></string_add>
+	<string_add name="_bx_messenger_emoji_set"><![CDATA[Выбрать набор эмоций для отображения реакций и в тексте сообщений]]></string_add>
+	<string_add name="_bx_messenger_reactions_size"><![CDATA[Размер иконки эмоций]]></string_add>
+	<string_add name="_bx_messenger_show_emoji_preview"><![CDATA[Отображать дополнительно выбранную эмоцию и тон кожи]]></string_add>
+	<string_add name="_bx_messenger_file_download"><![CDATA[Скачать файл]]></string_add>
+	<string_add name="_bx_messenger_notification_subject"><![CDATA[Сообщение от {0}]]></string_add>
+	<string_add name="_bx_messenger_txt_subobject_added_single"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> оправил {subentry_sample}]]></string_add>
+	<string_add name="_bx_messenger_txt_sample_comment_giphy_single"><![CDATA[анимацию]]></string_add>
+	<string_add name="_bx_messenger_txt_sample_email_push"><![CDATA[прислал(а) {0}]]></string_add>
+
+	<string_del name="_bx_messenger_typing_smiles"><![CDATA[Разрешить писать смайлы вручную]]></string_del>
+	<string_del name="_bx_messenger_upload_drop_area_message"><![CDATA[Перетащите файлы сюда или нажмите на кнопку загрузить]]></string_del>
+	<string_del name="_bx_messenger_delete_all_files_confirm"><![CDATA[Все файлы из списка будут удалены, продолжить и закрыть форму?]]></string_del>
+</resources>

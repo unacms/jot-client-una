@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="en" flag="gb" title="English">
+	<string_upd name="_bx_messenger_symbols_num_brief_jot"><![CDATA[Message's length in Talk's preview]]></string_upd>
+	<string_upd name="_bx_messenger_post_area_message"><![CDATA[Message ...]]></string_upd>
+	<string_upd name="_bx_messenger_jot_number_default"><![CDATA[Messages number in messenger history by default]]></string_upd>
+	<string_upd name="_bx_messenger_push_message_title"><![CDATA[{0} sent a message]]></string_upd>
+	<string_upd name="_bx_messenger_notification_request"><![CDATA[Would you like to get notifications about new messages?]]></string_upd>
+	<string_upd name="_bx_messenger_remove_jot"><![CDATA[Delete]]></string_upd>
+	<string_upd name="_bx_messenger_remove_jot_confirm"><![CDATA[Are you sure you want to remove this message?]]></string_upd>
+	<string_upd name="_bx_messenger_share_jot"><![CDATA[Copy link]]></string_upd>
+	<string_upd name="_bx_messenger_save_button"><![CDATA[Save]]></string_upd>
+	<string_upd name="_bx_messenger_edit_jot"><![CDATA[Edit]]></string_upd>
+	<string_upd name="_bx_messenger_txt_sample_comment_single"><![CDATA[message - <b>{0}</b>]]></string_upd>
+	<string_upd name="_bx_messenger_txt_sample_comment_file_single"><![CDATA[<b>{0} file(s) </b>]]></string_upd>
+	<string_upd name="_bx_messenger_txt_subobject_added"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> sent a {subentry_sample}]]></string_upd>
+
+	<string_add name="_bx_messenger_reaction_title_author"><![CDATA[You]]></string_add>
+	<string_add name="_bx_messenger_reaction_title"><![CDATA[{0} reacted with: {1}]]></string_add>
+	<string_add name="_bx_messenger_reaction_jot"><![CDATA[Add reaction]]></string_add>
+	<string_add name="_bx_messenger_uploading_file"><![CDATA[Uploading]]></string_add>
+	<string_add name="_bx_messenger_upload_is_complete"><![CDATA[Upload is complete]]></string_add>
+	<string_add name="_bx_messenger_upload_cancelled"><![CDATA[Upload cancelled]]></string_add>
+	<string_add name="_bx_messenger_uploading_remove_button"><![CDATA[Remove]]></string_add>
+	<string_add name="_bx_messenger_wait_for_uploading"><![CDATA[Please wait till the all files are uploaded!]]></string_add>
+	<string_add name="_bx_messenger_emoji_text_title"><![CDATA[Choose Emoji]]></string_add>
+	<string_add name="_bx_messenger_emoji_text_reaction"><![CDATA[Choose Reaction]]></string_add>
+	<string_add name="_bx_messenger_emoji_search"><![CDATA[Search]]></string_add>
+	<string_add name="_bx_messenger_emoji_clear"><![CDATA[Clear]]></string_add>
+	<string_add name="_bx_messenger_emoji_not_found"><![CDATA[No Emoji Found]]></string_add>
+	<string_add name="_bx_messenger_emoji_skintext"><![CDATA[Choose your default skin tone]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_search"><![CDATA[Search Results]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_recent"><![CDATA[Frequently Used]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_people"><![CDATA[Smileys & People]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_nature"><![CDATA[Animals & Nature]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_foods"><![CDATA[Food & Drink]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_activity"><![CDATA[Activity]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_places"><![CDATA[Travel & Places]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_objects"><![CDATA[Objects]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_symbols"><![CDATA[Symbols]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_flags"><![CDATA[Flags]]></string_add>
+	<string_add name="_bx_messenger_emoji_categ_custom"><![CDATA[Custom]]></string_add>
+	<string_add name="_bx_messenger_emoji_categorieslabel"><![CDATA[Emoji categories]]></string_add>
+	<string_add name="_bx_messenger_emoji_skintones_1"><![CDATA[Default Skin Tone]]></string_add>
+	<string_add name="_bx_messenger_emoji_skintones_2"><![CDATA[Light Skin Tone]]></string_add>
+	<string_add name="_bx_messenger_emoji_skintones_3"><![CDATA[Medium-Light Skin Tone]]></string_add>
+	<string_add name="_bx_messenger_emoji_skintones_4"><![CDATA[Medium Skin Tone]]></string_add>
+	<string_add name="_bx_messenger_emoji_skintones_5"><![CDATA[Medium-Dark Skin Tone]]></string_add>
+	<string_add name="_bx_messenger_emoji_skintones_6"><![CDATA[Dark Skin Tone]]></string_add>
+	<string_add name="_bx_messenger_emoji_set"><![CDATA[Select set of Emoji to use for reactions and in text messages]]></string_add>
+	<string_add name="_bx_messenger_reactions_size"><![CDATA[Size of the emoji in reactions]]></string_add>
+	<string_add name="_bx_messenger_show_emoji_preview"><![CDATA[Show emoji preview with skin tones]]></string_add>
+	<string_add name="_bx_messenger_file_download"><![CDATA[Download file]]></string_add>
+	<string_add name="_bx_messenger_notification_subject"><![CDATA[Message from {0}]]></string_add>
+	<string_add name="_bx_messenger_txt_subobject_added_single"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> sent {subentry_sample}]]></string_add>
+	<string_add name="_bx_messenger_txt_sample_comment_giphy_single"><![CDATA[an animation]]></string_add>
+	<string_add name="_bx_messenger_txt_sample_email_push"><![CDATA[sent {0}]]></string_add>
+
+	<string_del name="_bx_messenger_upload_drop_area_message"><![CDATA[Drop files here or click to upload.]]></string_del>
+	<string_del name="_bx_messenger_delete_all_files_confirm"><![CDATA[All files from the list will be lost, continue and close the form?]]></string_del>
+	<string_del name="_bx_messenger_typing_smiles"><![CDATA[Allow to type smiles]]></string_del>
+</resources>

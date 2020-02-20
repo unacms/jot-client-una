@@ -1,0 +1,82 @@
+<script type="text/javascript">
+	<bx_if:onsignal>
+	/* One Signal  Push Notifications Init Begin */
+		const OneSignal = window.OneSignal || [];
+        bx_get_scripts(['https://cdn.onesignal.com/sdks/OneSignalSDK.js'], () => {
+            OneSignal.push(["init", {
+                appId: '__one_signal_api__',
+                autoRegister: true, /* Set to true to automatically prompt visitors */
+                subdomainName: '__short_name__', /* required only for http  sites */
+                safari_web_id: '__safari_key__',
+                persistNotification: false,
+                welcomeNotification: {
+                    disable: false
+                },
+                httpPermissionRequest: {
+                    enable: true
+                },
+                promptOptions: {
+                    /* These prompt options values configure both the HTTP prompt and the HTTP popup. */
+                    /* actionMessage limited to 90 characters */
+                    actionMessage: '__notification_request__',
+                    /* acceptButtonText limited to 15 characters */
+                    acceptButtonText: '__notification_request_yes__',
+                    /* cancelButtonText limited to 15 characters */
+                    cancelButtonText: '__notification_request_no__'
+                }
+            }
+            ]);
+
+            OneSignal.push(function () {
+                var isPushSupported = OneSignal.isPushNotificationsSupported();
+                OneSignal.setDefaultNotificationUrl('__jot_chat_page_url__');
+                OneSignal.isPushNotificationsEnabled().then(
+                    function (isEnabled) {
+
+                        if ('__email__') {
+                            OneSignal.setEmail('__email__', '__email_hash__');
+                            OneSignal.sendTags(__push_tags_encoded__);
+                        } else
+                        OneSignal.sendTag('user', __profile_id__); // set tag for onesiganl, this tag will be used to send notification
+
+                        if (!isEnabled && isPushSupported)
+                            OneSignal.showHttpPermissionRequest();
+                    });
+            });
+       });
+	/*  One Signal Push Notifications Init End */
+	</bx_if:onsignal>
+
+    /* FilePond plugins begin*/
+    $.fn.filepond.registerPlugin(
+        FilePondPluginImagePreview,
+        FilePondPluginMediaPreview
+    );
+    /* end */
+
+    if (navigator.userAgent.indexOf('gonative') > -1) {
+        var data = {user: __profile_id__};
+        var json = JSON.stringify(data);
+        $(document).ready(function () {
+            window.location.href='gonative://registration/send?customData=' + encodeURIComponent(json);        
+        });
+    }
+
+    if (typeof oRTWSF !== 'undefined') {
+			oRTWSF.init({
+				server:'__server_url__',
+				ip:'__ip__'
+			});
+	}
+		
+   if (typeof oMessenger !== 'undefined')
+	oMessenger.init({
+				oRTWSF: oRTWSF,
+				user_id: __profile_id__,
+				max: __message_length__,
+				embed_template: '__embed_template__',
+				reaction_template: `__reaction_template__`,
+                jot_url: '__jot_url__'
+	});
+
+</script>

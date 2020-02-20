@@ -1,0 +1,46 @@
+.filepond--root {
+    max-height: 240px;
+    font-family:inherit !important;
+    overflow: hidden;
+    margin-bottom:0 !important;
+}
+.filepond--item {
+    width: calc(50% - .5em);
+    padding-left:0;
+}
+
+.filepond--drop-label {
+    display: none !important;
+}
+
+.filepond--list{
+    left: 0;
+}
+
+.filepond--panel-root {
+    background-color: rgba(0,0,0,0) !important;
+    border-radius: 0 !important;
+}
+
+.filepond--image-preview-overlay-success{
+    color: rgba(68, 136, 255, 0.7) !important;
+}
+
+@media (min-width: 30em) {
+    .filepond--item {
+        width: calc(50% - .5em);
+    }
+    .filepond--root {
+        max-height: 120px;
+    }
+}
+
+@media (min-width: 50em) {
+    .filepond--item {
+        width: calc(33.33% - .5em);
+    }
+
+    .filepond--root {
+        max-height: 240px;
+    }
+}

@@ -1,0 +1,32 @@
+<div class="bx-messenger-block jots bx-db-container bx-def-color-bg-block bx-def-image-bg-block bx-shadow-block bx-def-border-block">
+	<div class="bx-db-header">
+		<div class="bx-messenger-hide-mobile bx-db-menu left">
+			<a href="javascript:void(0);" onclick="oJotWindowBuilder.changeColumn(); $('span.bubble', this).remove();" title="__back_title__">
+				<i class="sys-icon chevron-left"></i>
+				<bx_if:count>
+					<span class="bubble bx-menu-toolbar-item-addon bx-def-unit-alert-middle">__back_count__</span>
+				</bx_if:count>
+			</a>
+		</div>
+		<div class="bx-db-title bx-def-font-h4">
+			__title__
+		</div>
+		<bx_if:show_lot_menu>
+			<div class="bx-db-menu right">
+				<a id="star" href="javascript:void(0);" title="__star_title__" onclick="oMessenger.onStarLot(__id__, this);" data-value="__star__">
+					<i class="sys-icon __star_icon__"></i>
+				</a>
+				<a href="javascript:void(0);" title="__mute_title__" onclick="oMessenger.onMuteLot(__id__, this);" data-value="__mute__">
+					<i class="sys-icon __bell_icon__"></i>
+				</a>
+				<span title="__settings_title__" class="info-menu">
+					<i class="sys-icon info-circle"></i>
+					__lot_menu__
+				</span>
+			</div>
+		</bx_if:show_lot_menu>
+	</div>
+	<div class="bx-messenger-main-block bx-def-border-block">
+		__post_area__
+	</div>
+</div>

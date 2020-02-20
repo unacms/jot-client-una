@@ -198,4 +198,6 @@
 	<string name="_bx_messenger_file_download"><![CDATA[Download file]]></string>
 	<string name="_bx_messenger_notification_subject"><![CDATA[Message from {0}]]></string>
 	<string name="_bx_messenger_txt_subobject_added_single"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> sent {subentry_sample}]]></string>
+	<string name="_bx_messenger_txt_sample_comment_giphy_single"><![CDATA[an animation]]></string>
+	<string name="_bx_messenger_txt_sample_email_push"><![CDATA[sent {0}]]></string>
 </resources>

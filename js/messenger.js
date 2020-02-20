@@ -87,7 +87,7 @@
 		this.sDefaultFavIcon = $('link[rel="shortcut icon"]').attr('href');
 		this.iAttachmentUpdate = false;
 		this.iTimer = null;
-		this.sEmbedTemplate = (oOptions && oOptions.ebmed_template) || '<a href="__url__">__url__</a>';
+		this.sEmbedTemplate = (oOptions && oOptions.embed_template) || '<a href="__url__">__url__</a>';
 		this.iMaxLength = (oOptions && oOptions.max) || 0;
 		this.iStatus = document.hasFocus() ? 1 : 2; // 1- online, 2-away
 		this.iActionsButtonWidth = '2.25';
@@ -1076,9 +1076,9 @@
 		let sUrl = '',
 			sText = $(oJot)
 				.html()
-				.replace(sUrlPattern, function(str, p1)
+				.replace(sUrlPattern, function(str)
 				{
-					sUrl = p1;
+					sUrl = str;
 					return !sJotLinkPattern.test(str) ? _oMessenger.sEmbedTemplate.replace(/__url__/g, str) : `<a href="${str}">${str}</a>`;
 				})
 				.replace(sPUrlPattern, function(str, p1, p2)
@@ -1436,6 +1436,9 @@
 			else
 				oParams.files = _this.oFilesUploader.getFiles();
 		}
+
+		if (typeof mixedObjects !== 'undefined' && Array.isArray(mixedObjects.files))
+				oParams.files = mixedObjects.files;
 
 		oParams.participants = _this.getParticipantsList();
 		oParams.message = $.trim(sMessage);
@@ -2564,8 +2567,7 @@
 			if (oFile.type !== undefined) {
 				let sExt = (~oFile.type.indexOf(';') ? oFile.type.substring(0, oFile.type.lastIndexOf(';')) : oFile.type).replace('video/', '.');
 				fileName += sExt;
-			}
-			;
+			};
 
 			formData.append('name', fileName);
 			formData.append('file', oFile);

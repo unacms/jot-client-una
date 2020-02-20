@@ -581,7 +581,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				$sMessage = '';
 				if (isset($aLatestJots[$CNF['FIELD_MESSAGE']]))
 				{
-					$sMessage = html2txt($aLatestJots[$CNF['FIELD_MESSAGE']]);
+                    $sMessage = preg_replace( '/<br\W*?\/>|\n/', " ", $aLatestJots[$CNF['FIELD_MESSAGE']]);
+				    $sMessage = html2txt($sMessage);
 					if ($aLatestJots[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_REPOST)
 					{
 						$sMessage = $this -> _oConfig -> cleanRepostLinks($sMessage, $aLatestJots[$this->_oConfig->CNF['FIELD_MESSAGE_AT']]);

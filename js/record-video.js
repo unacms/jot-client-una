@@ -74,22 +74,22 @@ oJotVideoRecorder.prototype.init = function()
 {		
 		var _this = this;
 				
-		$(_this.bclose).click(function(){			
-			if ((_this.oVideoBlob != undefined && confirm(_t('_bx_messenger_close_video_confirm'))) || !_this.oVideoBlob)
+		$(_this.bclose).click(function(){
+			if ((_this.oVideoBlob !== undefined && confirm(_t('_bx_messenger_close_video_confirm'))) || !_this.oVideoBlob)
 			{
 				_this.stopWebCamAndClose();
-				_this.close();				
+				_this.close();
 			}
 		});
 		
 		$(this.bsend).click(function()
 		{			
-			if (_this.oVideoBlob != undefined)
+			if (_this.oVideoBlob !== undefined)
 			{
 				_this.send(_this.oVideoBlob,
 											function()
 											{
-												_this.stopWebCamAndClose();												
+												_this.stopWebCamAndClose();
 											});	
 			}
 		});
@@ -114,7 +114,7 @@ oJotVideoRecorder.prototype.init = function()
 							case 1:
 								$(this)
 									.html('<i class="sys-icon play"></i>')
-									.data('click', 2);								
+									.data('click', 2);
 									
 								$(_this.video)
 									.trigger('pause');
@@ -126,7 +126,7 @@ oJotVideoRecorder.prototype.init = function()
 								$(this)
 									.removeClass('empty')
 									.html('<i class="sys-icon pause"></i>')
-									.data('click', 1);					
+									.data('click', 1);
 						}			
 					});
 		
@@ -144,11 +144,11 @@ oJotVideoRecorder.prototype.init = function()
 												$(_this.video).trigger('play');
 												$(this)
 													.removeClass('empty')
-													.html(feather.toSvg('pause'));
+													.html('<i class="sys-icon pause"></i>');
 											},
 											function()
 											{
-												$(this).html(feather.toSvg('play'));
+												$(this).html('<i class="sys-icon play"></i>');
 												$(_this.video)
 													.trigger('pause');
 											}

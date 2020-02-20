@@ -1,4 +1,4 @@
-    <?php defined('BX_DOL') or die('hack attempt');
+<?php defined('BX_DOL') or die('hack attempt');
 /**
  * Copyright (c) UNA, Inc - https://una.io
  * MIT License - https://opensource.org/licenses/MIT
@@ -1087,7 +1087,7 @@ class BxMessengerModule extends BxBaseModTextModule
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_no_video')));
         }
 
-        if (!empty($_FILES) && $_FILES['file'] && $oStorage->isValidFileExt($_FILES['file']['name'])) {
+        if ($_FILES['file'] && $oStorage->isValidFileExt($_FILES['file']['name'])) {
             $sTempFile = $_FILES['file']['tmp_name'];
             $sTargetFile = BX_DIRECTORY_PATH_TMP . $_POST['name'];
 
@@ -1166,7 +1166,6 @@ class BxMessengerModule extends BxBaseModTextModule
 			}
 			else
 			{
-                $fImageRatio = (int)$aInfo[0] / (int)$aInfo[1];
                 $fXRatio = $aInfo[0] / $iWidth;
                 $fYRatio = $aInfo[1] / $iHeight;
 
@@ -1233,9 +1232,14 @@ class BxMessengerModule extends BxBaseModTextModule
 
         // replace br to spaces and truncate the line
         $sTruncatedMessage = strmaxtextlen(preg_replace( '/<br\W*?\/>|\n/', " ", $aJotInfo[$CNF['FIELD_MESSAGE']]), $CNF['PARAM_MAX_JOT_NTFS_MESSAGE_LENGTH']);
-        $sMessage = $aJotInfo[$CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES ?
-            _t('_bx_messenger_txt_sample_comment_file_single', $this->_oDb->getJotFiles($aJotInfo[$CNF['FIELD_MESSAGE_ID']], true)) :
-           _t('_bx_messenger_txt_sample_comment_single', $sTruncatedMessage);
+        $sMessage = _t('_bx_messenger_txt_sample_comment_single', $sTruncatedMessage);
+        switch($aJotInfo[$CNF['FIELD_MESSAGE_AT_TYPE']]){
+            case BX_ATT_TYPE_FILES:
+                $sMessage = _t('_bx_messenger_txt_sample_comment_file_single', $this->_oDb->getJotFiles($aJotInfo[$CNF['FIELD_MESSAGE_ID']], true));
+                break;
+            case BX_ATT_TYPE_GIPHY:
+                $sMessage = _t('_bx_messenger_txt_sample_comment_giphy_single');
+        }
 
         $aResult = array(
             'entry_sample' => _t('_bx_messenger_message'),
@@ -1243,16 +1247,24 @@ class BxMessengerModule extends BxBaseModTextModule
             'entry_caption' => $sTitle,
             'entry_author' => $aEvent['object_owner_id'],
             'subentry_sample' => $sMessage,
-            'lang_key' =>  $aJotInfo[$CNF['FIELD_MESSAGE_AT_TYPE']] !== BX_ATT_TYPE_FILES ? '_bx_messenger_txt_subobject_added' : '_bx_messenger_txt_subobject_added_single'
+            'lang_key' =>  $aJotInfo[$CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES
+                            || $aJotInfo[$CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_GIPHY
+                ? '_bx_messenger_txt_subobject_added_single' : '_bx_messenger_txt_subobject_added'
         );
 
         list($iNumber) = explode('.', bx_get_ver());
-
         if ((int)$iNumber > 10){
-            $sSubject = _t('_bx_messenger_notification_subject', BxDolProfile::getInstanceMagic($aEvent['object_owner_id'])->getDisplayName());
-            $sAlterBody = $aJotInfo[$CNF['FIELD_MESSAGE_AT_TYPE']] !== BX_ATT_TYPE_FILES ? $sTruncatedMessage : '_bx_messenger_txt_subobject_added_single';
+            $sSubject = _t('_bx_messenger_notification_subject', BxDolProfile::getInstanceMagic($aEvent['owner_id'])->getDisplayName());
+
+            $sAlterBody = $sTruncatedMessage;
+            switch($aJotInfo[$CNF['FIELD_MESSAGE_AT_TYPE']]){
+                case BX_ATT_TYPE_FILES:
+                case BX_ATT_TYPE_GIPHY:
+                    $sAlterBody = _t('_bx_messenger_txt_sample_email_push', html2txt($sMessage));
+            }
+
             $aResult['lang_key'] = array(
-                    'site' => $aJotInfo[$CNF['FIELD_MESSAGE_AT_TYPE']] !== BX_ATT_TYPE_FILES ? '_bx_messenger_txt_subobject_added' : '_bx_messenger_txt_subobject_added_single',
+                    'site' => $aResult['lang_key'],
                     'email' => $sAlterBody,
                     'push' => $sAlterBody
         );
@@ -1276,13 +1288,23 @@ class BxMessengerModule extends BxBaseModTextModule
      * @param boolean $isPerformAction used for compatibility with parent method
      * @return int
      */
-    public function checkAllowedView($aLot, $isPerformAction = false)
-    {
+
+    public function serviceCheckAllowedViewForProfile ($aDataEntry, $isPerformAction = false, $iProfileId = false){
+        if (!$iProfileId)
+            $iProfileId = $this->_iProfileId;
+
+        $mixedResult = null;
+        bx_alert('system', 'check_allowed_view', 0, 0, array('module' => $this->getName(), 'content_info' => $aDataEntry, 'profile_id' => $iProfileId, 'override_result' => &$mixedResult));
+        if($mixedResult !== null)
+            return $mixedResult;
+
         $CNF = &$this->_oConfig->CNF;
-        if (empty($aEvent))
+        if (empty($aDataEntry))
             return CHECK_ACTION_RESULT_ALLOWED;
 
-        return $this->_oDb->isParticipant($aEvent[$CNF['FIELD_ID']], $this->_iUserId, true) === TRUE ? CHECK_ACTION_RESULT_ALLOWED : CHECK_ACTION_RESULT_NOT_ALLOWED;
+        return $this->_oDb->isParticipant($aDataEntry[$CNF['FIELD_ID']], $this->_iProfileId, true) === TRUE
+        || $aDataEntry[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PUBLIC
+        || $aDataEntry[$CNF['FIELD_TYPE']] == BX_IM_TYPE_SETS ? CHECK_ACTION_RESULT_ALLOWED : CHECK_ACTION_RESULT_NOT_ALLOWED;
     }
 
     public function onSendJot($iJotId)
@@ -1787,7 +1809,7 @@ class BxMessengerModule extends BxBaseModTextModule
             $aLotInfo = $this->_oDb->getLotInfoById($mixedLotId);
         else
         {
-            echo $sUrl = $mixedLotId ? $this->getPreparedUrl($mixedLotId) : $this->_oConfig->getPageIdent($mixedLotId);
+            $sUrl = $mixedLotId ? $this->getPreparedUrl($mixedLotId) : $this->_oConfig->getPageIdent($mixedLotId);
             $aLotInfo = $this->_oDb->getLotByUrl($sUrl);
         }
 

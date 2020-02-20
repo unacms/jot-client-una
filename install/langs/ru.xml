@@ -148,7 +148,7 @@
 	<string name="_bx_messenger_txt_subobject_added"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> отправил(а) {subentry_sample} <b class="bx-ntfs-content-entry">{entry_caption}</b>]]></string>
 	<string name="_bx_messenger_max_parts_views"><![CDATA[Разрешать показывать просмотры сообщений в разговорах не превышающих указанное количество пользователей]]></string>
 	<string name="_bx_messenger_allow_to_remove_messages"><![CDATA[Разрешать пользователям удалять собственные сообщения]]></string>
-	<string name="_bx_messenger_remove_messages_immediately"><![CDATA[удалять сообщения сразу, без подтверждения администратора]]></string>
+	<string name="_bx_messenger_remove_messages_immediately"><![CDATA[Удалять сообщения сразу, без подтверждения администратора]]></string>
 	<string name="_bx_messenger_lots_menu_media"><![CDATA[Файлы]]></string>
 	<string name="_bx_messenger_no_permissions"><![CDATA[Вы не можете просматривать содержимое вкладки]]></string>
 	<string name="_bx_messenger_use_embedly"><![CDATA[Преобразовывать сcылки в сообщениях, использую выбранный Embeds провайдер]]></string>
@@ -197,5 +197,7 @@
 	<string name="_bx_messenger_show_emoji_preview"><![CDATA[Отображать дополнительно выбранную эмоцию и тон кожи]]></string>
 	<string name="_bx_messenger_file_download"><![CDATA[Скачать файл]]></string>
 	<string name="_bx_messenger_notification_subject"><![CDATA[Сообщение от {0}]]></string>
-	<string name="_bx_messenger_txt_subobject_added_single"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> оправил {subentry_sample}]]></string>
+	<string name="_bx_messenger_txt_subobject_added_single"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> оправил(а) {subentry_sample}]]></string>
+	<string name="_bx_messenger_txt_sample_comment_giphy_single"><![CDATA[анимацию]]></string>
+	<string name="_bx_messenger_txt_sample_email_push"><![CDATA[прислал(а) {0}]]></string>
 </resources>

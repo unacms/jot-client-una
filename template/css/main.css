@@ -1417,7 +1417,7 @@ div.bx-messenger-giphy{
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    padding: 0 1rem 1rem;
+    padding: 0.5rem 1rem 0.5rem 1rem;
 	min-height: 100px;
 	max-height: 200px;
 	overflow: hidden;
@@ -1428,7 +1428,7 @@ div.bx-messenger-giphy{
 div.bx-messenger-giphy div.search{
     width:100%;
 	min-height: 2.5rem;
-	margin-bottom: 1rem;
+	margin-bottom: 0.5rem;
 }
 
 div.bx-messenger-giphy div.search input{

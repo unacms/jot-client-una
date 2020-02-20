@@ -48,10 +48,6 @@ $(function($, oMessenger) {
                 bLoading = false;
 
                 const aFilteredFiles = aFiles.filter(({ fileType }) => fileType !== 'application/octet-stream');
-                /*$('.bx-messenger-attachment-group')
-                      .css({
-                          display: aFilteredFiles.length ? 'flex' : 'none'
-                      });*/
 
                if (typeof oMessenger.updateAttachmentArea === 'function')
                   oMessenger.updateAttachmentArea(!aFilteredFiles.length);

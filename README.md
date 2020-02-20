@@ -1,6 +1,6 @@
 <img src="https://user-images.githubusercontent.com/22210428/27619378-391220cc-5c05-11e7-86ee-21edd7404298.png" width="300"> 
 
-# Jot Messenger App for UNA
+# Messenger App for UNA
 
 ```Jot Messenger``` app for [UNA Community Management System](https://una.io) is a real-time private messenger as well as a public communication platform. Jot allows members to create private talks, group talks and participate in embedded conversations integrated with other UNA apps.
 

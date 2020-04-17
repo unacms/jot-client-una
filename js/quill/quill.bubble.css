@@ -6,10 +6,10 @@
  */
 .ql-container {
   box-sizing: border-box;
-  font-family: inherit;
-  font-size: 13px;
+  /*font-family: inherit;
+  font-size: 13px;*/
   height: 100%;
-  margin: 0px;
+  margin: 0;
   position: relative;
 }
 .ql-container.ql-disabled .ql-tooltip {
@@ -31,7 +31,7 @@
 }
 .ql-editor {
   box-sizing: border-box;
-  line-height: 1.42;
+  /*line-height: 1.42;*/
   height: 100%;
   outline: none;
   padding: 0.2rem 0;

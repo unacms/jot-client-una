@@ -177,10 +177,10 @@ div.bx-messenger-lots-menu ul li a.active{
 	position:relative;
 }
 
-.bx-messenger-jots-snip-info span
+/*.bx-messenger-jots-snip-info span
 {
 	opacity:0.7;	
-}
+}*/
 
 .bx-messenger-block-jots .bx-messenger-jots-snip-info
 {
@@ -278,7 +278,7 @@ div.bx-messenger-lots-menu ul li a.active{
 	border-top: 1px solid #fff;
 }
 
-.bx-messanger-padding-lots-lefttopbottom
+.bx-messenger-padding-lots-lefttopbottom
 {
 	padding:0.9rem;	
 }
@@ -294,11 +294,11 @@ div.bx-messenger-lots-menu ul li a.active{
 	font-size: 1rem;
 }*/
 
-.unread-lot .bx-messenger-jots-snip-title div.title,
+/*.unread-lot .bx-messenger-jots-snip-title div.title,
 .unread-lot .bx-messenger-preview-lot
 {
 	font-weight: 700;
-}
+}*/
 
 .bx-messenger-jots-snip .unread-lot span
 {

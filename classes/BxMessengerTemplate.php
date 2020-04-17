@@ -219,6 +219,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	    $iLotId = !empty($aJot) ? (int)$aJot[$CNF['FIELD_MESSAGE_FK']] : 0;
 	    $iJotId = !empty($aJot) ? (int)$aJot[$CNF['FIELD_MESSAGE_ID']] : 0;
 	    $bAllowToDelete = $this->_oDb->isAllowedToDeleteJot($iJotId, $iProfileId, $iJotAuthor, $iLotId);
+	    $bVC = !empty($aJot) ? (int)$aJot[$CNF['FIELD_MESSAGE_VIDEOC']] : false;
         $aMenuItems = array(
             array(
                 'click' => "{$CNF['JSMain']}.onAddReaction(this);",
@@ -226,7 +227,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                 'icon' => 'smile'
             ),
             array(
-                'visibility' => $bAllowToDelete,
+                'visibility' => $bAllowToDelete && !$bVC,
                 'click' => "{$CNF['JSMain']}.onEditJot(this);",
                 'title' => _t('_bx_messenger_edit_jot'),
                 'icon' => 'edit'
@@ -283,14 +284,16 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                             _t($sTitle);
 		}
 
-		$iUnreadLotsJots = $bIsMuted = $bIsStarred = 0;		
+		$iUnreadLotsJots = $bIsMuted = $bIsStarred = 0;
+        $bIsVideoStarted = $iUnreadLotsJots = $bIsMuted = $bIsStarred = 0;
 		if ($iProfileId)
 		{
 			$iUnreadLotsJots = $this -> _oDb -> getUnreadJotsMessagesCount($iProfileId, $iLotId);
 			$bIsMuted = $this -> _oDb -> isMuted($iLotId, $iProfileId);
 			$bIsStarred = $this -> _oDb -> isStarred($iLotId, $iProfileId);
+                        $bIsVideoStarted = true;
 		}
-		
+
 		$sContent = $this -> parseHtmlByName('talk.html', array(
 				'bx_if:count' => array(
 									'condition' => $iUnreadLotsJots,
@@ -310,8 +313,15 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 										'star' => (int)$bIsStarred,										
 										'bell_icon' => $bIsMuted ? $CNF['BELL_ICON_OFF'] : $CNF['BELL_ICON_ON'],
 										'star_icon' => $CNF['STAR_ICON'] . ((int)$bIsStarred ? ' fill' : ''),
+                                         'bx_if:jitsi' => array(
+                                            'condition' => $this->_oConfig->isJitsiAllowed($iType),
+                                            'content' => array(
+                                                'id' => $iLotId,
+                                                'video_title' => bx_js_string( !$bIsVideoStarted ? _t('_bx_messenger_lots_menu_video_conf_start') : _t('_bx_messenger_lots_menu_video_conf_join')),
+                                            )
+                                        ),
 									)
-								),				
+								),
 				'back_title' => bx_js_string(_t('_bx_messenger_lots_menu_back_title')),
 				'star_icon' => $CNF['STAR_ICON'],
 				'title' => $sTitle,
@@ -563,7 +573,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 					$this -> getOnlineStatus($oProfile-> id(), 0) ;
 			}
 			else
-                $sCount = '<div class="status">' . $iParticipantsCount .'</div>';
+                $sCount = '<div class="bx-def-label bx-def-font-middle status">' . $iParticipantsCount .'</div>';
 	
 			
 			$aVars[$CNF['FIELD_ID']] = $aLot[$CNF['FIELD_ID']];
@@ -598,6 +608,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
 				    if ($aLatestJots[$CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_GIPHY)
                         $sMessage = _t('_bx_messenger_attached_giphy_message');
+
+                    if ((int)$aLatestJots[$CNF['FIELD_MESSAGE_VIDEOC']])
+                        $sMessage = _t('_bx_messenger_lots_menu_video_conf_start');
                 }
 
 				$aVars[$CNF['FIELD_MESSAGE']] = $sMessage;
@@ -612,6 +625,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			}
 			
 			$aVars['class'] = (int)$aLot['unread_num'] ? 'unread-lot' : '';
+			$aVars['title_class'] = (int)$aLot['unread_num'] ? 'bx-def-font-extrabold' : '';
+			$aVars['message_class'] = (int)$aLot['unread_num'] ? 'bx-def-font-semibold' : '';
 			$aVars['bubble_class'] = (int)$aLot['unread_num'] ? '' : 'hidden';
 			$aVars['count'] = (int)$aLot['unread_num'] ? (int)$aLot['unread_num'] : 0;
 			$aVars['bx_if:show_time'] = array(
@@ -749,15 +764,39 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			{
 				$sAttachment = $sMessage = '';
 				$bIsTrash = (int)$aJot[$CNF['FIELD_MESSAGE_TRASH']];
+				$iIsVC = (int)$aJot[$CNF['FIELD_MESSAGE_VIDEOC']];
 				$bIsLotAuthor = $this -> _oDb -> isAuthor($iLotId, $iProfileId);
 				$isAllowedDelete = $this->_oDb->isAllowedToDeleteJot($aJot[$CNF['FIELD_MESSAGE_ID']], $iProfileId, $aJot[$CNF['FIELD_MESSAGE_AUTHOR']], $aJot[$CNF['FIELD_MESSAGE_FK']]);
 
-				if ($bIsTrash)
-				    $sMessage = $this->getMessageIcons($aJot[$CNF['FIELD_MESSAGE_ID']], 'delete', isAdmin() || $bIsLotAuthor);
+				if ($bIsTrash || ($iIsVC && !$aJot[$CNF['FIELD_MESSAGE']]))
+				    $sMessage = $this->getMessageIcons($aJot[$CNF['FIELD_MESSAGE_ID']], $bIsTrash ? 'delete' : 'vc', isAdmin() || $bIsLotAuthor);
 				else
 				{
 					$sMessage = $this -> _oConfig -> bx_linkify($aJot[$CNF['FIELD_MESSAGE']]);
-					$sAttachment = !empty($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']]) ? $this -> getAttachment($aJot, true, $bDynamic) : '';
+					$sAttachment = !empty($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']]) ? $this -> getAttachment($aJot) : '';
+				}
+
+				$sActionIcon = '';
+				if (!$bIsTrash){
+				    if ($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']])
+                        $sActionIcon = $this -> parseHtmlByName('edit_icon.html',
+                            array(
+                                'edit' => _t('_bx_messenger_edit_by',
+                                    bx_process_output($aJot[$CNF['FIELD_MESSAGE_LAST_EDIT']], BX_DATA_DATETIME_TS),
+                                    $this -> getObjectUser($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']]) -> getDisplayName()),
+                            )
+                        );
+                    else
+				        if ($iIsVC && $aJot[$CNF['FIELD_MESSAGE']])
+				        {
+                            $aJVCItem = $this->_oDb->getJVCItem($iIsVC);
+				            $sActionIcon = $this -> parseHtmlByName('vc_icon.html',
+                                    array(
+                                        'info' => _t('_bx_messenger_jitsi_vc_into_title', $this -> getObjectUser($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]) -> getDisplayName(), bx_process_output($aJVCItem[$CNF['FJVCT_START']], BX_DATA_DATETIME_TS))
+                                    )
+                                );
+                        }
+
 				}
 
 				$sReactions = $this->getJotReactions($iJot);
@@ -813,7 +852,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 											bx_process_output($aJot[$CNF['FIELD_MESSAGE_LAST_EDIT']], BX_DATA_DATETIME_TS),
 											$this -> getObjectUser($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']]) -> getDisplayName()),
 										)
-									): ''
+									): '',
+                                           'action_icon' => $sActionIcon
 					);
 
 				if ($bMarkAsRead)
@@ -893,7 +933,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             '_bx_messenger_video_record_is_not_supported',
             '_bx_messenger_search_no_results',
             '_bx_messenger_search_query_issue',
-            '_bx_messenger_wait_for_uploading'
+            '_bx_messenger_wait_for_uploading',
+            '_bx_messenger_are_you_sure_close_jisti',
+            '_bx_messenger_jisti_connection_error'
         ));
 
 		$aVars = array(
@@ -1016,6 +1058,63 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 							)
 					);
 				break;
+            case 'vc':
+                $iVC = $aJotInfo[$CNF['FIELD_MESSAGE_VIDEOC']];
+                $sContent = _t('_bx_messenger_jitsi_err_vc_was_not_found');
+                $sParticipants = '';
+
+                if ($iVC && ($aJVCItem = $this->_oDb->getJVCItem($iVC)))
+                {
+                    $aParticipants = explode(',', $aJVCItem[$CNF['FJVCT_PART']]);
+                    if (!$aJVCItem[$CNF['FJVCT_END']])
+                       $sInfo = _t('_bx_messenger_jitsi_has_started', bx_time_js($aJVCItem[$CNF['FJVCT_START']]));
+                    else
+                    {
+                            $iDiff = $aJVCItem[$CNF['FJVCT_END']] - $aJVCItem[$CNF['FJVCT_START']];
+                            $iH = floor( $iDiff / 3600 );
+                            $iM = floor( ( $iDiff / 60 ) % 60 );
+                            $iS = $iDiff % 60;
+
+                            $sDate = _t('_bx_messenger_jitsi_vc_duration_s', $iS);
+                            if ($iH)
+                                $sDate = _t('_bx_messenger_jitsi_vc_duration_h', $iH, $iM, $iS);
+                            else
+                                if ($iM)
+                                    $sDate = _t('_bx_messenger_jitsi_vc_duration_m', $iM, $iS);
+
+                            $aIcons = array();
+                            foreach($aParticipants as &$iProfileId) {
+                                $aIcons[] = array(
+                                    'id' => $iProfileId,
+                                    'icon' => BxDolProfile::getInstance($iProfileId)->getIcon(),
+                                    'name' => BxDolProfile::getInstance($iProfileId)->getDisplayName(),
+                                );
+                            }
+
+                            $sParticipants = !empty($aIcons) ? $this -> parseHtmlByName('viewed.html', array(
+                                'bx_repeat:viewed' => $aIcons
+                            )) : '';
+
+                            $sInfo = _t('_bx_messenger_jitsi_conference', $sDate);
+                     }
+
+                        $aLotInfo = $this->_oDb->getLotByJotId($iJotId, false);
+                        $sContent = $this -> parseHtmlByName('vc_message.html',
+                            array(
+                                'info' => $sInfo,
+                                'bx_if:join' => array(
+                                    'condition' => !$aJVCItem[$CNF['FJVCT_END']],
+                                    'content' => array()
+                                ),
+                                'bx_if:part' => array(
+                                    'condition' => $sParticipants,
+                                    'content' => array(
+                                       'participants' => $sParticipants
+                                   )
+                                )
+                            ));
+                }
+                break;
 		}
 		
 		return $sContent;
@@ -1081,7 +1180,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 					'content' => array()
 				),
 				'edit_icon' => '',
-                'reactions' => ''
+                'reactions' => '',
+				'action_icon' => ''
 			);
 					
 			return $this -> parseHtmlByName('jots.html',  $aVars);
@@ -1366,7 +1466,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         $CNF = &$this->_oConfig->CNF;
         $aMenuItems = array(
             array(
-                'click' => "window.location.href='" . $this->_oConfig->getBaseUri() . "download_file/{$iFileId}'",
+                'click' => "javascript:window.open('" . $this->_oConfig->getBaseUri() . "download_file/{$iFileId}" . "');",
                 'title' => _t('_bx_messenger_file_download'),
                 'icon' => 'download'
             ),
@@ -1468,7 +1568,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@param int $iProfile viewer profile id
 	*@return string html form
 	*/
-	public function getVideoRecordingForm($iProfileId){
+	public function getVideoRecordingForm(){
 		return $this -> parseHtmlByName('video_record_form.html', array('max_video_length' => (int)$this->_oConfig->CNF['MAX_VIDEO_LENGTH']  * 60 * 1000));
 	}
 
@@ -1543,6 +1643,61 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         return $aResult;
     }
 
+    public function getJitsi($iLotId, $iProfileId, $aOptions){
+	    $CNF = &$this->_oConfig->CNF;
+        $JITSI = &$CNF['JITSI'];
+        $sError = '';
+
+        $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
+        if (empty($aLotInfo))
+            $sError = MsgBox(_t('_bx_messenger_not_found'));
+
+        if (!$this->_oDb->isParticipant($iLotId, $iProfileId))
+            $sError = MsgBox(_t('_bx_messenger_jitsi_err_can_join_conference'));
+
+        $aParticipantsList = $this->_oDb->getParticipantsList($iLotId, true, $iProfileId);
+        if (empty($aParticipantsList))
+            $sError = MsgBox(_t('_bx_messenger_jitsi_err_no_members'));
+
+        $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
+        if ($aLotInfo[$CNF['FIELD_TYPE']] && !$this->_oConfig->isJitsiAllowed($aLotInfo[$CNF['FIELD_TYPE']]))
+            $sError = MsgBox(_t('_bx_messenger_jitsi_err_cant_type_use'));
+
+        if ($sError)
+            return BxBaseFunctions::getInstance()->msgBox($sError, 2.5);
+
+        $sTitle = isset($aLotInfo[$CNF['FIELD_TITLE']]) && $aLotInfo[$CNF['FIELD_TITLE']]
+            ? $aLotInfo[$CNF['FIELD_TITLE']]
+            : $this -> getParticipantsNames($iProfileId, $iLotId);
+
+
+        $oProfileInfo = BxDolProfile::getInstance($iProfileId);
+        $oLanguage = BxDolStudioLanguagesUtils::getInstance();
+        $sLanguage = $oLanguage->getCurrentLangName(false);
+
+        $sCode = $this -> parseHtmlByName('jitsi_video_form.html', array(
+            'id' => $iLotId,
+            'domain' => $CNF['JITSI-SERVER'],
+            'lang' => $sLanguage,
+            'lib_link' => $JITSI['LIB-LINK'],
+            'info_enabled' => +$CNF['JITSI-HIDDEN-INFO'],
+            'chat_enabled' => +$CNF['JITSI-CHAT'],
+            'chat_sync' => +$CNF['JITSI-CHAT-SYNC'],
+            'audio_only' => +isset($aOptions['audio_only']),
+            'show_watermark' => +$CNF['JITSI-ENABLE-WATERMARK'],
+            'watermark_url' => $CNF['JITSI-WATERMARK-URL'],
+            'support_link' => $CNF['JITSI-SUPPORT-LINK'],
+            'jitsi_meet_title' => bx_js_string(_t('_bx_messenger_jitsi_meet_app_title', getParam('site_title'))),
+            'user_name' => $oProfileInfo->getDisplayName(),
+            'me' => _t('_bx_messenger_jitsi_meet_me'),
+            'avatar' => $oProfileInfo->getAvatar(),
+            'name' => $this->_oConfig->getRoomId($aLotInfo),
+            'title' => bx_js_string(strmaxtextlen($sTitle))
+        ));
+
+        return $sCode;
+	}
+
     public function getTalkFiles($iProfileId, $iLotId, $iStart = 0){
         $CNF = &$this->_oConfig->CNF;
         if (!$iLotId || !$iProfileId || !$this->_oDb->isParticipant($iLotId, $iProfileId))
@@ -1568,6 +1723,28 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         }
 
         return $iStart && !$sContent ? '' : $sContent;
+    }
+
+    public function getCallPopup($iLotId, $iProfileId){
+        $CNF = &$this->_oConfig->CNF;
+	    $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
+        $aActiveVC = $this->_oDb->getActiveJVCItem($iLotId);
+        $oProfile = $this -> getObjectUser($aActiveVC[$CNF['FJVCT_AUTHOR_ID']]);
+        if (empty($aLotInfo) || !$this->_oDb->isParticipant($iLotId, $iProfileId) || empty($aActiveVC) || (int)$iProfileId == (int)$aActiveVC[$CNF['FJVCT_AUTHOR_ID']] || !$oProfile)
+            return false;
+
+        $sTitle = isset($aLotInfo[$CNF['FIELD_TITLE']]) && $aLotInfo[$CNF['FIELD_TITLE']]
+                ? $aLotInfo[$CNF['FIELD_TITLE']]
+                : $this -> getParticipantsNames($iProfileId, $iLotId);
+
+        $aVars = array(
+            'title' => _t($sTitle),
+            'thumb' => $oProfile -> getThumb(),
+            'id' => $iLotId
+        );
+
+	    $sContent = $this->parseHtmlByName('conference_call.html', $aVars);
+        return BxTemplFunctions::getInstance()->transBox(time(), $sContent);
     }
 }
 

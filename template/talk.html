@@ -13,10 +13,15 @@
 		</div>
 		<bx_if:show_lot_menu>
 			<div class="bx-db-menu right">
-				<a id="star" href="javascript:void(0);" title="__star_title__" onclick="oMessenger.onStarLot(__id__, this);" data-value="__star__">
+				<bx_if:jitsi>
+					<a id="jitsi-button" href="javascript:void(0);" title="__video_title__" onclick="oMessenger.onStartVideoCall(this, __id__);">
+						<i class="sys-icon video"></i>
+					</a>
+				</bx_if:jitsi>
+				<a id="star" href="javascript:void(0);" title="__star_title__" onclick="oMessenger.onStarLot(this, __id__);" data-value="__star__">
 					<i class="sys-icon __star_icon__"></i>
 				</a>
-				<a href="javascript:void(0);" title="__mute_title__" onclick="oMessenger.onMuteLot(__id__, this);" data-value="__mute__">
+				<a href="javascript:void(0);" title="__mute_title__" onclick="oMessenger.onMuteLot(this, __id__);" data-value="__mute__">
 					<i class="sys-icon __bell_icon__"></i>
 				</a>
 				<span title="__settings_title__" class="info-menu">

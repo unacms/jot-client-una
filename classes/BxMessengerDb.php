@@ -131,6 +131,13 @@ class BxMessengerDb extends BxBaseModTextDb
 								WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('id' => $iJotId, 'profile' => $iProfileId));
 	}	
 	
+	public function updateJot($iJotId, $sField, $mixedValue){
+	    return $this -> query("UPDATE `{$this->CNF['TABLE_MESSAGES']}` 
+								SET 
+									`{$sField}` =:value
+								WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('id' => $iJotId, 'value' => $mixedValue));
+       }
+
 	/**
 	* Removes participant from the participants list
 	*@param int $iLotId lot id
@@ -242,7 +249,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@return int affected rows
 	*/
 	public function savePariticipantsList($iLotId, $aParticipants){
-		$sParticipants = '';		
+		$sParticipants = '';
 		if (!empty($aParticipants))
 		{
 			$aParticipants = array_map('intval', $aParticipants);
@@ -271,7 +278,16 @@ class BxMessengerDb extends BxBaseModTextDb
 		
 		$aLot = !empty($aLot) ? $aLot : $this -> getLotByUrlAndPariticipantsList($aData['url'], $aParticipants, $aData['type']);
 		if (empty($aLot)){
-			$iLotID = $this -> createNewLot($aData['member_id'], $aData['title'], $aData['type'], $aData['url'], $aParticipants);  
+			$iLotID = $this -> createNewLot($aData['member_id'], $aData['title'], $aData['type'], $aData['url'], $aParticipants);
+            bx_alert($this->_oConfig->getObject('alert'), 'create_lot', $iLotID, $aData['member_id']);
+
+            foreach($aParticipants as &$iParticipant) {
+                if ((int)$iParticipant === (int)$aData['member_id'])
+                    continue;
+
+                bx_alert($this->_oConfig->getObject('alert'), 'add_part', $iParticipant, $aData['member_id'], array('lot_id' => $iLotID, 'author_id' => $aData['member_id']));
+            }
+
 		} else 
 			$iLotID = $aLot[$this->CNF['FIELD_ID']];
 
@@ -1172,6 +1188,226 @@ class BxMessengerDb extends BxBaseModTextDb
 
 
         return ($CNF['ALLOW_TO_REMOVE_MESSAGE'] && $iJotAuthor == $iProfileId) || $bIsLotAuthor || isAdmin();
+    }
+
+    function createJVC($iLotId, $iProfileId){
+        $aJVC = $this->getJVC($iLotId);
+        $aOpened = array();
+        if (empty($aJVC)) {
+            $aLotInfo = $this->getLotInfoById($iLotId);
+            $sRoom = $this->_oConfig->getRoomId($aLotInfo);
+
+            $this->query("INSERT INTO `{$this->CNF['TABLE_JVC']}` 
+                SET 
+                    `{$this->CNF['FJVC_ROOM']}`=:room,
+                    `{$this->CNF['FJVC_LOT_ID']}`=:lot_id,
+                    `{$this->CNF['FJVC_NUMBER']}`=1
+                ",
+                array(
+                    'room' => $sRoom,
+                    'lot_id' => $iLotId
+                ));
+
+          $iJVCId = $this->lastId();
+        }
+        else
+        {
+            $iJVCId = $aJVC[$this->CNF['FJVC_ID']];
+            $aOpened = $this->closeAllOpenedConversations($iJVCId);
+            $this->query("UPDATE `{$this->CNF['TABLE_JVC']}` 
+                        SET `{$this->CNF['FJVC_NUMBER']}`= 1
+                        WHERE `{$this->CNF['FJVC_LOT_ID']}`= :lot_id    
+                        ", array('lot_id' => $iLotId));
+        }
+
+        if ($iJVCId && ($iJVCItemId = $this->addJVCItem($iJVCId, $iProfileId))) {
+            $this->updateJVC($iLotId, $this->CNF['FJVC_ACTIVE'], $iJVCItemId);
+            $iJotId = $this->addNewJot($iLotId, '', $iProfileId);
+            $this->updateJot($iJotId, $this->CNF['FIELD_MESSAGE_VIDEOC'], $iJVCItemId);
+        }
+
+        return array('jitsi_id' => $iJVCId, 'jot_id' => $iJotId, 'opened' => array_values($aOpened));
+    }
+
+    public function getJotIdByJitisItem($iJitsiId){
+        $sQuery = $this -> prepare("SELECT `{$this->CNF['FIELD_MESSAGE_ID']}` 
+                                            FROM `{$this->CNF['TABLE_MESSAGES']}` 
+                                            WHERE `{$this->CNF['FIELD_MESSAGE_VIDEOC']}` = ? 
+                                            ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}` DESC
+                                            LIMIT 1", $iJitsiId);
+        return $this -> getOne($sQuery);
+    }
+
+    function addJVCItem($iId, $iProfileId){
+        $this->query("INSERT INTO `{$this->CNF['TABLE_JVCT']}` SET 
+                            `{$this->CNF['FJVCT_AUTHOR_ID']}` = :author,
+                            `{$this->CNF['FJVCT_FK']}`= :id,
+                            `{$this->CNF['FJVCT_PART']}`= :part,
+                            `{$this->CNF['FJVCT_JOINED']}`= :part,
+                            `{$this->CNF['FJVCT_START']}` = UNIX_TIMESTAMP()
+                            ",
+                    array(
+                        'author' => $iProfileId,
+                        'id' => $iId,
+                        'part' => $iProfileId
+                    ));
+
+        return $this->lastId();
+    }
+
+    function closeAllOpenedConversations($iJVCId){
+        $aAllOpenedChats = $this->getPairs("SELECT  `j`.`{$this->CNF['FIELD_MESSAGE_ID']}`, `v`.`{$this->CNF['FJVCT_ID']}` as `jot_id` 
+                                                            FROM `{$this->CNF['TABLE_JVCT']}` as `v` 
+                                                            LEFT JOIN `{$this->CNF['TABLE_MESSAGES']}` as `j` ON `v`.`{$this->CNF['FJVCT_ID']}` = `j`.`{$this->CNF['FIELD_MESSAGE_VIDEOC']}`                                                                                                  
+                                                            WHERE `{$this->CNF['FJVCT_FK']}`= :id AND `{$this->CNF['FJVCT_END']}`= 0", 'jot_id', $this->CNF['FIELD_MESSAGE_ID'], array('id' => $iJVCId));
+
+        if (empty($aAllOpenedChats))
+            return array();
+
+        $this->query("UPDATE `{$this->CNF['TABLE_JVCT']}`
+                                  SET
+                                        `{$this->CNF['FJVCT_END']}`= UNIX_TIMESTAMP()                                        
+                                  WHERE `{$this->CNF['FJVCT_FK']}`= :id AND `{$this->CNF['FJVCT_END']}`= 0",
+                    array('id' => $iJVCId));
+
+        return $aAllOpenedChats;
+    }
+
+    function joinToActiveJVC($iLotId, $iProfileId, $bJoin = true){
+        $aItem = $this->getActiveJVCItem($iLotId);
+        if (empty($aItem))
+            return false;
+
+        $aParticipants = array();
+        if ($aItem[$this->CNF['FJVCT_PART']])
+            $aParticipants = explode(',', $aItem[$this->CNF['FJVCT_PART']]);
+
+        if (!in_array($iProfileId, $aParticipants))
+             $aParticipants[] = $iProfileId;
+
+        $aJoined = $aItem[$this->CNF['FJVCT_JOINED']] ? explode(',', $aItem[$this->CNF['FJVCT_JOINED']]) : array();
+        if (!in_array($iProfileId, $aJoined))
+            $aJoined[] = $iProfileId;
+
+        $this->updateJVCItem($aItem[$this->CNF['FJVCT_ID']], $this->CNF['FJVCT_PART'], implode(',', $aParticipants));
+        if ($bJoin)
+            $this->updateJVCItem($aItem[$this->CNF['FJVCT_ID']], $this->CNF['FJVCT_JOINED'], implode(',', $aJoined));
+
+        $this->updateJVC($iLotId, $this->CNF['FJVC_NUMBER'], count($aParticipants));
+        return true;
+    }
+
+    function updateJVC($iLotId, $sField, $mixedValue){
+       return $this->query("UPDATE `{$this->CNF['TABLE_JVC']}` SET 
+                            `{$sField}`=:value                                                       
+                            WHERE `{$this->CNF['FJVC_LOT_ID']}`=:lot_id",
+            array(
+                'lot_id' => $iLotId,
+                'value' => $mixedValue
+            ));
+    }
+
+    function leaveJVC($iLotId, $sField, $mixedValue){
+        return $this->query("UPDATE `{$this->CNF['TABLE_JVC']}` SET 
+                            `{$sField}`=:value                                                       
+                            WHERE `{$this->CNF['FJVC_LOT_ID']}`=:lot_id",
+            array(
+                'lot_id' => $iLotId,
+                'value' => $mixedValue
+            ));
+    }
+
+    function updateJVCItem($iId, $sField, $mixedValue){
+        return $this->query("UPDATE `{$this->CNF['TABLE_JVCT']}` SET 
+                            `{$sField}`=:value                                                       
+                            WHERE `{$this->CNF['FJVC_ID']}`=:id",
+            array(
+                'id' => $iId,
+                'value' => $mixedValue
+            ));
+    }
+
+    function closeJVC($iLotId)
+    {
+        $aJVC = $this->getJVC($iLotId);
+        if (empty($aJVC) || !(int)$aJVC[$this->CNF['FJVC_ACTIVE']])
+            return false;
+
+        $this->query("UPDATE `{$this->CNF['TABLE_JVCT']}` 
+                                        SET                                                    
+                                        `{$this->CNF['FJVCT_JOINED']}`=:joined,
+                                        `{$this->CNF['FJVCT_END']}`= UNIX_TIMESTAMP()                                              
+                                        WHERE `{$this->CNF['FJVCT_ID']}`= :id",
+        array(
+              'id' => $aJVC[$this->CNF['FJVC_ACTIVE']],
+              'joined' => '',
+        ));
+
+        $this->updateJVC($iLotId, $this->CNF['FJVC_ACTIVE'], 0);
+        return $this->updateJVC($iLotId, $this->CNF['FJVC_NUMBER'], 0);
+    }
+
+    function stopJVC($iLotId, $iProfileId){
+        $aJVC = $this->getJVC($iLotId);
+        if (empty($aJVC) || !(int)$aJVC[$this->CNF['FJVC_ACTIVE']])
+            return false;
+
+        $aTrack = $this->getRow("SELECT * FROM `{$this->CNF['TABLE_JVCT']}`                                                                                           
+                                        WHERE `{$this->CNF['FJVCT_ID']}`= :id",
+            array(
+                'id' => $aJVC[$this->CNF['FJVC_ACTIVE']]
+            ));
+
+        $sEnd = '';
+        $aJoined = explode(',', $aTrack[$this->CNF['FJVCT_JOINED']]);
+        if (in_array($iProfileId, $aJoined))
+            unset($aJoined[array_search($iProfileId, $aJoined)]);
+        else
+            $this->joinToActiveJVC($iLotId, $iProfileId, false);
+
+        $iJoinedNumber = count($aJoined);
+        if (!$iJoinedNumber)
+            $sEnd = ",`{$this->CNF['FJVCT_END']}`= UNIX_TIMESTAMP()";
+
+        $this->query("UPDATE `{$this->CNF['TABLE_JVCT']}` 
+                                        SET                                                    
+                                        `{$this->CNF['FJVCT_JOINED']}`=:joined
+                                        {$sEnd}                                                
+                                        WHERE `{$this->CNF['FJVCT_ID']}`= :id",
+            array(
+                'id' => $aJVC[$this->CNF['FJVC_ACTIVE']],
+                'joined' => implode(',', $aJoined),
+            ));
+
+        if (!$iJoinedNumber)
+            $this->updateJVC($iLotId, $this->CNF['FJVC_ACTIVE'], 0);
+
+        return $this->updateJVC($iLotId, $this->CNF['FJVC_NUMBER'], $iJoinedNumber);
+    }
+
+    function getJVC($iLotId){
+        return $this->getRow("SELECT * FROM `{$this->CNF['TABLE_JVC']}`
+                                     WHERE `{$this->CNF['FJVC_LOT_ID']}`= :lot_id",
+        array('lot_id' => $iLotId));
+    }
+
+    function getJVCItem($iId){
+        return $this->getRow("SELECT * 
+                                    FROM `{$this->CNF['TABLE_JVCT']}` 
+                                    WHERE `{$this->CNF['FJVCT_ID']}`= :id",
+                                    array('id' => $iId));
+    }
+
+    function getActiveJVCItem($iLotId, $sFiled = ''){
+       $aJVC = $this->getJVC($iLotId);
+       if (empty($aJVC) || !(int)$aJVC[$this->CNF['FJVC_ACTIVE']])
+           return false;
+
+       $aInfo = $this->getJVCItem($aJVC[$this->CNF['FJVC_ACTIVE']]);
+       if ($sFiled)
+           return isset($aInfo[$sFiled]) ? $aInfo[$sFiled] : false;
+
+       return $aInfo;
     }
 
     /*********************** REACT JOT Integration part *****************/

@@ -1,5 +1,5 @@
 <div class="bx-messenger-jots-snip" onclick="oMessenger.loadTalk(__id__);" data-lot="__id__">
-		<div class="bx-messenger-jots-snip-avatars bx-messanger-padding-lots-lefttopbottom">
+		<div class="bx-messenger-jots-snip-avatars bx-messenger-padding-lots-lefttopbottom">
 			<div class="bx-messenger-jots-snip-avatars-list bx-def-thumb bx-def-thumb-size" >
 				<bx_repeat:avatars>
 					<div>	
@@ -9,26 +9,23 @@
 			</div>
 			__status__
 		</div>
-		<div class="bx-messenger-jots-snip-info bx-messenger-padding-lots-topbottom __class__">
-			<div class="bx-messenger-jots-snip-title bx-def-font-semibold">
-				<div class="info">
-				</div>
+		<div class="bx-messenger-jots-snip-info bx-messenger-padding-lots-topbottom __class__ bx-def-font-middle">
+			<div class="bx-messenger-jots-snip-title">
+				<div class="info"></div>
 				__number__
-				<div class="title">
+				<div class="title bx-def-font-default bx-def-font-semibold __title_class__">
 					__title__
 				</div>
 				<bx_if:show_time>
-					<div class="time bx-def-font-light bx-def-font-small">__time__</div>
+					<div class="time bx-def-font-light bx-def-font-small bx-def-font-grayed">__time__</div>
 				</bx_if:show_time>				
 			</div>
-			<div class="bx-messenger-preview-lot">				
+			<div class="bx-messenger-preview-lot __message_class__ bx-def-font-grayed">
 				<div>
 					<span>__sender_username__</span>
-					<span>__message__</span>
+					<span calss="bx-def-font-middle">__message__</span>
 				</div>
-				<div>
-					<span class="bubble bx-menu-toolbar-item-addon bx-def-unit-alert-middle __bubble_class__">__count__</span>
-				</div>				
+				<span class="bubble bx-def-label __bubble_class__">__count__</span>
 			</div>			
 		</div>
 </div>

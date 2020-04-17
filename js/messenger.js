@@ -50,6 +50,8 @@
 		this.sSendAreaMenuPlus = '#bx-messenger-send-area-plus';
 		this.sAddFilesFormComments = '#bx-messenger-files-upload-comment';
 		this.sAddFilesForm = '#bx-messenger-files-uploader';
+		this.sJitsiVideo = '#bx-messenger-jitsi-video';
+		this.sJitsiMain = '#bx-messenger-jitsi';
 		this.sEditJotArea = '.bx-messenger-edit-jot';
 		this.sEditJotAreaId = '#bx-messenger-edit-message-box';
 		this.sAttachmentArea = '.bx-messenger-attachment-area';
@@ -76,6 +78,7 @@
 		this.sEmojiId = '#emoji-picker';
 		this.sTalkAreaWrapper = '.bx-messenger-table-wrapper';
 		this.sSendAttachmentArea = '.bx-messenger-send-area-attachments';
+		this.sActivePopup = '.bx-popup-applied:visible';
 
 		//globa class options
 		this.oUsersTemplate	= null;
@@ -113,11 +116,13 @@
 		this.lastEditText = '';
 		this.incomingMessage = 'modules/boonex/messenger/data/notify.mp3'; //beep file, occurs when message received
 		this.reaction = 'modules/boonex/messenger/data/reaction.mp3'; //beep file, occurs when message received
+		this.call = 'modules/boonex/messenger/data/call.mp3'; //incoming call file for video conferences
 		this.emojiObject = oOptions.emoji || null;
 		this.aPlatforms = ['MacIntel', 'MacPPC', 'Mac68K', 'Macintosh', 'iPhone', 'iPod', 'iPad', 'iPhone Simulator', 'iPod Simulator', 'iPad Simulator', 'Pike v7.6 release 92', 'Pike v7.8 release 517'];
 		this.oStorage = null;
 		this.oHistory = window.history || {};
 		this.oFilesUploader = null;
+		this.oActiveAudioInstance = null;
 		this.oActiveEmojiObject = Object.create(null);
 
 		const _this = this;
@@ -149,14 +154,13 @@
 				_this.loadTalk(iLot);
 		});
 	}
-	oMessenger.prototype.playSound = function(sFile){
+	oMessenger.prototype.playSound = function(sFile, bRepeat = false){
 		if (!_oMessenger[sFile])
-		{
-			console.log('Sound is not supported in your browser');
-			return;
-		}
+			return ;
+
 		try{
-			createjs.Sound.play(sFile);
+			const oOptions = bRepeat ? { interrupt: createjs.Sound.INTERRUPT_ANY, loop: -1 } : {};
+			this.oActiveAudioInstance = createjs.Sound.play(sFile, oOptions);
 		}
 		catch(e){
 			console.log('Sound is not supported in your browser');
@@ -347,6 +351,7 @@
 		// init system sounds
 		createjs.Sound.registerSound(this.incomingMessage, 'incomingMessage');
 		createjs.Sound.registerSound(this.reaction, 'reaction');
+		createjs.Sound.registerSound(this.call, 'call');
 	};
 
 	oMessenger.prototype.updateSendArea = function(bFilesEmpty){
@@ -635,7 +640,7 @@
 						const iResult = parseInt(oData.code);
 					
 						if (iResult === 1)
-							alert(oData.message);
+							bx_alert(oData.message);
 						else
 						{
 							if (!_iLotId)
@@ -669,7 +674,7 @@
 			return false;
 
 		$.post('modules/?r=messenger/leave', {lot:iLotId}, function(oData){
-			alert(oData.message);
+			bx_alert(oData.message);
 			if (!parseInt(oData.code))
 					_this.searchByItems(() => $(_this.sLotsListSelector).length ?  $(_this.sLotsListSelector).first().click() : _this.createLot());
 		}, 'json');
@@ -919,10 +924,10 @@
 									jot_id:iJotId,
 									addon:'edit'
 								};
-								
+
 					if (!_this.isBlockVersion())
 						_this.upLotsPosition($.extend(oInfo, _this.oSettings));
-					
+
 					_this.broadcastMessage(oInfo);
 				}
 			}, 'json');
@@ -1240,6 +1245,10 @@
 			.end()
 			.find(this.sLotInfo)
 			.removeClass(this.sUnreadLotClass)
+			.find('> div')
+			.removeClass('bx-def-font-semibold')
+			.find('div')
+			.removeClass('bx-def-font-extrabold')
 			.end()
 			.find(this.sBubble)
 			.fadeOut(this.iHideUnreadBadge)
@@ -1517,7 +1526,7 @@
 						window.location.reload();
 						break;
 					default:						
-						alert(oData.message);
+						bx_alert(oData.message);
 						$(_this.sTalkList).find('[data-tmp="' + oParams.tmp_id + '"]').remove();
 				}			
 					if (typeof fCallBack == 'function')
@@ -1555,7 +1564,46 @@
 		}
 		
 		return list;
-	}
+	};
+	oMessenger.prototype.stopActiveSound = function() {
+		if (this.oActiveAudioInstance) {
+			this.oActiveAudioInstance.stop();
+			this.oActiveAudioInstance.destroy();
+			this.oActiveAudioInstance = null;
+		}
+
+	};
+
+	oMessenger.prototype.getVideoCall = function({ lot, vc }){
+		const _this = this;
+
+		if (lot)
+			switch(vc){
+				case 'start':
+					if (!$(_this.sJitsiMain).length && (!_oMessenger.isBlockVersion() || (_oMessenger.isBlockVersion() && _oMessenger.oSettings.lot === lot)))
+						$.get('modules/?r=messenger/get_call_popup', { lot },
+							function (oData) {
+								if (!oData.code) {
+									processJsonData(oData);
+									_this.playSound('call', true);
+								}
+							}, 'json');
+
+				break;
+				case 'stop':
+					if ($(`div[data-conferance='${lot}']`).length)
+						_this.onCloseCallPopup($(`div[data-conferance='${lot}']`), lot);
+
+					break;
+				case 'break':
+				    if (_this.oJitsi && _this.oJitsi._participantsNumber === 2) {
+						_this.closeJitsi(_this.sJitsiMain);
+						_this.beep();
+					}
+
+				break;
+		}
+	};
 	
 	/**
 	* Move lot's brief to the top of the left side when new message received or just update brief message
@@ -1573,7 +1621,7 @@
 			return;
 			
 		if (lot)
-			$.get('modules/?r=messenger/update_lot_brief', {lot_id: lot}, 
+			$.get('modules/?r=messenger/update_lot_brief', { lot_id: lot },
 				function(oData)
 				{
 					if (!parseInt(oData.code))
@@ -1697,7 +1745,7 @@
 	};	
 	
 	/**
-	* Check if specified lot is currntly active
+	* Check if specified lot is currently active
 	*@param int iId profile id 
 	*@return boolean
 	*/
@@ -1844,6 +1892,7 @@
 				case 'reaction':
 				case 'delete':
 				case 'edit':
+				case 'vc':
 						iJotId = oAction.jot_id || 0;
 						break;
 				default:
@@ -1935,10 +1984,12 @@
 												);														
 								break;
 							case 'edit':
+							case 'vc':
 									$('div[data-id="' + iJotId + '"] ' + _this.sJotMessage, oList)
 										.html(oData.html)
 										.parent()
-										.linkify(true, true); // don't update attachment for message and don't broadcast as new message 								
+/*										.linkify(true, true)*/
+										.bxTime();// don't update attachment for message and don't broadcast as new message
 								break;
 							case 'delete':
 									const onRemove = function(){
@@ -2081,7 +2132,7 @@
 									},
 									onSelect: function(result, response){
 										$(this)
-											.before(`<b class="bx-def-color-bg-hl bx-def-round-corners bx-def-label">
+											.before(`<b class="bx-def-color-bg-hl bx-def-round-corners">
 														<img class="bx-def-thumb bx-def-thumb-size bx-def-margin-sec-right" src="${result.icon}" /><span>${result.value}</span>
 														<input type="hidden" name="users[]" value="${result.id}" /></b>`)
 											.find('input')
@@ -2159,6 +2210,97 @@
 		let range = this.quill.getSelection(true);
 		this.quill.insertText(range.index, oEmoji.native, Quill.sources.USER);
 		this.quill.setSelection(range.index + oEmoji.native.length, 1, Quill.sources.API);
+	};
+
+
+    /**
+     * Run Jitsi video chat
+     *@param string sId of the image
+     */
+    oMessenger.prototype.startVideoCall = function(oEl, iLotId, oOptions){
+        const _this = this;
+        /*console.log('------ lalal ----', iLotId, oEl, sRoomID);
+        if ('undefined' !== typeof(window.ReactNativeWebView))
+            window.ReactNativeWebView.postMessage(JSON.stringify(
+                {
+                    "action": "openJitsi",
+                    "chat_id": sRoomID,
+                    params:"fullscreen/halfscreen"
+                }));
+        /*onConferenceJoined
+onConferenceTerminated
+onConferenceWillJoin*/
+        /*else
+        {*/
+            if (oEl)
+        		bx_loading_btn($(oEl), true);
+
+            let oParams = Object.assign({}, oOptions);
+            if (typeof oParams.callback !== 'undefined')
+            	delete oParams['callback'];
+
+		    $(window).dolPopupAjax({
+                url: bx_append_url_params(`modules/?r=messenger/get_jitsi_conference_form/${iLotId}`, oParams),
+                id: {
+                    force: true,
+                    value: _this.sJitsiVideo.substr(1)
+                },
+                fog: false,
+                removeOnClose: true,
+                closeOnOuterClick: false,
+				onBeforeShow: () => oOptions && typeof oOptions.callback == 'function' && oOptions.callback(),
+                onShow: () => oEl && bx_loading_btn($(oEl), false),
+            });
+    };
+
+	oMessenger.prototype.onCloseCallPopup = function (oEl, iLotId, sType = 'break') {
+		this.stopActiveSound();
+		this.broadcastMessage({
+			type: 'vc',
+			vc: sType,
+		});
+
+		$(oEl)
+			.closest('.bx-popup-active:visible')
+			.dolPopupHide({ removeOnClose: true });
+	};
+
+	oMessenger.prototype.closeJitsi = function(oElement){
+		const oJitsi = this.oJitsi,
+			  _this = this;
+
+		$(oElement)
+			.closest(this.sActivePopup)
+			.dolPopupHide({
+				removeOnClose: true,
+				onBeforeHide: function(){
+					if (oJitsi){
+						const { _lotId, _jotId } = oJitsi;
+						sFunc = () => {
+							const oInfo = {
+								jot_id: _jotId,
+								addon: 'vc',
+								type: 'vc',
+								vc: 'stop'
+							};
+							_this.broadcastMessage(oInfo);
+							_this.updateJots(oInfo);
+						};
+
+						$(window).unbind('beforeunload');
+						$.get('modules/?r=messenger/stop_jvc/', { lot_id: _lotId }, (oData) => {
+							if (+oData.code && oData.msg)
+								bx_alert(oData.msg);
+							sFunc();
+						}, 'json');
+
+						oJitsi.dispose();
+						_this.oJitsi = null;
+					}
+				}
+			});
+
+		$(window).unbind('beforeunload');
 	};
 
 	/**
@@ -2322,11 +2464,11 @@
 			_oMessenger.viewJot(iJotId);
 			return this;
 		},
-		onMuteLot: function (iLotId, oEl) {
+		onMuteLot: function (oEl, iLotId) {
 			_oMessenger.muteLot(iLotId, oEl);
 			return this;
 		},
-		onStarLot: function (iLotId, oEl) {
+		onStarLot: function (oEl, iLotId) {
 			_oMessenger.starLot(iLotId, oEl);
 			return this;
 		},
@@ -2362,11 +2504,13 @@
 			return this;
 		},
 		onMessage: function (oData) {
-			const bSilent = _oMessenger.oSettings.user_id === oData.user_id;
+			const bSilent = _oMessenger.oSettings.user_id === oData.user_id || ( oData.type === 'vc' && oData.vc !== 'start' );
 
-			try {
+			try
+			{
 				if (!_oMessenger.isBlockVersion() && (!_oMessenger.isMobile() || (_oMessenger.isMobile() && oData.lot !== _oMessenger.oSettings.lot)))
 					_oMessenger.upLotsPosition(oData, bSilent);
+
 			} catch (e) {
 				console.log('Lot list message update error', e);
 			}
@@ -2374,6 +2518,10 @@
 			try {
 				if (oData.lot === _oMessenger.oSettings.lot)
 					_oMessenger.updateJots(oData, bSilent);
+
+				if (oData.type === 'vc' && +oData.lot)
+					_oMessenger.getVideoCall(oData);
+
 			} catch (e) {
 				console.log('Talk history update error', e);
 			}
@@ -2511,6 +2659,91 @@
 			}, 'json');
 
 		},
+
+		initJitsi: function(oJitsi, bNew = false, bChatSync = false){
+			_oMessenger.oJitsi = oJitsi;
+
+			if (oJitsi._lotId) {
+				const oInfo = {type: 'vc', vc: 'start'};
+
+				if (oJitsi._jotId && !bNew) {
+					oInfo.jot_id = oJitsi._jotId;
+					oInfo.vc = 'join';
+				}
+
+				_oMessenger.broadcastMessage(oInfo);
+				_oMessenger.updateJots(oInfo);
+
+				$(window)
+					.on('beforeunload', () => _t('_bx_messenger_are_you_sure_close_jisti'))
+					.on('unload', () => {
+						$.get('modules/?r=messenger/stop_jvc/', { lot_id: oJitsi._lotId }, (oData) => {
+							const oInfo = {
+								jot_id: oJitsi._jotId,
+								addon: 'vc',
+								type: 'vc',
+								vc: 'stop'
+							};
+							_oMessenger.broadcastMessage(oInfo);
+							_oMessenger.updateJots(oInfo);
+
+						}, 'json');
+						oJitsi.dispose();
+					});
+
+				if (bChatSync)
+					oJitsi.on('outgoingMessage', ({ message }) => {
+					_oMessenger.sendMessage(message, { vc: oJitsi._lotId});
+					_oMessenger.updateJots({
+						action: 'msg'
+						});
+					});
+
+				oJitsi.on('videoConferenceLeft', () => {
+					_oMessenger.closeJitsi(_oMessenger.sJitsiMain);
+				});
+			}
+		},
+
+		onJitsiClose:(oElement) => {
+			_oMessenger.closeJitsi(oElement);
+		},
+
+		onJitsiFullScreen:() => {
+			if (_oMessenger.oJitsi){
+				let iframe = $('iframe[id^="jitsiConference"]');
+				/*$(iframe).on('keydown', (event) => {
+					if (event.keyCode === 115) event.stopPropagation();
+				}, true);
+
+				$(iframe).on('keypress', (event) => {
+					if (event.keyCode === 115) event.stopPropagation();
+				}, true);*/
+
+				$(iframe).get(0).requestFullscreen();
+			}
+		},
+		/**
+		 * Run Jitsi video chat
+		 *@param string sId of the image
+		*/
+		onStartVideoCall: function(oEl, iLotId){
+            _oMessenger.startVideoCall(oEl, iLotId || _oMessenger.oSettings.lot);
+		},
+        getCall: function (oEl, iLotId, bAudioOnly = false){
+			if (!iLotId)
+				return ;
+
+			if (_oMessenger.oSettings.lot !== iLotId)
+				_oMessenger.loadTalk(iLotId);
+
+			_oMessenger.startVideoCall(undefined, iLotId || _oMessenger.oSettings.lot, {
+				startAudioOnly: +bAudioOnly,
+				callback : () => {
+					_oMessenger.onCloseCallPopup(oEl, iLotId, 'get_call');
+				}
+			});
+        },
 		/**
 		 * Show only marked as important lot
 		 *@param object oEl
@@ -2550,14 +2783,14 @@
 									$(this).remove();
 								});
 				} else
-					alert(oData.message);
+					bx_alert(oData.message);
 			}, 'json');
 		},
 
 		downloadFile: function (iFileId) {
 			$.get('modules/?r=messenger/download_file/' + iFileId, {id: iFileId}, function (oData) {
 				if (parseInt(oData.code))
-					alert(oData.message);
+					bx_alert(oData.message);
 			});
 		},
 		sendVideoRecord: function (oFile, oCallback) {
@@ -2591,7 +2824,7 @@
 									oCallback();
 							});
 						} else
-							alert(oData.message);
+							bx_alert(oData.message);
 					});
 
 
@@ -2684,6 +2917,16 @@
 				$(_oMessenger.sGiphMain).fadeOut();
 				$(_oMessenger.sSendAttachmentArea).html('');
 			}
+		},
+		updateJots(oJots, sType){
+			if (Array.isArray(oJots))
+				oJots.map( iJot => _oMessenger.updateJots({
+					action: sType || 'edit',
+					jot_id: iJot
+				}));
+		},
+		onHangUp: (oEl, iLotId) => {
+			_oMessenger.onCloseCallPopup(oEl, iLotId);
 		},
 		initGiphy: function () {
 			let iTotal = 0;

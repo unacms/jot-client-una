@@ -29,6 +29,8 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'TABLE_USERS_INFO' => $aModule['db_prefix'] . 'users_info',
             'TABLE_LIVE_COMMENTS' => $aModule['db_prefix'] . 'lcomments',
             'TABLE_JOR_REACTIONS' => $aModule['db_prefix'] . 'jot_reactions',
+            'TABLE_JVC' => $aModule['db_prefix'] . 'jvc',
+            'TABLE_JVCT' => $aModule['db_prefix'] . 'jvc_track',
             'TABLE_CMTS_OBJECTS' => 'sys_objects_cmts',
             'TABLE_ENTRIES_FULLTEXT' => 'search_title',
             'TABLE_ENTRIES_COMMENTS_FULLTEXT' => 'search_fields',
@@ -64,6 +66,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			// storage tale 
 			'FIELD_ST_ID' => 'id',
 			'FIELD_ST_AUTHOR' => 'profile_id',
+			'FIELD_ST_REMOTE' => 'remote_id',
 			'FIELD_ST_NAME' => 'file_name',
 			'FIELD_ST_ADDED' => 'added',
 			'FIELD_ST_JOT' => 'jot_id',
@@ -82,6 +85,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'FIELD_MESSAGE_LAST_EDIT' => 'last_edit',
 			'FIELD_MESSAGE_EDIT_BY' => 'edit_by',
 			'FIELD_MESSAGE_TRASH' => 'trash',
+			'FIELD_MESSAGE_VIDEOC' => 'vc',
 
 			// lots types table fields
 			'FIELD_TYPE_ID' => 'id',
@@ -100,6 +104,22 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'FIELD_REACT_EMOJI_ID' => 'emoji_id',
 			'FIELD_REACT_PROFILE_ID' => 'user_id',
 			'FIELD_REACT_ADDED' => 'added',
+
+// jitsi video conference fields
+            'FJVC_ID' => 'id',
+            'FJVC_LOT_ID' => 'lot_id',
+            'FJVC_ROOM' => 'room',
+            'FJVC_NUMBER' => 'number',
+            'FJVC_ACTIVE' => 'active',
+
+            // jitsi video conference tracking fields
+            'FJVCT_ID' => 'id',
+            'FJVCT_FK' => 'jvc_id',
+            'FJVCT_AUTHOR_ID' => 'author_id',
+            'FJVCT_START' => 'start',
+            'FJVCT_END' => 'end',
+            'FJVCT_PART' => 'participants',
+            'FJVCT_JOINED' => 'joined',
 
 			// page URIs
 			'URL_HOME' => BX_DOL_URL_ROOT . 'page.php?i=messenger',
@@ -139,6 +159,12 @@ class BxMessengerConfig extends BxBaseModTextConfig
                 'search' => 'search',
                 'trending' => 'trending'
             ),
+
+            // Jitsi
+            'JITSI' => array(
+                'LIB-LINK' => 'https://meet.jit.si/external_api.js'
+            ),
+
             // objects
 			'OBJECT_STORAGE' => 'bx_messenger_files',
 			'OBJECT_IMAGES_TRANSCODER_GALLERY' => 'bx_messenger_photos_resized',
@@ -181,6 +207,15 @@ class BxMessengerConfig extends BxBaseModTextConfig
             'EMOJI_SET' => getParam($aModule['db_prefix'] . 'emoji_set'),
             'REACTIONS_SIZE' => (int)getParam($aModule['db_prefix'] . 'reactions_size'),
             'EMOJI_PREVIEW' => getParam($aModule['db_prefix'] . 'show_emoji_preview') == 'on',
+            'ENABLE-JITSI' => getParam($aModule['db_prefix'] . 'jitsi_enable') == 'on',
+            'JITSI-SERVER' => getParam($aModule['db_prefix'] . 'jitsi_server'),
+            'JITSI-CHAT' => getParam($aModule['db_prefix'] . 'jitsi_chat') == 'on',
+            'JITSI-CHAT-SYNC' => getParam($aModule['db_prefix'] . 'jitsi_sync') == 'on',
+            'JITSI-HIDDEN-INFO' => getParam($aModule['db_prefix'] . 'jitsi_hide_info') == 'on',
+            'JITSI-ONLY-FOR-PRIVATE' => getParam($aModule['db_prefix'] . 'jitsi_only_for_private') == 'on',
+            'JITSI-ENABLE-WATERMARK' => getParam($aModule['db_prefix'] . 'jitsi_enable_watermark') == 'on',
+            'JITSI-WATERMARK-URL' => getParam($aModule['db_prefix'] . 'jitsi_watermark_link'),
+            'JITSI-SUPPORT-LINK' => getParam($aModule['db_prefix'] . 'jitsi_support_url'),
             'JSMain' => 'oMessenger'
 		);
 
@@ -338,6 +373,21 @@ class BxMessengerConfig extends BxBaseModTextConfig
         $sAction = $sAction ? $sAction : 'trending';
         $sAction = isset($oGiphy[$sAction]) ? $oGiphy[$sAction] : $sAction;
         return bx_file_get_contents("{$sUrl}{$sAction}", $aParams);
+    }
+
+    public function getRoomId(&$aLotInfo){
+        $sId = empty($aLotInfo) ? time() : BX_DOL_URL_ROOT . $aLotInfo[$this->CNF['FIELD_ID']] . $aLotInfo[$this->CNF['FIELD_AUTHOR']];
+	    return md5($sId);
+    }
+
+    public function isJitsiAllowed($iType){
+        if (!$this->CNF['ENABLE-JITSI'])
+	        return false;
+
+	    if ($this->CNF['JITSI-ONLY-FOR-PRIVATE'] && ($iType == BX_IM_TYPE_PUBLIC || $iType == BX_IM_TYPE_SETS))
+	        return false;
+
+	    return true;
     }
 }
 

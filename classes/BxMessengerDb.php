@@ -1193,10 +1193,11 @@ class BxMessengerDb extends BxBaseModTextDb
     function createJVC($iLotId, $iProfileId){
         $aJVC = $this->getJVC($iLotId);
         $aOpened = array();
+
+        $sRoom = '';
         if (empty($aJVC)) {
             $aLotInfo = $this->getLotInfoById($iLotId);
             $sRoom = $this->_oConfig->getRoomId($aLotInfo);
-
             $this->query("INSERT INTO `{$this->CNF['TABLE_JVC']}` 
                 SET 
                     `{$this->CNF['FJVC_ROOM']}`=:room,
@@ -1214,6 +1215,7 @@ class BxMessengerDb extends BxBaseModTextDb
         {
             $iJVCId = $aJVC[$this->CNF['FJVC_ID']];
             $aOpened = $this->closeAllOpenedConversations($iJVCId);
+            $sRoom = $aJVC[$this->CNF['FJVC_ROOM']];
             $this->query("UPDATE `{$this->CNF['TABLE_JVC']}` 
                         SET `{$this->CNF['FJVC_NUMBER']}`= 1
                         WHERE `{$this->CNF['FJVC_LOT_ID']}`= :lot_id    
@@ -1226,7 +1228,7 @@ class BxMessengerDb extends BxBaseModTextDb
             $this->updateJot($iJotId, $this->CNF['FIELD_MESSAGE_VIDEOC'], $iJVCItemId);
         }
 
-        return array('jitsi_id' => $iJVCId, 'jot_id' => $iJotId, 'opened' => array_values($aOpened));
+        return array('jitsi_id' => $iJVCId, 'jot_id' => $iJotId, $this->CNF['FJVC_ROOM'] => $sRoom, 'opened' => array_values($aOpened));
     }
 
     public function getJotIdByJitisItem($iJitsiId){
@@ -1358,13 +1360,13 @@ class BxMessengerDb extends BxBaseModTextDb
                 'id' => $aJVC[$this->CNF['FJVC_ACTIVE']]
             ));
 
-        $sEnd = '';
         $aJoined = explode(',', $aTrack[$this->CNF['FJVCT_JOINED']]);
         if (in_array($iProfileId, $aJoined))
             unset($aJoined[array_search($iProfileId, $aJoined)]);
         else
             $this->joinToActiveJVC($iLotId, $iProfileId, false);
 
+        $sEnd = '';
         $iJoinedNumber = count($aJoined);
         if (!$iJoinedNumber)
             $sEnd = ",`{$this->CNF['FJVCT_END']}`= UNIX_TIMESTAMP()";
@@ -1494,6 +1496,48 @@ class BxMessengerDb extends BxBaseModTextDb
                                         WHERE 
                                             `{$CNF['FIELD_REACT_JOT_ID']}` = :jot_id
                                         ORDER BY `{$CNF['FIELD_REACT_ADDED']}`", array( 'jot_id' => $iJotId ));
+    }
+
+    public function findInHistory($iLotId = 0, $sText = '', $iStart = 0, $iLimit = 10, $sOrder = 'DESC')
+    {
+        if (!$sText)
+            return array();
+
+        $aWhere[] = "`j`.`{$this->CNF['FIELD_MESSAGE']}` LIKE :message";
+        $aParams['message'] = "%{$sText}%";
+
+        if ($iLotId)
+        {
+            $aWhere[] = " `l`.`{$this->CNF['FIELD_ID']}`=:id ";
+            $aParams['id'] = $iLotId;
+        }
+
+        $sLimit = '';
+        $sOrder = $sOrder === 'ASC' ? 'ASC' : 'DESC';
+        if ($iLimit) {
+            $aParams['start'] = (int)$iStart;
+            $aParams['limit'] = (int)$iLimit;
+            $sLimit = "LIMIT :start, :limit";
+        }
+
+        if (!empty($aWhere))
+            $sWhere = implode(' AND ', $aWhere);
+
+        return $this-> getAll("SELECT 
+			`l`.`{$this->CNF['FIELD_TITLE']}`,
+			`l`.`{$this->CNF['FIELD_TYPE']}`,
+			`l`.`{$this->CNF['FIELD_ADDED']}` as `talk_added`,
+			`l`.`{$this->CNF['FIELD_AUTHOR']}` as `talk_author`,
+			`l`.`{$this->CNF['FIELD_PARTICIPANTS']}`,
+			`j`.`{$this->CNF['FIELD_MESSAGE']}`,
+			`j`.`{$this->CNF['FIELD_MESSAGE_ID']}` as `message_id`,	
+			`j`.`{$this->CNF['FIELD_ADDED']}` as `message_added`,			
+			`j`.`{$this->CNF['FIELD_MESSAGE_AUTHOR']}` as `message_author`			
+			FROM `{$this->CNF['TABLE_ENTRIES']}` as `l`
+			LEFT JOIN `{$this->CNF['TABLE_MESSAGES']}` as `j` ON `l`.`{$this->CNF['FIELD_ID']}` = `j`.`{$this->CNF['FIELD_MESSAGE_FK']}`
+			WHERE {$sWhere}
+			ORDER BY `j`.`{$this->CNF['FIELD_MESSAGE_ID']}` {$sOrder}
+			{$sLimit}", $aParams);
     }
 }
 

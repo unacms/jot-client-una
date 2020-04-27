@@ -872,8 +872,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@return string html code
 	*/
 	public function getLotsColumn($iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $iProfileId, $iTalkPerson = BX_IM_EMPTY){
-		$sContent = '';
-		
 		$aMyLots = $this -> _oDb -> getMyLots($iProfileId);
 		if (!empty($aMyLots))
 			$sContent = $this -> getLotsPreview($iProfileId, $aMyLots);
@@ -892,7 +890,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'lot_id' => (int)$iLotId,
 			'jot_id' => (int)$iJotId ? $iJotId : $this -> _oDb -> getFirstUnreadJot($iProfileId, $iLotId),
 			'star_icon' => $this -> _oConfig -> CNF['STAR_ICON'],
-			'star_color' => $this -> _oConfig -> CNF['STAR_BACKGROUND_COLOR']
+			'star_color' => $this -> _oConfig -> CNF['STAR_BACKGROUND_COLOR'],
+            'direction' => BxDolLanguages::getInstance()->getLangDirection()
 		);
 		
 		/**
@@ -1675,10 +1674,13 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         $oLanguage = BxDolStudioLanguagesUtils::getInstance();
         $sLanguage = $oLanguage->getCurrentLangName(false);
 
+        $aJVC = $this->_oDb->getJVC($iLotId);
+        $sRoom = empty($aJVC) ? $this->_oConfig->getRoomId($aLotInfo) : $aJVC[$CNF['FJVC_ROOM']];
         $sCode = $this -> parseHtmlByName('jitsi_video_form.html', array(
             'id' => $iLotId,
             'domain' => $CNF['JITSI-SERVER'],
             'lang' => $sLanguage,
+            'room' => $sLanguage,
             'lib_link' => $JITSI['LIB-LINK'],
             'info_enabled' => +$CNF['JITSI-HIDDEN-INFO'],
             'chat_enabled' => +$CNF['JITSI-CHAT'],
@@ -1691,7 +1693,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             'user_name' => $oProfileInfo->getDisplayName(),
             'me' => _t('_bx_messenger_jitsi_meet_me'),
             'avatar' => $oProfileInfo->getAvatar(),
-            'name' => $this->_oConfig->getRoomId($aLotInfo),
+            'name' => $sRoom,
             'title' => bx_js_string(strmaxtextlen($sTitle))
         ));
 

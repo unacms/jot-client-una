@@ -105,7 +105,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'FIELD_REACT_PROFILE_ID' => 'user_id',
 			'FIELD_REACT_ADDED' => 'added',
 
-// jitsi video conference fields
+            // jitsi video conference fields
             'FJVC_ID' => 'id',
             'FJVC_LOT_ID' => 'lot_id',
             'FJVC_ROOM' => 'room',
@@ -376,8 +376,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
     }
 
     public function getRoomId(&$aLotInfo){
-        $sId = empty($aLotInfo) ? time() : BX_DOL_URL_ROOT . $aLotInfo[$this->CNF['FIELD_ID']] . $aLotInfo[$this->CNF['FIELD_AUTHOR']];
-	    return md5($sId);
+        return empty($aLotInfo) ? md5(time()) : 'UNA' . md5(BX_DOL_URL_ROOT . $aLotInfo[$this->CNF['FIELD_ID']] . $aLotInfo[$this->CNF['FIELD_AUTHOR']] . BX_DOL_SECRET);
     }
 
     public function isJitsiAllowed($iType){

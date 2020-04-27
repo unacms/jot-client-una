@@ -16,6 +16,7 @@ define('BX_IM_TYPE_PRIVATE', 2);
 define('BX_IM_TYPE_SETS', 3);
 define('BX_IM_TYPE_GROUPS', 4);
 define('BX_IM_TYPE_EVENTS', 5);
+define('BX_IM_TYPE_BROADCAST', 6);
 define('BX_IM_EMPTY_URL', '');
 define('BX_IM_EMPTY', 0);
 define('BX_ATT_TYPE_FILES', 'files');
@@ -1862,6 +1863,7 @@ class BxMessengerModule extends BxBaseModTextModule
             $aResult = array('code' => 0, 'parts' => $iParticipants);
             if ($this->_oDb->joinToActiveJVC($iLotId, $this->_iProfileId)) {
                 $aResult['jot_id'] = $this->_oDb->getJotIdByJitisItem((int)$aJVC[$CNF['FJVC_ACTIVE']]);
+                $aResult[$CNF['FJVC_ROOM']] = $aJVC[$CNF['FJVC_ROOM']];
                 $this->onJoinVC($iLotId);
                 return echoJson($aResult);
             }
@@ -1871,7 +1873,7 @@ class BxMessengerModule extends BxBaseModTextModule
 
         if ($aResult = $this->_oDb->createJVC($iLotId, $this->_iProfileId)) {
             $this->onCreateVC($iLotId);
-            return echoJson(array_merge(array('code' => 0, 'new' => 1, 'parts' => $iParticipants), $aResult));
+            return echoJson(array_merge(array('code' => 0, 'new' => 1, 'parts' => $iParticipants, 'room' => $aResult[$CNF['FJVC_ROOM']]), $aResult));
         }
 
         return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_jitsi_err_can_not_be_created')));
@@ -1920,10 +1922,40 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $mixedContent = $this->_oTemplate->getCallPopup($iLotId, $this->_iProfileId);
         $aResult = array('code' => +($mixedContent === false));
-        if ($mixedContent)
-            $aResult['popup'] = $mixedContent;
+        if ($mixedContent) {
+            $aResult['popup'] = array(
+                'html' => $mixedContent,
+                'options' => array('onHide' => "oMessenger.onHangUp(undefined, {$iLotId})")
+            );
+        }
 
         return echoJson($aResult);
+    }
+
+    function serviceSearch($sText = '', $iStart = 0, $iLimit = 10, $sOrder = 'DESC', $iLotId = 0){
+        $CNF = $this->_oConfig->CNF;
+
+        if (($iLotId && !isLogged()) || (!isAdmin() && !$iLotId))
+            return _t('_bx_messenger_no_permissions');
+
+        $sResult = $this->_oDb->findInHistory($iLotId, $sText, $iStart, $iLimit, $sOrder);
+        if (empty($sResult))
+            return array();
+
+        $aMessages = array();
+        foreach($sResult as &$aMessage){
+            $iType = $aMessage[$CNF['FIELD_TYPE']];
+            $sTitle = $aMessage[$CNF['FIELD_TITLE']] ?
+                _t($aMessage[$CNF['FIELD_TITLE']]) : _t('_bx_messenger_lots_private_lot');
+
+            $aMessages[] = array_merge($aMessage, array(
+                $CNF['FIELD_TITLE'] => $sTitle,
+                'message_url' => $this->_oConfig->getRepostUrl($aMessage['message_id']),
+                $CNF['FIELD_PARTICIPANTS'] => explode(',', $aMessage[$CNF['FIELD_PARTICIPANTS']])
+            ));
+        }
+
+        return $aMessages;
     }
 }
 

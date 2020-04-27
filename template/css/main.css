@@ -991,7 +991,8 @@ div.bx-messenger-attachment-file-images img
 .bx-messenger-block .bx-db-menu a,
 .bx-messenger-block .bx-db-menu span
 {
-	margin-left: 0.8rem;
+	margin-left: 0.4rem;
+	margin-right: 0.4rem;
 }
 
 .bx-messenger-block .bx-db-menu a svg
@@ -1739,6 +1740,10 @@ div.bx-messenger-conference-call > div {
 	right: -5px;
 	bottom: -5px;
 	cursor: nwse-resize;
+}
+
+#jitsi-button {
+	display: none;
 }
 
 @media (max-width:720px)

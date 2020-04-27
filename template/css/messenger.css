@@ -246,7 +246,8 @@ div.bx-messenger-border.search span i {
 }
 
 div.bx-messenger-border.search span.star {
-	margin-right: 1rem;
+	margin-right: 0.5rem;
+	margin-left: 0.5rem;
 }
 
 div.bx-messenger-border.search div:first-child 

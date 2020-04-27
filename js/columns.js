@@ -31,29 +31,39 @@
 				iLeftAreaHeight:null, //left column header height
 				iRightAreaHeight:null, //right column header height
 				iResizeTimeout:null,
-				
-				updateLeftHeight:function(){					
+				sDirection: 'LTR', // by default left to right;
+
+				isRTL: function(){
+					return this.sDirection === 'RTL';
+				},
+
+				updateLeftHeight:function(){
 					this.iLeftAreaHeight = $(this.sLeftTopBlockArea).outerHeight();
 					$(this.sLeftAreaName).height(this.iMainAreaHeight - this.iLeftAreaHeight);
 				},
 				
-				updateRightHeight:function(){
-						this.iRightAreaHeight = $(this.sInfoUsersArea).length ? $(this.sInfoUsersArea).outerHeight() : $(this.sBlockHeaderArea).outerHeight();	
-
-						if (this.iRightAreaHeight == null) 
+				updateRightHeight: function(){
+						this.iRightAreaHeight = $(this.sInfoUsersArea).length ? $(this.sInfoUsersArea).outerHeight() : $(this.sBlockHeaderArea).outerHeight();
+						if (this.iRightAreaHeight == null)
 							return;
-					
+
 						$(this.sRightAreaName).height(this.iMainAreaHeight - this.iRightAreaHeight);
 				},
-				init:function(){
-						var iParent = $(this.sBothColumnsParent).outerWidth();
+				init: function(){
+						const iParent = $(this.sBothColumnsParent).outerWidth();
 						
 						if (!iParent || this.oLeftCol != null || this.oRightCol != null) return ;
-						
-						this.oLeftCol = $(this.sBothColumnsParent + ' > div').first();
-						this.oRightCol = $(this.sBothColumnsParent + ' > div').last();
-						
-						var iLeftW = (this.oLeftCol.outerWidth()*100/iParent).toFixed(2);
+
+						if (this.isRTL()) {
+							this.oLeftCol = $(this.sBothColumnsParent + ' > div').last();
+							this.oRightCol = $(this.sBothColumnsParent + ' > div').first();
+						} else
+						{
+							this.oLeftCol = $(this.sBothColumnsParent + ' > div').first();
+							this.oRightCol = $(this.sBothColumnsParent + ' > div').last();
+						}
+
+						const iLeftW = (this.oLeftCol.outerWidth()*100/iParent).toFixed(2);
 						if (!iLeftW)
 							return;
 						
@@ -63,7 +73,6 @@
 				isMobile:function(){
 						return $(window).width() <= 720;						
 				},
-			
 				changeColumn:function(sSide){
 					this.init();
 					if (this.isMobile())
@@ -78,7 +87,7 @@
 					
 					this.resizeColumns();
 				},
-				activateLeft:function(){					
+				activateLeft:function(){
 						this.oRightCol.hide().width('0%');
 						this.iRightSize = '0%';
 						this.oLeftCol.width('100%').fadeIn();
@@ -92,7 +101,7 @@
 					},
 					
 				activateBoth:function(){
-						if (parseInt(this.iRightSize) === 0 || parseInt(this.iRightSize) === 100)
+						if (!+this.iRightSize || +this.iRightSize === 100)
 						{
 							this.iLeftSize = '30%';
 							this.iRightSize = '70%';
@@ -106,18 +115,20 @@
 						this.updateLeftHeight();
 						this.updateRightHeight();
 					},
+
 				onResizeWindow:function(){
 						this.init();
-				 
 						 if (this.isMobile())
-								this.sActiveType = this.sActiveType == 'both' ? 'left' : this.sActiveType;
+							this.sActiveType = this.sActiveType === 'both' ? 'left' : this.sActiveType;
 						 else 
-							 this.sActiveType = 'both';
+							this.sActiveType = 'both';
 
 						this.iMainAreaHeight = $(window).height() - $(this.sToolbar).outerHeight();						
 						this.resizeColumns();
-					},
+				},
+
 				resizeColumns:function(){
+
 						switch(this.sActiveType){
 							case 'left' : this.activateLeft(); break;
 							case 'right' : this.activateRight(); break;
@@ -128,6 +139,10 @@
 		};
 		
 	return {
+			setDirection:function(sDirection){
+				if (sDirection !== 'LTR')
+					_oPrivate.sDirection = 'RTL';
+			},
 			resizeWindow:function()
 			{
 				 clearTimeout(_oPrivate.iResizeTimeout);

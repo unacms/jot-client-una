@@ -353,17 +353,6 @@
 			$(_this.sSendAreaActionsButtons)
 				.find('li.video').show();
 
-		// show Video Conference button
-		if (!_this.isMobile())
-			$(_this.sJitsiButton).show();
-		else
-			if ('undefined' !== typeof(window.ReactNativeWebView)) {
-				if ('undefined' === typeof(window.glBxNexusApp) || parseInt(window.glBxNexusApp.ver.replace('.','')) < 140)
-					console.log('This app doesn\'t support video conferences');
-				else
-					$(_this.sJitsiButton).show();
-			};
-
 		// init system sounds
 		createjs.Sound.registerSound(this.incomingMessage, 'incomingMessage');
 		createjs.Sound.registerSound(this.reaction, 'reaction');
@@ -1408,6 +1397,17 @@
 					if (parseInt($(_this.sTalkListJotSelector).last().data('new')))
                         _this.broadcastView();
 
+					// show Video Conference button
+					if (!_this.isMobile())
+						$(_this.sJitsiButton).show();
+					else
+					if ('undefined' !== typeof(window.ReactNativeWebView)) {
+						if ('undefined' === typeof(window.glBxNexusApp) || parseInt(window.glBxNexusApp.ver.replaceAll('.','')) < 140)
+							console.log('This app doesn\'t support video conferences');
+						else
+							$(_this.sJitsiButton).show();
+					};
+
 					/* ----  End ---- */
 				}
 		}, 'json');
@@ -1619,8 +1619,10 @@
 							}, 'json');
 				break;
 				case 'stop':
-					if ($(`div[data-conferance='${lot}']`).length && _this.aJitisActiveUsers[lot].owner === user_id) {
-						_this.onCloseCallPopup($(`div[data-conferance='${lot}']`), lot);
+					if (typeof(_this.aJitisActiveUsers[lot]) !== 'undefined') {
+						if ($(`div[data-conferance='${lot}']`).length && _this.aJitisActiveUsers[lot].owner === user_id) {
+							_this.onCloseCallPopup($(`div[data-conferance='${lot}']`), lot);
+						}
 					}
 					break;
 				case 'got':
@@ -2255,7 +2257,7 @@
      * Run Jitsi video chat
      *@param string sId of the image
      */
-    oMessenger.prototype.startVideoCall = function(oEl, iLotId, oOptions = {}){
+    oMessenger.prototype.startVideoCall = function(oEl, iLotId, sRoom, oOptions = {}){
         const _this = this;
         if (oEl)
       		bx_loading_btn($(oEl), true);
@@ -2289,7 +2291,7 @@
 								}
 
 								_this.broadcastMessage(oInfo);
-								_this.updateJots(oInfo);``
+								_this.updateJots(oInfo);
 							}
 
 							if (typeof window.glBxVideoCallTerminated === 'undefined') {
@@ -2313,17 +2315,18 @@
 								});
 							}
 
-							const oVideoParams = { uri: room };
-							if (typeof oOptions.startAudioOnly !== 'undefined' && oOptions.startAudioOnly === true)
-								oVideoParams['audio'] = true;
-
-							// call mobile video call
-							if (typeof bx_mobile_apps_post_message === 'function')
-								bx_mobile_apps_post_message({ video_call_start: oVideoParams });
-
 						},
 						'json');
 				});
+
+				const oVideoParams = { uri: sRoom };
+				if (typeof oOptions.startAudioOnly !== 'undefined' && oOptions.startAudioOnly === true)
+					oVideoParams['audio'] = true;
+
+				// call mobile video call
+				if (typeof bx_mobile_apps_post_message === 'function')
+					bx_mobile_apps_post_message({ video_call_start: oVideoParams });
+
 			};
 
 			return false;
@@ -2347,7 +2350,7 @@
             });
     };
 
-	oMessenger.prototype.onCloseCallPopup = function (oEl, iLotId, sType = 'break') {
+	oMessenger.prototype.onCloseCallPopup = function (oEl, iLotId, sType = 'break', bClose = true) {
 		const oParams = {
 			type: 'vc',
 			vc: sType,
@@ -2361,14 +2364,16 @@
 		this.stopActiveSound();
 		this.broadcastMessage(oParams);
 
-		if (iJot)
-			this.updateJots(Object.assign(oParams, {
-				action: 'vc',
-				jot_id: iJot
-			}));
+		if (bClose) {
+			if (iJot)
+				this.updateJots(Object.assign(oParams, {
+					action: 'vc',
+					jot_id: iJot
+				}));
 
-		if (typeof(this.aJitisActiveUsers[iLotId]) !== 'undefined')
-			delete this.aJitisActiveUsers[iLotId];
+			if (typeof (this.aJitisActiveUsers[iLotId]) !== 'undefined')
+				delete this.aJitisActiveUsers[iLotId];
+		}
 
 		$(oEl)
 			.closest('.bx-popup-active:visible')
@@ -2628,7 +2633,6 @@
 		},
 		onMessage: function (oData) {
 			const bSilent = _oMessenger.oSettings.user_id === oData.user_id || ( oData.type === 'vc' && oData.vc !== 'start' );
-
 			try
 			{
 				if (!_oMessenger.isBlockVersion() && (!_oMessenger.isMobile() || (_oMessenger.isMobile() && oData.lot !== _oMessenger.oSettings.lot)))
@@ -2796,7 +2800,9 @@
                     _oMessenger.aJitisActiveUsers[oJitsi._lotId] = { owner: _oMessenger.oSettings.user_id, got: 0 };
 
 				_oMessenger.broadcastMessage(oInfo);
-				_oMessenger.updateJots(oInfo);
+				_oMessenger.updateJots({
+					action: 'msg'
+				});
 
 				$(window)
 					.on('beforeunload', () => _t('_bx_messenger_are_you_sure_close_jisti'))
@@ -2851,20 +2857,20 @@
 		 * Run Jitsi video chat
 		 *@param string sId of the image
 		*/
-		onStartVideoCall: function(oEl, iLotId){
-            _oMessenger.startVideoCall(oEl, iLotId || _oMessenger.oSettings.lot);
+		onStartVideoCall: function(oEl, iLotId, sRoom){
+            _oMessenger.startVideoCall(oEl, iLotId || _oMessenger.oSettings.lot, sRoom);
 		},
-        getCall: function (oEl, iLotId, bAudioOnly = false){
+        getCall: function (oEl, iLotId, sRoom, bAudioOnly = false){
 			if (!iLotId)
 				return ;
 
 			if (_oMessenger.oSettings.lot !== iLotId)
 				_oMessenger.loadTalk(iLotId);
 
-			_oMessenger.startVideoCall(undefined, iLotId || _oMessenger.oSettings.lot, {
+			_oMessenger.startVideoCall(undefined, iLotId || _oMessenger.oSettings.lot, sRoom,{
 				startAudioOnly: +bAudioOnly,
 				callback : () => {
-					_oMessenger.onCloseCallPopup(oEl, iLotId, 'get_call');
+					_oMessenger.onCloseCallPopup(oEl, iLotId, 'get_call', false);
 				}
 			});
         },

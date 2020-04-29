@@ -1921,14 +1921,7 @@ class BxMessengerModule extends BxBaseModTextModule
             return echoJson($aResult);
 
         $mixedContent = $this->_oTemplate->getCallPopup($iLotId, $this->_iProfileId);
-        $aResult = array('code' => +($mixedContent === false));
-        if ($mixedContent) {
-            $aResult['popup'] = array(
-                'html' => $mixedContent,
-                'options' => array('onHide' => "oMessenger.onHangUp(undefined, {$iLotId})")
-            );
-        }
-
+        $aResult = array('code' => +($mixedContent === false), 'popup' => $mixedContent);
         return echoJson($aResult);
     }
 

@@ -294,7 +294,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                         $bIsVideoStarted = true;
 		}
 
-		$sContent = $this -> parseHtmlByName('talk.html', array(
+
+        $aJVC = $this->_oDb->getJVC($iLotId);
+        $sRoom = empty($aJVC) && !empty($aLotInfo) ? $this->_oConfig->getRoomId($aLotInfo) : $aJVC[$CNF['FJVC_ROOM']];
+
+        $sContent = $this -> parseHtmlByName('talk.html', array(
 				'bx_if:count' => array(
 									'condition' => $iUnreadLotsJots,
 									'content' => array(
@@ -317,6 +321,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                                             'condition' => $this->_oConfig->isJitsiAllowed($iType),
                                             'content' => array(
                                                 'id' => $iLotId,
+                                                'room' => $sRoom,
                                                 'video_title' => bx_js_string( !$bIsVideoStarted ? _t('_bx_messenger_lots_menu_video_conf_start') : _t('_bx_messenger_lots_menu_video_conf_join')),
                                             )
                                         ),
@@ -1098,12 +1103,17 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                      }
 
                         $aLotInfo = $this->_oDb->getLotByJotId($iJotId, false);
-                        $sContent = $this -> parseHtmlByName('vc_message.html',
+                        $aJVC = $this->_oDb->getJVC($aLotInfo[$CNF['FIELD_ID']]);
+                        $sRoom = empty($aJVC) && !empty($aLotInfo) ? $this->_oConfig->getRoomId($aLotInfo) : $aJVC[$CNF['FJVC_ROOM']];
+
+                    $sContent = $this -> parseHtmlByName('vc_message.html',
                             array(
                                 'info' => $sInfo,
                                 'bx_if:join' => array(
                                     'condition' => !$aJVCItem[$CNF['FJVCT_END']],
-                                    'content' => array()
+                                    'content' => array(
+                                        'room' => $sRoom
+                                    )
                                 ),
                                 'bx_if:part' => array(
                                     'condition' => $sParticipants,
@@ -1746,7 +1756,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         );
 
 	    $sContent = $this->parseHtmlByName('conference_call.html', $aVars);
-        return BxTemplFunctions::getInstance()->transBox(time(), $sContent);
+        return BxTemplFunctions::getInstance()->transBox('bx-messenger-vc-call', $sContent);
     }
 }
 

@@ -1746,6 +1746,10 @@ div.bx-messenger-conference-call > div {
 	display: none;
 }
 
+#bx-messenger-vc-call .bx-popup-close-wrapper{
+	display: none;
+}
+
 @media (max-width:720px)
 {
 	#jitsi-button {

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="en" flag="gb" title="English">
+	<string_add name="_bx_messenger_lots_menu_video_conf_start"><![CDATA[Start video conference]]></string_add>
+	<string_add name="_bx_messenger_lots_menu_video_conf_join"><![CDATA[Join to video conference]]></string_add>
+	<string_add name="_bx_messenger_jitsi_err_can_join_conference"><![CDATA[Sorry, you can not participate in video conference]]></string_add>
+	<string_add name="_bx_messenger_jitsi_err_no_members"><![CDATA[There are no members in the talk to start conversation]]></string_add>
+	<string_add name="_bx_messenger_jitsi_meet_app_title"><![CDATA[{0} video conference]]></string_add>
+	<string_add name="_bx_messenger_jitsi_meet_me"><![CDATA[me]]></string_add>
+	<string_add name="_bx_messenger_jitsi_err_can_not_be_created"><![CDATA[Video Conference can not be create.]]></string_add>
+	<string_add name="_bx_messenger_jitsi_err_vc_was_not_found"><![CDATA[Video conference was not found.]]></string_add>
+	<string_add name="_bx_messenger_jitsi_has_started"><![CDATA[Video conference has been started <b>{0}</b>]]></string_add>
+	<string_add name="_bx_messenger_jitsi_conference"><![CDATA[<b>Video conference</b>, duration - <b>{0}</b>]]></string_add>
+	<string_add name="_bx_messenger_jitsi_vc_duration"><![CDATA[{0} min, {0} s.]]></string_add>
+	<string_add name="_bx_messenger_jitsi_vc_duration_h"><![CDATA[{0} h, {1} min, {2} s.]]></string_add>
+	<string_add name="_bx_messenger_jitsi_vc_duration_m"><![CDATA[{0} min, {1} s.]]></string_add>
+	<string_add name="_bx_messenger_jitsi_vc_duration_s"><![CDATA[{0} seconds.]]></string_add>
+	<string_add name="_bx_messenger_jitsi_vc_into_title"><![CDATA[Message was sent in video conference created by {0} at {1}]]></string_add>
+	<string_add name="_bx_messenger_jitsi_vc_join"><![CDATA[Join]]></string_add>
+	<string_add name="_bx_messenger_are_you_sure_close_jisti"><![CDATA[Are you sure you want to leave the conference?]]></string_add>
+	<string_add name="_bx_messenger_allow_to_use_jitsi"><![CDATA[Allow to use Jitsi]]></string_add>
+	<string_add name="_bx_messenger_jisti_connection_error"><![CDATA[Can not connect to video conference server. Please check your internet connection or try again later.]]></string_add>
+	<string_add name="_bx_messenger_jisti_not_active_conference"><![CDATA[Active conference is not found. Please reload the talk or try to create your own conference.]]></string_add>
+	<string_add name="_bx_messenger_jitsi_server"><![CDATA[Use defined domain as Jitsi server]]></string_add>
+	<string_add name="_bx_messenger_jitsi_chat_enable"><![CDATA[Enable Jitsi chat inside of Jitsi conference]]></string_add>
+	<string_add name="_bx_messenger_jitsi_chat_sync"><![CDATA[Synchronize Jitsi chat with Messenger history (in this case all messages from Jitsi chat will be duplicated in Messenger history also)]]></string_add>
+	<string_add name="_bx_messenger_jitsi_hide_info"><![CDATA[Show chat info (members will be able to see chat room link and share it with non-members)]]></string_add>
+	<string_add name="_bx_messenger_jitsi_enable_only_for_private"><![CDATA[Enable video conference only for private talks]]></string_add>
+	<string_add name="_bx_messenger_jitsi_support_url"><![CDATA[If indicated some of the errors, dialogs may point to this support URL for help]]></string_add>
+	<string_add name="_bx_messenger_jitsi_watermark"><![CDATA[Enable watermark (<b>Note</b>: If you are using default Jitsi server, you will see original Jitsi watermark). You may read more <a href="https://github.com/jitsi/jitsi-meet/blob/master/doc/quick-install.md">here</a> about how to install your own deployment.]]></string_add>
+	<string_add name="_bx_messenger_jitsi_watermark_link"><![CDATA[Jitsi Watermark link (user will be redirected to this link when clicks on watermark)]]></string_add>
+	<string_add name="_bx_messenger_jitsi_remote_user"><![CDATA[Participant]]></string_add>
+	<string_add name="_bx_messenger_lot_parts_error"><![CDATA[Talk with the same participants list already exists.]]></string_add>
+	<string_add name="_bx_messenger_jitsi_err_cant_type_use"><![CDATA[Sorry, video conference for public talks is not allowed]]></string_add>
+
+</resources>

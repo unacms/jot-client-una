@@ -1752,10 +1752,6 @@ div.bx-messenger-conference-call > div {
 
 @media (max-width:720px)
 {
-	#jitsi-button {
-		display: none;
-	}
-
 	#bx-messenger-send-area-plus {
 		display: block;
 	}

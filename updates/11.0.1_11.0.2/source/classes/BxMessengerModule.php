@@ -1379,7 +1379,7 @@ class BxMessengerModule extends BxBaseModTextModule
     {
         if(method_exists('BxDolProfile', 'checkAllowedProfileContact')) {
             $mixedResult = BxDolProfile::getInstance($iSender)->checkAllowedProfileContact($iRecipient);
-            if($mixedResult !== CHECK_ACTION_RESULT_ALLOWED)
+        if($mixedResult !== CHECK_ACTION_RESULT_ALLOWED)
                 return false;
         }
 

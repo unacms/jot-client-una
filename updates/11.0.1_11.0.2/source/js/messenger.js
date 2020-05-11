@@ -614,9 +614,9 @@
 	oMessenger.prototype.createLot = function(oOptions){
 		const _this = this,
 			oParams = oOptions || {};
-
+		
 		bx_loading($(_this.sMainTalkBlock), true);
-		$.post('modules/?r=messenger/create_lot', { profile: oParams.user || 0, lot: oParams.lot || 0 }, function(oData){
+		$.post('modules/?r=messenger/create_lot', { profile:oParams.user || 0, lot:oParams.lot || 0 }, function(oData){
 			bx_loading($(_this.sMainTalkBlock), false);
 				if (parseInt(oData.code) === 1)
 					window.location.reload();
@@ -628,7 +628,7 @@
 							.parent()
 							.html(oData.html)
 							.bxTime();
-
+						
 						if (typeof oData.title !== 'undefined')
 							$(document).prop('title', oData.title);
 					
@@ -2523,7 +2523,7 @@
 		 */
 		initMessengerPage: function (iLotId, iJotId, iProfileId, sDirection, oBuilder) {
 			_oMessenger.oJotWindowBuilder = oBuilder || window.oJotWindowBuilder;
-         	if (typeof oMessengerMemberStatus !== 'undefined') {
+			if (typeof oMessengerMemberStatus !== 'undefined') {
 				oMessengerMemberStatus.init(function (iStatus) {
 					_oMessenger.iStatus = iStatus;
 					if (typeof _oMessenger.oRTWSF !== "undefined")
@@ -2541,7 +2541,7 @@
 						if (iLotId && iJotId)
 							_oMessenger.loadTalk(iLotId, iJotId, false, false);
 						else if (iProfileId || $(_oMessenger.sLotsListSelector).length === 0) {
-                            _oMessenger.createLot({user: iProfileId});
+							_oMessenger.createLot({user: iProfileId});
                         }
 						else if (!_oMessenger.isMobile() && $(_oMessenger.sLotsListSelector).length > 0)
 							$(_oMessenger.sLotsListSelector).first().click();

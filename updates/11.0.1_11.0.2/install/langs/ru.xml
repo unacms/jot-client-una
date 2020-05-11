@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="ru" flag="ru" title="Russian">
+	<string_add name="_bx_messenger_lots_menu_video_conf_start"><![CDATA[Начать видео конференцию]]></string_add>
+    <string_add name="_bx_messenger_lots_menu_video_conf_join"><![CDATA[Присоединиться к видео конференции]]></string_add>
+    <string_add name="_bx_messenger_jitsi_err_can_join_conference"><![CDATA[Извините, но вы не можете участвовать в этой конференции.]]></string_add>
+    <string_add name="_bx_messenger_jitsi_err_no_members"><![CDATA[Список участников пуст.]]></string_add>
+    <string_add name="_bx_messenger_jitsi_meet_app_title"><![CDATA[{0} видео конференция]]></string_add>
+    <string_add name="_bx_messenger_jitsi_meet_me"><![CDATA[Я]]></string_add>
+    <string_add name="_bx_messenger_jitsi_err_can_not_be_created"><![CDATA[Невозможно создать видео конференцию.]]></string_add>
+    <string_add name="_bx_messenger_jitsi_err_vc_was_not_found"><![CDATA[Видео конференция не найдена.]]></string_add>
+    <string_add name="_bx_messenger_jitsi_has_started"><![CDATA[Видео конференция началась <b>{0}</b>]]></string_add>
+    <string_add name="_bx_messenger_jitsi_conference"><![CDATA[<b>Видео конференция</b>, длительность - <b>{0}</b>]]></string_add>
+    <string_add name="_bx_messenger_jitsi_vc_duration"><![CDATA[{0} мин, {0} s.]]></string_add>
+    <string_add name="_bx_messenger_jitsi_vc_duration_h"><![CDATA[{0} ч, {1} мин, {2} сек.]]></string_add>
+    <string_add name="_bx_messenger_jitsi_vc_duration_m"><![CDATA[{0} мин, {1} сек.]]></string_add>
+    <string_add name="_bx_messenger_jitsi_vc_duration_s"><![CDATA[{0} секунд.]]></string_add>
+    <string_add name="_bx_messenger_jitsi_vc_into_title"><![CDATA[Сообщение было отправлено в конференции, созданной {0}, в {1}]]></string_add>
+    <string_add name="_bx_messenger_jitsi_vc_join"><![CDATA[Присоединиться]]></string_add>
+    <string_add name="_bx_messenger_are_you_sure_close_jisti"><![CDATA[Вы уверены, что хотите покинуть конференцию?]]></string_add>
+    <string_add name="_bx_messenger_allow_to_use_jitsi"><![CDATA[Разрешить создавать Jitsi конвенции]]></string_add>
+    <string_add name="_bx_messenger_jisti_connection_error"><![CDATA[Не могу подсоединиться в серверу конференций. Пожалуйста, проверьте интернет соединение или попробуете позже.]]></string_add>
+    <string_add name="_bx_messenger_jisti_not_active_conference"><![CDATA[Нет активных конференций. Пожалуйста, перезагрузите страницу или создайте собственную конференцию.]]></string_add>
+    <string_add name="_bx_messenger_jitsi_server"><![CDATA[Использовать этот домен в качестве Jitsi сервера]]></string_add>
+    <string_add name="_bx_messenger_jitsi_chat_enable"><![CDATA[Включить встроенный Jitsi чат внутри Jitsi конференции]]></string_add>
+    <string_add name="_bx_messenger_jitsi_chat_sync"><![CDATA[Синхронизировать Jitsi чат с историей Месенджера (в этом случае все сообщение из Jitsi чата будут дублироваться в Месенджере)]]></string_add>
+    <string_add name="_bx_messenger_jitsi_hide_info"><![CDATA[Показывать информацию о чате (в этом случае пользователи смогут видеть ссылку на чат, зная которую, можно присоединиться к конференции не зарегистрированным пользователям)]]></string_add>
+    <string_add name="_bx_messenger_jitsi_enable_only_for_private"><![CDATA[Разрешить конференции только для закрытых чатов]]></string_add>
+    <string_add name="_bx_messenger_jitsi_support_url"><![CDATA[В случае любых проблем внутри чата, пользователь будет перенаправлен на страницу по этой ссылки]]></string_add>
+    <string_add name="_bx_messenger_jitsi_watermark"><![CDATA[Включить водяной знак (<b>Замечание</b>: В случае если вы используете дефолтный Jitsi сервер, после включения это опции вы увидите Jitsi водяной знак). Можете прочитать больше о том как установить собственный сервер тут<a href="https://github.com/jitsi/jitsi-meet/blob/master/doc/quick-install.md">here</a>.]]></string_add>
+    <string_add name="_bx_messenger_jitsi_watermark_link"><![CDATA[Ссылка на водяном знаке (пользователь будет перенаправлен по это ссылке, если кликнет на водяной знак)]]></string_add>
+    <string_add name="_bx_messenger_jitsi_remote_user"><![CDATA[Участник]]></string_add>
+    <string_add name="_bx_messenger_lot_parts_error"><![CDATA[Разговор с таким же списком участников уже существует.]]></string_add>
+    <string_add name="_bx_messenger_jitsi_err_cant_type_use"><![CDATA[Извините, но видео конференции публичных чатов запрещены.]]></string_add>
+</resources>

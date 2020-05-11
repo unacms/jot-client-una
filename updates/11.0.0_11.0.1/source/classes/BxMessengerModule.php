@@ -16,14 +16,12 @@ define('BX_IM_TYPE_PRIVATE', 2);
 define('BX_IM_TYPE_SETS', 3);
 define('BX_IM_TYPE_GROUPS', 4);
 define('BX_IM_TYPE_EVENTS', 5);
-define('BX_IM_TYPE_BROADCAST', 6);
 define('BX_IM_EMPTY_URL', '');
 define('BX_IM_EMPTY', 0);
 define('BX_ATT_TYPE_FILES', 'files');
 define('BX_ATT_TYPE_GIPHY', 'giphy');
 define('BX_ATT_TYPE_REPOST', 'repost');
 
-define('BX_ATT_TYPE_VC', 'vc'); // video conference
 define('BX_JOT_REACTION_ADD', 'add');
 define('BX_JOT_REACTION_REMOVE', 'remove');
 
@@ -408,10 +406,8 @@ class BxMessengerModule extends BxBaseModTextModule
             case 'edit':
                 $aJotInfo = $this->_oDb->getJotById($iJot);
                 $sContent = $aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE']];
-                break;
-            case 'vc':
             case 'delete':
-                   $sContent = $this->_oTemplate->getMessageIcons($iJot, $sLoad, $this->_oDb->isAuthor($iLotId, $this->_iUserId) || isAdmin());
+                $sContent .= $this->_oTemplate->getMessageIcons($iJot, $sLoad, $this->_oDb->isAuthor($iLotId, $this->_iUserId) || isAdmin());
                 break;
             case 'check_viewed':
                 if ($iLotId && $iJot)
@@ -445,12 +441,7 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $iProfileId = (int)bx_get('profile');
         $iLot = (int)bx_get('lot');
-        echoJson(
-            array(
-             'title' => _t('_bx_messenger_lots_menu_create_lot_title'),
-             'html' => $this->_oTemplate->getLotWindow($iProfileId, $iLot, false),
-             'code' => 0
-            ));
+        echoJson(array('title' => _t('_bx_messenger_lots_menu_create_lot_title'), 'html' => $this->_oTemplate->getLotWindow($iProfileId, $iLot, false)));
     }
 
     public function searchProfiles($sTerm, $aExcept = array(), $iLimit = 10){
@@ -569,18 +560,15 @@ class BxMessengerModule extends BxBaseModTextModule
         $aParticipants = $this->getParticipantsList(bx_get('participants'));
 
         $aResult = array('message' => _t('_bx_messenger_save_part_failed'), 'code' => 1);
-        if (($iLotId && !($this->_oDb->isAuthor($iLotId, $this->_iUserId) || isAdmin())) || empty($aParticipants))
+        if (($iLotId && !($this->_oDb->isAuthor($iLotId, $this->_iUserId) || isAdmin())) || (empty($aParticipants) && !$iLotId)) {
             return echoJson($aResult);
-
-        $aLot = $this->_oDb->getLotByUrlAndPariticipantsList(BX_IM_EMPTY_URL, $aParticipants, BX_IM_TYPE_PRIVATE);
-        if (!empty($aLot)){
-            if ($iLotId && $iLotId !== $aLot[$this->_oConfig->CNF['FIELD_ID']])
-                return echoJson(array('message' => _t('_bx_messenger_lot_parts_error'), 'code' => 1, 'lot' => $iLotId));
-
-            $iLotId = $aLot[$this->_oConfig->CNF['FIELD_ID']];
         }
 
-        $oOriginalParts = $iLotId ? $this->_oDb->getParticipantsList($iLotId) : array();
+        $aLot = $this->_oDb->getLotByUrlAndPariticipantsList(BX_IM_EMPTY_URL, $aParticipants, BX_IM_TYPE_PRIVATE);
+        if (!empty($aLot))
+            $iLotId = $aLot[$this->_oConfig->CNF['FIELD_ID']];
+
+        $oOriginalParts = $this->_oDb->getParticipantsList($iLotId);
         $aNewParticipants = $aParticipants;
         $aRemoveParticipants = array();
 
@@ -622,15 +610,15 @@ class BxMessengerModule extends BxBaseModTextModule
         }
 
         $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
-       // $aJotsList = $this->_oDb->getJotsByLotId($iLotId);
+        $aJotsList = $this->_oDb->getJotsByLotId($iLotId);
         $CNF = &$this->_oConfig->CNF;
 
         if ($this->_oDb->deleteLot($iLotId)) {
             $aResult = array('code' => 0);
             $this->onDeleteLot($iLotId, $aLotInfo[$CNF['FIELD_AUTHOR']]);
 
-            /*foreach ($aJotsList as &$aJot)
-                $this->onDeleteJot($aJot[$CNF['FIELD_MESSAGE_FK']], $aJot[$CNF['FIELD_MESSAGE_ID']], $aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);*/
+            foreach ($aJotsList as &$aJot)
+                $this->onDeleteJot($aJot[$CNF['FIELD_MESSAGE_FK']], $aJot[$CNF['FIELD_MESSAGE_ID']], $aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);
         }
 
         echoJson($aResult);
@@ -657,10 +645,8 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!(isAdmin() || $bIsLotAuthor || ((!$bCompletely || $CNF['REMOVE_MESSAGE_IMMEDIATELY']) && $bIsAllowedToDelete)))
             return echoJson($aResult);
 
-        $bDelete = $bCompletely || $CNF['REMOVE_MESSAGE_IMMEDIATELY'];
-        if ($this->_oDb->deleteJot($iJotId, $this->_iUserId, $bDelete)){
-            if ($bDelete)
-                $this->onDeleteJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iJotId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
+        if ($this->_oDb->deleteJot($iJotId, $this->_iUserId, $bCompletely || $CNF['REMOVE_MESSAGE_IMMEDIATELY'])) {
+            $this->onDeleteJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iJotId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
             $aResult = array('code' => 0, 'html' => !$bCompletely ? $this->_oTemplate->getMessageIcons($iJotId, 'delete', $bIsLotAuthor || isAdmin()) : '');
         }
 
@@ -1131,19 +1117,26 @@ class BxMessengerModule extends BxBaseModTextModule
 
     public function actionDownloadFile($iFileId)
     {
-        $CNF = &$this->_oConfig->CNF;
         $aResult = array('code' => 1, 'message' => _t('_bx_messenger_post_file_not_found'));
         if (!$iFileId)
             return echoJson($aResult);
 
-        $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
-        $aFile = $oStorage->getFile((int)$iFileId);
-        $sToken = $oStorage -> genToken($iFileId);
-
-        if (!empty($aFile))
-            return $oStorage->download($aFile[$CNF['FIELD_ST_REMOTE']], $sToken);
+        $aFile = BxDolStorage::getObjectInstance($this->_oConfig->CNF['OBJECT_STORAGE'])->getFile((int)$iFileId);
+        $sFileName = BX_DIRECTORY_STORAGE . $this->_oConfig->CNF['OBJECT_STORAGE'] . '/' . $aFile['path'];
+        if (!empty($aFile) && file_exists(BX_DIRECTORY_STORAGE . $this->_oConfig->CNF['OBJECT_STORAGE'] . '/' . $aFile['path'])) {
+            header('Content-Description: File Transfer');
+            header('Content-Type: application/force-download');
+            header("Content-Disposition: attachment; filename=\"" . $aFile['file_name'] . "\";");
+            header('Content-Transfer-Encoding: binary');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
+            header('Content-Length: ' . $aFile['size']);
+            ob_clean();
+            flush();
+            readfile($sFileName);
             exit;
-
+        }
         echoJson($aResult);
     }
 
@@ -1156,19 +1149,17 @@ class BxMessengerModule extends BxBaseModTextModule
      */
     function actionGetBigImage($iStorageId, $iWidth, $iHeight)
     {
-        if (!$iStorageId)
-            return '';
+        if (!$iStorageId) return '';
 
         $iWidth = (int)$iWidth * 0.9;
         $iHeight = (int)$iHeight * 0.9;
 
-        $oStorage = BxDolStorage::getObjectInstance($this->_oConfig->CNF['OBJECT_STORAGE']);
-        $aFile = $oStorage->getFile((int)$iStorageId);
+        $aFile = BxDolStorage::getObjectInstance($this->_oConfig->CNF['OBJECT_STORAGE'])->getFile((int)$iStorageId);
+        $sImagePath = BX_DIRECTORY_STORAGE . $this->_oConfig->CNF['OBJECT_STORAGE'] . '/' . $aFile['path'];
 
-        $sFileUrl = $oStorage->getFileUrlById($iStorageId);
-    	if (!empty($aFile))
+		if (!empty($aFile) && file_exists($sImagePath))
 		{
-            $aInfo = getimagesize($sFileUrl);
+            $aInfo = getimagesize($sImagePath);
 
             if ($aInfo[0] <= $iWidth && $aInfo[1] <= $iHeight) {
                 $iWidth = (int)$aInfo[0];
@@ -1379,7 +1370,7 @@ class BxMessengerModule extends BxBaseModTextModule
     {
         if(method_exists('BxDolProfile', 'checkAllowedProfileContact')) {
             $mixedResult = BxDolProfile::getInstance($iSender)->checkAllowedProfileContact($iRecipient);
-            if($mixedResult !== CHECK_ACTION_RESULT_ALLOWED)
+        if($mixedResult !== CHECK_ACTION_RESULT_ALLOWED)
                 return false;
         }
 
@@ -1787,7 +1778,7 @@ class BxMessengerModule extends BxBaseModTextModule
 
     private function prepareMessageToDb($sMessage)
     {
-        return $sMessage ? preg_replace(array('/\<p>/i', '/\<\/p>/i', '/\<pre.*>/i'), array(/*'', '',*/ '', '<br/>', '<pre>'), $sMessage) : '';
+        return $sMessage ? preg_replace(array(/*/\<a.*>/i', '/\<\/a>/i',*/ '/\<p>/i', '/\<\/p>/i', '/\<pre.*>/i'), array(/*'', '',*/ '', '<br/>', '<pre>'), $sMessage) : '';
     }
 
     function actionGetGiphy(){
@@ -1799,6 +1790,19 @@ class BxMessengerModule extends BxBaseModTextModule
             return echoJson(array('code' => 0, 'html' => $aContent['content'], 'total' => isset($aContent['pagination']) ? $aContent['pagination']['total_count'] : (int)bx_get('start')));
 
         return echoJson(array('code' => 1, 'message' => MsgBox(_t('_bx_messenger_giphy_gifs_nothing_found'))));
+    }
+
+    function actionGetTalkFiles(){
+        $iLotId = (int)bx_get('lot_id');
+        $iNumber = (int)bx_get('number');
+        if (!$iLotId)
+            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_found'))));
+
+        if (!($iTotal = $this->_oDb->getLotFilesCount($iLotId)))
+            return echoJson(array('code' => 0, 'html' => MsgBox(_t('_bx_messenger_txt_msg_no_results'))));
+
+        $sContent = $this->_oTemplate->getTalkFiles($this->_iProfileId, $iLotId, $iNumber);
+        return echoJson(array('code' => 0, 'html' => $sContent, 'total' => $iTotal));
     }
 
     public function serviceGetLotStat($mixedLotId = ''){
@@ -1827,140 +1831,6 @@ class BxMessengerModule extends BxBaseModTextModule
               'total' => array_sum($aMessages)
           ))
         );
-    }
-
-    public function actionGetJitsiConferenceForm($iLotId)
-    {
-        header('Content-type: text/html; charset=utf-8');
-
-        $aParams['audio_only'] = bx_get('startAudioOnly') ? 1 : 0;
-        if (!$iLotId) {
-            $sUrl = bx_get('url');
-            $sTitle = bx_get('title');
-            $aLot = $this -> _oDb -> getLotByUrlAndPariticipantsList($sUrl);
-            $iLotId = empty($aLot) ? $this->_oDb->createNewLot($this->_iProfileId, $sTitle, BX_IM_TYPE_PRIVATE, $sUrl) : $aLot[$this->_oConfig->CNF['FIELD_ID']];
-        }
-
-        echo $this->_oTemplate->getJitsi($iLotId, $this->_iProfileId, $aParams);
-        exit;
-    }
-
-    public function onCreateVC($iLotId)
-    {
-        bx_alert($this->_oConfig->getObject('alert'), 'create_vc', $iLotId, $this->_iUserId);
-    }
-
-    public function onJoinVC($iLotId)
-    {
-        $aItem = $this->_oDb->getActiveJVCItem($iLotId);
-        bx_alert($this->_oConfig->getObject('alert'), 'join_vc', $iLotId, $this->_iUserId, array('object_author_id' => $aItem[$this->_oConfig->CNF['FJVCT_AUTHOR_ID']]));
-    }
-
-    public function actionCreateJitsiVideoConference(){
-        $CNF = $this->_oConfig->CNF;
-        $iLotId = (int)bx_get('lot_id');
-        if (!$iLotId)
-            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_found')));
-
-        if (!$this->isLogged() || !$this->_oDb->isParticipant($iLotId, $this->_iProfileId))
-            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_jitsi_err_can_join_conference')));
-
-        $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
-        if ($aLotInfo[$CNF['FIELD_TYPE']] && !$this->_oConfig->isJitsiAllowed($aLotInfo[$CNF['FIELD_TYPE']]))
-            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_jitsi_err_cant_type_use')));
-
-        $aJVC = $this->_oDb->getJVC($iLotId);
-        $iParticipants = count($this->_oDb->getParticipantsList($iLotId));
-        if (!empty($aJVC) && (int)$aJVC[$CNF['FJVC_ACTIVE']]) {
-            $aResult = array('code' => 0, 'parts' => $iParticipants);
-            if ($this->_oDb->joinToActiveJVC($iLotId, $this->_iProfileId)) {
-                $aResult['jot_id'] = $this->_oDb->getJotIdByJitisItem((int)$aJVC[$CNF['FJVC_ACTIVE']]);
-                $aResult[$CNF['FJVC_ROOM']] = $aJVC[$CNF['FJVC_ROOM']];
-                $this->onJoinVC($iLotId);
-                return echoJson($aResult);
-            }
-            else
-               $this->_oDb->closeJVC($iLotId);
-        }
-
-        if ($aResult = $this->_oDb->createJVC($iLotId, $this->_iProfileId)) {
-            $this->onCreateVC($iLotId);
-            return echoJson(array_merge(array('code' => 0, 'new' => 1, 'parts' => $iParticipants, 'room' => $aResult[$CNF['FJVC_ROOM']]), $aResult));
-        }
-
-        return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_jitsi_err_can_not_be_created')));
-    }
-
-    public function actionStopJvc(){
-        $iLotId = (int)bx_get('lot_id');
-        if (!$iLotId)
-            return echoJson(array('code' => 1, 'msg' => _t('_bx_messenger_not_found')));
-
-        if (!$this->_oDb->isParticipant($iLotId, $this->_iProfileId))
-            return echoJson(array('code' => 1));
-
-        if ($this->_oDb->stopJVC($iLotId, $this->_iProfileId))
-            return echoJson(array('code' => 0));
-
-        return echoJson(array('code' => 1));
-    }
-
-    public function actionLeaveJvc(){
-        if (!isLogged())
-            return '';
-
-        $iLotId = (int)bx_get('lot_id');
-        $this->_oDb->leaveJVC($iLotId, $this->_iProfileId);
-    }
-
-    function actionGetTalkFiles(){
-        $iLotId = (int)bx_get('lot_id');
-        $iNumber = (int)bx_get('number');
-        if (!$iLotId)
-            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_found'))));
-
-        if (!($iTotal = $this->_oDb->getLotFilesCount($iLotId)))
-            return echoJson(array('code' => 0, 'html' => MsgBox(_t('_bx_messenger_txt_msg_no_results'))));
-
-        $sContent = $this->_oTemplate->getTalkFiles($this->_iProfileId, $iLotId, $iNumber);
-        return echoJson(array('code' => 0, 'html' => $sContent, 'total' => $iTotal));
-    }
-
-    function actionGetCallPopup(){
-        $iLotId = (int)bx_get('lot');
-        $aResult = array('code' => 1, 'msg' => _t('_bx_messenger_not_found'));
-        if (!$iLotId || !isLogged())
-            return echoJson($aResult);
-
-        $mixedContent = $this->_oTemplate->getCallPopup($iLotId, $this->_iProfileId);
-        $aResult = array('code' => +($mixedContent === false), 'popup' => $mixedContent);
-        return echoJson($aResult);
-    }
-
-    function serviceSearch($sText = '', $iStart = 0, $iLimit = 10, $sOrder = 'DESC', $iLotId = 0){
-        $CNF = $this->_oConfig->CNF;
-
-        if (($iLotId && !isLogged()) || (!isAdmin() && !$iLotId))
-            return _t('_bx_messenger_no_permissions');
-
-        $sResult = $this->_oDb->findInHistory($iLotId, $sText, $iStart, $iLimit, $sOrder);
-        if (empty($sResult))
-            return array();
-
-        $aMessages = array();
-        foreach($sResult as &$aMessage){
-            $iType = $aMessage[$CNF['FIELD_TYPE']];
-            $sTitle = $aMessage[$CNF['FIELD_TITLE']] ?
-                _t($aMessage[$CNF['FIELD_TITLE']]) : _t('_bx_messenger_lots_private_lot');
-
-            $aMessages[] = array_merge($aMessage, array(
-                $CNF['FIELD_TITLE'] => $sTitle,
-                'message_url' => $this->_oConfig->getRepostUrl($aMessage['message_id']),
-                $CNF['FIELD_PARTICIPANTS'] => explode(',', $aMessage[$CNF['FIELD_PARTICIPANTS']])
-            ));
-        }
-
-        return $aMessages;
     }
 }
 

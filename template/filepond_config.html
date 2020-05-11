@@ -3,6 +3,14 @@ $(function($, oMessenger) {
     let aFiles = [];
     let bClean = false;
     let bLoading = false;
+	/* FilePond plugins begin*/
+	
+	bx_get_scripts(__filepond_links__, () => {
+		$.fn.filepond.registerPlugin(
+			FilePondPluginImagePreview,
+			FilePondPluginMediaPreview
+		);
+		
     const oFilePond = $('[name=__files_uploader__]')
         .filepond({
             server: {
@@ -86,6 +94,8 @@ $(function($, oMessenger) {
 
     if (oMessenger)
         oMessenger.initUploader(oFilePondUploader);
+	});
+    /* end */
 
 }($, oMessenger));
 

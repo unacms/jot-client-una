@@ -47,13 +47,6 @@
 	/*  One Signal Push Notifications Init End */
 	</bx_if:onsignal>
 
-    /* FilePond plugins begin*/
-    $.fn.filepond.registerPlugin(
-        FilePondPluginImagePreview,
-        FilePondPluginMediaPreview
-    );
-    /* end */
-
     if (navigator.userAgent.indexOf('gonative') > -1) {
         var data = {user: __profile_id__};
         var json = JSON.stringify(data);

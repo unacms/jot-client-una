@@ -42,10 +42,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						'connect.js',
 						'messenger.js',
                         BX_DOL_URL_MODULES . 'boonex/messenger/js/quill/quill.js',
-                        $sFilePondPath . 'filepond.min.js',
-                        $sFilePondPath . 'filepond.jquery.js',
-                        $sFilePondPath . 'filepond-plugin-image-preview.min.js',
-                        $sFilePondPath . 'filepond-plugin-media-preview.min.js',
 						'status.js',
 						'RecordRTC.min.js',
 						'adapter.js',
@@ -189,6 +185,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	public function initFilesUploader($iProfileId){
         $CNF = &$this -> _oConfig -> CNF;
         $sBaseUrl = $this->_oConfig->getBaseUri();
+		$sFilePondPath = BX_DOL_URL_MODULES . 'boonex/messenger/js/filepond/';
+				
         $aParams = array();
 	    if ($oStorage = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE'])) {
             $aParams = array(
@@ -206,6 +204,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                 'number_of_files' => (int)$this->_oConfig->CNF['MAX_FILES_TO_UPLOAD'],
                 'response_error' => bx_js_string(_t('_bx_messenger_invalid_server_response')),
                 'remove_button' => bx_js_string(_t('_bx_messenger_uploading_remove_button')),
+				'filepond_links' => json_encode(array(
+										$sFilePondPath . 'filepond.min.js',
+										$sFilePondPath . 'filepond.jquery.js',
+										$sFilePondPath . 'filepond-plugin-image-preview.min.js',
+										$sFilePondPath . 'filepond-plugin-media-preview.min.js'
+									)),
             );
         }
 

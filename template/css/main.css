@@ -18,7 +18,7 @@
 div.bx-messenger-post-box
 {
 	padding: 0 1rem;
-	background-color: rgba(0,0,0,0);
+	/*background-color: rgba(0,0,0,0);*/
 	border-left: none;
 	border-bottom: none;
 	border-right: none;
@@ -1742,9 +1742,9 @@ div.bx-messenger-conference-call > div {
 	cursor: nwse-resize;
 }
 
-#jitsi-button {
+/*#jitsi-button {
 	display: none;
-}
+}*/
 
 #bx-messenger-vc-call .bx-popup-close-wrapper{
 	display: none;

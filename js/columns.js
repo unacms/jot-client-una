@@ -17,7 +17,7 @@
 				sLeftAreaName: '.bx-messenger-items-list',
 				sLotSelector: '.bx-messenger-jots-snip',
 				sRightAreaName: '.bx-messenger-main-block', //left column of the body without header
-				sLeftTopBlockArea: '#bx-messangger-block-head',
+				sLeftTopBlockArea: '#bx-messenger-block-head',
 				sBothColumnsParent: '.bx-layout-row',
 				sInfoUsersArea: '.bx-messenger-top-user-info',
 				sBlockHeaderArea: '.bx-messenger-block > .bx-db-header',
@@ -143,11 +143,13 @@
 				if (sDirection !== 'LTR')
 					_oPrivate.sDirection = 'RTL';
 			},
-			resizeWindow:function()
+			resizeWindow:function(fCallback)
 			{
 				 clearTimeout(_oPrivate.iResizeTimeout);
 				_oPrivate.iResizeTimeout = setTimeout(function(){
-														_oPrivate.onResizeWindow()
+														_oPrivate.onResizeWindow();
+														if (typeof fCallback === 'function')
+															fCallback();
 													 }, 300);
 			},
 			updateColumnSize:function()

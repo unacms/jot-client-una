@@ -28,7 +28,10 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@return array lot info
 	*/
 	public function getLotByClass($sClass){
-		$sQuery = $this -> prepare("SELECT * FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_CLASS']}` = ? LIMIT 1", $sClass);
+		if (!$sClass)
+		    return '';
+
+	    $sQuery = $this -> prepare("SELECT * FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_CLASS']}` = ? LIMIT 1", $sClass);
 		return $this -> getRow($sQuery);
 	}
 
@@ -272,7 +275,10 @@ class BxMessengerDb extends BxBaseModTextDb
 		
 		if (($aData['type'] != BX_IM_TYPE_PRIVATE || $this -> isAuthor($aData['lot'], $aData['member_id'])) && !$this -> isParticipant($aData['lot'], $aData['member_id'], true))
 			$this -> addMemberToParticipantsList($aData['lot'], $aData['member_id']);
-				
+
+        if ($aData['type'] == BX_IM_TYPE_PRIVATE && !$this -> isParticipant($aData['lot'], $aData['member_id']))
+            return false;
+
 		if (empty($aParticipants) && (int)$aData['lot']) 
 			$aParticipants = $this -> getParticipantsList($aData['lot']);	
 		
@@ -608,7 +614,7 @@ class BxMessengerDb extends BxBaseModTextDb
 						WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :jot LIMIT 1", array('jot' => $iJotId));
 		
 		if (!$iLotId)
-			return array();
+			return false;
 		
 		return $bIdOnly ? $iLotId : $this -> getRow("SELECT * FROM `{$this->CNF['TABLE_ENTRIES']}` 
 						WHERE `{$this->CNF['FIELD_ID']}` = :lot", array('lot' => $iLotId));
@@ -1194,7 +1200,6 @@ class BxMessengerDb extends BxBaseModTextDb
         $aJVC = $this->getJVC($iLotId);
         $aOpened = array();
 
-        $sRoom = '';
         if (empty($aJVC)) {
             $aLotInfo = $this->getLotInfoById($iLotId);
             $sRoom = $this->_oConfig->getRoomId($aLotInfo[$this->CNF['FIELD_ID']], $aLotInfo[$this->CNF['FIELD_AUTHOR']]);

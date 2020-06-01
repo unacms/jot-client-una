@@ -42,6 +42,11 @@ class BxMessengerStorage extends BxDolStorage
 		$sExt = $this -> getFileExt($sFileName);
 		return in_array($sExt, $aImagesExts);
 	}
+
+	public function getRestrictedExt(){
+	    $sExts = $this->_aObject['ext_deny'];
+	    return $sExts ? explode(',', $sExts) : array();
+    }
 }
 
 /** @} */

@@ -48,7 +48,7 @@
 	</bx_if:onsignal>
 
     if (navigator.userAgent.indexOf('gonative') > -1) {
-        var data = {user: __profile_id__};
+        var data = { user: __profile_id__ };
         var json = JSON.stringify(data);
         $(document).ready(function () {
             window.location.href='gonative://registration/send?customData=' + encodeURIComponent(json);        
@@ -63,13 +63,21 @@
 	}
 		
    if (typeof oMessenger !== 'undefined')
-	oMessenger.init({
+	$(() => oMessenger.init({
 				oRTWSF: oRTWSF,
 				user_id: __profile_id__,
+                name: '__username__',
+                type: __type__,
+                lot: __lot__,
+                url: '__url__',
+                direction: '__direction__',
+                jot_id: __jot_id__,
+                selected_profile: __selected_profile__,
 				max: __message_length__,
 				embed_template: '__embed_template__',
 				reaction_template: `__reaction_template__`,
-                jot_url: '__jot_url__'
-	});
+                jot_url: '__jot_url__',
+                block_version: __block_version__,
+	}));
 
 </script>

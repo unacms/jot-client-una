@@ -388,6 +388,16 @@ class BxMessengerConfig extends BxBaseModTextConfig
 
 	    return true;
     }
+
+    public function getValidUrl($sUrl, $sType = 'domain'){
+        if (!$sUrl || !($aUrl = parse_url($sUrl)))
+            return '';
+
+        $sDomain = isset($aUrl['host']) ? $aUrl['host'] : (isset($aUrl['path']) ? $aUrl['path'] : $sUrl);
+        $sDomain = str_replace(["www."], [''], $sDomain);
+
+        return $sType === 'domain' ? $sDomain : "https://{$sDomain}";
+    }
 }
 
 /** @} */

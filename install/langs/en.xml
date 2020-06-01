@@ -17,7 +17,7 @@
 	<string name="_bx_messenger_page_block_title"><![CDATA[Messenger]]></string>
 	<string name="_bx_messenger_send_message_only_for_logged"><![CDATA[Sorry, but only logged members can send messages!]]></string>
 	<string name="_bx_messenger_symbols_num_option"><![CDATA[Maximum message's length (symbols number)]]></string>
-	<string name="_bx_messenger_send_message_save_error"><![CDATA[Message was not saved!]]></string>
+	<string name="_bx_messenger_send_message_save_error"><![CDATA[Message was not send!]]></string>
 	<string name="_bx_messenger_send_message_no_data"><![CDATA[No data to send!]]></string>
 	<string name="_bx_messenger_lots_type_all"><![CDATA[All]]></string>	
 	<string name="_bx_messenger_symbols_num_brief_jot"><![CDATA[Message's length in Talk's preview]]></string>
@@ -26,7 +26,7 @@
 	<string name="_bx_messenger_not_logged"><![CDATA[Login first please!]]></string>
 	<string name="_bx_messenger_not_found"><![CDATA[Talk is not found!]]></string>
 	<string name="_bx_messenger_jot_number_default"><![CDATA[Messages number in messenger history by default]]></string>
-	<string name="_bx_messenger_what_do_think"><![CDATA[What do you think about it?]]></string>
+	<string name="_bx_messenger_what_do_think"><![CDATA[Send first message!]]></string>
 	<string name="_bx_messenger_post_button_title"><![CDATA[Send]]></string>
 	<string name="_bx_messenger_menu_item_title_system_messenger"><![CDATA[Messenger]]></string>	
 	<string name="_bx_messenger_menu_notifications_item_sys_title"><![CDATA[Messenger]]></string>
@@ -105,8 +105,10 @@
 	<string name="_bx_messenger_post_confirm_delete_file"><![CDATA[Are you sure you want to delete the file?]]></string>
 	<string name="_bx_messenger_post_file_not_found"><![CDATA[File not found!]]></string>
 	<string name="_bx_messenger_max_files_upload"><![CDATA[Max files number to send in one message]]></string>
-	<string name="_bx_messenger_max_files_upload_error"><![CDATA[Exceeded max files to send in one message (maximum {{maxFiles}})!]]></string>
-	<string name="_bx_messenger_invalid_server_response"><![CDATA[Invalid server response ({{statusCode}})]]></string>
+	<string name="_bx_messenger_max_files_upload_error"><![CDATA[Exceeded max files to send in one message (maximum {0})!]]></string>
+	<string name="_bx_messenger_file_is_too_large_error"><![CDATA[File is too large]]></string>
+	<string name="_bx_messenger_file_is_too_large_error_details"><![CDATA[Maximum file size is {filesize}]]></string>
+	<string name="_bx_messenger_invalid_server_response"><![CDATA[Invalid server response ({statusCode})]]></string>
 	<string name="_bx_messenger_attached_files_message"><![CDATA[{0} files received]]></string>
 	<string name="_bx_messenger_lots_menu_settings_title"><![CDATA[Talk options]]></string>
 	<string name="_bx_messenger_lots_menu_back_title"><![CDATA[Back to the talks list]]></string>
@@ -231,4 +233,7 @@
 	<string name="_bx_messenger_jitsi_remote_user"><![CDATA[Participant]]></string>
 	<string name="_bx_messenger_lot_parts_error"><![CDATA[Talk with the same participants list already exists.]]></string>
 	<string name="_bx_messenger_jitsi_err_cant_type_use"><![CDATA[Sorry, video conference for public talks is not allowed]]></string>
+
+	<string name="_bx_messenger_file_type_is_not_allowed"><![CDATA[This file type is not allowed!]]></string>
+	<string name="_bx_messenger_jitsi_mobile_warning"><![CDATA[To make video conference more stable and reliable we have to use mobile application. It is possible to connect via our own mobile app (just download it from the App Store) or through the original Jitsi application. Continue with jitsi app?]]></string>
 </resources>

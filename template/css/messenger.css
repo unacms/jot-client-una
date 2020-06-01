@@ -405,6 +405,18 @@ div.bx-messenger-border.search .star a.active
 	text-overflow: ellipsis;
 }
 
+.bx-messenger-talk-header-usernames > span{
+	display: flex;
+	align-items: center;
+}
+.bx-messenger-talk-header-usernames > span > span:first-child{
+	display: flex;
+	align-items: center;
+	border-radius: 1rem;
+	overflow: hidden;
+	margin-right: 0.5rem;
+}
+
 @media (max-width:720px)
 {
 	

@@ -1,0 +1,31 @@
+<div class="bx-form-value bx-db-header bx-messenger-right-column">
+   <div class="bx-messenger-hide-mobile bx-db-menu left">
+       <a href="javascript:void(0);" onclick="oJotWindowBuilder.changeColumn();" title="__back_title__" >
+           <i class="sys-icon chevron-left"></i>
+       </a>
+   </div>
+   <div class="bx-form-input-autotoken bx-def-font-inputs bx-def-padding-thd" id="bx-messenger-add-users">
+       <bx_repeat:participants_list>
+           <b class="bx-def-color-bg-hl bx-def-round-corners">
+               <img class="bx-def-thumb bx-def-thumb-size bx-def-margin-sec-right" src="__thumb__">
+               <span>__name__</span>
+               <input type="hidden" name="users[]" value="__id__">
+           </b>
+       </bx_repeat:participants_list>
+       <!-- Semantic begin -->
+           <div class="ui search" style="float:left;">
+               <div class="ui input">
+                   <input class="prompt bx-def-font-inputs bx-form-input-text" type="text" placeholder="<bx_text:_bx_messenger_name_place_holder />" id="bx-messenger-add-users-input" autocomplete="off" autocapitalize="off" autocorrect="off">
+                   <bx_if:edit_mode>
+                       <div class="save icon">
+                           <a href="javascript:void(0);" onclick="oMessenger.onSaveParticipantsList(__lot__);" title="<bx_text:_bx_messenger_save_part_list />">
+                               <i class="sys-icon check-circle"></i>
+                           </a>
+                       </div>
+                   </bx_if:edit_mode>
+               </div>
+               <div class="results"></div>
+           </div>
+       <!-- Semantic end -->
+   </div>
+</div>

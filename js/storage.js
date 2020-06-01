@@ -8,7 +8,7 @@
  */
 
 /**
- * Update Profile statuses (Online, Offline, Away)
+ * Work with browser storage
  */
 
 ;window.oMessengerStorage = class {

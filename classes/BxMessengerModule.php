@@ -50,22 +50,24 @@ class BxMessengerModule extends BxBaseModTextModule
             return '';
 
         $iProfile = bx_get('profile_id');
-        if (!((int)$iProfile && (int)$iProfile != (int)$this->_iUserId && $this->onCheckContact($this->_iUserId, $iProfile)))
+        if (!((int)$iProfile && (int)$iProfile != (int)$this->_iProfileId && $this->onCheckContact($this->_iProfileId, $iProfile)))
           $iProfile = 0;
 
-        $iLotId = 0;
-		if ($this -> _iJotId)
-		{
+ 		if ($this->_iJotId){
             $iLotId = $this->_oDb->getLotByJotId($this->_iJotId);
-			if (!empty($iLotId) && !$this ->_oDb -> isParticipant($iLotId, $this -> _iUserId))
-			{
+			if ($iLotId && !$this ->_oDb -> isParticipant($iLotId, $this->_iProfileId)){
                 $this->_iJotId = BX_IM_EMPTY;
                 $iLotId = BX_IM_EMPTY;
             }
         }
+		else
+        {
+            $aLotsList = $this -> _oDb -> getMyLots($this->_iProfileId);
+            $iLotId = !empty($aLotsList) ? current($aLotsList)[$this->_oConfig->CNF['FIELD_ID']] : 0;
+        }
 
-		$sConfig = $this -> _oTemplate -> loadConfig($this -> _iUserId);
-		return	$sConfig . $this -> _oTemplate -> getLotsColumn($iLotId, $this -> _iJotId, $this -> _iUserId, (int)$iProfile);
+		$sConfig = $this->_oTemplate->loadConfig($this -> _iProfileId, false, $iLotId, $this -> _iJotId, (int)$iProfile);
+        return	$sConfig . $this -> _oTemplate -> getLotsList($iLotId, $this -> _iJotId, $this -> _iUserId, (int)$iProfile);
     }
     /**
      * Returns right side block for messenger page
@@ -75,9 +77,24 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$this->isLogged())
             return '';
 
-        $iProfile = bx_get('profile_id');
-        $iProfile = $iProfile == $this->_iUserId ? 0 : $iProfile;
-        return $this->_oTemplate->getLotWindow($iProfile, BX_IM_EMPTY, true, $this->_iJotId);
+        $CNF = &$this->_oConfig->CNF;
+        if ($iViewedProfileId = (int)bx_get('profile_id')) {
+            $aExistedTalk = $this->_oDb->getLotByUrlAndPariticipantsList(BX_IM_EMPTY_URL, array($iViewedProfileId, $this->_iProfileId));
+            if (!empty($aExistedTalk))
+                return $this->_oTemplate->getTalkBlock($this->_iProfileId, $aExistedTalk[$CNF['FIELD_ID']]);
+            else if ($this->onCheckContact($this->_iProfileId, $iViewedProfileId))
+                return $this->_oTemplate->getTalkBlockByUserName($this->_iProfileId, $iViewedProfileId);
+        }
+
+        if ($this->_iJotId && ($iLotId = $this->_oDb->getLotByJotId($this->_iJotId)))
+            return $this->_oTemplate->getTalkBlock($this->_iProfileId, $iLotId, $this->_iJotId);
+
+        $aLotsList = $this -> _oDb -> getMyLots($this->_iProfileId);
+        if (!empty($aLotsList))
+            return $this->_oTemplate->getTalkBlock($this->_iProfileId, current($aLotsList)[$CNF['FIELD_ID']]);
+
+
+        return $this->_oTemplate->getCreateTalkFrom($this->_iProfileId);
     }
 
     /**
@@ -87,19 +104,20 @@ class BxMessengerModule extends BxBaseModTextModule
      */
     public function serviceGetBlockMessenger($sModule)
     {
+        $CNF = &$this->_oConfig->CNF;
+
         $this->_oTemplate->loadCssJs('view');
         $aLotInfo = $this->_oDb->getLotByClass($sModule);
-        if (empty($aLotInfo) && $sModule) {
+        if (empty($aLotInfo)) {
           $sUrl = $this->_oConfig->getPageIdent();
           $aLotInfo = $this->_oDb->getLotByUrl($sUrl);
         }
 
-        $sConfig = $this->_oTemplate->loadConfig($this->_iUserId);
-        $aBlock = $this->_oTemplate->getTalkBlock($this->_iUserId, !empty($aLotInfo) ?
-            (int)$aLotInfo[$this->_oConfig->CNF['FIELD_ID']] : BX_IM_EMPTY,
-            BX_IM_EMPTY, $this->_oConfig->getTalkType($sModule), true /* create messenger window even if chat doesn't exist yet */);
+        $iLotId = isset($aLotInfo[$CNF['FIELD_ID']]) && (int)$aLotInfo[$CNF['FIELD_ID']] ? (int)$aLotInfo[$CNF['FIELD_ID']] : 0;
 
-        return $sConfig . $aBlock['content'];
+        $sConfig = $this->_oTemplate->loadConfig($this->_iUserId, true, $iLotId, BX_IM_EMPTY, BX_IM_EMPTY, $this->_oConfig->getTalkType($sModule));
+        $sContent = $this->_oTemplate->getTalkBlock($this->_iUserId, $iLotId, BX_IM_EMPTY, true /* create messenger window even if chat doesn't exist yet */);
+        return $sConfig . $sContent;
     }
 
     /**
@@ -177,7 +195,7 @@ class BxMessengerModule extends BxBaseModTextModule
         $sUrl = $sTitle = '';
         $sMessage = trim(bx_get('message'));
         $iLotId = (int)bx_get('lot');
-        $iType = bx_get('type');
+        $iType = (int)bx_get('type');
         $iTmpId = bx_get('tmp_id');
         $aFiles = bx_get(BX_ATT_TYPE_FILES);
         $aGiphy = bx_get(BX_ATT_TYPE_GIPHY);
@@ -189,15 +207,15 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$sMessage && empty($aFiles) && empty($aGiphy))
             return echoJson(array('code' => 2, 'message' => _t('_bx_messenger_send_message_no_data')));
 
-        $iType = $this->_oDb->isLotType($iType) ? $iType : BX_IM_TYPE_PUBLIC;
-        if ($iType != BX_IM_TYPE_PRIVATE) {
+        $iType = ($iType && $this->_oDb->isLotType($iType)) ? $iType : BX_IM_TYPE_PRIVATE;
+        if ($iType !== BX_IM_TYPE_PRIVATE) {
             $sUrl = bx_get('url');
             $sTitle = bx_get('title');
         }
 
         // prepare participants list
         $aParticipants = $this->getParticipantsList(bx_get('participants'));
-        if (!$iLotId && empty($aParticipants) && $iType == BX_IM_TYPE_PRIVATE)
+        if (!$iLotId && empty($aParticipants) && $iType === BX_IM_TYPE_PRIVATE)
             return echoJson(array('code' => 2, 'message' => _t('_bx_messenger_send_message_no_data')));
 
 		if ($sMessage)
@@ -218,8 +236,10 @@ class BxMessengerModule extends BxBaseModTextModule
                     'lot' => $iLotId
             ), $aParticipants)))
         {
-            if (!$iLotId)
+            if (!$iLotId) {
                 $aResult['lot_id'] = $this->_oDb->getLotByJotId($iId);
+                $aResult['header'] = $this->_oTemplate->getTalkHeader($aResult['lot_id'], $this->_iProfileId);
+            }
 
 			if (!empty($aFiles))
 			{
@@ -265,19 +285,23 @@ class BxMessengerModule extends BxBaseModTextModule
      * @return array with json result
      */
 	public function actionLoadTalk(){
-        $iId = (int)bx_get('lot_id');
+        $iLotId = (int)bx_get('lot_id');
         $iJotId = (int)bx_get('jot_id');
 
-        if (!$this->isLogged() || !$iId || !$this->_oDb->isParticipant($iId, $this->_iUserId)) {
+        if (!$this->isLogged() || !$iLotId || !$this->_oDb->isParticipant($iLotId, $this->_iUserId)) {
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
         };
 
         if ((int)bx_get('mark_as_read'))
-            $this->_oDb->readAllMessages($iId, $this->_iUserId);
+            $this->_oDb->readAllMessages($iLotId, $this->_iUserId);
 
-        $sTitle = '';
-        $aBlock = $this->_oTemplate->getTalkBlock($this->_iUserId, $iId, $iJotId, BX_IM_TYPE_PUBLIC, false, $sTitle);
-        echoJson(array('code' => 0, 'html' => $aBlock['content'], 'title' => $aBlock['title']));
+        $aVars = array(
+            'code' => 0,
+            'header' => $this->_oTemplate->getTalkHeader($iLotId, $this->_iUserId),
+            'history' => $this->_oTemplate->getHistory($this->_iUserId, $iLotId, $iJotId, MsgBox(_t('_bx_messenger_what_do_think')))
+        );
+
+        echoJson($aVars);
     }
 
     public function actionMarkJotsAsRead(){
@@ -294,18 +318,16 @@ class BxMessengerModule extends BxBaseModTextModule
      * Loads messages for specified lot(conversation)
      * @return array with json
      */
-	public function actionLoadJots(){	   
-        if (!$this->isLogged())
-            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
-
+	public function actionLoadJots(){
         $iId = (int)bx_get('id');
-
-        if (!$this->isLogged())
+	    if (!$this->isLogged() || !$iId)
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 
-        $sContent = $this->_oTemplate->getPostBoxWithHistory($this->_iUserId, (int)$iId > 0 ? $iId : BX_IM_EMPTY, BX_IM_TYPE_PRIVATE);
+	    if (!$this->_oDb->isParticipant($iId, $this->_iProfileId))
+            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_participant'))));
 
-        echoJson(array('code' => 0, 'html' => $sContent));
+        $sContent = $this->_oTemplate->getHistory($this->_iUserId, (int)$iId ? $iId : BX_IM_EMPTY, BX_IM_TYPE_PRIVATE);
+        echoJson(array('code' => 0, 'history' => $sContent));
     }
 
     /**
@@ -317,10 +339,9 @@ class BxMessengerModule extends BxBaseModTextModule
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 
         $sParam = bx_get('param');
-        $iType = bx_get('type');
         $iStarred = bx_get('starred');
 
-        $aMyLots = $this->_oDb->getMyLots($this->_iUserId, $iType, $sParam, BX_IM_EMPTY, BX_IM_EMPTY, $iStarred);
+        $aMyLots = $this->_oDb->getMyLots($this->_iUserId, BX_IM_EMPTY, $sParam, BX_IM_EMPTY, BX_IM_EMPTY, $iStarred);
         if (empty($aMyLots))
             $sContent = MsgBox(_t('_bx_messenger_txt_msg_no_results'));
         else
@@ -444,12 +465,20 @@ class BxMessengerModule extends BxBaseModTextModule
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 
         $iProfileId = (int)bx_get('profile');
-        $iLot = (int)bx_get('lot');
+        if ($iProfileId)
+        {
+            $aLotInfo = $this->_oDb->getLotByUrlAndPariticipantsList(BX_IM_EMPTY_URL, array($this->_iProfileId, $iProfileId));
+            $iLotId = empty($aLotInfo) ? BX_IM_EMPTY : $aLotInfo[$this -> _oConfig -> CNF['FIELD_ID']];
+        } else
+            $iLotId = (int)bx_get('lot');
+
+
         echoJson(
             array(
-             'title' => _t('_bx_messenger_lots_menu_create_lot_title'),
-             'html' => $this->_oTemplate->getLotWindow($iProfileId, $iLot, false),
-             'code' => 0
+                 'title' => _t('_bx_messenger_lots_menu_create_lot_title'),
+                 'history' => $this->_oTemplate->getHistory($this->_iProfileId, $iLotId),
+                 'header' => $this->_oTemplate->getEditTalkArea($iProfileId, $iLotId),
+                 'code' => 0
             ));
     }
 
@@ -552,9 +581,9 @@ class BxMessengerModule extends BxBaseModTextModule
     {
         $aParticipants = $this->getParticipantsList(bx_get('participants'));
 
-        $aResult = array('lotId' => 0);
+        $aResult = array('lot' => 0);
         if (!empty($aParticipants) && ($aChat = $this->_oDb->getLotByUrlAndPariticipantsList(BX_IM_EMPTY_URL, $aParticipants, BX_IM_TYPE_PRIVATE)))
-            $aResult['lotId'] = $aChat[$this->_oConfig->CNF['FIELD_ID']];
+            $aResult['lot'] = $aChat[$this->_oConfig->CNF['FIELD_ID']];
 
         echoJson($aResult);
     }
@@ -593,7 +622,7 @@ class BxMessengerModule extends BxBaseModTextModule
 		}
 		else {
             if (!$this->_oDb->savePariticipantsList($iLotId, $aParticipants))
-                $aResult = array('code' => 2, 'lot' => $iLotId);
+                $aResult = array('code' => 2);
 
             $aRemoveParticipants = array_diff($oOriginalParts, $aParticipants);
             $aNewParticipants = array_diff($aParticipants, $oOriginalParts);
@@ -604,6 +633,9 @@ class BxMessengerModule extends BxBaseModTextModule
 
         foreach ($aRemoveParticipants as &$iPartId)
             $this->onRemoveParticipant($iLotId, $iPartId);
+
+        if ($iLotId)
+            $aResult['header'] = $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId);
 
         echoJson($aResult);
     }
@@ -843,10 +875,12 @@ class BxMessengerModule extends BxBaseModTextModule
     {
         $iLotId = bx_get('lot');
 
-        if ($iLotId && $this->_oDb->isParticipant($iLotId, $this->_iUserId)) {
+        if ($iLotId) {
             $bMuted = $this->_oDb->muteLot($iLotId, $this->_iUserId);
             return echoJson(array('code' => $bMuted, 'title' => $bMuted ? _t('_bx_messenger_lots_menu_mute_info_on') : _t('_bx_messenger_lots_menu_mute_info_off')));
         }
+
+        return echoJson(array('code' => 1));
     }
 
     /**
@@ -1871,8 +1905,8 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $aJVC = $this->_oDb->getJVC($iLotId);
         $iParticipants = count($this->_oDb->getParticipantsList($iLotId));
+        $aResult = array('code' => 0, 'parts' => $iParticipants, 'url' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER'], 'url'));
         if (!empty($aJVC) && (int)$aJVC[$CNF['FJVC_ACTIVE']]) {
-            $aResult = array('code' => 0, 'parts' => $iParticipants);
             if ($this->_oDb->joinToActiveJVC($iLotId, $this->_iProfileId)) {
                 $aResult['jot_id'] = $this->_oDb->getJotIdByJitisItem((int)$aJVC[$CNF['FJVC_ACTIVE']]);
                 $aResult[$CNF['FJVC_ROOM']] = $aJVC[$CNF['FJVC_ROOM']];
@@ -1883,12 +1917,13 @@ class BxMessengerModule extends BxBaseModTextModule
                $this->_oDb->closeJVC($iLotId);
         }
 
-        if ($aResult = $this->_oDb->createJVC($iLotId, $this->_iProfileId)) {
-            $this->onCreateVC($iLotId);
-            return echoJson(array_merge(array('code' => 0, 'new' => 1, 'parts' => $iParticipants, 'room' => $aResult[$CNF['FJVC_ROOM']]), $aResult));
-        }
-
-        return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_jitsi_err_can_not_be_created')));
+        $this->onCreateVC($iLotId);
+        return echoJson(
+                        array_merge(
+                            array('new' => 1),
+                            $aResult,
+                            $this->_oDb->createJVC($iLotId, $this->_iProfileId)
+                        ));
     }
 
     public function actionStopJvc(){

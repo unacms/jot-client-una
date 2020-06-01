@@ -4,11 +4,13 @@ $(function($, oMessenger) {
     let bClean = false;
     let bLoading = false;
 	/* FilePond plugins begin*/
-	
-	bx_get_scripts(__filepond_links__, () => {
-		$.fn.filepond.registerPlugin(
+
+	/*bx_get_scripts(filepond_links, () => {*/
+
+    $.fn.filepond.registerPlugin(
 			FilePondPluginImagePreview,
-			FilePondPluginMediaPreview
+			FilePondPluginMediaPreview,
+            FilePondPluginFileValidateSize
 		);
 		
     const oFilePond = $('[name=__files_uploader__]')
@@ -25,8 +27,16 @@ $(function($, oMessenger) {
 
                 return oFile instanceof File && oFile.type !== 'text/html';
             },
-            beforeAddFile: ({ file }) => {
+            beforeAddFile: function({ file }){
                 const { type } = file;
+                const aRestrictedFileTypes = __restricted_extensions__;
+                if (type){
+                    const aTypes = type.split('/');
+                    if (typeof aTypes[1] !== 'undefined' && ~aRestrictedFileTypes.indexOf(aTypes[1].toLowerCase())){
+                        bx_alert(_t('_bx_messenger_file_type_is_not_allowed'));
+                        return false;
+                    }
+                }
 
                 return !(file instanceof Blob && !(file instanceof File) && type === 'text/html');
             },
@@ -38,16 +48,26 @@ $(function($, oMessenger) {
             dropOnElement: false,
             allowPaste: true,
             checkValidity: true,
-            allowFileTypeValidation: true,
+            allowFileSizeValidation: true,
             maxFiles: '__number_of_files__',
+            acceptedFileTypes: [],
             labelInvalidField: '__invalid_file_type__',
+            labelMaxFileSizeExceeded: _t('_bx_messenger_file_is_too_large_error'),
+            labelMaxFileSize: _t('_bx_messenger_file_is_too_large_error_details'),
             labelFileProcessing: '__uploading__',
             labelFileProcessingComplete: '__upload_is_complete__',
             labelFileProcessingAborted: '__upload_cancelled__',
             labelFileProcessingError: '__response_error__',
             labelButtonRemoveItem: '__remove_button__',
             maxFileSize: '__file_size__MB',
-            onaddfilestart: () => {
+            onwarning: (oObject) => {
+                const { body, type } = oObject;
+                if (type === 'warning' && body === 'Max files')
+                    bx_alert(_t('_bx_messenger_max_files_upload_error', '__number_of_files__'));
+                else
+                    console.log(oObject);
+            },
+            onaddfilestart: (file) => {
                 bClean = false;
                 bLoading = true;
             },
@@ -92,9 +112,9 @@ $(function($, oMessenger) {
         }
     };
 
-    if (oMessenger)
-        oMessenger.initUploader(oFilePondUploader);
-	});
+    // set file uploader for Messenger
+    $(() => oMessenger && oMessenger.initUploader(oFilePondUploader));
+	//});
     /* end */
 
 }($, oMessenger));

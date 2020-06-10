@@ -53,17 +53,18 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!((int)$iProfile && (int)$iProfile != (int)$this->_iProfileId && $this->onCheckContact($this->_iProfileId, $iProfile)))
           $iProfile = 0;
 
- 		if ($this->_iJotId){
-            $iLotId = $this->_oDb->getLotByJotId($this->_iJotId);
-			if ($iLotId && !$this ->_oDb -> isParticipant($iLotId, $this->_iProfileId)){
-                $this->_iJotId = BX_IM_EMPTY;
-                $iLotId = BX_IM_EMPTY;
+        $iLotId = BX_IM_EMPTY;
+        if (!$iProfile) {
+            if ($this->_iJotId) {
+                $iLotId = $this->_oDb->getLotByJotId($this->_iJotId);
+                if ($iLotId && !$this->_oDb->isParticipant($iLotId, $this->_iProfileId)) {
+                    $this->_iJotId = BX_IM_EMPTY;
+                    $iLotId = BX_IM_EMPTY;
+                }
+            } else {
+                $aLotsList = $this->_oDb->getMyLots($this->_iProfileId);
+                $iLotId = !empty($aLotsList) ? current($aLotsList)[$this->_oConfig->CNF['FIELD_ID']] : 0;
             }
-        }
-		else
-        {
-            $aLotsList = $this -> _oDb -> getMyLots($this->_iProfileId);
-            $iLotId = !empty($aLotsList) ? current($aLotsList)[$this->_oConfig->CNF['FIELD_ID']] : 0;
         }
 
 		$sConfig = $this->_oTemplate->loadConfig($this -> _iProfileId, false, $iLotId, $this -> _iJotId, (int)$iProfile);
@@ -1338,7 +1339,14 @@ class BxMessengerModule extends BxBaseModTextModule
             $iProfileId = $this->_iProfileId;
 
         $mixedResult = null;
-        bx_alert('system', 'check_allowed_view', 0, 0, array('module' => $this->getName(), 'content_info' => $aDataEntry, 'profile_id' => $iProfileId, 'override_result' => &$mixedResult));
+
+        bx_alert('system', 'check_allowed_view', 0, 0, array(
+            'module' => $this->getName(),
+            'content_info' => $aDataEntry,
+            'profile_id' => $iProfileId,
+            'override_result' => &$mixedResult)
+        );
+
         if($mixedResult !== null)
             return $mixedResult;
 

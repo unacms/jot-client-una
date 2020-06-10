@@ -276,7 +276,7 @@ class BxMessengerDb extends BxBaseModTextDb
 		if (($aData['type'] != BX_IM_TYPE_PRIVATE || $this -> isAuthor($aData['lot'], $aData['member_id'])) && !$this -> isParticipant($aData['lot'], $aData['member_id'], true))
 			$this -> addMemberToParticipantsList($aData['lot'], $aData['member_id']);
 
-        if ($aData['type'] == BX_IM_TYPE_PRIVATE && !$this -> isParticipant($aData['lot'], $aData['member_id']))
+        if ((int)$aData['lot'] && $aData['type'] == BX_IM_TYPE_PRIVATE && !$this -> isParticipant($aData['lot'], $aData['member_id']))
             return false;
 
 		if (empty($aParticipants) && (int)$aData['lot']) 

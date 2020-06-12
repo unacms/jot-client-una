@@ -939,8 +939,10 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $aLatestJot = $this->_oDb->getLatestJot($iLotId, $this->_iUserId);
         $sMessage = $aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE']];
-        if ($sMessage)
-            $sMessage = BxTemplFunctions::getInstance()->getStringWithLimitedLength(html_entity_decode($sMessage), (int)$this->_oConfig->CNF['PARAM_PUSH_NOTIFICATIONS_DEFAULT_SYMBOLS_NUM']);
+        if ($sMessage){
+            $sMessage = preg_replace('/<br\s?\/?>/i', "\r\n", $sMessage);
+            $sMessage = strmaxtextlen($sMessage , (int)$this->_oConfig->CNF['PARAM_PUSH_NOTIFICATIONS_DEFAULT_SYMBOLS_NUM']);
+        }
 
         if (!$sMessage && $aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
             $sMessage = _t('_bx_messenger_attached_files_message', $this->_oDb->getJotFiles($aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE_ID']], true));

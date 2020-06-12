@@ -1,0 +1,44 @@
+<div class="bx-messenger-table-wrapper-rows history">
+			<div class="cell">
+				<div class="bx-messenger-conversation-block-wrapper pushable">
+					<div class="ui right vertical sidebar very wide bx-def-color-bg-block files">
+						<div class="ui feed segment"></div>
+					</div>
+					<div class="pusher">
+						<div class="bx-messenger-conversation-block">
+							<div class="bx-messenger-conversations">
+								__content__
+							</div>
+						</div>
+						<div id="bx-messenger-info-area">
+							<div class="bx-messenger-conversations-typing bx-def-font-light bx-def-font-small">
+								<span></span><bx_text:_bx_messenger_typing_message />
+							</div>
+							<div class="bx-messenger-info-area-connecting bx-def-font-light bx-def-font-small">
+								<bx_text:_bx_messenger_reconnecting_message /><span></span>
+							</div>
+							<div class="bx-messenger-info-area-connect-failed bx-def-font-light bx-def-font-small">
+								<bx_text:_bx_messenger_reconnecting_failed />
+							</div>
+						</div>
+				  </div>
+				</div>
+		<bx_if:show_scroll_area>
+			<div class="bx-messenger-area-scroll bx-def-font-light bx-def-font-small">
+				<div>
+					<span>
+						<a href="javascript:void(0);" onclick="oMessenger.loadTalk(__id__, $('#mark_all_as_read').is(':checked'));">
+							<span><bx_text:_bx_messenger_jump_to_the_bottom /></span>
+						</a>
+						<bx_if:check_as_read>
+							<label class="checkcontainer" title="<bx_text:_bx_messenger_mark_all_as_read />">
+								<input name="mark_all_as_read" value="text" id="mark_all_as_read" class="bx-def-font-inputs bx-form-input-checkbox" type="checkbox" />
+								<span class="checkmark"></span>
+							</label>
+						</bx_if:check_as_read>
+					</span>
+				</div>
+			</div>
+		</bx_if:show_scroll_area>
+	</div>
+</div>

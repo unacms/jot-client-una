@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="en" flag="gb" title="English">	
+	<string_upd name="_bx_messenger_send_message_save_error"><![CDATA[Message was not sent!]]></string_upd>
+	<string_upd name="_bx_messenger_what_do_think"><![CDATA[Send first message!]]></string_upd>
+	<string_upd name="_bx_messenger_max_files_upload_error"><![CDATA[Exceeded max files to send in one message (maximum {0})!]]></string_upd>
+	<string_upd name="_bx_messenger_invalid_server_response"><![CDATA[Invalid server response ({statusCode})]]></string_upd>
+		
+	<string_add name="_bx_messenger_file_is_too_large_error"><![CDATA[File is too large]]></string_add>
+	<string_add name="_bx_messenger_file_is_too_large_error_details"><![CDATA[Maximum file size is {filesize}]]></string_add>
+	<string_add name="_bx_messenger_file_type_is_not_allowed"><![CDATA[This file type is not allowed!]]></string_add>
+	<string_add name="_bx_messenger_jitsi_mobile_warning"><![CDATA[To make video conference more stable and reliable we have to use mobile application. It is possible to connect via our own mobile app (just download it from the App Store) or through the original Jitsi application. Continue with jitsi app?]]></string_add>
+</resources>

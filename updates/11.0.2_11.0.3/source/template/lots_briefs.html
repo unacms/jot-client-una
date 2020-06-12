@@ -1,0 +1,31 @@
+<div class="bx-messenger-jots-snip __active__" onclick="oMessenger.loadTalk(__id__);" data-lot="__id__">
+		<div class="bx-messenger-jots-snip-avatars bx-messenger-padding-lots-lefttopbottom">
+			<div class="bx-messenger-jots-snip-avatars-list bx-def-thumb bx-def-thumb-size" >
+				<bx_repeat:avatars>
+					<div>	
+						<img title="__title__" src="__thumb__" class="bx-def-thumb-size" />
+					</div>
+				</bx_repeat:avatars>
+			</div>
+			__status__
+		</div>
+		<div class="bx-messenger-jots-snip-info bx-messenger-padding-lots-topbottom __class__ bx-def-font-middle">
+			<div class="bx-messenger-jots-snip-title">
+				<div class="info"></div>
+				__number__
+				<div class="title bx-def-font-default bx-def-font-semibold __title_class__">
+					__title__
+				</div>
+				<bx_if:show_time>
+					<div class="time bx-def-font-light bx-def-font-small bx-def-font-grayed">__time__</div>
+				</bx_if:show_time>				
+			</div>
+			<div class="bx-messenger-preview-lot __message_class__ bx-def-font-grayed">
+				<div>
+					<span>__sender_username__</span>
+					<span calss="bx-def-font-middle">__message__</span>
+				</div>
+				<span class="bubble bx-def-label __bubble_class__">__count__</span>
+			</div>			
+		</div>
+</div>

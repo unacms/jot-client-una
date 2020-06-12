@@ -14,7 +14,7 @@
  */ 
 class BxMessengerDb extends BxBaseModTextDb
 {
-   private $CNF;   
+   private $CNF;
    
    function __construct(&$oConfig)
    {

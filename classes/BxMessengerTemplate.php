@@ -24,34 +24,25 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@param string $sMode 
 	*/
 	public function loadCssJs($sMode = 'all'){
-		$sFilePondPath = BX_DOL_URL_MODULES . 'boonex/messenger/js/filepond/';
 	    $aCss = array(
 						'filepode.css',
 						'semantic.min.css',
 						'main.css',
-                        BX_DOL_URL_MODULES . 'boonex/messenger/js/quill/quill.bubble.css',
+                        'quill.bubble.css',
                         BX_DOL_URL_MODULES . 'boonex/messenger/js/emoji-mart/css/emoji-mart.css',
-                        $sFilePondPath . 'filepond.min.css',
-                        $sFilePondPath . 'filepond-plugin-image-preview.min.css',
-                        $sFilePondPath . 'filepond-plugin-media-preview.min.css'
 					 );
 
 		$aJs = array(
 		                'primus.js',
+                        'record-video.js',
 		                'editor.js',
                         'storage.js',
 						'connect.js',
 						'status.js',
-                        BX_DOL_URL_MODULES . 'boonex/messenger/js/quill/quill.js',
-                        $sFilePondPath . 'filepond.min.js',
-                        $sFilePondPath . 'filepond.jquery.js',
-                        $sFilePondPath . 'filepond-plugin-image-preview.min.js',
-                        $sFilePondPath . 'filepond-plugin-media-preview.min.js',
-                        $sFilePondPath . 'filepond-plugin-file-validate-size.min.js',
+                        'quill.min.js',
                         'messenger.js',
 						'RecordRTC.min.js',
 						'adapter.js',
-						'record-video.js',
 						'semantic.min.js',
                         'emoji-mart.js',
                         'soundjs.min.js'
@@ -122,19 +113,15 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	    if (!$iProfileId)
 	        return '';
 
+	    $bGiphy = $iProfileId && $CNF['GIPHY']['api_key'];
         $aVars = array(
              'bx_if:giphy' => array(
-                'condition' => $iProfileId && $CNF['GIPHY']['api_key'],
-                'content' 	=> array(
-                    'giphy' => $this -> getGiphyPanel()
-                )
-            ),
-            'emoji_picker' => $this->getEmojiCode(),
-            'files_uploader' => $CNF['FILES_UPLOADER'],
-             'bx_if:gif' => array(
-                'condition' => $iProfileId && $CNF['GIPHY']['api_key'],
+                'condition' => $bGiphy,
                 'content' 	=> array()
              ),
+            'giphy' => $bGiphy ? $this -> getGiphyPanel() : '',
+            'emoji_picker' => $this->getEmojiCode(),
+            'files_uploader' => $CNF['FILES_UPLOADER']
         );
 
         $sFilesUploader = $this->initFilesUploader($iProfileId);
@@ -180,10 +167,26 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                     ),
                 )))));
     }
+
 	public function initFilesUploader($iProfileId){
         $CNF = &$this -> _oConfig -> CNF;
         $sBaseUrl = $this->_oConfig->getBaseUri();
-		//$sFilePondPath = BX_DOL_URL_MODULES . 'boonex/messenger/js/filepond/';
+
+        $sFilePondPath = BX_DOL_URL_MODULES . 'boonex/messenger/js/';
+        $this->addCss(array(
+            'filepode.css',
+            'filepond.min.css',
+            'filepond-plugin-image-preview.min.css',
+            'filepond-plugin-media-preview.min.css'
+        ));
+
+        $this->addCss(array(
+            'filepond.min.js',
+            'filepond.jquery.js',
+            'filepond-plugin-image-preview.min.js',
+            'filepond-plugin-media-preview.min.js'
+        ));
+
 				
         $aParams = array();
         $oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);
@@ -204,12 +207,13 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                 'number_of_files' => (int)$this->_oConfig->CNF['MAX_FILES_TO_UPLOAD'],
                 'response_error' => bx_js_string(_t('_bx_messenger_invalid_server_response')),
                 'remove_button' => bx_js_string(_t('_bx_messenger_uploading_remove_button')),
-				/*'filepond_links' => json_encode(array(
+				'filepond_links' => json_encode(array(
 										$sFilePondPath . 'filepond.min.js',
 										$sFilePondPath . 'filepond.jquery.js',
 										$sFilePondPath . 'filepond-plugin-image-preview.min.js',
+										$sFilePondPath . 'filepond-plugin-file-validate-size.min.js',
 										$sFilePondPath . 'filepond-plugin-media-preview.min.js'
-									)),*/
+									)),
             );
         }
 
@@ -1180,6 +1184,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             $iType = $aLotInfo[$CNF['FIELD_TYPE']];
         };
 
+        $bIsPushEnabled = (int)$iProfileId && $this->_oConfig->isOneSignalEnabled() && !getParam('sys_push_app_id');
         $aVars = array(
 			'profile_id' => (int)$iProfileId,
             'username' => $sUsername,
@@ -1210,7 +1215,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             )),
 			'jot_url' => $this->_oConfig->getRepostUrl(),
 			'bx_if:onsignal' => array(
-										'condition'	=> (int)$iProfileId && $this->_oConfig->isOneSignalEnabled() && !getParam('sys_push_app_id'),
+										'condition'	=> $bIsPushEnabled,
 										'content' => array(
 											'one_signal_api' => $CNF['PUSH_APP_ID'],
 											'short_name' => $CNF['PUSH_SHORT_NAME'],
@@ -1218,24 +1223,25 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 											'jot_chat_page_url' => BxDolPermalinks::getInstance()->permalink($CNF['URL_HOME']),
 											'notification_request' => bx_js_string(_t('_bx_messenger_notification_request')),
 											'notification_request_yes' => bx_js_string(_t('_bx_messenger_notification_request_yes')),
-											'notification_request_no' => bx_js_string(_t('_bx_messenger_notification_request_no')),
-											'profile_id' => (int)$iProfileId,
-                                            'email' => '',
-                                            'email_hash' => '',
-                                            'push_tags_encoded' => ''
+											'notification_request_no' => bx_js_string(_t('_bx_messenger_notification_request_no'))
 										)
 									)
 		);
 
-		// For compatibility with UNA 11.x.x
-        if(class_exists('BxDolPush', false) && method_exists('BxDolPush', 'getTags')){
-            $aTags = BxDolPush::getTags($iProfileId);
-            $aVars['bx_if:onsignal']['email'] = $aTags['email'];
-            $aVars['bx_if:onsignal']['email_hash'] = $aTags['email_hash'];
+		if ($bIsPushEnabled) {
+		    if(class_exists('BxDolPush', false) && method_exists('BxDolPush', 'getTags')){
+                $aTags = BxDolPush::getTags($iProfileId);
+		        $aPushTags = array(
+                    'email' => $aTags['email'],
+                    'email_hash' => $aTags['email_hash'],
+                    'push_tags_encoded' => json_encode($aTags));
+            } else
+                $aPushTags = array('email' => '', 'email_hash' => '', 'push_tags_encoded' => json_encode(array('user' => $iProfileId)));
 
-            unset($aTags['email']);
-            unset($aTags['email_hash']);
-            $aVars['bx_if:onsignal']['push_tags_encoded'] = json_encode($aTags);
+            unset($aPushTags['email']);
+            unset($aPushTags['email_hash']);
+            unset($aPushTags['email_hash']);
+            $aVars['bx_if:onsignal']['content'] = array_merge($aVars['bx_if:onsignal']['content'], $aPushTags);
         }
 
 		return $this -> parseHtmlByName('config.html', $aVars);

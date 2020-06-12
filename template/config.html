@@ -32,12 +32,10 @@
                 OneSignal.setDefaultNotificationUrl('__jot_chat_page_url__');
                 OneSignal.isPushNotificationsEnabled().then(
                     function (isEnabled) {
-
-                        if ('__email__') {
+                        if ('__email__')
                             OneSignal.setEmail('__email__', '__email_hash__');
-                            OneSignal.sendTags(__push_tags_encoded__);
-                        } else
-                        OneSignal.sendTag('user', __profile_id__); // set tag for onesiganl, this tag will be used to send notification
+
+                        OneSignal.sendTags(__push_tags_encoded__);
 
                         if (!isEnabled && isPushSupported)
                             OneSignal.showHttpPermissionRequest();

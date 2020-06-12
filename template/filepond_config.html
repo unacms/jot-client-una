@@ -1,12 +1,12 @@
 <script>
+/* DEPRECATED: To move this function to js file*/
 $(function($, oMessenger) {
     let aFiles = [];
     let bClean = false;
     let bLoading = false;
+
 	/* FilePond plugins begin*/
-
-	/*bx_get_scripts(filepond_links, () => {*/
-
+    const fInitFunc = () => {
     $.fn.filepond.registerPlugin(
 			FilePondPluginImagePreview,
 			FilePondPluginMediaPreview,
@@ -114,9 +114,13 @@ $(function($, oMessenger) {
 
     // set file uploader for Messenger
     $(() => oMessenger && oMessenger.initUploader(oFilePondUploader));
-	//});
     /* end */
+    }
+
+    if (typeof $.fn.filepond === 'undefined')
+        bx_get_scripts(__filepond_links__, fInitFunc);
+    else
+        fInitFunc();
 
 }($, oMessenger));
-
 </script>

@@ -34,6 +34,10 @@ i.sys-icon.star.fill{
 	color: #f5a623;
 }
 
+.bx-messenger-post-box-set {
+	overflow-y: auto;
+}
+
 div.bx-messenger-post-box-set svg
 {
 	vertical-align:middle;

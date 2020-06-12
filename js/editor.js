@@ -37,7 +37,7 @@
 
     init(){
         if (typeof Quill === 'undefined')
-            bx_get_scripts(['quill/quill.js'], () => {
+            bx_get_scripts(['modules/boonex/messenger/js/quill/quill.min.js'], () => {
                  this.initEditor();
             });
         else

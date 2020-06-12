@@ -105,8 +105,8 @@
 	<string name="_bx_messenger_post_confirm_delete_file"><![CDATA[Вы уверены что хотите удалить этот файл?]]></string>
 	<string name="_bx_messenger_post_file_not_found"><![CDATA[Файл не найден!]]></string>
 	<string name="_bx_messenger_max_files_upload"><![CDATA[Максимальное количество файлов, которое можно отправить в одном сообщении]]></string>
-	<string name="_bx_messenger_max_files_upload_error"><![CDATA[Превышено максимальное количество файлов для отправки в одном сообщении (максимально {{maxFiles}})!]]></string>
-	<string name="_bx_messenger_invalid_server_response"><![CDATA[Неверный ответ сервера ({{statusCode}})]]></string>
+	<string name="_bx_messenger_max_files_upload_error"><![CDATA[Превышено максимальное количество файлов для отправки в одном сообщении (максимально {0})!]]></string>
+	<string name="_bx_messenger_invalid_server_response"><![CDATA[Неверный ответ сервера ({statusCode})]]></string>
 	<string name="_bx_messenger_attached_files_message"><![CDATA[Получено {0} файл(ов)]]></string>
 	<string name="_bx_messenger_lots_menu_settings_title"><![CDATA[Опции разговора]]></string>
 	<string name="_bx_messenger_lots_menu_back_title"><![CDATA[Вернуться к списку разговоров]]></string>
@@ -231,4 +231,9 @@
 	<string name="_bx_messenger_jitsi_remote_user"><![CDATA[Участник]]></string>
 	<string name="_bx_messenger_lot_parts_error"><![CDATA[Разговор с таким же списком участников уже существует.]]></string>
 	<string name="_bx_messenger_jitsi_err_cant_type_use"><![CDATA[Извините, но видео конференции публичных чатов запрещены.]]></string>
+
+	<string name="_bx_messenger_file_is_too_large_error"><![CDATA[Файл иммет слишком большой размер!]]></string>
+	<string name="_bx_messenger_file_is_too_large_error_details"><![CDATA[Максимально допустимый размер файла {filesize}]]></string>
+	<string name="_bx_messenger_file_type_is_not_allowed"><![CDATA[Загрузка файлов данного формата запрещена!]]></string>
+	<string name="_bx_messenger_jitsi_mobile_warning"><![CDATA[Для того что бы сделать видео сигнал более стабильным и надёжным, вам необходимо подключиться через наше мибильное приложение (его можно скачать в app store) или через оригинальное приложение Jitsi. Продолжить с использованием Jitsi App?]]></string>
 </resources>

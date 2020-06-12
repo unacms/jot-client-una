@@ -920,7 +920,7 @@ class BxMessengerModule extends BxBaseModTextModule
         $iLotId = (int)bx_get('lot');
         $aSent = is_array(bx_get('sent')) ? bx_get('sent') : array();
 
-        if ($this->_oDb->isPushNotificationsEnabled())
+        if (!$this->_oDb->isPushNotificationsEnabled())
             return false;
 
         if (!$this->isLogged() || !$this->_oConfig->CNF['IS_PUSH_ENABLED'] || !$iLotId || !$this->_oDb->isParticipant($iLotId, $this->_iUserId))

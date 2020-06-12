@@ -379,7 +379,6 @@
 		})
 		.on('click', (oEvent) => _this.onOuterClick(oEvent));
 
-
 		this.updateSendAreaButtons();
 
 		$(_this.sSendAreaActionsButtons)
@@ -402,7 +401,18 @@
 		if(!this.aPlatforms.includes(navigator.platform))
 			$(_this.sSendAreaActionsButtons)
 				.find('li.video').show();
-	}
+			$(_this.sGiphySendArea)
+			.on('click',
+					function(e){
+						if ($(_this.sGiphMain).is(':visible'))
+							$(_this.sGiphMain).fadeOut();
+						else
+							$(_this.sGiphMain).fadeIn(function(){
+								$(this).css('display', 'flex');
+								_this.initGiphy(e);
+							});
+					});
+   }
 
 	oMessenger.prototype.updateSendArea = function(bFilesEmpty){
 		if (bFilesEmpty)
@@ -1838,7 +1848,7 @@
 	};
 	
 	oMessenger.prototype.onReconnecting = function(oData) {	
-		var _this = this;
+		const _this = this;
 			
 		$(this.sInfoArea).fadeIn();
 		$(this.sTypingArea).parent().hide();
@@ -2607,6 +2617,108 @@
 	};
 
 	/**
+	 * Loads form to popup
+	 *@param string sUrl link, if not specify default one will be used
+	 *@param function fCallback callback function,  executes on window show
+	 */
+
+	oMessenger.prototype.showPopForm = function (sMethod, fCallback) {
+		const sUrl = `modules/?r=messenger/${sMethod}`,
+			sText = _oMessenger.oEditor.getText();
+
+		$(window).dolPopupAjax({
+			url: sUrl,
+			id: { force: true, value: 'bx-messenger-popup'},
+			onShow: function () {
+				setTimeout(() => typeof fCallback === 'function' && fCallback(), 100);
+			},
+			closeElement: true,
+			closeOnOuterClick: false,
+			removeOnClose: true,
+			onHide: function () {
+				_oMessenger.updateScrollPosition('bottom');
+			}
+		});
+	}
+	oMessenger.prototype.initGiphy = function() {
+		let iTotal = 0;
+		let iScrollPosition = 0;
+		const _this = this,
+			oContainer = $(_this.sGiphyItems),
+			oScroll = $('.bx-messenger-giphy-scroll'),
+			fInitVisibility = (sType, sValue) => {
+				let stopLoading = false;
+				oScroll.on('scroll', (e) => {
+					const { scrollLeft,  scrollWidth, clientWidth} = e.currentTarget;
+					const iItems = $('picture', oContainer).length;
+					const scrollLeftMax = scrollWidth - clientWidth;
+					let	bPassed = scrollLeft >= scrollLeftMax*0.6; // 60% passed
+					iScrollPosition = scrollLeft;
+
+					if (!bPassed || (iTotal && iItems && iItems >= iTotal))
+						return;
+
+					if (!stopLoading) {
+						stopLoading = true;
+						fGiphy(sType, sValue, () => setTimeout(() => {
+							stopLoading = false;
+							oScroll.scrollLeft(iScrollPosition);
+						}, 0));
+					}
+				});
+			},
+			fGiphy = (sType, sValue, fCallback) => {
+				const fHeight = oContainer.height();
+				$('div.search', _this.sGiphyBlock).addClass('loading');
+				$.get('modules/?r=messenger/get_giphy', {
+						height: fHeight,
+						action: sType,
+						filter: sValue,
+						start: $('picture', oContainer).length
+					}, function (oData) {
+						iTotal = oData.total;
+
+						oContainer
+							.append(
+								oData.code
+									? oData.message
+									: oData.html
+							)
+							.setRandomBGColor();
+
+						$('div.search', _this.sGiphyBlock).removeClass('loading');
+						if (typeof fCallback === 'function')
+							fCallback(sType, sValue);
+					},
+					'json');
+			};
+
+		if ($(_this.sGiphMain).css('visibility') === 'visible') {
+			let iTimer = 0;
+			$('input', _this.sGiphyBlock).keypress(function (e) {
+				clearTimeout(iTimer);
+				iTimer = setTimeout(() => {
+					iScrollPosition = 0;
+					iTotal = 0;
+					oContainer.html('');
+					oScroll.scrollLeft(0);
+					const sFilter = $(this).val();
+					fGiphy(sFilter && 'search', sFilter, fInitVisibility);
+
+				}, 1000);
+				return true;
+			}).on('keydown', function (e) {
+				if (e.keyCode === 8 || e.keyCode === 46)
+					$(this).trigger('keypress');
+			});
+
+			if (oContainer && !oContainer.find('img').length) {
+				fGiphy(undefined, undefined, fInitVisibility);
+			}
+		}
+	};
+
+	/**
 	* Returns object with public methods 
 	*/
 	return {
@@ -3182,82 +3294,7 @@
 		onHangUp: (oEl, iLotId) => {
 			_oMessenger.onCloseCallPopup(oEl, iLotId);
 		},
-		initGiphy: function () {
-			let iTotal = 0;
-			let iScrollPosition = 0;
-			const oContainer = $(_oMessenger.sGiphyItems),
-				oScroll = $('.bx-messenger-giphy-scroll'),
-				fInitVisibility = (sType, sValue) => {
-					let stopLoading = false;
-					oScroll.on('scroll', (e) => {
-							const { scrollLeft,  scrollWidth, clientWidth} = e.currentTarget;
-							const iItems = $('picture', oContainer).length;
-							const scrollLeftMax = scrollWidth - clientWidth;
-							let	bPassed = scrollLeft >= scrollLeftMax*0.6; // 60% passed
-							iScrollPosition = scrollLeft;
-
-							if (!bPassed || (iTotal && iItems && iItems >= iTotal))
-								return;
-
-							if (!stopLoading) {
-								stopLoading = true;
-								fGiphy(sType, sValue, () => setTimeout(() => {
-									stopLoading = false;
-									oScroll.scrollLeft(iScrollPosition);
-								}, 0));
-							}
-					});
-				},
-				fGiphy = (sType, sValue, fCallback) => {
-					const fHeight = oContainer.height();
-					$('div.search', _oMessenger.sGiphyBlock).addClass('loading');
-					$.get('modules/?r=messenger/get_giphy', {
-							height: fHeight,
-							action: sType,
-							filter: sValue,
-							start: $('picture', oContainer).length
-						}, function (oData) {
-							iTotal = oData.total;
-
-							oContainer
-								.append(
-									oData.code
-										? oData.message
-										: oData.html
-								)
-								.setRandomBGColor();
-
-							$('div.search', _oMessenger.sGiphyBlock).removeClass('loading');
-							if (typeof fCallback === 'function')
-								fCallback(sType, sValue);
-						},
-						'json');
-				};
-
-			if ($(_oMessenger.sGiphMain).css('visibility') === 'visible') {
-				let iTimer = 0;
-				$('input', _oMessenger.sGiphyBlock).keypress(function (e) {
-					clearTimeout(iTimer);
-					iTimer = setTimeout(() => {
-						iScrollPosition = 0;
-						iTotal = 0;
-						oContainer.html('');
-						oScroll.scrollLeft(0);
-						const sFilter = $(this).val();
-						fGiphy(sFilter && 'search', sFilter, fInitVisibility);
-
-					}, 1000);
-					return true;
-				}).on('keydown', function (e) {
-					if (e.keyCode === 8 || e.keyCode === 46)
-						$(this).trigger('keypress');
-				});
-
-				if (oContainer && !oContainer.find('img').length) {
-					fGiphy(undefined, undefined, fInitVisibility);
-				}
-			}
-		},
+		
 		updateAttachmentArea: function(bCanHide){
 			return _oMessenger.updateSendArea(bCanHide);
 		},

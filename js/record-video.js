@@ -72,7 +72,7 @@ oJotVideoRecorder.prototype.stopWebCamAndClose = function()
 
 oJotVideoRecorder.prototype.init = function()
 {		
-		var _this = this;
+		const _this = this;
 				
 		$(_this.bclose).click(function(){
 			if ((_this.oVideoBlob !== undefined && confirm(_t('_bx_messenger_close_video_confirm'))) || !_this.oVideoBlob)

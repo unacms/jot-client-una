@@ -28,13 +28,13 @@
                                     <i class="sys-icon paperclip"></i>
                                 </a>
                             </li>
-                            <bx_if:gif>
+                            <bx_if:giphy>
                                 <li>
                                     <a title="<bx_text:_bx_messenger_giphy_gifs_button />" id="bx-messenger-send-area-giphy">
                                         <i class="sys-icon file-image"></i>
                                     </a>
                                 </li>
-                            </bx_if:gif>
+                            </bx_if:giphy>
                         </ul>
                         <div class="bx-messenger-post-box-send-button">
                             <a id="send-button" title="<bx_text:_bx_messenger_post_button_title />">
@@ -46,22 +46,5 @@
             </div>
         </div>
     </div>
-<bx_if:giphy>
-    <div class="bx-def-color-bg-block giphy">
-        __giphy__
-    </div>
-    <script type="text/javascript">
-        $(() => $('#bx-messenger-send-area-giphy')
-            .on('click',
-                function(e){
-                    if ($('.giphy').is(':visible'))
-                        $('.giphy').fadeOut();
-                    else
-                        $('.giphy').fadeIn(function(){
-                            $(this).css('display', 'flex');
-                            oMessenger.initGiphy(e);
-                        });
-                }));
-    </script>
-</bx_if:giphy>
+__giphy__
 __emoji_picker__

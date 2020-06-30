@@ -68,7 +68,7 @@ class BxMessengerModule extends BxBaseModTextModule
         }
 
 		$sConfig = $this->_oTemplate->loadConfig($this -> _iProfileId, false, $iLotId, $this -> _iJotId, (int)$iProfile);
-        return	$sConfig . $this -> _oTemplate -> getLotsList($iLotId, $this -> _iJotId, $this -> _iUserId, (int)$iProfile);
+        return	$sConfig . $this->_oTemplate->getLotsList($iLotId, $this -> _iUserId, (int)$iProfile);
     }
     /**
      * Returns right side block for messenger page
@@ -204,6 +204,9 @@ class BxMessengerModule extends BxBaseModTextModule
 
         if (!$this->isLogged())
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_only_for_logged')));
+
+        if (!$this->_oConfig->isAllowToUseMessages($this->_iProfileId))
+            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_not_allowed')));
 
         if (!$sMessage && empty($aFiles) && empty($aGiphy))
             return echoJson(array('code' => 2, 'message' => _t('_bx_messenger_send_message_no_data')));
@@ -463,7 +466,10 @@ class BxMessengerModule extends BxBaseModTextModule
      */
 	public function actionCreateLot(){
         if (!$this->isLogged())
-            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
+            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged')));
+
+        if (!$this->_oConfig->isAllowToUseMessages($this->_iProfileId))
+            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_restricted_memberships')));
 
         $iProfileId = (int)bx_get('profile');
         if ($iProfileId)
@@ -601,6 +607,9 @@ class BxMessengerModule extends BxBaseModTextModule
         $aResult = array('message' => _t('_bx_messenger_save_part_failed'), 'code' => 1);
         if (($iLotId && !($this->_oDb->isAuthor($iLotId, $this->_iUserId) || isAdmin())) || empty($aParticipants))
             return echoJson($aResult);
+
+        if (!$this->_oConfig->isAllowToUseMessages($this->_iProfileId))
+            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_not_allowed')));
 
         $aLot = $this->_oDb->getLotByUrlAndPariticipantsList(BX_IM_EMPTY_URL, $aParticipants, BX_IM_TYPE_PRIVATE);
         if (!empty($aLot)){
@@ -876,7 +885,7 @@ class BxMessengerModule extends BxBaseModTextModule
     {
         $iLotId = bx_get('lot');
 
-        if ($iLotId) {
+        if ($iLotId && $this->_oConfig->isAllowToUseMessages($this->_iProfileId)) {
             $bMuted = $this->_oDb->muteLot($iLotId, $this->_iUserId);
             return echoJson(array('code' => $bMuted, 'title' => $bMuted ? _t('_bx_messenger_lots_menu_mute_info_on') : _t('_bx_messenger_lots_menu_mute_info_off')));
         }
@@ -892,10 +901,12 @@ class BxMessengerModule extends BxBaseModTextModule
     {
         $iLotId = bx_get('lot');
 
-        if ($iLotId && $this->_oDb->isParticipant($iLotId, $this->_iUserId)) {
+        if ($iLotId && $this->_oDb->isParticipant($iLotId, $this->_iUserId) && $this->_oConfig->isAllowToUseMessages($this->_iProfileId)) {
             $bStar = $this->_oDb->starLot($iLotId, $this->_iUserId);
             return echoJson(array('code' => $bStar, 'title' => !$bStar ? _t('_bx_messenger_lots_menu_star_on') : _t('_bx_messenger_lots_menu_star_off')));
         }
+
+        return echoJson(array('code' => 1));
     }
 
     /**
@@ -2006,6 +2017,10 @@ class BxMessengerModule extends BxBaseModTextModule
         }
 
         return $aMessages;
+    }
+    function serviceGetMembershipLevels()
+    {
+       return BxDolAcl::getInstance()->getMemberships();
     }
 }
 

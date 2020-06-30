@@ -10,11 +10,13 @@
 						<i class="sys-icon star"></i>
 					</a>
 				</span>
-				<span>
-					<a href="javascript:void(0);" onclick="oMessenger.createLot();" title="__create_lot_title__">
-						<i class="sys-icon edit"></i>
-					</a>
-				</span>
+				<bx_if:create>
+					<span>
+						<a href="javascript:void(0);" onclick="oMessenger.createLot();" title="__create_lot_title__">
+							<i class="sys-icon edit"></i>
+						</a>
+					</span>
+				</bx_if:create>
 			</span>
 		</div>
 	</div>

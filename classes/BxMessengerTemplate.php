@@ -110,7 +110,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	public function getTextArea($iProfileId){
 	    $CNF = $this->_oConfig->CNF;
 
-	    if (!$iProfileId)
+	    if (!$iProfileId || !$this->_oConfig->isAllowToUseMessages($iProfileId))
 	        return '';
 
 	    $bGiphy = $iProfileId && $CNF['GIPHY']['api_key'];
@@ -382,7 +382,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
     private function getTalkHeaderButtons($iLotId, $iProfileId){
         $CNF = &$this -> _oConfig -> CNF;
 
-        if (!$iProfileId || !$iLotId)
+        if (!$iProfileId || !$iLotId || !$this->_oConfig->isAllowToUseMessages($iProfileId))
             return '';
 
         $aLotInfo = $this -> _oDb -> getLotInfoById($iLotId);
@@ -509,174 +509,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		}
 		
 		return $sCode;
-	}
-
-	/**
-	* New conversation area with top and send area (right side block of the main window)
-	*@param int $iProfileId profile id
-	*@param int $iLotId id of conversation. It can be empty if new talk
-	*@param boolean $bFirstTime create private talk window with participants selector at the top
-	*@param int $iJotId use jot it as position in history to display history
-	*@return string html code
-	*/
-	/*public function getLotWindow($iProfileId = BX_IM_EMPTY, $iLotId = BX_IM_EMPTY, $bFirstTime = false, $iJotId = 0)
-	{
-		$aProfiles = array();
-		$aParticipants = array();
-		$iViewer = bx_get_logged_profile_id();
-
-		$aMyLots = $this -> _oDb -> getMyLots($iProfileId);
-        if (!empty($aMyLots))
-            $sContent = $this -> getLotsPreview($iProfileId, $aMyLots);
-        else
-            $sContent = $this -> getFriendsList();
-
-		if ($iProfileId)
-		{
-			$aLot = $this -> _oDb -> getLotByUrlAndPariticipantsList(BX_IM_EMPTY_URL, array($iViewer, $iProfileId));
-			$iLotId = empty($aLot) ? BX_IM_EMPTY : $aLot[$this -> _oConfig -> CNF['FIELD_ID']];
-			
-			$oProfile = $this -> getObjectUser($iProfileId);
-			if ($oProfile)
-				$aProfiles[] = array(
-									'name' => $oProfile -> getDisplayName(),
-									'title' => $oProfile -> getDisplayName(),
-									'thumb' => $oProfile -> getThumb(),
-									'user_id' => $iProfileId
-								);
-		} 
-		else if ($iLotId)
-		{
-			$aParticipantsList = $this -> _oDb -> getParticipantsList($iLotId);
-			foreach($aParticipantsList as $iParticipant){
-				if ($iViewer == $iParticipant) continue;
-				if ($oProfile = $this -> getObjectUser($iParticipant))
-					$aParticipants[] = array(
-						'thumb' => $oProfile -> getThumb(),
-						'name'	=> $oProfile->getDisplayName(),
-						'id'	=> $oProfile-> id()
-					);
-			}
-		}
-
-		if ($iLotId) {
-            $aVars = array('bx_if:find_participants' => array(
-                'condition' => !$bFirstTime && $iProfileId == BX_IM_EMPTY,
-                'content' => array(
-                    'bx_repeat:participants_list' => $aParticipants,
-                    'back_title' => bx_js_string(_t('_bx_messenger_lots_menu_back_title')),
-                    'bx_if:edit_mode' =>
-                        array(
-                            'condition' => ($iLotId && $this->_oDb->isAuthor($iLotId, $iViewer)) || isAdmin() || !$iLotId,
-                            'content' => array(
-                                'lot' => $iLotId,
-                            )
-                        ),
-                )
-            ),
-                'bx_if:user_info' => array(
-                    'condition' => $iProfileId != BX_IM_EMPTY && !empty($aProfiles),
-                    'content' => array(
-                        'bx_repeat:users' => $aProfiles,
-                        'profile_id' => $iProfileId
-                    )
-                ),
-                /*'history' => !$bFirstTime ? $this->getHistory($iProfileId, $iLotId, BX_IM_TYPE_PRIVATE) : '',
-                'text_area' => $this->getTextArea($iProfileId)
-            );
-
-            return $this -> parseHtmlByName('talk.html', array(
-                                                'header' => $this->getEditTalkArea($iProfileId, $iLotId = BX_IM_EMPTY, $aProfiles = array(), $bAllowToSave = false),
-                                                'history' => !$bFirstTime ? $this->getHistory($iProfileId, $iLotId, BX_IM_TYPE_PRIVATE) : '',
-                                                'text_area' => $this->getTextArea($iProfileId)
-                                            )); //$this->parseHtmlByName('private_history.html', $aVars);
-        }
-
-		return $this -> parseHtmlByName('talk.html', array(
-                                                                    'header' => $this->getTalkHeader(BX_IM_EMPTY, $iProfileId),
-                                                                    'history' => $this->getHistory($iProfileId),
-                                                                    'text_area' => $this->getTextArea($iProfileId)
-                                                                ));
-	}*/
-
-	public function getTalkArea($iLotId = BX_IM_EMPTY, $iProfileId = BX_IM_EMPTY, $bFirstTime = false, $iJotId = 0)
-	{
-		$aProfiles = array();
-		$aParticipants = array();
-		$iViewer = bx_get_logged_profile_id();
-
-		$aMyLots = $this -> _oDb -> getMyLots($iProfileId);
-        if (!empty($aMyLots))
-            $sContent = $this -> getLotsPreview($iProfileId, $aMyLots);
-        else
-            $sContent = $this -> getFriendsList();
-
-		if ($iProfileId)
-		{
-			$aLot = $this -> _oDb -> getLotByUrlAndPariticipantsList(BX_IM_EMPTY_URL, array($iViewer, $iProfileId));
-			$iLotId = empty($aLot) ? BX_IM_EMPTY : $aLot[$this -> _oConfig -> CNF['FIELD_ID']];
-
-			$oProfile = $this -> getObjectUser($iProfileId);
-			if ($oProfile)
-				$aProfiles[] = array(
-									'name' => $oProfile -> getDisplayName(),
-									'title' => $oProfile -> getDisplayName(),
-									'thumb' => $oProfile -> getThumb(),
-									'user_id' => $iProfileId
-								);
-		}
-		else if ($iLotId)
-		{
-			$aParticipantsList = $this -> _oDb -> getParticipantsList($iLotId);
-			foreach($aParticipantsList as $iParticipant){
-				if ($iViewer == $iParticipant) continue;
-				if ($oProfile = $this -> getObjectUser($iParticipant))
-					$aParticipants[] = array(
-						'thumb' => $oProfile -> getThumb(),
-						'name'	=> $oProfile->getDisplayName(),
-						'id'	=> $oProfile-> id()
-					);
-			}
-		}
-
-		if ($iLotId) {
-            $aVars = array('bx_if:find_participants' => array(
-                'condition' => !$bFirstTime && $iProfileId == BX_IM_EMPTY,
-                'content' => array(
-                    'bx_repeat:participants_list' => $aParticipants,
-                    'back_title' => bx_js_string(_t('_bx_messenger_lots_menu_back_title')),
-                    'bx_if:edit_mode' =>
-                        array(
-                            'condition' => ($iLotId && $this->_oDb->isAuthor($iLotId, $iViewer)) || isAdmin() || !$iLotId,
-                            'content' => array(
-                                'lot' => $iLotId,
-                            )
-                        ),
-                )
-            ),
-                'bx_if:user_info' => array(
-                    'condition' => $iProfileId != BX_IM_EMPTY && !empty($aProfiles),
-                    'content' => array(
-                        'bx_repeat:users' => $aProfiles,
-                        'profile_id' => $iProfileId
-                    )
-                ),
-                /*'history' => !$bFirstTime ? $this->getHistory($iProfileId, $iLotId, BX_IM_TYPE_PRIVATE) : '',
-                'text_area' => $this->getTextArea($iProfileId)*/
-            );
-
-            return $this -> parseHtmlByName('talk.html', array(
-                                                'header' => $this->getEditTalkArea($iProfileId, $iLotId = BX_IM_EMPTY, $aProfiles = array(), $bAllowToSave = false),
-                                                'history' => !$bFirstTime ? $this->getHistory($iProfileId, $iLotId, BX_IM_TYPE_PRIVATE) : '',
-                                                'text_area' => $this->getTextArea($iProfileId)
-                                            )); //$this->parseHtmlByName('private_chat_window.html', $aVars);
-        }
-
-		return $this -> parseHtmlByName('talk.html', array(
-                                                                    'header' => $this->getTalkHeader(BX_IM_EMPTY, $iProfileId),
-                                                                    'history' => $this->getHistory($iProfileId),
-                                                                    'text_area' => $this->getTextArea($iProfileId)
-                                                                ));
 	}
 
 	function getEditTalkArea($iProfileId, $iLotId = BX_IM_EMPTY, $aProfiles = array(), $bAllowToSave = true){
@@ -1047,7 +879,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						'attachment' => $sAttachment,
                         'my' => (int)$iProfileId === (int)$aJot[$CNF['FIELD_MESSAGE_AUTHOR']] ? 1 : 0,
                         'bx_if:jot_menu' => array(
-                            'condition' => $iProfileId && !$bIsTrash,
+                            'condition' => $iProfileId && !$bIsTrash && $this->_oConfig->isAllowToUseMessages($iProfileId),
                             'content'	=> array(
                                 'jot_menu' => $this -> getJotMenuCode($aJot, $iProfileId)
                             )
@@ -1100,12 +932,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	/**
 	* Builds left column with content 
 	*@param int $iLotId  id of the lot to select by default
-	*@param int $iJotId  id of the jot to select by default
 	*@param int $iProfileId logged member id
 	*@param int $iTalkPerson id of profile to talk with 
 	*@return string html code
 	*/
-	public function getLotsList($iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $iProfileId, $iTalkPerson = BX_IM_EMPTY){
+	public function getLotsList($iLotId = BX_IM_EMPTY, $iProfileId, $iTalkPerson = BX_IM_EMPTY){
 		$aMyLots = $this -> _oDb -> getMyLots($iProfileId);
 		if (!empty($aMyLots))
 			$sContent = $this -> getLotsPreview($iProfileId, $aMyLots, $iTalkPerson ? FALSE : $iLotId);
@@ -1120,12 +951,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'bx_repeat:menu' => array(
 										array('menu_title' => _t("_bx_messenger_lots_type_all"), 'type' => 0, 'count' => '')
 									 ),
-			/*'profile' => (int)$iTalkPerson,
-			'lot_id' => (int)$iLotId,
-			'jot_id' => (int)$iJotId ? $iJotId : $this -> _oDb -> getFirstUnreadJot($iProfileId, $iLotId),*/
-			'star_icon' => $this -> _oConfig -> CNF['STAR_ICON'],
-			'star_color' => $this -> _oConfig -> CNF['STAR_BACKGROUND_COLOR'],
-            //'direction' => BxDolLanguages::getInstance()->getLangDirection()
+			'star_icon' => $this->_oConfig->CNF['STAR_ICON'],
+			'star_color' => $this->_oConfig->CNF['STAR_BACKGROUND_COLOR'],
+            'bx_if:create' => array(
+                'condition' => $this->_oConfig->isAllowToUseMessages($iProfileId),
+                'content' => array()
+            )
 		);
 
 		return $this -> parseHtmlByName('lots_list.html', $aVars);
@@ -1674,7 +1505,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$aJot = $this -> _oDb -> getJotById($iJotId);
 		if (empty($aJot))
 			return $sHTML;
-		
+
 		$iAttachedJotId = $this -> _oDb -> hasAttachment($iJotId);
 		if ($iJotId != $iAttachedJotId)
 		{
@@ -1725,6 +1556,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
     private function getFileMenuCode($iFileId, $bAllowedDelete){
         $CNF = &$this->_oConfig->CNF;
+
         $aMenuItems = array(
             array(
                 'click' => "javascript:window.open('" . $this->_oConfig->getBaseUri() . "download_file/{$iFileId}" . "');",
@@ -1758,6 +1590,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@return string html
 	*/
 	public function deleteFileCode($iFileId, $bIsDeleteAllowed = false){
+        if (!$this->_oConfig->isAllowToUseMessages())
+            return '';
 
 	    return $this -> parseHtmlByName('file_menu.html', array(
                     'file_menu' => $this -> getFileMenuCode($iFileId, $bIsDeleteAllowed)

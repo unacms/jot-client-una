@@ -671,7 +671,7 @@
 
 		_this.oSettings.lot = +oParams.lot;
 
-		// block send area if the it is new talk
+		// block send area if it is new talk
 		if (!_this.oSettings.lot)
 			_this.blockSendMessages(true);
 
@@ -695,7 +695,11 @@
 						_this.initUsersSelector(oParams.lot !== undefined ? 'edit' : '');
 						if (_this.oJotWindowBuilder !== undefined)
 							_this.oJotWindowBuilder.changeColumn('right');
-					}
+					} else
+                    {
+                        if (oData.message)
+                            bx_alert(oData.message);
+                    }
 				
 				_this.blockSendMessages();
 
@@ -1637,7 +1641,12 @@
 
 						break;					
 					case 1:
-						window.location.reload();
+						if (oData.message) {
+							bx_alert(oData.message);
+							$(`[data-tmp="${oParams.tmp_id}"]`, _this.sTalkList).remove();
+						}
+						else
+							window.location.reload();
 						break;
 					default:						
 						bx_alert(oData.message);

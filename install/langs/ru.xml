@@ -236,4 +236,5 @@
 	<string name="_bx_messenger_file_is_too_large_error_details"><![CDATA[Максимально допустимый размер файла {filesize}]]></string>
 	<string name="_bx_messenger_file_type_is_not_allowed"><![CDATA[Загрузка файлов данного формата запрещена!]]></string>
 	<string name="_bx_messenger_jitsi_mobile_warning"><![CDATA[Для того что бы сделать видео сигнал более стабильным и надёжным, вам необходимо подключиться через наше мибильное приложение (его можно скачать в app store) или через оригинальное приложение Jitsi. Продолжить с использованием Jitsi App?]]></string>
+	<string name="_bx_messenger_send_message_not_allowed"><![CDATA[Отправка сообщений заперщена для вашего профиля!]]></string>
 </resources>

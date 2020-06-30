@@ -216,7 +216,8 @@ class BxMessengerConfig extends BxBaseModTextConfig
             'JITSI-ENABLE-WATERMARK' => getParam($aModule['db_prefix'] . 'jitsi_enable_watermark') == 'on',
             'JITSI-WATERMARK-URL' => getParam($aModule['db_prefix'] . 'jitsi_watermark_link'),
             'JITSI-SUPPORT-LINK' => getParam($aModule['db_prefix'] . 'jitsi_support_url'),
-            'JSMain' => 'oMessenger'
+            'JSMain' => 'oMessenger',
+            'ALLOWED-MEMBERSHIPS-LIST' => getParam($aModule['db_prefix'] . 'membership_restrictions'),
 		);
 
 		$this->_aObjects = array(
@@ -397,6 +398,26 @@ class BxMessengerConfig extends BxBaseModTextConfig
         $sDomain = str_replace(["www."], [''], $sDomain);
 
         return $sType === 'domain' ? $sDomain : "https://{$sDomain}";
+    }
+
+    public function isAllowToUseMessages($iProfileId = 0){
+        $sList = $this->CNF['ALLOWED-MEMBERSHIPS-LIST'];
+
+        if (!$iProfileId)
+            $iProfileId = bx_get_logged_profile_id();
+
+        if (!$sList)
+            return true;
+
+        $aProfileMembership = BxDolAcl::getInstance()->getMemberMembershipInfo($iProfileId);
+        if ($aProfileMembership['status'] !== 'active')
+            return false;
+
+        $aList = explode(',', $sList);
+        if (in_array($aProfileMembership['id'], $aList))
+            return false;
+
+        return true;
     }
 }
 

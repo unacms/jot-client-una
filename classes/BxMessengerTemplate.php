@@ -184,10 +184,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             'filepond.min.js',
             'filepond.jquery.js',
             'filepond-plugin-image-preview.min.js',
-            'filepond-plugin-media-preview.min.js'
+            'filepond-plugin-file-validate-size.min.js',
+            'filepond-plugin-media-preview.min.js',
+            'filepond-plugin-file-rename.min.js'
         ));
 
-				
         $aParams = array();
         $oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);
 	    if ($oStorage) {
@@ -212,7 +213,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 										$sFilePondPath . 'filepond.jquery.js',
 										$sFilePondPath . 'filepond-plugin-image-preview.min.js',
 										$sFilePondPath . 'filepond-plugin-file-validate-size.min.js',
-										$sFilePondPath . 'filepond-plugin-media-preview.min.js'
+										$sFilePondPath . 'filepond-plugin-media-preview.min.js',
+										$sFilePondPath . 'filepond-plugin-file-rename.min.js'
 									)),
             );
         }

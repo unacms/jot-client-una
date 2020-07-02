@@ -403,6 +403,9 @@ class BxMessengerConfig extends BxBaseModTextConfig
     public function isAllowToUseMessages($iProfileId = 0){
         $sList = $this->CNF['ALLOWED-MEMBERSHIPS-LIST'];
 
+        if (!isLogged())
+            return false;
+
         if (!$iProfileId)
             $iProfileId = bx_get_logged_profile_id();
 
@@ -410,7 +413,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
             return true;
 
         $aProfileMembership = BxDolAcl::getInstance()->getMemberMembershipInfo($iProfileId);
-        if ($aProfileMembership['status'] !== 'active')
+        if (isset($aProfileMembership['status']) && $aProfileMembership['status'] !== 'active')
             return false;
 
         $aList = explode(',', $sList);

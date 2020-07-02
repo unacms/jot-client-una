@@ -469,7 +469,7 @@ class BxMessengerModule extends BxBaseModTextModule
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged')));
 
         if (!$this->_oConfig->isAllowToUseMessages($this->_iProfileId))
-            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_restricted_memberships')));
+            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_not_allowed')));
 
         $iProfileId = (int)bx_get('profile');
         if ($iProfileId)

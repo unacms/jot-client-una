@@ -237,5 +237,5 @@
 	<string name="_bx_messenger_file_type_is_not_allowed"><![CDATA[This file type is not allowed!]]></string>
 	<string name="_bx_messenger_jitsi_mobile_warning"><![CDATA[To make video conference more stable and reliable we have to use mobile application. It is possible to connect via our own mobile app (just download it from the App Store) or through the original Jitsi application. Continue with jitsi app?]]></string>
 	<string name="_bx_messenger_send_message_not_allowed"><![CDATA[Send messages is not allowed for your account!]]></string>
-	<string name="_bx_messenger_restricted_memberships"><![CDATA[This action is prohibited for your membership level!]]></string>
+	<string name="_bx_messenger_restricted_memberships"><![CDATA[Create talks and send messages abilities are closed for selected membership levels]]></string>
 </resources>

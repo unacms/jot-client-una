@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="en" flag="gb" title="English">			
+	<string_add name="_bx_messenger_send_message_not_allowed"><![CDATA[Send messages is not allowed for your account!]]></string_add>
+	<string_add name="_bx_messenger_restricted_memberships"><![CDATA[Create talks and send messages abilities are closed for selected membership levels]]></string_add>
+</resources>

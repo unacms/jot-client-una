@@ -1,0 +1,28 @@
+<div class="bx-messenger-block bx-messenger-block-lots bx-def-color-bg-block">
+	<div id="bx-messenger-block-head">
+		<div class="bx-form-input-wrapper bx-form-input-wrapper-text bx-messenger-border bx-def-border-block search">
+			<span>
+				<input id="items" title="__search_for_title__" onkeyup="oMessenger.searchByItems(this.value);" name="items" class="bx-def-font bx-form-input-text" type="text" placeholder="<bx_text:_bx_messenger_title_search />">
+			</span>
+			<span class="menu">
+				<span class="star">
+					<a href="javascript:void(0);" onclick="oMessenger.showStarred(this);" title="__star_title__">
+						<i class="sys-icon star"></i>
+					</a>
+				</span>
+				<bx_if:create>
+					<span>
+						<a href="javascript:void(0);" onclick="oMessenger.createLot();" title="__create_lot_title__">
+							<i class="sys-icon edit"></i>
+						</a>
+					</span>
+				</bx_if:create>
+			</span>
+		</div>
+	</div>
+   <div class="bx-db-content bx-clearfix">
+		<div class="bx-messenger-items-list">
+				__items__
+		</div>	
+	</div>
+</div>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="ru" flag="ru" title="Russian">
+	<string_add name="_bx_messenger_send_message_not_allowed"><![CDATA[Данная функция закрыта для вашего профиля!]]></string_add>
+	<string_add name="_bx_messenger_restricted_memberships"><![CDATA[Создание разговоров и отправка сообщений закрыты для выбранных уровней!]]></string_add>
+</resources>

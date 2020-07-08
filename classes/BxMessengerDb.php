@@ -740,7 +740,10 @@ class BxMessengerDb extends BxBaseModTextDb
 	public function getMyJots($iProfileId, $bUnread = false, $iLotId = 0){
 		$sWhere = '';
 		$aWhere['profile'] = $iProfileId;
-		
+
+		if (!(int)$iProfileId)
+		    return array();
+
 		if ($bUnread)
 		{
 			$sWhere = " AND FIND_IN_SET(:parts, `j`.`{$this->CNF['FIELD_MESSAGE_NEW_FOR']}`)";

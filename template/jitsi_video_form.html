@@ -41,6 +41,12 @@
 			APP_NAME: '__jitsi_meet_title__',
 			DEFAULT_REMOTE_DISPLAY_NAME: '<bx_text:_bx_messenger_jitsi_remote_user />',
 			DEFAULT_LOCAL_DISPLAY_NAME: '__me__',
+
+            SHOW_CHROME_EXTENSION_BANNER: false,
+            SHOW_DEEP_LINKING_IMAGE: false,
+            SHOW_POWERED_BY: false,
+            SHOW_PROMOTIONAL_CLOSE_PAGE: false,
+
 			SHOW_JITSI_WATERMARK: __show_watermark__,
 			SHOW_WATERMARK_FOR_GUESTS: __show_watermark__,
             SHOW_BRAND_WATERMARK: __show_watermark__,
@@ -87,6 +93,8 @@
                 enableClosePage: true,
                 defaultLanguage: '__lang__',
                 enableWelcomePage: false,
+                disableInviteFunctions: true,
+                prejoinPageEnabled: false
             },
             onload: function(oEvent){
 			    const { srcElement, target } = oEvent;
@@ -108,7 +116,7 @@
         oApi._lotId = '__id__';
         oApi
             .on('videoConferenceJoined', () => {
-                $.get('modules/?r=messenger/create_jitsi_video_conference/', { lot_id: '__id__' }, function(oData){
+                 $.get('modules/?r=messenger/create_jitsi_video_conference/', { lot_id: '__id__' }, function(oData){
                     if (+oData.code === 1) {
                         bx_alert(oData.message);
                         return;

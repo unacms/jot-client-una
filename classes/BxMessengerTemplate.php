@@ -947,7 +947,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		
 		$aVars = array(
 			'items' => $sContent,
-			'create_lot_title' => bx_js_string(_t('_bx_messenger_lots_menu_create_lot_title')),
 			'star_title' => bx_js_string(_t('_bx_messenger_lots_menu_star_title')),
 			'search_for_title' => bx_js_string(_t('_bx_messenger_search_for_lost_title')),
 			'bx_repeat:menu' => array(
@@ -957,7 +956,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'star_color' => $this->_oConfig->CNF['STAR_BACKGROUND_COLOR'],
             'bx_if:create' => array(
                 'condition' => $this->_oConfig->isAllowToUseMessages($iProfileId),
-                'content' => array()
+                'content' => array(
+                    'create_lot_title' => bx_js_string(_t('_bx_messenger_lots_menu_create_lot_title')),
+                )
             )
 		);
 

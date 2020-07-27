@@ -494,7 +494,6 @@ class BxMessengerDb extends BxBaseModTextDb
 				return array();
 		
 		$aParticipants = explode(',', $sParticipants);
-		
 		if ($bExcludeProfile && ($iId = array_search($bExcludeProfile, $aParticipants)) !== FALSE)
 			unset($aParticipants[$iId]);
 		
@@ -523,7 +522,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@param int $iParticipantId profile id
 	*@return int affected rows
 	*/
-	private function addMemberToParticipantsList($iLotId, $iParticipantId){
+	public function addMemberToParticipantsList($iLotId, $iParticipantId){
 		$sParticipants = $this -> getParticipantsList($iLotId, false /* as string list */);
 		$sParticipants = $sParticipants ? "{$sParticipants},{$iParticipantId}" : $iParticipantId;
 		return $this -> query("UPDATE `{$this->CNF['TABLE_ENTRIES']}` SET `{$this->CNF['FIELD_PARTICIPANTS']}` = :parts WHERE `{$this->CNF['FIELD_ID']}` = :id", array('parts' => $sParticipants, 'id' => $iLotId));

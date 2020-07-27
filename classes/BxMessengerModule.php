@@ -275,7 +275,6 @@ class BxMessengerModule extends BxBaseModTextModule
                 $aResult['time'] = bx_time_utc($aJot[$CNF['FIELD_MESSAGE_ADDED']]);
 
             $this->onSendJot($iId);
-
         }
 		else
             $aResult = array('code' => 2, 'message' => _t('_bx_messenger_send_message_save_error'));
@@ -726,13 +725,12 @@ class BxMessengerModule extends BxBaseModTextModule
         if (empty($aJotInfo))
             return echoJson($aResult);
 
-        $bIsParticipant = $this->_oDb->isParticipant($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iProfileId);
-        if (!$bIsParticipant)
-            return echoJson($aResult);
+        $aLotInfo = $this->_oDb->getLotInfoById($aJotInfo[$CNF['FIELD_MESSAGE_FK']]);
+        if (!$this->_oDb->isParticipant($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iProfileId) && $aLotInfo[$CNF['FIELD_TYPE']] !== BX_IM_TYPE_PRIVATE)
+            $this->_oDb->addMemberToParticipantsList($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iProfileId);
 
         if ($sAction == BX_JOT_REACTION_ADD && $this->_oDb->addJotReaction($iJotId, $this->_iProfileId, $aEmoji)) {
-            $aLotInfo = $this->_oDb->getLotInfoById($aJotInfo[$CNF['FIELD_MESSAGE_FK']]);
-            $this->onReactJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iJotId, $aLotInfo[$CNF['FIELD_AUTHOR']]);
+            $this->onReactJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iJotId, $aLotInfo[$CNF['FIELD_AUTHOR']], $sAction);
             $aResult = array('code' => 0, 'html' => $this->_oTemplate->getJotReactions($iJotId));
         }
 
@@ -748,16 +746,15 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $aResult = array('code' => 1);
         $CNF = &$this->_oConfig->CNF;
-
         if (empty($aJotInfo))
             return echoJson($aResult);
 
         $bIsParticipant = $this->_oDb->isParticipant($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iProfileId);
-        if (!$bIsParticipant)
+        $aLotInfo = $this->_oDb->getLotInfoById($aJotInfo[$CNF['FIELD_MESSAGE_FK']]);
+        if (!$bIsParticipant && $sAction == BX_JOT_REACTION_ADD && $aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
             return echoJson($aResult);
 
         if ($this->_oDb->updateReaction($iJotId, $this->_iProfileId, $sEmoji, $sAction)){
-            $aLotInfo = $this->_oDb->getLotInfoById($aJotInfo[$CNF['FIELD_MESSAGE_FK']]);
             $this->onReactJot(
                 $aJotInfo[$CNF['FIELD_MESSAGE_FK']],
                 $iJotId,
@@ -1400,9 +1397,9 @@ class BxMessengerModule extends BxBaseModTextModule
         bx_alert($this->_oConfig->getObject('alert'), 'delete_jot_ntfs', $iLotId, $iProfileId, array('subobject_id' => $iJotId));
     }
 
-    public function onReactJot($iLotId, $iJotId, $iAuthor, $sAction = 'add_reaction')
+    public function onReactJot($iLotId, $iJotId, $iAuthor, $sAction = 'add')
     {
-        bx_alert($this->_oConfig->getObject('alert'), $sAction, $iJotId, $this->_iProfileId, array('author_id' => $iAuthor, 'lot_id' => $iLotId));
+        bx_alert($this->_oConfig->getObject('alert'), "reaction_" . $sAction, $iJotId, $this->_iProfileId, array('author_id' => $iAuthor, 'lot_id' => $iLotId));
     }
 
     public function onUpdateJot($iLotId, $iJotId, $iProfileId = 0)

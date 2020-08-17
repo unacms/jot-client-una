@@ -18,10 +18,11 @@
         this.oHtmlSendButton = oOptions['button'] ? oOptions['button'] : '.send-button';
         this.oPlaceholder = oOptions['placeholder'] ? oOptions['placeholder'] : '.placeholder';
 
-        this.onEnter = typeof oOptions['onEnter'] === 'function' && oOptions['onEnter'];
-        this.onChange = typeof oOptions['onChange'] === 'function' && oOptions['onChange'];
-        this.onUp = typeof oOptions['onUp'] === 'function' && oOptions['onUp'];
-        this.showToolbar = typeof oOptions['showToolbar'] === 'function' && oOptions['showToolbar'];
+        this.onEnter = typeof oOptions['onEnter'] === 'function' ? oOptions['onEnter'] : () => {};
+        this.onChange = typeof oOptions['onChange'] === 'function' ? oOptions['onChange'] : () => {};
+        this.onUp = typeof oOptions['onUp'] === 'function' ? oOptions['onUp'] : () => {};
+        this.showToolbar = typeof oOptions['showToolbar'] === 'function' ? oOptions['showToolbar'] : () => {};
+        this.onInit = typeof oOptions['onInit'] === 'function' ? oOptions['onInit'] : () => {};
 
         this.aToolbarSettings = [
             ['bold', 'italic', 'underline', 'strike', 'link'],
@@ -42,6 +43,8 @@
             });
         else
             this.initEditor();
+
+        this.onInit();
     }
 
     setText(mixedValue){
@@ -79,10 +82,6 @@
     setContents(aValues){
         if (this.oEditor)
             this.oEditor.setContents(!Array.isArray(aValues) ? [] : aValues);
-    }
-
-    getText(){
-        return this.oEditor && this.oEditor.getText();
     }
 
     addToCurrentPosition(sText){

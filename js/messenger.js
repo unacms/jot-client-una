@@ -338,8 +338,9 @@
 				return true;
 			},
 			onChange: () => {
-				const { ops } = _this.oEditor.getContents(),
-					fMaxHeight = parseInt($(_this.sMessengerBox).css('max-height'));
+				const { ops } = _this.oEditor.getContents();
+
+				_this.updateSendAreaHeight();
 
 				if (_this.oEditor.length > 1)
 					_this.oStorage.saveLot(_this.oSettings.lot, JSON.stringify(ops));
@@ -352,11 +353,6 @@
 					name: _this.oSettings.name,
 					user_id: _this.oSettings.user_id
 				});
-
-				if (_this.oEditor.clientHeight >= fMaxHeight)
-					$(_this.sMessengerBox).css('overflow-y', 'auto');
-				else
-					$(_this.sMessengerBox).css('overflow-y', 'visible');
 
 				_this.updateSendButton();
 			}
@@ -413,6 +409,14 @@
 							});
 					});
    }
+
+	oMessenger.prototype.updateSendAreaHeight = function() {
+		const fMaxHeight = parseInt($(this.sMessengerBox).css('max-height'));
+		if ($(this.sMessengerBox).outerHeight() >= fMaxHeight)
+			$(this.sMessengerBox).css('overflow-y', 'auto');
+		else
+			$(this.sMessengerBox).css('overflow-y', 'visible');
+	}
 
 	oMessenger.prototype.updateSendArea = function(bFilesEmpty){
 		if (bFilesEmpty)
@@ -471,8 +475,9 @@
 			}
 			else
 				_this.oEditor.setText(mixedValue);
-		}
 
+			_this.updateSendAreaHeight();
+		}
 	};
 	
 	/**

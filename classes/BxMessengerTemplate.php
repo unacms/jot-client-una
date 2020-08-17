@@ -97,7 +97,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 								'limit' => $CNF['MAX_JOTS_BY_DEFAULT'],
 								'start' => $iJotId,
 								'display' => true,
-								'select' => true
+								'select' => true,
+                                'views' => true,
+                                'read' => true
 							 );
 						
 			$aParams['content'] = $this -> getJotsOfLot($iProfileId, $aOptions);
@@ -797,7 +799,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$iLimit = isset($aParams['limit']) ? (int)$aParams['limit'] : BX_IM_EMPTY; 
 		$bDisplay = isset($aParams['display'])? (bool)$aParams['display'] : false;
 		$bSelectJot = isset($aParams['select'])? (bool)$aParams['select'] : false;
-		$bMarkAsRead = isset($aParams['read']) ? (bool)$aParams['read'] : true;
+		$bMarkAsRead = isset($aParams['read']) && $sLoad == 'new' && $aParams['read'] === true;
         $bShowViews = isset($aParams['views']);
         $bDynamic = isset($aParams['dynamic']);
 
@@ -805,7 +807,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		if (empty($aLotInfo))
 			return '';
 		
-		$aStartMiddleJot = array();
 		if ($bSelectJot && $iStart)
 		{
 		    $aStartMiddleJot = $this -> _oDb -> getJotsByLotId($aLotInfo[$CNF['FIELD_MESSAGE_ID']], $iStart, 'prev', (int)$CNF['MAX_JOTS_BY_DEFAULT']/2);
@@ -819,115 +820,115 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
 		$iJotCount = count($aJots);
 		$aVars['bx_repeat:jots'] = array(); 
-		foreach($aJots as $iKey => $aJot)
-		{
-			$oProfile = $this -> getObjectUser($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);
-			$iJot = $aJot[$CNF['FIELD_MESSAGE_ID']];
+		foreach($aJots as $iKey => $aJot) {
+            $oProfile = $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);
+            $iJot = $aJot[$CNF['FIELD_MESSAGE_ID']];
 
             $aNewFor = array();
-			if (!empty($aJot[$CNF['FIELD_MESSAGE_NEW_FOR']]))
+            if (!empty($aJot[$CNF['FIELD_MESSAGE_NEW_FOR']]))
                 $aNewFor = explode(',', $aJot[$CNF['FIELD_MESSAGE_NEW_FOR']]);
 
-			if ($oProfile) 
-			{
-				$sAttachment = $sMessage = '';
-				$bIsTrash = (int)$aJot[$CNF['FIELD_MESSAGE_TRASH']];
-				$iIsVC = (int)$aJot[$CNF['FIELD_MESSAGE_VIDEOC']];
-				$bIsLotAuthor = $this -> _oDb -> isAuthor($iLotId, $iProfileId);
-				$isAllowedDelete = $this->_oDb->isAllowedToDeleteJot($aJot[$CNF['FIELD_MESSAGE_ID']], $iProfileId, $aJot[$CNF['FIELD_MESSAGE_AUTHOR']], $aJot[$CNF['FIELD_MESSAGE_FK']]);
+            if ($oProfile) {
+                $sAttachment = $sMessage = '';
+                $bIsTrash = (int)$aJot[$CNF['FIELD_MESSAGE_TRASH']];
+                $iIsVC = (int)$aJot[$CNF['FIELD_MESSAGE_VIDEOC']];
+                $bIsLotAuthor = $this->_oDb->isAuthor($iLotId, $iProfileId);
+                $isAllowedDelete = $this->_oDb->isAllowedToDeleteJot($aJot[$CNF['FIELD_MESSAGE_ID']], $iProfileId, $aJot[$CNF['FIELD_MESSAGE_AUTHOR']], $aJot[$CNF['FIELD_MESSAGE_FK']]);
 
-				if ($bIsTrash || ($iIsVC && !$aJot[$CNF['FIELD_MESSAGE']]))
-				    $sMessage = $this->getMessageIcons($aJot[$CNF['FIELD_MESSAGE_ID']], $bIsTrash ? 'delete' : 'vc', isAdmin() || $bIsLotAuthor);
-				else
-				{
-					$sMessage = $this -> _oConfig -> bx_linkify($aJot[$CNF['FIELD_MESSAGE']]);
-					$sAttachment = !empty($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']]) ? $this -> getAttachment($aJot) : '';
-				}
+                if ($bIsTrash || ($iIsVC && !$aJot[$CNF['FIELD_MESSAGE']]))
+                    $sMessage = $this->getMessageIcons($aJot[$CNF['FIELD_MESSAGE_ID']], $bIsTrash ? 'delete' : 'vc', isAdmin() || $bIsLotAuthor);
+                else {
+                    $sMessage = $this->_oConfig->bx_linkify($aJot[$CNF['FIELD_MESSAGE']]);
+                    $sAttachment = !empty($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']]) ? $this->getAttachment($aJot) : '';
+                }
 
-				$sActionIcon = '';
-				if (!$bIsTrash){
-				    if ($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']])
-                        $sActionIcon = $this -> parseHtmlByName('edit_icon.html',
+                $sActionIcon = '';
+                if (!$bIsTrash) {
+                    if ($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']])
+                        $sActionIcon = $this->parseHtmlByName('edit_icon.html',
                             array(
                                 'edit' => _t('_bx_messenger_edit_by',
                                     bx_process_output($aJot[$CNF['FIELD_MESSAGE_LAST_EDIT']], BX_DATA_DATETIME_TS),
-                                    $this -> getObjectUser($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']]) -> getDisplayName()),
+                                    $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']])->getDisplayName()),
                             )
                         );
                     else
-				        if ($iIsVC && $aJot[$CNF['FIELD_MESSAGE']])
-				        {
+                        if ($iIsVC && $aJot[$CNF['FIELD_MESSAGE']]) {
                             $aJVCItem = $this->_oDb->getJVCItem($iIsVC);
-				            $sActionIcon = $this -> parseHtmlByName('vc_icon.html',
-                                    array(
-                                        'info' => _t('_bx_messenger_jitsi_vc_into_title', $this -> getObjectUser($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]) -> getDisplayName(), bx_process_output($aJVCItem[$CNF['FJVCT_START']], BX_DATA_DATETIME_TS))
-                                    )
-                                );
+                            $sActionIcon = $this->parseHtmlByName('vc_icon.html',
+                                array(
+                                    'info' => _t('_bx_messenger_jitsi_vc_into_title', $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_AUTHOR']])->getDisplayName(), bx_process_output($aJVCItem[$CNF['FJVCT_START']], BX_DATA_DATETIME_TS))
+                                )
+                            );
                         }
 
-				}
+                }
 
-				$sReactions = $this->getJotReactions($iJot);
-				$aVars['bx_repeat:jots'][] = array(
-						'title' => $oProfile->getDisplayName(),
-						'time' => bx_time_js($aJot[$CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_DATE_TIME),
-                        'views' => $bShowViews && ($iJotCount-1 == $iKey) ? $this -> getViewedJotProfiles($iJot, $iProfileId) : '',
-						'new' => (int)in_array($iProfileId, $aNewFor),
-						'url' => $oProfile->getUrl(),
-                        'immediately' => +$this -> _oConfig -> CNF['REMOVE_MESSAGE_IMMEDIATELY'],
-						'thumb' => $oProfile->getThumb(),
-						'id' => $aJot[$CNF['FIELD_MESSAGE_ID']],
-						'message' => $sMessage,
-						'attachment' => $sAttachment,
-                        'my' => (int)$iProfileId === (int)$aJot[$CNF['FIELD_MESSAGE_AUTHOR']] ? 1 : 0,
-                        'bx_if:jot_menu' => array(
-                            'condition' => $iProfileId && !$bIsTrash && $this->_oConfig->isAllowToUseMessages($iProfileId),
-                            'content'	=> array(
-                                'jot_menu' => $this -> getJotMenuCode($aJot, $iProfileId)
+                $sReactions = $this->getJotReactions($iJot);
+                $aVars['bx_repeat:jots'][] = array(
+                    'title' => $oProfile->getDisplayName(),
+                    'time' => bx_time_js($aJot[$CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_DATE_TIME),
+                    'views' => $bShowViews && ($iJotCount - 1 == $iKey) ? $this->getViewedJotProfiles($iJot, $iProfileId) : '',
+                    'new' => (int)in_array($iProfileId, $aNewFor),
+                    'url' => $oProfile->getUrl(),
+                    'immediately' => +$this->_oConfig->CNF['REMOVE_MESSAGE_IMMEDIATELY'],
+                    'thumb' => $oProfile->getThumb(),
+                    'id' => $aJot[$CNF['FIELD_MESSAGE_ID']],
+                    'message' => $sMessage,
+                    'attachment' => $sAttachment,
+                    'my' => (int)$iProfileId === (int)$aJot[$CNF['FIELD_MESSAGE_AUTHOR']] ? 1 : 0,
+                    'bx_if:jot_menu' => array(
+                        'condition' => $iProfileId && !$bIsTrash && $this->_oConfig->isAllowToUseMessages($iProfileId),
+                        'content' => array(
+                            'jot_menu' => $this->getJotMenuCode($aJot, $iProfileId)
+                        )
+                    ),
+                    'bx_if:show_reactions_area' => array(
+                        'condition' => !$bIsTrash,
+                        'content' => array(
+                            'bx_if:reactions' => array(
+                                'condition' => true,
+                                'content' => array(
+                                    'reactions' => $sReactions,
+                                    'bx_if:reactions_menu' => array(
+                                        'condition' => $iProfileId,
+                                        'content' => array(
+                                            'display' => $sReactions ? 'block' : 'none',
+                                        )
+                                    ),
+                                )
+                            ),
+                            'bx_if:edit' => array(
+                                'condition' => $isAllowedDelete,
+                                'content' => array()
+                            ),
+                        )
+                    ),
+                    'display' => !$bDisplay ? 'style="display:none;"' : '',
+                    'bx_if:blink-jot' => array(
+                        'condition' => $bSelectJot && $aParams['start'] == $iJot,
+                        'content' => array()
+                    ),
+                    'display_message' => '',
+                    'edit_icon' => $aJot[$CNF['FIELD_MESSAGE_EDIT_BY']] && !$bIsTrash ?
+                        $this->parseHtmlByName('edit_icon.html',
+                            array(
+                                'edit' => _t('_bx_messenger_edit_by',
+                                    bx_process_output($aJot[$CNF['FIELD_MESSAGE_LAST_EDIT']], BX_DATA_DATETIME_TS),
+                                    $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']])->getDisplayName()),
                             )
-                        ),
-                        'bx_if:show_reactions_area' => array(
-                            'condition' => !$bIsTrash,
-                            'content' => array(
-                                'bx_if:reactions' => array(
-                                    'condition' => true,
-                                    'content' => array(
-                                        'reactions' => $sReactions,
-                                        'bx_if:reactions_menu' => array(
-                                            'condition' => $iProfileId,
-                                            'content' => array(
-                                                'display' => $sReactions ? 'block' : 'none',
-                                            )
-                                        ),
-                                    )
-                                ),
-                                'bx_if:edit' => array(
-                                    'condition' => $isAllowedDelete,
-                                    'content'	=> array()
-                                ),
-                            )
-                        ),
-						'display' => !$bDisplay ? 'style="display:none;"' : '',
-						'bx_if:blink-jot' => array(
-							'condition' => $bSelectJot && $aParams['start'] == $iJot,
-							'content' => array()
-						),
-						'display_message' => '',
-						'edit_icon' => $aJot[$CNF['FIELD_MESSAGE_EDIT_BY']] && !$bIsTrash ?
-							$this -> parseHtmlByName('edit_icon.html',
-									array(
-											'edit' => _t('_bx_messenger_edit_by', 
-											bx_process_output($aJot[$CNF['FIELD_MESSAGE_LAST_EDIT']], BX_DATA_DATETIME_TS),
-											$this -> getObjectUser($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']]) -> getDisplayName()),
-										)
-									): '',
-                                           'action_icon' => $sActionIcon
-					);
+                        ) : '',
+                    'action_icon' => $sActionIcon
+                );
 
-				if ($bMarkAsRead)
-				    $this -> _oDb -> readMessage($aJot[$CNF['FIELD_MESSAGE_ID']], $iProfileId);
-			}
-		}	
+                if ($bMarkAsRead)
+                    $this->_oDb->readMessage($aJot[$CNF['FIELD_MESSAGE_ID']], $iProfileId);
+            }
+        }
+
+        if ($bMarkAsRead)
+            $this->_oDb->markNotificationAsRead($iProfileId, $iLotId);
+
 		return $this -> parseHtmlByName('jots.html',  $aVars);
 	}
 

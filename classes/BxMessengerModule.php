@@ -317,6 +317,18 @@ class BxMessengerModule extends BxBaseModTextModule
         echoJson(array('code' => 0));
     }
 
+    public function actionViewedJot(){
+        $iJotId = bx_get('jot_id');
+        $aJotInfo = $this->_oDb->getJotById($iJotId);
+       if (empty($aJotInfo) || !$this->isLogged() || !$this->_oDb->isParticipant($aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE_FK']], $this->_iProfileId))
+            return echoJson(array('code' => 1));
+
+        $this->_oDb->readMessage($iJotId, $this->_iProfileId);
+        $this->_oDb->markNotificationAsRead($this->_iProfileId, $aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE_FK']]);
+
+        echoJson(array('code' => 0));
+    }
+
     /**
      * Loads messages for specified lot(conversation)
      * @return array with json
@@ -400,8 +412,6 @@ class BxMessengerModule extends BxBaseModTextModule
         $iJot = (int)bx_get('jot');
         $iLotId = (int)bx_get('lot');
         $sLoad = bx_get('load');
-        $bRead = filter_var(bx_get('read'), FILTER_VALIDATE_BOOLEAN);
-
 		if ($sLoad == 'new' && !(int)$iJot)
 		{
             $aMyLatestJot = $this->_oDb->getLatestJot($iLotId, $this->_iUserId);
@@ -423,7 +433,6 @@ class BxMessengerModule extends BxBaseModTextModule
                     'start' => $iJot,
                     'load' => $sLoad,
                     'limit' => ($sLoad != 'new' ? $CNF['MAX_JOTS_LOAD_HISTORY'] : 0),
-                    'read' => $bRead,
                     'views' => true,
                     'dynamic' => true
                 );
@@ -439,8 +448,9 @@ class BxMessengerModule extends BxBaseModTextModule
                 break;
             case 'check_viewed':
                 if ($iLotId && $iJot)
-                      $sContent = $this->_oTemplate->getViewedJotProfiles($iJot, $this->_iUserId);
+                    $sContent = $this->_oTemplate->getViewedJotProfiles($iJot, $this->_iUserId);
                 break;
+
             case 'reaction':
                 if ($iJot) {
                     $aJotInfo = $this->_oDb->getJotById($iJot);
@@ -926,30 +936,32 @@ class BxMessengerModule extends BxBaseModTextModule
     public function actionSendPushNotification()
     {
         $iLotId = (int)bx_get('lot');
+        $iJotId = (int)bx_get('jot_id');
         $aSent = is_array(bx_get('sent')) ? bx_get('sent') : array();
-
-        if (!$this->_oDb->isPushNotificationsEnabled())
+        if (!$this->isLogged() || !$iLotId)
             return false;
 
-        if (!$this->isLogged() || !$this->_oConfig->CNF['IS_PUSH_ENABLED'] || !$iLotId || !$this->_oDb->isParticipant($iLotId, $this->_iUserId))
+        $aParticipantList = $this->_oDb->getParticipantsList($iLotId, true);
+        if (empty($aParticipantList) || !in_array($this->_iUserId, $aParticipantList))
             return false;
 
-        $bIsGlobalSettings = $this->_oConfig->CNF['IS_PUSH_ENABLED'] && getParam('sys_push_app_id');
+        // user Notifications module to send notifications
+        if ($this->_oDb->isModuleByName('bx_notifications'))
+            return $this->sendNotifications($iLotId, $iJotId);
 
-        $aLot = $this->_oDb->getLotInfoById($iLotId);
-        if (empty($aLot)) return false;
+        if (!$this->_oConfig->isOneSignalEnabled())
+            return false;
 
-        $aParticipantList = $this->_oDb->getParticipantsList($aLot[$this->_oConfig->CNF['FIELD_ID']], true, $this->_iUserId);
-        if (empty($aParticipantList)) return false;
-
+        // use own push notifications ability
         $oLanguage = BxDolStudioLanguagesUtils::getInstance();
         $sLanguage = $oLanguage->getCurrentLangName(false);
 
-        $aLatestJot = $this->_oDb->getLatestJot($iLotId, $this->_iUserId);
+        $aLatestJot = $this->_oDb->getLatestJot($iLotId, $this->_iProfileId);
         $sMessage = $aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE']];
         if ($sMessage){
             $sMessage = preg_replace('/<br\s?\/?>/i', "\r\n", $sMessage);
-            $sMessage = strmaxtextlen($sMessage , (int)$this->_oConfig->CNF['PARAM_PUSH_NOTIFICATIONS_DEFAULT_SYMBOLS_NUM']);
+            $sMessage = html2txt($sMessage);
+            $sMessage = get_mb_substr($sMessage, 0, (int)$this->_oConfig->CNF['PARAM_PUSH_NOTIFICATIONS_DEFAULT_SYMBOLS_NUM']);
         }
 
         if (!$sMessage && $aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
@@ -962,10 +974,10 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$aContent[$sLanguage])
             $aContent[$sLanguage] = $sMessage;
 
-        $oProfile = BxDolProfile::getInstance($this->_iUserId);
+        $oProfile = BxDolProfile::getInstance($this->_iProfileId);
         if ($oProfile)
             $aHeadings = array(
-                $sLanguage => _t('_bx_messenger_push_message_title', $oProfile->getDisplayName())
+                $sLanguage => _t('_bx_messenger_notification_subject', $oProfile->getDisplayName())
             );
         else
             return false;
@@ -974,25 +986,21 @@ class BxMessengerModule extends BxBaseModTextModule
         $aInfo = array(
             'contents' => $aContent,
             'headings' => $aHeadings,
-            'url' => $this->_oConfig->getRepostUrl($aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE_ID']])
+            'url' => $this->_oConfig->getRepostUrl($iJotId)
         );
 
+        $iKey = array_search($this->_iProfileId, $aParticipantList);
+        if (isset($aParticipantList[$iKey]))
+              unset($aParticipantList[$iKey]);
+
 		foreach($aParticipantList as $iKey => $iValue)
-		{   
-            if (array_search($iValue, $aSent) !== FALSE || $this->_oDb->isMuted($aLot[$this->_oConfig->CNF['FIELD_ID']], $iValue))
+		{
+            if (array_search($iValue, $aSent) !== FALSE || $this->_oDb->isMuted($iLotId, $iValue))
                 continue;
 
-			if ($bIsGlobalSettings)
-	            BxDolPush::getInstance()->send($iValue, array_merge($aInfo, array('icon' => $oProfile->getThumb())), true);
-			else
-			{
-                $aWhere[] = array("field" => "tag", "key" => "user", "relation" => "=", "value" => $iValue);
-                $aWhere[] = array("operator" => "OR");
-            }
+            $aWhere[] = array("field" => "tag", "key" => "user", "relation" => "=", "value" => $iValue);
+            $aWhere[] = array("operator" => "OR");
         }
-
-        if ($bIsGlobalSettings)
-            return true;
 
         unset($aWhere[count($aWhere) - 1]);
 
@@ -1001,6 +1009,7 @@ class BxMessengerModule extends BxBaseModTextModule
             'filters' => $aWhere,
             'chrome_web_icon' => $oProfile->getThumb()
         ), $aInfo);
+
 
         $aFields = json_encode($aFields);
 
@@ -1028,9 +1037,10 @@ class BxMessengerModule extends BxBaseModTextModule
     {
         if (!$this->isLogged())
             return '';
+
         echoJson(
             array(
-                'data' => $this->_oTemplate->getMembersJotTemplate($this->_iUserId)
+                'data' => $this->_oTemplate->getMembersJotTemplate($this->_iProfileId)
             ));
     }
 
@@ -1322,7 +1332,7 @@ class BxMessengerModule extends BxBaseModTextModule
                     'site' => $aResult['lang_key'],
                     'email' => $sAlterBody,
                     'push' => $sAlterBody
-        );
+            );
 
             $aResult['settings'] = array(
                     'email' => array(
@@ -1339,8 +1349,9 @@ class BxMessengerModule extends BxBaseModTextModule
 
     /**
      * Check if the user can read Lot messages
-     * @param array $aLot contains Lot details
+     * @param array $aDataEntry contains Lot details
      * @param boolean $isPerformAction used for compatibility with parent method
+     * @param bool $iProfileId profile id of the member show has to get notification
      * @return int
      */
 
@@ -1364,7 +1375,7 @@ class BxMessengerModule extends BxBaseModTextModule
         if (empty($aDataEntry))
             return CHECK_ACTION_RESULT_ALLOWED;
 
-        return $this->_oDb->isParticipant($aDataEntry[$CNF['FIELD_ID']], $this->_iProfileId, true) === TRUE
+        return $this->_oDb->isParticipant($aDataEntry[$CNF['FIELD_ID']], $iProfileId, true) === TRUE
         || $aDataEntry[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PUBLIC
         || $aDataEntry[$CNF['FIELD_TYPE']] == BX_IM_TYPE_SETS ? CHECK_ACTION_RESULT_ALLOWED : CHECK_ACTION_RESULT_NOT_ALLOWED;
     }
@@ -1381,13 +1392,25 @@ class BxMessengerModule extends BxBaseModTextModule
         if (empty($aPartList))
             return false;
 
-        foreach ($aPartList as $iKey => $iPart) {
-            if ($this->_oDb->isAllowedToSendNtfs($this->_iUserId, $iLotId))
-                bx_alert($this->_oConfig->getObject('alert'), 'got_jot_ntfs', $iLotId, $this->_iUserId, array('object_author_id' => $iPart, 'recipient_id' => $iPart, 'subobject_id' => $iJotId));
-
+        foreach ($aPartList as $iKey => $iPart)
             bx_alert($this->_oConfig->getObject('alert'), 'got_jot', $iLotId, $this->_iUserId, array('recipient_id' => $iPart, 'subobject_id' => $iJotId));
-        }
+    }
 
+    public function sendNotifications($iLotId, $iJotId)
+    {
+        $aPartList = $this->_oDb->getParticipantsList($iLotId, true, $this->_iProfileId);
+        if (empty($aPartList))
+            return false;
+
+        $iNumber = (int)$this->_oConfig->CNF['MAX_NTFS_NUMBER'];
+        $iCount = $this->_oDb->getSentNtfsNumber($this->_iProfileId, $iLotId);
+        if ($iCount > $iNumber)
+            return false;
+
+        foreach ($aPartList as $iKey => $iPart)
+            bx_alert($this->_oConfig->getObject('alert'), 'got_jot_ntfs', $iLotId, $this->_iProfileId, array('object_author_id' => $iPart, 'recipient_id' => $iPart, 'subobject_id' => $iJotId));
+
+        return true;
     }
 
     public function onDeleteJot($iLotId, $iJotId, $iProfileId = 0)

@@ -33,7 +33,6 @@
 	<string name="_bx_messenger_menu_notifications_item_title"><![CDATA[Messenger]]></string>	
 	<string name="_bx_messenger_name_place_holder"><![CDATA[Type name here...]]></string>
 	<string name="_bx_messenger_typing_message"><![CDATA[typing a message...]]></string>
-	<string name="_bx_messenger_push_message_title"><![CDATA[{0} sent a message]]></string>
 	<string name="_bx_messenger_is_push_enabled"><![CDATA[Enable OneSignal Push Notifications (If global site's push notification options are set, they will be used for messenger)]]></string>
 	<string name="_bx_messenger_push_app_id"><![CDATA[OneSignal App ID]]></string>
 	<string name="_bx_messenger_push_rest_api"><![CDATA[REST API Key]]></string>

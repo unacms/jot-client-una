@@ -1394,10 +1394,21 @@
     };
 
     oMessenger.prototype.broadcastView = function(iJotId){
-    	return this.broadcastMessage({
-            'jot_id': iJotId ? iJotId : $(this.sTalkListJotSelector).last().data('id'),
-            'addon': 'check_viewed'
-        });
+		const oJot = $(this.sTalkListJotSelector).last();
+    	const iJot = iJotId ? iJotId : oJot.data('id');
+
+		if (!+oJot.data('my') && +oJot.data('new')) {
+			$.get('modules/?r=messenger/viewed_jot', { jot_id: iJot });
+
+			oJot.data('new', 0);
+
+			return this.broadcastMessage({
+				jot_id: iJot,
+				addon: 'check_viewed'
+			});
+		}
+
+		return;
     };
 
 	/**
@@ -1524,7 +1535,8 @@
 	}
 		
 	oMessenger.prototype.sendPushNotification = function(oData){
-			$.post('modules/?r=messenger/send_push_notification', oData);
+			const { sent, addon: { jot_id }, lot } = oData;
+			$.post('modules/?r=messenger/send_push_notification', { sent, jot_id, lot });
 	}
 
 	/**
@@ -1637,9 +1649,12 @@
 						}
 
 						if (!_this.iAttachmentUpdate)
-							_this.broadcastMessage();
-
-						break;					
+							_this.broadcastMessage({
+								addon: {
+									jot_id: oData.jot_id
+								}
+							});
+						break;
 					case 1:
 						if (oData.message) {
 							bx_alert(oData.message);
@@ -1667,7 +1682,7 @@
 										}, oInfo || {});
 
 		if (this.oRTWSF !== undefined)
-				this.oRTWSF.message(oMessage);
+			this.oRTWSF.message(oMessage);
 	};
 	
 	/**
@@ -1765,9 +1780,9 @@
 			oJot = $('div[data-id=' + oObject.jot_id + ']', _this.sTalkList);
 
 		let	oNewLot = undefined;
-	
-		if (!(typeof oObject.addon === 'undefined' || (oObject.addon.length && oJot.is(':last-child') && oObject.addon !== 'check_viewed')))
+		if (typeof oObject.addon === 'string' && oObject.addon !== 'delete')
 			return;
+
 			
 		if (lot)
 			$.get('modules/?r=messenger/update_lot_brief', { lot_id: lot },
@@ -1808,7 +1823,7 @@
 
 						_this.setUsersStatuses(oLot);
 						
-						if (typeof oObject.addon === 'undefined') /* only for new messages */
+						if (typeof oObject.addon === 'undefined' || typeof oObject.addon === 'object') /* only for new messages */
 						{
 							if (!bSilentMode)
 								$(_this).trigger(jQuery.Event('message'));
@@ -2027,7 +2042,7 @@
 	*/
 	oMessenger.prototype.updateJots = function(oAction, bSilentMode = false){
 		const _this = this,
-			sAction = oAction.addon || (oAction.action !== 'msg' ? oAction.action : 'new'),
+			sAction = typeof oAction.addon === 'string' ? oAction.addon : (oAction.action !== 'msg' ? oAction.action : 'new'),
 			sPosition = oAction.position || (sAction === 'new' ? 'bottom' : 'position'),
 			oObjects = $(this.sTalkListJotSelector);
 
@@ -2068,11 +2083,10 @@
 			$.post('modules/?r=messenger/update',
 			{
 				url: this.oSettings.url,
-				//type: this.oSettings.type,
 				jot: iJotId,
 				lot: this.oSettings.lot,
 				load: sAction,
-                read:(_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive()) || !_this.isMobile()
+                //read:(_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive()) || !_this.isMobile()
 			},
 			function(oData)
 			{
@@ -2127,8 +2141,6 @@
 										$(_this).trigger(jQuery.Event('message'));
 
 
-									if ((_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive()) || !_this.isMobile())
-                                        _this.broadcastView();
 
 									break;
 							case 'prev':
@@ -2825,6 +2837,11 @@
 			if (!oOptions.lot && !_this.iSelectedPersonToTalk)
 				_oMessenger.initUsersSelector();
 
+			$(window).on('focus', () => {
+				_oMessenger.updatePageIcon();
+				_oMessenger.broadcastView();
+			});
+
 			/* Init connector settings end */
 			return true;
 		},
@@ -2835,7 +2852,6 @@
 		 */
 		initLotSettings: function (oOptions) {
 			_oMessenger.initLotSettings(oOptions);
-			$(window).on('focus', () => _oMessenger.updatePageIcon());
 		},
 
 		initTextArea: function () {
@@ -2938,8 +2954,11 @@
 			return this;
 		},
 		onServerResponse: function (oData) {
-			if (oData.addon === undefined || !oData.addon.length)
+			const { addon } = oData;
+
+			if ( addon && typeof addon.jot_id !== 'undefined')
 				_oMessenger.sendPushNotification(oData);
+
 			return this;
 		},
 

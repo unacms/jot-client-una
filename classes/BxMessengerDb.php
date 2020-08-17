@@ -357,8 +357,7 @@ class BxMessengerDb extends BxBaseModTextDb
 				$sNewList = count($aParticipants) > 0 ? implode(',', $aParticipants) : '';
 				$this -> query("UPDATE `{$this->CNF['TABLE_MESSAGES']}` SET `{$this->CNF['FIELD_MESSAGE_NEW_FOR']}` = :part WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('part' => $sNewList, 'id' => $iJotId));
                 bx_alert($this->_oConfig->getObject('alert'), 'read_jot', $iJotId, $iProfileId, array('author_id' => $aNotViewed[$this->CNF['FIELD_MESSAGE_AUTHOR']], 'lot_id' => $aNotViewed[$this->CNF['FIELD_MESSAGE_FK']]));
-                bx_alert($this->_oConfig->getObject('alert'), 'delete_jot_ntfs', $aNotViewed[$this->CNF['FIELD_MESSAGE_FK']],  $iProfileId, array('subobject_id' => $iJotId));
-			} 			
+        }
 		}
 	}
 
@@ -369,17 +368,18 @@ class BxMessengerDb extends BxBaseModTextDb
 	*/
 	public function readAllMessages($iLot, $iProfileId){
 		$aAll = $this-> getAll("SELECT * FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id AND FIND_IN_SET(:user, `{$this->CNF['FIELD_MESSAGE_NEW_FOR']}`)", array('id' => $iLot, 'user' => $iProfileId));
-		foreach($aAll as $iKey => $aValue){
-			$aParticipants = explode(',', $aValue[$this->CNF['FIELD_MESSAGE_NEW_FOR']]);
-			$iPos = array_search($iProfileId, $aParticipants);
-			if ($iPos !== FALSE){
-				unset($aParticipants[$iPos]);
-				$sNewList = count($aParticipants) > 0 ? implode(',', $aParticipants) : '';
-				$this -> query("UPDATE `{$this->CNF['TABLE_MESSAGES']}` SET `{$this->CNF['FIELD_MESSAGE_NEW_FOR']}` = :part WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('part' => $sNewList, 'id' => $aValue[$this->CNF['FIELD_MESSAGE_ID']]));
+		foreach($aAll as $iKey => $aValue) {
+            $aParticipants = explode(',', $aValue[$this->CNF['FIELD_MESSAGE_NEW_FOR']]);
+            $iPos = array_search($iProfileId, $aParticipants);
+            if ($iPos !== FALSE) {
+                unset($aParticipants[$iPos]);
+                $sNewList = count($aParticipants) > 0 ? implode(',', $aParticipants) : '';
+                $this->query("UPDATE `{$this->CNF['TABLE_MESSAGES']}` SET `{$this->CNF['FIELD_MESSAGE_NEW_FOR']}` = :part WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('part' => $sNewList, 'id' => $aValue[$this->CNF['FIELD_MESSAGE_ID']]));
                 bx_alert($this->_oConfig->getObject('alert'), 'read_jot', $aValue[$this->CNF['FIELD_MESSAGE_ID']], $iProfileId, array('author_id' => $aValue[$this->CNF['FIELD_MESSAGE_AUTHOR']], 'lot_id' => $iLot));
-                bx_alert($this->_oConfig->getObject('alert'), 'delete_jot_ntfs', $aValue[$this->CNF['FIELD_MESSAGE_FK']], $iProfileId, array('subobject_id' => $aValue[$this->CNF['FIELD_MESSAGE_ID']]));
-			} 			
-		}		
+            }
+        }
+
+        $this->markNotificationAsRead($iProfileId, $iLot);
 	}
 
 	/**
@@ -1138,23 +1138,8 @@ class BxMessengerDb extends BxBaseModTextDb
                                          ", array( 'id' => $iLot ));
     }
 
-    public function isPushNotificationsEnabled(){
-        if (!$this->isModuleByName('bx_notifications'))
-            return false;
-
-        return $this -> getOne("SELECT `s`.`active`
-                                        FROM `bx_notifications_handlers` as `h` 
-                                        LEFT JOIN `bx_notifications_settings` as `s` ON `h`.`id` = `s`.`handler_id`
-                                        WHERE `h`.`group`=:module AND `h`.`type`='insert' AND `s`.`delivery` = 'push'", array('module' => $this->_oConfig->getName())) == 1;
-    }
-
-    public function isAllowedToSendNtfs($iProfileId, $iLotId){
-        if (!$this->isModuleByName('bx_notifications'))
-            return true;
-
-        $iNumber = (int)$this->CNF['MAX_NTFS_NUMBER'];
+    public function getSentNtfsNumber($iProfileId, $iLotId){
         $iInterval = (int)$this->CNF['PARAM_NTFS_INTERVAL'];
-
         return $this -> getOne("SELECT COUNT(*)
                                         FROM `bx_notifications_events`                                        
                                         WHERE `action`='got_jot_ntfs' AND `type`=:type AND `owner_id` = :profile AND `object_id`=:lot_id 
@@ -1164,7 +1149,7 @@ class BxMessengerDb extends BxBaseModTextDb
                                         'profile' => $iProfileId,
                                         'lot_id' => $iLotId,
                                         'interval' => $iInterval
-                                    )) < $iNumber;
+                                    ));
     }
 
     /**
@@ -1545,6 +1530,39 @@ class BxMessengerDb extends BxBaseModTextDb
 			WHERE {$sWhere}
 			ORDER BY `j`.`{$this->CNF['FIELD_MESSAGE_ID']}` {$sOrder}
 			{$sLimit}", $aParams);
+    }
+
+    public function markNotificationAsRead($iRecipientId, $iLotId)
+    {
+        if (!$this->isModuleByName('bx_notifications'))
+            return false;
+
+        $aEvents = $this -> getAll("SELECT *
+                                                FROM `bx_notifications_queue` AS `q`
+                                                LEFT JOIN `bx_notifications_events` AS `e` ON `q`.`event_id` = `e`.`id`                                       
+                                              WHERE `action`='got_jot_ntfs' 
+                                                    AND `e`.`type`=:type                                               
+                                                    AND `e`.`object_owner_id`=:object_owner_id
+                                                    AND `e`.`object_id`=:lot_id",
+            array(
+                'type' => $this->_oConfig->getName(),
+                'lot_id' => $iLotId,
+                'object_owner_id' => $iRecipientId
+            ));
+
+        if (empty($aEvents))
+            return false;
+
+        foreach($aEvents as &$aEvent) {
+            if ($this->query("DELETE FROM `bx_notifications_queue` WHERE `profile_id`=:profile_id AND `event_id`=:event_id", array(
+                'profile_id' => $iRecipientId,
+                'event_id' => $aEvent['id']
+            )))
+            $this->query("DELETE FROM `bx_notifications_events` WHERE `id`=:id",
+                array(
+                    'id' => $aEvent['id']
+                ));
+        }
     }
 }
 

@@ -98,6 +98,7 @@
 		this.iTimer = null;
 		this.sEmbedTemplate = (oOptions && oOptions.embed_template) || '<a href="__url__">__url__</a>';
 		this.iMaxLength = (oOptions && oOptions.max) || 0;
+		this.iMaxHistory = oOptions.max_history_number || 50;
 		this.iStatus = document.hasFocus() ? 1 : 2; // 1- online, 2-away
 		this.iActionsButtonWidth = '2.25';
 		this.iScrollDownSpeed = 1500;
@@ -1949,7 +1950,24 @@
 			}, 
 		'json');
 	}
-	
+
+	oMessenger.prototype.isViewInBottomPosition = function(){
+		const iHeight = $(this.sTalkBlock).prop('scrollHeight'),
+			  iClient = $(this.sTalkBlock).prop('clientHeight'),
+			  _this = this;
+
+		const isScrollAvail = iHeight > iClient;
+		if (isScrollAvail){
+			const iCurrentScrollHeight = iHeight - iClient;
+			const iCurrentScrollPos = $(_this.sTalkBlock).scrollTop();
+
+			if ((iCurrentScrollHeight - iCurrentScrollPos) > iClient)
+				return false;
+
+		}
+
+		return true;
+	}
 	/**
 	* Correct scroll position in history area depends on loaded messages (old history or new just received)
 	*@param string sPosition position name
@@ -1959,8 +1977,8 @@
 	*/
 	oMessenger.prototype.updateScrollPosition = function(sPosition, sEff, oObject, fCallback){
 		const sEffect = sEff,
-			iHeight = $(this.sTalkBlock).prop('scrollHeight'),
-			_this = this;
+			  iHeight = $(this.sTalkBlock).prop('scrollHeight')
+			  _this = this;
 
 		let iPosition = 0;
 		switch(sPosition){
@@ -2090,8 +2108,7 @@
 				url: this.oSettings.url,
 				jot: iJotId,
 				lot: this.oSettings.lot,
-				load: sAction,
-                //read:(_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive()) || !_this.isMobile()
+				load: sAction
 			},
 			function(oData)
 			{
@@ -2117,7 +2134,8 @@
 										
 										return ;
 									}
-									
+
+									const bMoveTo = _this.isViewInBottomPosition();
 									$(oData.html)
 									.filter(_this.sJot)
 									.each(function(){
@@ -2139,13 +2157,20 @@
 									.waitForImages(
 										function()
 										{
-											_this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'slow', oObjects.last());
+											if (bMoveTo)
+												_this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'slow', oObjects.last());
 										});
 
 									if ((_this.isBlockVersion() || (_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive())) && !bSilentMode)  /* play sound for jots only on mobile devices when chat area is active */
 										$(_this).trigger(jQuery.Event('message'));
 
-
+									if ($(_this.sTalkListJotSelector).length > _this.iMaxHistory && bMoveTo)
+									{
+										let iCountToRemove = $(_this.sTalkListJotSelector).length - _this.iMaxHistory;
+										while(iCountToRemove > 0 && iCountToRemove-- > 0){
+											$(_this.sTalkListJotSelector).first().remove();
+										}
+									}
 
 									break;
 							case 'prev':

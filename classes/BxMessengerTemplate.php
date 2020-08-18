@@ -1034,6 +1034,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'message_length' => (int)$this->_oConfig->CNF['MAX_SEND_SYMBOLS'] ? (int)$CNF['MAX_SEND_SYMBOLS'] : 0,
 			'ip' => gethostbyname($aUrlInfo['host']),
 			'embed_template' => $sEmbedTemplate,
+			'max_history' => (int)$this->_oConfig->CNF['MAX_JOTS_BY_DEFAULT'],
 			'reaction_template' => $this->parseHtmlByName('reaction.html', array(
 			    'emoji_id' => '__emoji_id__',
 			    'on_click' => 'oMessenger.onRemoveReaction(this);',

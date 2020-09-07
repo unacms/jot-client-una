@@ -942,12 +942,12 @@ class BxMessengerModule extends BxBaseModTextModule
             return false;
 
         $aParticipantList = $this->_oDb->getParticipantsList($iLotId, true);
-        if (empty($aParticipantList) || !in_array($this->_iUserId, $aParticipantList))
+        if (empty($aParticipantList) || !in_array($this->_iProfileId, $aParticipantList))
             return false;
 
         // user Notifications module to send notifications
         if ($this->_oDb->isModuleByName('bx_notifications'))
-            return $this->sendNotifications($iLotId, $iJotId);
+            return $this->sendNotifications($iLotId, $iJotId, $aSent);
 
         if (!$this->_oConfig->isOneSignalEnabled())
             return false;
@@ -1396,7 +1396,7 @@ class BxMessengerModule extends BxBaseModTextModule
             bx_alert($this->_oConfig->getObject('alert'), 'got_jot', $iLotId, $this->_iUserId, array('recipient_id' => $iPart, 'subobject_id' => $iJotId));
     }
 
-    public function sendNotifications($iLotId, $iJotId)
+    public function sendNotifications($iLotId, $iJotId, $aOnlineUsers = array())
     {
         $aPartList = $this->_oDb->getParticipantsList($iLotId, true, $this->_iProfileId);
         if (empty($aPartList))
@@ -1407,8 +1407,12 @@ class BxMessengerModule extends BxBaseModTextModule
         if ($iCount > $iNumber)
             return false;
 
-        foreach ($aPartList as $iKey => $iPart)
+        foreach ($aPartList as $iKey => $iPart) {
+            if (array_search($iPart, $aOnlineUsers) !== FALSE || $this->_oDb->isMuted($iLotId, $iPart))
+                    continue;
+
             bx_alert($this->_oConfig->getObject('alert'), 'got_jot_ntfs', $iLotId, $this->_iProfileId, array('object_author_id' => $iPart, 'recipient_id' => $iPart, 'subobject_id' => $iJotId));
+        }
 
         return true;
     }

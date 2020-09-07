@@ -357,10 +357,22 @@ class BxMessengerDb extends BxBaseModTextDb
 				$sNewList = count($aParticipants) > 0 ? implode(',', $aParticipants) : '';
 				$this -> query("UPDATE `{$this->CNF['TABLE_MESSAGES']}` SET `{$this->CNF['FIELD_MESSAGE_NEW_FOR']}` = :part WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('part' => $sNewList, 'id' => $iJotId));
                 bx_alert($this->_oConfig->getObject('alert'), 'read_jot', $iJotId, $iProfileId, array('author_id' => $aNotViewed[$this->CNF['FIELD_MESSAGE_AUTHOR']], 'lot_id' => $aNotViewed[$this->CNF['FIELD_MESSAGE_FK']]));
-        }
+            }
 		}
 	}
 
+	public function isReadMessage($iJotId, $iProfileId)
+    {
+        $aNew = $this->getRow("SELECT `{$this->CNF['FIELD_MESSAGE_NEW_FOR']}`, `{$this->CNF['FIELD_MESSAGE_FK']}`, `{$this->CNF['FIELD_MESSAGE_AUTHOR']}`  
+									 FROM `{$this->CNF['TABLE_MESSAGES']}`
+									 WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('id' => $iJotId));
+
+        if (empty($aNew[$this->CNF['FIELD_MESSAGE_NEW_FOR']]))
+            return true;
+
+        $aParticipants = explode(',', $aNew[$this->CNF['FIELD_MESSAGE_NEW_FOR']]);
+        return array_search($iProfileId, $aParticipants);
+    }
 	/**
 	* Mark all message as read in lot history for member
 	*@param int $iLot lot id
@@ -1537,10 +1549,10 @@ class BxMessengerDb extends BxBaseModTextDb
         if (!$this->isModuleByName('bx_notifications'))
             return false;
 
-        $aEvents = $this -> getAll("SELECT *
-                                                FROM `bx_notifications_queue` AS `q`
-                                                LEFT JOIN `bx_notifications_events` AS `e` ON `q`.`event_id` = `e`.`id`                                       
-                                              WHERE `action`='got_jot_ntfs' 
+        $aEvents = $this -> getAll("SELECT `e`.`id` 
+                                                FROM `bx_notifications_events` AS `e`
+                                                LEFT JOIN `bx_notifications_queue` AS `q` ON `q`.`event_id` = `e`.`id`                                       
+                                                WHERE `action`='got_jot_ntfs' 
                                                     AND `e`.`type`=:type                                               
                                                     AND `e`.`object_owner_id`=:object_owner_id
                                                     AND `e`.`object_id`=:lot_id",
@@ -1554,14 +1566,14 @@ class BxMessengerDb extends BxBaseModTextDb
             return false;
 
         foreach($aEvents as &$aEvent) {
-            if ($this->query("DELETE FROM `bx_notifications_queue` WHERE `profile_id`=:profile_id AND `event_id`=:event_id", array(
-                'profile_id' => $iRecipientId,
-                'event_id' => $aEvent['id']
-            )))
-            $this->query("DELETE FROM `bx_notifications_events` WHERE `id`=:id",
+            if ($this->query("DELETE FROM `bx_notifications_events` WHERE `id`=:id",
                 array(
                     'id' => $aEvent['id']
-                ));
+                )))
+               $this->query("DELETE FROM `bx_notifications_queue` WHERE `profile_id`=:profile_id AND `event_id`=:event_id", array(
+                    'profile_id' => $iRecipientId,
+                    'event_id' => $aEvent['id']
+               ));
         }
     }
 }

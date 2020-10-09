@@ -2875,7 +2875,7 @@
 				_oMessenger.broadcastView();
 			});
 
-			if (+oOptions.jot_id && _oMessenger.oJotWindowBuilder !== undefined && _oMessenger.isMobile())
+			if ((+oOptions.selected_profile || +oOptions.jot_id) && _oMessenger.oJotWindowBuilder !== undefined && _oMessenger.isMobile())
 				_oMessenger.oJotWindowBuilder.changeColumn('right');
 
 			/* Init connector settings end */

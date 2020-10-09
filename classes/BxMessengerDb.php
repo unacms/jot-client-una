@@ -261,40 +261,76 @@ class BxMessengerDb extends BxBaseModTextDb
 		return $this -> query("UPDATE `{$this->CNF['TABLE_ENTRIES']}` SET `{$this->CNF['FIELD_PARTICIPANTS']}` = :parts WHERE `{$this->CNF['FIELD_ID']}` = :id", array('parts' => $sParticipants, 'id' => $iLotId));
 	}
 
+	public function findThePageOwner($mixedPage){
+	    $iAuthorId = 0;
+	    if (!$mixedPage)
+	        return $iAuthorId;
+
+	    if (is_string($mixedPage))
+	        parse_str($mixedPage, $aUrl);
+        else if (is_array($mixedPage))
+            $aUrl = $mixedPage;
+
+	    if (empty($aUrl) || !isset($aUrl['id']) || !isset($aUrl['i']))
+	        return $iAuthorId;
+
+	    $sModule = $this->getOne("SELECT `module` FROM `sys_objects_page` WHERE LOWER(`uri`)=:uri", array('uri' => strtolower($aUrl['i'])));
+	    if (!$sModule)
+	        return $iAuthorId;
+
+	    $aTable = $this->getRow("SELECT `TriggerTable`, `TriggerFieldId`, `TriggerFieldAuthor` 
+                                                             FROM `sys_objects_cmts`
+                                                             WHERE `Module`=:module LIMIT 1", array('module' => $sModule));
+	    if (empty($aTable))
+	        return $iAuthorId;
+
+	    if (isset($aTable['TriggerTable']) && isset($aTable['TriggerFieldId']) && isset($aTable['TriggerFieldAuthor']))
+	        return $this->getOne("SELECT `{$aTable['TriggerFieldAuthor']}` 
+                                            FROM `{$aTable['TriggerTable']}` 
+                                            WHERE `{$aTable['TriggerFieldId']}`=:id",
+                                            array('id' => $aUrl['id']));
+
+	    return $iAuthorId;
+    }
 	/**
 	* Save message for participants to database
 	*@param array $aData lot settings
 	*@param array $aParticipants participants list, if it empty then used default for lot
 	*@return int affected rows
 	*/
-	public function saveMessage($aData, $aParticipants = array()) {
-		$aLot = array();
-		if ((int)$aData['lot'])
-			$aLot = $this -> getLotInfoById($aData['lot']);
+    public function saveMessage($aData, $aParticipants = array())
+    {
+        $iLotId = isset($aData['lot']) ? (int)$aData['lot'] : 0;
+        $aLotInfo = $iLotId ? $this->getLotInfoById($iLotId) : array();
 		
-		if (($aData['type'] != BX_IM_TYPE_PRIVATE || $this -> isAuthor($aData['lot'], $aData['member_id'])) && !$this -> isParticipant($aData['lot'], $aData['member_id'], true))
-			$this -> addMemberToParticipantsList($aData['lot'], $aData['member_id']);
+        if (empty($aLotInfo))
+            $aLotInfo = $this->getLotByUrlAndParticipantsList($aData['url'], $aParticipants, $aData['type']);
 
-        if ((int)$aData['lot'] && $aData['type'] == BX_IM_TYPE_PRIVATE && !$this -> isParticipant($aData['lot'], $aData['member_id']))
+        if ($iLotId && $aData['type'] == BX_IM_TYPE_PRIVATE && !$this->isParticipant($iLotId, $aData['member_id']))
             return false;
 
-		if (empty($aParticipants) && (int)$aData['lot']) 
-			$aParticipants = $this -> getParticipantsList($aData['lot']);	
-		
-		$aLot = !empty($aLot) ? $aLot : $this -> getLotByUrlAndPariticipantsList($aData['url'], $aParticipants, $aData['type']);
-		if (empty($aLot)){
-			$iLotID = $this -> createNewLot($aData['member_id'], $aData['title'], $aData['type'], $aData['url'], $aParticipants);
-            bx_alert($this->_oConfig->getObject('alert'), 'create_lot', $iLotID, $aData['member_id']);
+        if (empty($aLotInfo)) {
+            $iLotId = $this->createNewLot($this->findThePageOwner($aData['url']), $aData['title'], $aData['type'], $aData['url'], $aParticipants);
+            bx_alert($this->_oConfig->getObject('alert'), 'create_lot', $iLotId, $aData['member_id']);
 
             foreach($aParticipants as &$iParticipant) {
                 if ((int)$iParticipant === (int)$aData['member_id'])
                     continue;
 
-                bx_alert($this->_oConfig->getObject('alert'), 'add_part', $iParticipant, $aData['member_id'], array('lot_id' => $iLotID, 'author_id' => $aData['member_id']));
+                bx_alert($this->_oConfig->getObject('alert'), 'add_part', $iParticipant, $aData['member_id'], array('lot_id' => $iLotId, 'author_id' => $aData['member_id']));
             }
 
 		} else 
-			$iLotID = $aLot[$this->CNF['FIELD_ID']];
+            $iLotId = $aLotInfo[$this->CNF['FIELD_ID']];
+
+        if (($aData['type'] != BX_IM_TYPE_PRIVATE || $this->isAuthor($iLotId, $aData['member_id'])) && !$this->isParticipant($iLotId, $aData['member_id'], true)) {
+            if ($this->addMemberToParticipantsList($iLotId, $aData['member_id']))
+                bx_alert($this->_oConfig->getObject('alert'), 'participant_joined', $iLotId, $aData['member_id'],
+                    array(
+                        'url' => $aData['url'],
+                        'object_author_id' => !empty($aLotInfo[$this->CNF['FIELD_AUTHOR']]) ? $aLotInfo[$this->CNF['FIELD_AUTHOR']] : $this->findThePageOwner($aData['url'])
+                    ));
+        }
 
 		$aData['message'] = clear_xss($aData['message']);
         return $this->addJot($iLotId, $aData['message'], $aData['member_id']);
@@ -1265,7 +1301,7 @@ class BxMessengerDb extends BxBaseModTextDb
         return array('jitsi_id' => $iJVCId, 'jot_id' => $iJotId, $this->CNF['FJVC_ROOM'] => $sRoom, 'opened' => array_values($aOpened));
     }
 
-    public function getJotIdByJitisItem($iJitsiId){
+    public function getJotIdByJitsiItem($iJitsiId){
         $sQuery = $this -> prepare("SELECT `{$this->CNF['FIELD_MESSAGE_ID']}` 
                                             FROM `{$this->CNF['TABLE_MESSAGES']}` 
                                             WHERE `{$this->CNF['FIELD_MESSAGE_VIDEOC']}` = ? 
@@ -1605,6 +1641,83 @@ class BxMessengerDb extends BxBaseModTextDb
                     'event_id' => $aEvent['id']
                ));
         }
+    }
+
+    function getPublicRoomParticipants($sRoom){
+        $aRoom = $this->getPublicVideoRoom($sRoom);
+        if (empty($aRoom) || !$aRoom[$this->CNF['FPJVC_PARTS']])
+            return array();
+
+        return explode(',', $aRoom[$this->CNF['FPJVC_PARTS']]) ;
+    }
+
+    function createPublicVideoRoom($sRoom, $iProfileId){
+        $CNF = &$this->_oConfig->CNF;
+        $aRoom = $this->getPublicVideoRoom($sRoom);
+
+        if (!empty($aRoom)) {
+            if (!(int)$aRoom[$CNF['FPJVC_STATUS']])
+                return $this->query("UPDATE `{$this->CNF['TABLE_PUBLIC_JVC']}` 
+                                    SET                                         
+                                        `{$this->CNF['FPJVC_CREATED']}`=UNIX_TIMESTAMP(),
+                                        `{$this->CNF['FPJVC_STATUS']}`=1,
+                                        `{$this->CNF['FPJVC_PARTS']}`=:part
+                                    WHERE `{$this->CNF['FPJVC_ROOM']}`=:room                                         
+                                   ", array('room' => $sRoom, 'part' => $iProfileId));
+            else
+                return $this->updatePublicVideoRoom($sRoom, $iProfileId, BX_JOT_PUBLIC_JITSI_JOIN);
+
+        }
+
+        return $this->query("REPLACE INTO `{$this->CNF['TABLE_PUBLIC_JVC']}` 
+                                    SET 
+                                        `{$this->CNF['FPJVC_ROOM']}`=:room,
+                                        `{$this->CNF['FPJVC_CREATED']}`=UNIX_TIMESTAMP(),
+                                        `{$this->CNF['FPJVC_PARTS']}`=:part                                     
+                                   ", array('room' => $sRoom, 'part' => $iProfileId));
+    }
+
+    function getPublicVideoRoom($sRoom){
+        if (!$sRoom)
+            return false;
+
+        return $this->getRow("SELECT * FROM `{$this->CNF['TABLE_PUBLIC_JVC']}` 
+                                        WHERE `{$this->CNF['FPJVC_ROOM']}`=:room LIMIT 1", array('room' => $sRoom));
+    }
+
+    function updatePublicVideoRoom($sRoom, $iProfileId, $sAction){
+        $aRoom = $this->getPublicVideoRoom($sRoom);
+        if (empty($aRoom))
+            return false;
+
+        if ($sAction == BX_JOT_PUBLIC_JITSI_CLOSE)
+            return $this->query("UPDATE `{$this->CNF['TABLE_PUBLIC_JVC']}` 
+                                    SET
+                                        `{$this->CNF['FPJVC_STATUS']}`=0
+                                    WHERE `{$this->CNF['FPJVC_ROOM']}`=:room                                         
+                                   ", array('room' => $sRoom));
+
+        $aParticipants = array();
+        if ($aRoom[$this->CNF['FPJVC_PARTS']])
+            $aParticipants = explode(',', $aRoom[$this->CNF['FPJVC_PARTS']]);
+
+        if ($sAction == BX_JOT_PUBLIC_JITSI_JOIN && !in_array($iProfileId, $aParticipants))
+            $aParticipants[] = $iProfileId;
+
+        if ($sAction == BX_JOT_PUBLIC_JITSI_LEAVE)
+            $aParticipants = array_diff( $aParticipants, array($iProfileId) );
+
+        return $this->query("UPDATE `{$this->CNF['TABLE_PUBLIC_JVC']}` 
+                                    SET
+                                        `{$this->CNF['FPJVC_PARTS']}`=:parts,
+                                        `{$this->CNF['FPJVC_STATUS']}`=:status
+                                    WHERE `{$this->CNF['FPJVC_ROOM']}`=:room                                         
+                                   ", array(
+                                                'room' => $sRoom,
+                                                'parts' => implode(',', $aParticipants),
+                                                'status' => (int)!empty($aParticipants)
+                                            )
+                             );
     }
 }
 

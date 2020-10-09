@@ -21,4 +21,10 @@ DELETE FROM `sys_alerts` WHERE `handler_id` = @iHandler;
 DELETE FROM `sys_alerts_handlers` WHERE `id` = @iHandler;
 
 -- LIVE UPDATES
-DELETE FROM `sys_objects_live_updates` WHERE `name` = 'bx_messenger_new_messages';
+DELETE FROM `sys_objects_live_updates` WHERE `name` IN ('bx_messenger_new_messages', 'bx_messenger_public_video_conference');
+
+-- ACL
+DELETE `sys_acl_actions`, `sys_acl_matrix`
+FROM `sys_acl_actions`, `sys_acl_matrix`
+WHERE `sys_acl_matrix`.`IDAction` = `sys_acl_actions`.`ID` AND `sys_acl_actions`.`Module` = @sName;
+DELETE FROM `sys_acl_actions` WHERE `Module` = @sName;

@@ -36,46 +36,46 @@
 
 	bx_get_scripts(['__lib_link__'], () => {
 		const oInterfaceConfig = {
-			DEFAULT_BACKGROUND: '#3e468c',
-			filmStripOnly: false,
-			APP_NAME: '__jitsi_meet_title__',
-			DEFAULT_REMOTE_DISPLAY_NAME: '<bx_text:_bx_messenger_jitsi_remote_user />',
-			DEFAULT_LOCAL_DISPLAY_NAME: '__me__',
+            DEFAULT_BACKGROUND: '#3e468c',
+            filmStripOnly: false,
+            APP_NAME: '__jitsi_meet_title__',
+            NATIVE_APP_NAME: '__jitsi_meet_title__',
+            PROVIDER_NAME: '__site_title__',
+            DEFAULT_REMOTE_DISPLAY_NAME: '<bx_text:_bx_messenger_jitsi_remote_user />',
+            DEFAULT_LOCAL_DISPLAY_NAME: '__me__',
 
             SHOW_CHROME_EXTENSION_BANNER: false,
             SHOW_DEEP_LINKING_IMAGE: false,
             SHOW_POWERED_BY: false,
             SHOW_PROMOTIONAL_CLOSE_PAGE: false,
+            MOBILE_APP_PROMO: false,
 
-			SHOW_JITSI_WATERMARK: __show_watermark__,
-			SHOW_WATERMARK_FOR_GUESTS: __show_watermark__,
+            SHOW_JITSI_WATERMARK: __show_watermark__,
+            SHOW_WATERMARK_FOR_GUESTS: __show_watermark__,
             SHOW_BRAND_WATERMARK: __show_watermark__,
-            BRAND_WATERMARK_LINK: '__watermark_url__',
-			DISABLE_VIDEO_BACKGROUND: false,
+            JITSI_WATERMARK_LINK: '__watermark_url__',
+            DISABLE_VIDEO_BACKGROUND: false,
             SUPPORT_URL: '__support_link__',
             HIDE_INVITE_MORE_HEADER: true,
-			TOOLBAR_BUTTONS: [
-				'microphone',
+            TOOLBAR_BUTTONS: [
+                'microphone',
                 'camera',
                 'closedcaptions',
                 'desktop',
                 'fullscreen',
-				'fodeviceselection',
+                'fodeviceselection',
                 'hangup',
-                /*'profile',*/
                 'recording',
-				'livestreaming',
+                'livestreaming',
                 'etherpad',
                 'sharedvideo',
                 'settings',
                 'raisehand',
-				'videoquality',
+                'videoquality',
                 'filmstrip',
-                /*'invite',
-                'shortcuts',*/
-				'tileview'
-			],
-		};
+                'tileview'
+            ]
+        };
 
 		if (__info_enabled__)
             oInterfaceConfig['TOOLBAR_BUTTONS'].push('info');

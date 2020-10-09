@@ -86,6 +86,16 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_jvc` (
     UNIQUE KEY `room` (`room`)
 );
 
+CREATE TABLE IF NOT EXISTS `bx_messenger_public_jvc` (
+   `id` int(11) NOT NULL AUTO_INCREMENT,
+   `room` varchar(100) NOT NULL,
+   `participants` varchar(255) NOT NULL default 0,
+   `active` tinyint(1) unsigned NOT NULL default 1,
+   `created` int(11) unsigned NOT NULL default 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `room` (`room`)
+);
+
 CREATE TABLE IF NOT EXISTS `bx_messenger_jvc_track` (
    `id` int(11) NOT NULL AUTO_INCREMENT,
    `jvc_id` int(11) NOT NULL,

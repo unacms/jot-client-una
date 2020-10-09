@@ -33,7 +33,6 @@
 	<string name="_bx_messenger_menu_notifications_item_title"><![CDATA[Болталка]]></string>
 	<string name="_bx_messenger_name_place_holder"><![CDATA[Напишите имя тут...]]></string>
 	<string name="_bx_messenger_typing_message"><![CDATA[пишет сообщение...]]></string>
-	<string name="_bx_messenger_push_message_title"><![CDATA[Сообщение от {0}]]></string>
 	<string name="_bx_messenger_is_push_enabled"><![CDATA[Активировать OneSignal пуш нотификацию(Использовать настройки сайта для пуш нотификации, если они заданы)]]></string>
 	<string name="_bx_messenger_push_app_id"><![CDATA[OneSignal App ID]]></string>
 	<string name="_bx_messenger_push_rest_api"><![CDATA[REST API Key]]></string>
@@ -231,11 +230,18 @@
 	<string name="_bx_messenger_jitsi_remote_user"><![CDATA[Участник]]></string>
 	<string name="_bx_messenger_lot_parts_error"><![CDATA[Разговор с таким же списком участников уже существует.]]></string>
 	<string name="_bx_messenger_jitsi_err_cant_type_use"><![CDATA[Извините, но видео конференции публичных чатов запрещены.]]></string>
-
 	<string name="_bx_messenger_file_is_too_large_error"><![CDATA[Файл иммет слишком большой размер!]]></string>
 	<string name="_bx_messenger_file_is_too_large_error_details"><![CDATA[Максимально допустимый размер файла {filesize}]]></string>
 	<string name="_bx_messenger_file_type_is_not_allowed"><![CDATA[Загрузка файлов данного формата запрещена!]]></string>
 	<string name="_bx_messenger_jitsi_mobile_warning"><![CDATA[Для того что бы сделать видео сигнал более стабильным и надёжным, вам необходимо подключиться через наше мибильное приложение (его можно скачать в app store) или через оригинальное приложение Jitsi. Продолжить с использованием Jitsi App?]]></string>
 	<string name="_bx_messenger_send_message_not_allowed"><![CDATA[Данная функция закрыта для вашего профиля!]]></string>
 	<string name="_bx_messenger_restricted_memberships"><![CDATA[Создание разговоров и отправка сообщений закрыты для выбранных уровней!]]></string>
+	<string name="_bx_messenger_menu_video_conference_sys_title"><![CDATA[Видео Чат]]></string>
+	<string name="_bx_messenger_menu_video_conference_action_title"><![CDATA[Видео Чат]]></string>
+	<string name="_bx_messenger_acl_action_video_conference"><![CDATA[Создать персональный видео чат]]></string>
+	<string name="_bx_messenger_profile_not_found"><![CDATA[Профиль не найден!]]></string>
+	<string name="_bx_messenger_push_vc_bx_organizations_message_title"><![CDATA[Видео Конференция]]></string>
+	<string name="_bx_messenger_public_vc_bx_organizations_message"><![CDATA[{0} конференция началась]]></string>
+	<string name="_bx_messenger_push_vc_bx_persons_message_title"><![CDATA[Персональный видео звонок]]></string>
+	<string name="_bx_messenger_public_vc_bx_persons_message"><![CDATA[Вдео звонок от {0}]]></string>
 </resources>

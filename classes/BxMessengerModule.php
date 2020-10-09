@@ -28,6 +28,12 @@ define('BX_ATT_TYPE_VC', 'vc'); // video conference
 define('BX_JOT_REACTION_ADD', 'add');
 define('BX_JOT_REACTION_REMOVE', 'remove');
 
+// PUBLIC JITSI ACTIONS
+define('BX_JOT_PUBLIC_JITSI_LEAVE', 'leave');
+define('BX_JOT_PUBLIC_JITSI_JOIN', 'join');
+define('BX_JOT_PUBLIC_JITSI_CLOSE', 'close');
+
+
 /**
  * Messenger module
  */
@@ -1475,6 +1481,113 @@ class BxMessengerModule extends BxBaseModTextModule
         return $this->onCheckContact($this->_iUserId, (int)$mixedObject);
     }
 
+    public function serviceIsVideoConferenceAllowed($mixedObject)
+    {
+        if (!$this->_iProfileId || !$this->onCheckContact($this->_iProfileId, (int)$mixedObject))
+            return false;
+        // check ACL
+        $aCheck = checkActionModule($this->_iProfileId, 'video conference', $this->getName(), true);
+        if ($aCheck[CHECK_ACTION_RESULT] !== CHECK_ACTION_RESULT_ALLOWED)
+            return false;
+
+        $this->_oTemplate->addCss(array('video-conference.css'));
+        $this->_oTemplate->addJs('messenger-public-lib.js');
+        return true;
+    }
+
+    private function sendProfilePush($iObjectId, $iSenderId, $iReceiverId, $sType = 'bx_persons'){
+        $oLanguage = BxDolStudioLanguagesUtils::getInstance();
+        $sLanguage = $oLanguage->getCurrentLangName(false);
+
+        $oObject = BxDolProfile::getInstance($iObjectId);
+        if (!$oObject)
+            return false;
+
+        $oReceiver = BxDolProfile::getInstance($iReceiverId);
+        if (!$oReceiver)
+            return false;
+
+        $oSender = BxDolProfile::getInstance($iSenderId);
+        if (!$oSender)
+            return false;
+
+        $sMessage = _t("_bx_messenger_public_vc_{$sType}_message", $sType === 'bx_persons' ? $oSender->getDisplayName() : $oObject->getDisplayName());
+
+        $aContent = array(
+          'en' => $sMessage,
+        );
+
+        if (!$aContent[$sLanguage])
+            $aContent[$sLanguage] = $sMessage;
+
+        $aHeadings = array( $sLanguage => _t("_bx_messenger_push_vc_{$sType}_message_title"));
+
+        $aInfo = array(
+            'contents' => $aContent,
+            'headings' => $aHeadings,
+            'url' => $oObject->getUrl()
+        );
+
+        BxDolPush::getInstance()->send($iReceiverId, array_merge($aInfo, array(
+                'icon' => $sType === 'bx_persons' ?
+                                $oSender->getThumb() :
+                                $oObject->getThumb())),
+            true);
+    }
+
+    public function actionGetVideoConferenceForm($iProfileId)
+    {
+        $oProfile = BxDolProfile::getInstance($iProfileId);
+        if (!$oProfile)
+            $sContent =  MsgBox(_t('_bx_messenger_profile_not_found'));
+        else
+        {
+            $aInfo = $oProfile->getInfo();
+            if ($aInfo['type'] == 'bx_organizations') {
+                $aFans = BxDolConnection::getObjectInstance("{$aInfo['type']}_fans")->getConnectedContent($iProfileId, true);
+                if (!empty($aFans)){
+                    foreach($aFans as &$iPart)
+                        $this->sendProfilePush($iProfileId, $this->_iProfileId, $iPart, $aInfo['type']);
+                }
+            } else if ($this->_iProfileId != $iProfileId)
+               $this->sendProfilePush($iProfileId, $this->_iProfileId, $iProfileId, $aInfo['type']);
+
+            $aParams['audio_only'] = bx_get('startAudioOnly') ? 1 : 0;
+            $sContent = $this->_oTemplate->getPublicJitsi($this->_iProfileId, $this->getPageIdent(), $oProfile->getDisplayName(), 'bx-messenger-vc-call');
+        }
+
+        header('Content-type: text/html; charset=utf-8');
+        echo $sContent;
+        exit;
+    }
+
+    private function getPageIdent(){
+        $sPath = '';
+        if (isset($_SERVER['HTTP_REFERER'])){
+            $aPath = parse_url($_SERVER['HTTP_REFERER']);
+            if (isset($aPath['path']))
+                $sPath = $aPath['path'];
+
+            if (isset($aPath['query']))
+                $sPath .= '?' . $aPath['query'];
+
+        }
+
+        return $sPath;
+    }
+
+    public function actionUpdatePublicJitsiVideoConference(){
+        $sRoom = bx_get('room');
+        $sAction = bx_get('action');
+        if (!$sRoom || !$this->_iProfileId || !$sAction)
+            return false;
+
+        if ($sAction == BX_JOT_PUBLIC_JITSI_JOIN)
+            return $this->_oDb->createPublicVideoRoom($sRoom, $this->_iProfileId);
+
+        return $this->_oDb->updatePublicVideoRoom($sRoom, $this->_iProfileId, $sAction);
+    }
+
     public function serviceGetLiveUpdates($aMenuItemParent, $aMenuItemChild, $iCount = 0)
     {
         $iCountNew = $this->serviceGetUpdatedLotsNum();
@@ -1490,6 +1603,34 @@ class BxMessengerModule extends BxBaseModTextModule
                 )),
                 'mi_parent' => $aMenuItemParent,
                 'mi_child' => $aMenuItemChild
+            ),
+        );
+    }
+
+    public function serviceGetLiveVcUpdates($iCount = 0)
+    {
+        $iCount = 0;
+        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')
+        {
+           $sPageUrl = $this->getPageIdent();
+           if (preg_match('/.*page\/(.*)\?id=(\d+).*/', $sPageUrl,$aParams)) {
+               if (!empty($aParams) && isset($aParams[1]) && isset($aParams[2])){
+                   $iPageOwner = $this->_oDb->findThePageOwner(array('i' => $aParams[1], 'id' => $aParams[2]));
+                   //if ($this->_iProfileId == $iPageOwner)
+               }
+           }
+           $aParticipants = $this->_oDb->getPublicRoomParticipants($this->_oConfig->getRoomId($sPageUrl));
+           $iCount = count($aParticipants);
+        }
+
+        return array(
+            'count' => $iCount,
+            'method' => 'oMessengerPublicLib.addBubble(oData)',
+            'data' => array(
+                'code' => BxDolTemplate::getInstance()->parseHtmlByTemplateName('menu_item_addon', array(
+                    'content' => '{count}'
+                )),
+                'selector' => '.bx-menu-item-public-vc-messenger a.bx-btn'
             ),
         );
     }
@@ -1950,10 +2091,10 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $aJVC = $this->_oDb->getJVC($iLotId);
         $iParticipants = count($this->_oDb->getParticipantsList($iLotId));
-        $aResult = array('code' => 0, 'parts' => $iParticipants, 'url' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER'], 'url'));
+        $aResult = array('code' => 0, 'parts' => $iParticipants);
         if (!empty($aJVC) && (int)$aJVC[$CNF['FJVC_ACTIVE']]) {
             if ($this->_oDb->joinToActiveJVC($iLotId, $this->_iProfileId)) {
-                $aResult['jot_id'] = $this->_oDb->getJotIdByJitisItem((int)$aJVC[$CNF['FJVC_ACTIVE']]);
+                $aResult['jot_id'] = $this->_oDb->getJotIdByJitsiItem((int)$aJVC[$CNF['FJVC_ACTIVE']]);
                 $aResult[$CNF['FJVC_ROOM']] = $aJVC[$CNF['FJVC_ROOM']];
                 $this->onJoinVC($iLotId);
                 return echoJson($aResult);
@@ -2045,6 +2186,23 @@ class BxMessengerModule extends BxBaseModTextModule
     function serviceGetMembershipLevels()
     {
        return BxDolAcl::getInstance()->getMemberships();
+    }
+
+    function serviceGetVideoConference($sRoomIdent, $iInitiator, $sTitle = '', $sId = '', $aInterfaceConfig = array()){
+        if (!$iInitiator)
+
+        if (!$sRoomIdent)
+            $sRoomIdent = $this->_iProfileId;
+
+        return $this->_oTemplate->getPublicJitsi($iInitiator, $sRoomIdent, $sTitle, $sId, $aInterfaceConfig);
+    }
+
+    function serviceGetPublicRoomInfo($sRoomId){
+        return $this->_oDb->getPublicVideoRoom($sRoomId);
+    }
+
+    function serviceGenerateRoomName($sIdent){
+        return $this->_oConfig->getRoomId($sIdent);
     }
 }
 

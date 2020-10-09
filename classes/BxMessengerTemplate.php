@@ -29,6 +29,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						'semantic.min.css',
 						'main.css',
                         'quill.bubble.css',
+                        'video-conference.css',
                         BX_DOL_URL_MODULES . 'boonex/messenger/js/emoji-mart/css/emoji-mart.css',
 					 );
 
@@ -1034,6 +1035,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'ip' => gethostbyname($aUrlInfo['host']),
 			'embed_template' => $sEmbedTemplate,
 			'max_history' => (int)$this->_oConfig->CNF['MAX_JOTS_BY_DEFAULT'],
+			'jitsi_server' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER'], 'url'),
 			'reaction_template' => $this->parseHtmlByName('reaction.html', array(
 			    'emoji_id' => '__emoji_id__',
 			    'on_click' => 'oMessenger.onRemoveReaction(this);',
@@ -1776,8 +1778,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             'id' => $iLotId,
             'domain' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER']),
             'lang' => $sLanguage,
-            'room' => $sLanguage,
-            'lib_link' => $JITSI['LIB-LINK'],
+            'site_title' => getParam('site_title'),
+            'lib_link' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER'], 'url') . '/' . $JITSI['LIB-LINK'],
             'info_enabled' => +$CNF['JITSI-HIDDEN-INFO'],
             'chat_enabled' => +$CNF['JITSI-CHAT'],
             'chat_sync' => +$CNF['JITSI-CHAT-SYNC'],
@@ -1795,6 +1797,45 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
         return $sCode;
 	}
+
+    public function getPublicJitsi($iProfileId, $sIdent, $sTitle = '', $sId = 'bx-messenger-jitsi', $aInterfaceConfig = array()){
+        $CNF = &$this->_oConfig->CNF;
+        $JITSI = &$CNF['JITSI'];
+
+        $oProfile = BxDolProfile::getInstance($iProfileId);
+        if (empty($oProfile))
+            return false;
+
+        $sTitle = $sTitle ? $sTitle : $oProfile->getDisplayName();
+
+        $oLanguage = BxDolStudioLanguagesUtils::getInstance();
+        $sLanguage = $oLanguage->getCurrentLangName(false);
+
+        $sRoom = $this->_oConfig->getRoomId($sIdent ? $sIdent : $iProfileId);
+        $sCode = $this -> parseHtmlByName('jitsi_public_video_form.html', array(
+            'domain' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER']),
+            'lang' => $sLanguage,
+            'site_title' => getParam('site_title'),
+            'lib_link' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER'], 'url') . '/' . $JITSI['LIB-LINK'],
+            'info_enabled' => +$CNF['JITSI-HIDDEN-INFO'],
+            'chat_enabled' => +$CNF['JITSI-CHAT'],
+            'chat_sync' => +$CNF['JITSI-CHAT-SYNC'],
+            'audio_only' => +isset($aOptions['audio_only']),
+            'show_watermark' => +$CNF['JITSI-ENABLE-WATERMARK'],
+            'watermark_url' => $CNF['JITSI-WATERMARK-URL'],
+            'support_link' => $CNF['JITSI-SUPPORT-LINK'],
+            'jitsi_meet_title' => bx_js_string(_t('_bx_messenger_jitsi_meet_app_title', getParam('site_title'))),
+            'user_name' => $oProfile->getDisplayName(),
+            'me' => _t('_bx_messenger_jitsi_meet_me'),
+            'avatar' => $oProfile->getAvatar(),
+            'name' => $sRoom,
+            'id' => $sId,
+            'title' => bx_js_string(strmaxtextlen($sTitle)),
+            'interface_config' => json_encode($aInterfaceConfig)
+        ));
+
+        return $sCode;
+    }
 
     public function getTalkFiles($iProfileId, $iLotId, $iStart = 0){
         $CNF = &$this->_oConfig->CNF;

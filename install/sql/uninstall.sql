@@ -11,6 +11,9 @@ DROP TABLE IF EXISTS `bx_messenger_mp3_processed`;
 DROP TABLE IF EXISTS `bx_messenger_lcomments`;
 DROP TABLE IF EXISTS `bx_messenger_jot_reactions`;
 DROP TABLE IF EXISTS `bx_messenger_unread_jots`;
+DROP TABLE IF EXISTS `bx_messenger_jvc`;
+DROP TABLE IF EXISTS `bx_messenger_jvc_track`;
+DROP TABLE IF EXISTS `bx_messenger_public_jvc`;
 
 -- STORAGES & TRANSCODERS
 DELETE FROM `sys_objects_storage` WHERE `object` LIKE 'bx_messenger%';

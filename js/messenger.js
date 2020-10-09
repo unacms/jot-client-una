@@ -133,6 +133,7 @@
 		this.oFilesUploader = null;
 		this.oActiveAudioInstance = null;
 		this.oActiveEmojiObject = Object.create(null);
+		this.sJitsiServerUrl = oOptions.jitsi_server;
 
 		const _this = this;
 		$(this).on('message', () => this.beep());
@@ -2449,9 +2450,11 @@
 
 			 fMobileCall = () => {
 				 if ('undefined' !== typeof(window.ReactNativeWebView)) {
+
 						 if (typeof window.glBxVideoCallJoined === 'undefined') {
 							 window.glBxVideoCallJoined = [];
 						 }
+
 						 window.glBxVideoCallJoined.push(function (e) {
 							 if (oEl)
 								 bx_loading_btn($(oEl), true);
@@ -2460,7 +2463,7 @@
 								 oOptions.callback();
 							 
 							 $.get('modules/?r=messenger/create_jitsi_video_conference/', { lot_id: iLotId }, function (oData) {
-									 const { message, opened, code, jot_id, url } = oData;
+									 const { message, opened, code, jot_id } = oData;
 
 									 bx_loading_btn($(oEl), false);
 
@@ -2512,7 +2515,7 @@
 								 'json');
 						 });
 
-						 const oVideoParams = { uri: sRoom }; //( url ? `${url}/${sRoom}` : sRoom )
+						 const oVideoParams = { uri: ( _this.sJitsiServerUrl ? `${_this.sJitsiServerUrl}/${sRoom}` : sRoom ) };
 						 if (typeof oOptions.startAudioOnly !== 'undefined' && oOptions.startAudioOnly === true)
 							 oVideoParams['audio'] = true;
 
@@ -3151,9 +3154,11 @@
 		 * Run Jitsi video chat
 		 *@param string sId of the image
 		*/
+
 		onStartVideoCall: function(oEl, iLotId, sRoom){
             _oMessenger.startVideoCall(oEl, iLotId || _oMessenger.oSettings.lot, sRoom);
 		},
+
         getCall: function (oEl, iLotId, sRoom, bAudioOnly = false){
 			if (!iLotId)
 				return ;

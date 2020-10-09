@@ -237,4 +237,14 @@
 	<string name="_bx_messenger_jitsi_mobile_warning"><![CDATA[To make video conference more stable and reliable we have to use mobile application. It is possible to connect via our own mobile app (just download it from the App Store) or through the original Jitsi application. Continue with jitsi app?]]></string>
 	<string name="_bx_messenger_send_message_not_allowed"><![CDATA[Send messages is not allowed for your account!]]></string>
 	<string name="_bx_messenger_restricted_memberships"><![CDATA[Create talks and send messages abilities are closed for selected membership levels]]></string>
+
+	<string name="_bx_messenger_menu_video_conference_sys_title"><![CDATA[Video Chat]]></string>
+	<string name="_bx_messenger_menu_video_conference_action_title"><![CDATA[Video Chat]]></string>
+	<string name="_bx_messenger_acl_action_video_conference"><![CDATA[Create personal video chat]]></string>
+	<string name="_bx_messenger_profile_not_found"><![CDATA[Profile not found!]]></string>
+	<string name="_bx_messenger_push_vc_bx_organizations_message_title"><![CDATA[Video Meeting]]></string>
+	<string name="_bx_messenger_public_vc_bx_organizations_message"><![CDATA[{0} meeting has been started]]></string>
+	<string name="_bx_messenger_push_vc_bx_persons_message_title"><![CDATA[Personal Video call]]></string>
+	<string name="_bx_messenger_public_vc_bx_persons_message"><![CDATA[Video call from {0}]]></string>
+
 </resources>

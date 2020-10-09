@@ -24,6 +24,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 
 			// database tables
 			'TABLE_ENTRIES' => $aModule['db_prefix'] . 'lots',
+			'TABLE_NEW_MESSAGES' => $aModule['db_prefix'] . 'unread_jots',
 			'TABLE_MESSAGES' => $aModule['db_prefix'] . 'jots',
 			'TABLE_TYPES' => $aModule['db_prefix'] . 'lots_types',
 			'TABLE_USERS_INFO' => $aModule['db_prefix'] . 'users_info',
@@ -57,6 +58,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'FIELD_ID' => 'id',
 			'FIELD_AUTHOR' => 'author',
 			'FIELD_ADDED' => 'created',
+			'FIELD_UPDATED' => 'updated',
 			'FIELD_PARTICIPANTS' => 'participants',			
 			'FIELD_TITLE' => 'title',
 			'FIELD_URL' => 'url',
@@ -79,7 +81,6 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'FIELD_MESSAGE_FK' => 'lot_id',
 			'FIELD_MESSAGE_AUTHOR' => 'user_id',
 			'FIELD_MESSAGE_ADDED' => 'created',
-			'FIELD_MESSAGE_NEW_FOR' => 'new_for',
 			'FIELD_MESSAGE_AT_TYPE' => 'attachment_type',
 			'FIELD_MESSAGE_AT' => 'attachment',
 			'FIELD_MESSAGE_LAST_EDIT' => 'last_edit',
@@ -91,6 +92,11 @@ class BxMessengerConfig extends BxBaseModTextConfig
 			'FIELD_TYPE_ID' => 'id',
 			'FIELD_TYPE_NAME' => 'name',
 			'FIELD_TYPE_LINKED' => 'show_link', // means use link in title
+
+            // new messages table
+            'FIELD_NEW_LOT' => 'lot_id',
+            'FIELD_NEW_JOT' => 'jot_id',
+            'FIELD_NEW_PROFILE' => 'user_id',
 
 			// users info fields
 			'FIELD_INFO_LOT_ID' => 'lot_id',

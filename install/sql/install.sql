@@ -8,37 +8,37 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_jots` (
    `user_id` int(11) unsigned NOT NULL default '0',
    `attachment_type` varchar(255) NOT NULL default '',
    `attachment` text NOT NULL default '',
-   `new_for` text NOT NULL default '',
    `last_edit` int(11) NOT NULL default '0',
    `edit_by` int(11) unsigned NOT NULL default '0',
    `trash` tinyint(1) unsigned NOT NULL default 0,
    `vc` int(11) NOT NULL default 0,
    PRIMARY KEY (`id`),
-   KEY `lot_id` (`lot_id`)   
+   KEY `lot_id` (`lot_id`),
+   KEY `user_lot` (`user_id`,`lot_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `bx_messenger_jot_reactions` (
-   `jot_id` int(11) unsigned NOT NULL default '0',
+   `jot_id` int(11) unsigned NOT NULL default 0,
    `native` varchar(10) NOT NULL,
    `emoji_id` varchar(50) NOT NULL,
-   `user_id` int(11) unsigned NOT NULL default '0',
-   `added` int(11) NOT NULL default '0',
+   `user_id` int(11) unsigned NOT NULL default 0,
+   `added` int(11) NOT NULL default 0,
    KEY `jot_id` (`jot_id`),
    UNIQUE KEY `jot` (`jot_id`,`emoji_id`, `user_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `bx_messenger_lots` (
    `id` int(11) NOT NULL auto_increment,
-   `title` varchar(255) collate utf8_unicode_ci NOT NULL,
+   `title` varchar(255) NOT NULL,
    `url` varchar(255) NOT NULL default '',
    `type` tinyint(3) NOT NULL default 1,
-   `created` int(11) NOT NULL default '0',
-   `author` int(11) unsigned NOT NULL default '0',
+   `created` int(11) NOT NULL default 0,
+   `updated` int(11) NOT NULL default 0,
+   `author` int(11) unsigned NOT NULL default 0,
    `participants` text NOT NULL default '',
    `class` varchar(20) NOT NULL default 'custom', 
    PRIMARY KEY  (`id`),
-   FULLTEXT KEY `search_title` (`title`),
-   FULLTEXT KEY `search_url` (`url`)
+   KEY `id_author` (`id`,`author`)
 );
 
 INSERT INTO `bx_messenger_lots` (`id`, `title`, `url`, `type`, `created`, `author`, `participants`, `class`) VALUES
@@ -66,6 +66,13 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_users_info` (
    `params` text NOT NULL default '',
    `star` tinyint(1) NOT NULL default '0',
     UNIQUE KEY `id` (`lot_id`,`user_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `bx_messenger_unread_jots` (
+   `lot_id` int(11) NOT NULL default 0,
+   `jot_id` int(11) NOT NULL default 0,
+   `user_id` int(11) NOT NULL default 0,
+    UNIQUE KEY `id` (`lot_id`,`jot_id`,`user_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `bx_messenger_jvc` (

@@ -685,7 +685,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				$aVars[$CNF['FIELD_MESSAGE']] = $sMessage;
 				if ($oSender = $this -> getObjectUser($aLatestJots[$CNF['FIELD_MESSAGE_AUTHOR']]))
 				{
-	
 					$aVars['sender_username'] = $oSender -> id() == $iProfileId ? _t('_bx_messenger_you_username_title') : $oSender -> getDisplayName();
 					$aVars['sender_username'] .= ':';
 				}
@@ -693,12 +692,14 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				$iTime = bx_time_js($aLatestJots[$CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_DATE);
 			}
 
+			$iUnreadJotsCount = $this->_oDb->getNewJots($iProfileId, true, $aLot[$CNF['FIELD_ID']]);
             $aVars['active'] = ($iSelectLotId === 0 && !$iKey) || $iSelectLotId == $aLot[$CNF['FIELD_ID']] ? 'active' : '';
-			$aVars['class'] = (int)$aLot['unread_num'] ? 'unread-lot' : '';
-			$aVars['title_class'] = (int)$aLot['unread_num'] ? 'bx-def-font-extrabold' : '';
-			$aVars['message_class'] = (int)$aLot['unread_num'] ? 'bx-def-font-semibold' : '';
-			$aVars['bubble_class'] = (int)$aLot['unread_num'] ? '' : 'hidden';
-			$aVars['count'] = (int)$aLot['unread_num'] ? (int)$aLot['unread_num'] : 0;
+
+            $aVars['class'] = $iUnreadJotsCount ? 'unread-lot' : '';
+			$aVars['title_class'] = $iUnreadJotsCount ? 'bx-def-font-extrabold' : '';
+			$aVars['message_class'] = $iUnreadJotsCount ? 'bx-def-font-semibold' : '';
+			$aVars['bubble_class'] = $iUnreadJotsCount ? '' : 'hidden';
+			$aVars['count'] = $iUnreadJotsCount;
 			$aVars['bx_if:show_time'] = array(
 												'condition' => $bShowTime,
 												'content' => array(
@@ -757,8 +758,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         if ($CNF['MAX_VIEWS_PARTS_NUMBER'] < count($aResult))
             return '';
 
-        if (!empty($aJotInfo[$CNF['FIELD_MESSAGE_NEW_FOR']]))
-            $aResult = array_diff($aParticipants, explode(',', $aJotInfo[$CNF['FIELD_MESSAGE_NEW_FOR']]));
+        $aNewForProfiles = $this->_oDb->getForWhomJotIsNew($iJotId);
+        if (!empty($aNewForProfiles))
+            $aResult = array_diff($aParticipants, $aNewForProfiles);
 
         $aIcons = array();
         foreach($aResult as &$iProfileId) {
@@ -824,10 +826,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             $oProfile = $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);
             $iJot = $aJot[$CNF['FIELD_MESSAGE_ID']];
 
-            $aNewFor = array();
-            if (!empty($aJot[$CNF['FIELD_MESSAGE_NEW_FOR']]))
-                $aNewFor = explode(',', $aJot[$CNF['FIELD_MESSAGE_NEW_FOR']]);
-
+            $aNewFor = $this->_oDb->getForWhomJotIsNew($iJot);
             if ($oProfile) {
                 $sAttachment = $sMessage = '';
                 $bIsTrash = (int)$aJot[$CNF['FIELD_MESSAGE_TRASH']];

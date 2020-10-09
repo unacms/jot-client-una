@@ -24,6 +24,7 @@ define('BX_ATT_TYPE_GIPHY', 'giphy');
 define('BX_ATT_TYPE_REPOST', 'repost');
 
 define('BX_ATT_TYPE_VC', 'vc'); // video conference
+
 define('BX_JOT_REACTION_ADD', 'add');
 define('BX_JOT_REACTION_REMOVE', 'remove');
 
@@ -80,7 +81,7 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $CNF = &$this->_oConfig->CNF;
         if ($iViewedProfileId = (int)bx_get('profile_id')) {
-            $aExistedTalk = $this->_oDb->getLotByUrlAndPariticipantsList(BX_IM_EMPTY_URL, array($iViewedProfileId, $this->_iProfileId));
+            $aExistedTalk = $this->_oDb->getLotByUrlAndParticipantsList(BX_IM_EMPTY_URL, array($iViewedProfileId, $this->_iProfileId));
             if (!empty($aExistedTalk))
                 return $this->_oTemplate->getTalkBlock($this->_iProfileId, $aExistedTalk[$CNF['FIELD_ID']]);
             else if ($this->onCheckContact($this->_iProfileId, $iViewedProfileId))
@@ -356,7 +357,7 @@ class BxMessengerModule extends BxBaseModTextModule
         $sParam = bx_get('param');
         $iStarred = bx_get('starred');
 
-        $aMyLots = $this->_oDb->getMyLots($this->_iUserId, BX_IM_EMPTY, $sParam, BX_IM_EMPTY, BX_IM_EMPTY, $iStarred);
+        $aMyLots = $this->_oDb->getMyLots($this->_iUserId, BX_IM_EMPTY, $sParam, $iStarred);
         if (empty($aMyLots))
             $sContent = MsgBox(_t('_bx_messenger_txt_msg_no_results'));
         else
@@ -377,7 +378,7 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$this->isLogged() || !$iLotId)
             return echoJson(array('code' => 1));
 
-        $aMyLots = $this->_oDb->getMyLots($this->_iUserId, BX_IM_EMPTY, BX_IM_EMPTY, BX_IM_EMPTY, $iLotId);
+        $aMyLots = $this->_oDb->getMyLots($this->_iUserId, $iLotId);
 		if (!empty($aMyLots))
 		{
             $sContent = $this->_oTemplate->getLotsPreview($this->_iUserId, $aMyLots);
@@ -483,7 +484,7 @@ class BxMessengerModule extends BxBaseModTextModule
         $iProfileId = (int)bx_get('profile');
         if ($iProfileId)
         {
-            $aLotInfo = $this->_oDb->getLotByUrlAndPariticipantsList(BX_IM_EMPTY_URL, array($this->_iProfileId, $iProfileId));
+            $aLotInfo = $this->_oDb->getLotByUrlAndParticipantsList(BX_IM_EMPTY_URL, array($this->_iProfileId, $iProfileId));
             $iLotId = empty($aLotInfo) ? BX_IM_EMPTY : $aLotInfo[$this -> _oConfig -> CNF['FIELD_ID']];
         } else
             $iLotId = (int)bx_get('lot');
@@ -598,7 +599,7 @@ class BxMessengerModule extends BxBaseModTextModule
         $aParticipants = $this->getParticipantsList(bx_get('participants'));
 
         $aResult = array('lot' => 0);
-        if (!empty($aParticipants) && ($aChat = $this->_oDb->getLotByUrlAndPariticipantsList(BX_IM_EMPTY_URL, $aParticipants, BX_IM_TYPE_PRIVATE)))
+        if (!empty($aParticipants) && ($aChat = $this->_oDb->getLotByUrlAndParticipantsList(BX_IM_EMPTY_URL, $aParticipants, BX_IM_TYPE_PRIVATE)))
             $aResult['lot'] = $aChat[$this->_oConfig->CNF['FIELD_ID']];
 
         echoJson($aResult);
@@ -620,7 +621,7 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$this->_oConfig->isAllowToUseMessages($this->_iProfileId))
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_not_allowed')));
 
-        $aLot = $this->_oDb->getLotByUrlAndPariticipantsList(BX_IM_EMPTY_URL, $aParticipants, BX_IM_TYPE_PRIVATE);
+        $aLot = $this->_oDb->getLotByUrlAndParticipantsList(BX_IM_EMPTY_URL, $aParticipants, BX_IM_TYPE_PRIVATE);
         if (!empty($aLot)){
             if ($iLotId && $iLotId !== $aLot[$this->_oConfig->CNF['FIELD_ID']])
                 return echoJson(array('message' => _t('_bx_messenger_lot_parts_error'), 'code' => 1, 'lot' => $iLotId));
@@ -922,10 +923,10 @@ class BxMessengerModule extends BxBaseModTextModule
      */
     public function serviceGetUpdatedLotsNum($iProfileId = 0)
     {
-        if (!$this->isLogged() && !(int)$iProfileId)
-            return 0;
+        if (!$this->isLogged())
+            return array();
 
-        $aLots = $this->_oDb->getMyLots($iProfileId ? (int)$iProfileId : $this->_iUserId, BX_IM_EMPTY, BX_IM_EMPTY, true);
+       $aLots = $this->_oDb->getUpdatedLots($iProfileId ? $iProfileId : $this->_iProfileId);
         return sizeof($aLots);
     }
 
@@ -1476,8 +1477,7 @@ class BxMessengerModule extends BxBaseModTextModule
 
     public function serviceGetLiveUpdates($aMenuItemParent, $aMenuItemChild, $iCount = 0)
     {
-        $aLots = $this->_oDb->getMyLots($this->_iUserId, BX_IM_EMPTY, BX_IM_EMPTY, true);
-        $iCountNew = sizeof($aLots);
+        $iCountNew = $this->serviceGetUpdatedLotsNum();
         if ($iCountNew == $iCount)
             return false;
 
@@ -1859,7 +1859,7 @@ class BxMessengerModule extends BxBaseModTextModule
             return array('code' => 1, _t('_bx_messenger_not_participant'));
 
         if ($sMessage = $this->prepareMessageToDb($sMessage))
-            return array('code' => 0, 'id' => $this->_oDb->addNewJot($iLotId, $sMessage, $this->_iUserId));
+            return array('code' => 0, 'id' => $this->_oDb->addJot($iLotId, $sMessage, $this->_iUserId));
 
         return array('code' => 1, 'message' => _t('_bx_messenger_send_message_no_data'));
     }
@@ -1916,7 +1916,7 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$iLotId) {
             $sUrl = bx_get('url');
             $sTitle = bx_get('title');
-            $aLot = $this -> _oDb -> getLotByUrlAndPariticipantsList($sUrl);
+            $aLot = $this -> _oDb -> getLotByUrlAndParticipantsList($sUrl);
             $iLotId = empty($aLot) ? $this->_oDb->createNewLot($this->_iProfileId, $sTitle, BX_IM_TYPE_PRIVATE, $sUrl) : $aLot[$this->_oConfig->CNF['FIELD_ID']];
         }
 

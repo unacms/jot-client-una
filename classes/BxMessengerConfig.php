@@ -217,6 +217,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
             'ALLOW_TO_REMOVE_MESSAGE' => getParam($aModule['db_prefix'] . 'allow_to_remove_messages') == 'on',
             'REMOVE_MESSAGE_IMMEDIATELY' => getParam($aModule['db_prefix'] . 'remove_messages_immediately') == 'on',
             'USE_EMBEDLY' => getParam($aModule['db_prefix'] . 'use_embedly') == 'on',
+            'USE_MENTIONS' => getParam($aModule['db_prefix'] . 'enable_mentions') == 'on',
             'EMOJI_SET' => getParam($aModule['db_prefix'] . 'emoji_set'),
             'REACTIONS_SIZE' => (int)getParam($aModule['db_prefix'] . 'reactions_size'),
             'EMOJI_PREVIEW' => getParam($aModule['db_prefix'] . 'show_emoji_preview') == 'on',

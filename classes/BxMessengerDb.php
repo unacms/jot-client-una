@@ -240,8 +240,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@return boolean 
 	*/
 	public function isMuted($iLotId, $iParticipant){
-		$iMute = $this -> getParams($iLotId, $iParticipant, 'notification');
-		return $iMute; 
+		return $this -> getParams($iLotId, $iParticipant, 'notification');
 	}
 
 	/**

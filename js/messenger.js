@@ -1189,7 +1189,7 @@
 				.replace(sEmailPattern, str => `<a href="mailto:${str}">${str}</a>`);
 
 		if (!sUrl){
-			const aMatch = sText.match(/<a.*href="(https?:\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|])".*a>/);
+			const aMatch = sText.match(/<a[^"](?!class="bx-mention[^"]*").*href="(https?:\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|])".*a>/);
 			if (Array.isArray(aMatch) && aMatch.length >= 2)
 				sUrl = aMatch[1];
 		}

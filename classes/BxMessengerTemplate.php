@@ -28,7 +28,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						'filepode.css',
 						'semantic.min.css',
 						'main.css',
-                        'quill.bubble.css',
                         'video-conference.css',
                         BX_DOL_URL_MODULES . 'boonex/messenger/js/emoji-mart/css/emoji-mart.css',
 					 );
@@ -40,7 +39,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                         'storage.js',
 						'connect.js',
 						'status.js',
-                        'quill.min.js',
                         'messenger.js',
 						'RecordRTC.min.js',
 						'adapter.js',
@@ -52,9 +50,13 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		if ($sMode == 'all'){
 			array_push($aCss, 'admin.css', 'messenger.css');
 			array_push($aJs, 'columns.js');
-		}	
-	
-		$this->addCss($aCss);
+		}
+
+        if ($this->_oConfig->CNF['USE_MENTIONS']) {
+            $this->addCss('quill.mention.css');
+        }
+
+        $this->addCss($aCss);
 		$this->addJs($aJs); 
 	}
 
@@ -126,6 +128,13 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             'emoji_picker' => $this->getEmojiCode(),
             'files_uploader' => $CNF['FILES_UPLOADER']
         );
+
+        $this->addCss(array('quill.bubble.css'));
+        $this->addJs(array('quill.min.js'));
+
+        if ($this->_oConfig->CNF['USE_MENTIONS']) {
+            $this->addJs('quill.mention.min.js');
+        }
 
         $sFilesUploader = $this->initFilesUploader($iProfileId);
         return $this -> parseHtmlByName('text_area.html', $aVars) . $sFilesUploader;
@@ -1003,7 +1012,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             '_bx_messenger_max_files_upload_error',
             '_bx_messenger_file_is_too_large_error_details',
             '_bx_messenger_file_type_is_not_allowed',
-            '_bx_messenger_jitsi_mobile_warning'
+            '_bx_messenger_jitsi_mobile_warning',
+            '_bx_messenger_loading',
         ));
 
         $sUsername = '';

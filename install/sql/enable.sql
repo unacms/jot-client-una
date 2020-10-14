@@ -45,7 +45,8 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_jitsi_watermark_link', '', @iCategId, '_bx_messenger_jitsi_watermark_link', 'digit', '', '', '', 32),
 ('bx_messenger_jitsi_only_for_private', 'on', @iCategId, '_bx_messenger_jitsi_enable_only_for_private', 'checkbox', '', '', '', 33),
 ('bx_messenger_jitsi_support_url', 'https://community.jitsi.org/', @iCategId, '_bx_messenger_jitsi_support_url', 'digit', '', '', '', 34),
-('bx_messenger_membership_restrictions', '4,5,6', @iCategId, '_bx_messenger_restricted_memberships', 'list', '', '', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:21:"get_membership_levels";}', 35);
+('bx_messenger_membership_restrictions', '4,5,6', @iCategId, '_bx_messenger_restricted_memberships', 'list', '', '', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:21:"get_membership_levels";}', 35),
+('bx_messenger_enable_mentions', 'on', @iCategId, '_bx_messenger_use_mentions', 'checkbox', '', '', '', 36);
 
 
 

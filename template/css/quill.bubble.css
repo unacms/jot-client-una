@@ -616,6 +616,11 @@
 .ql-bubble .ql-editor a {
   text-decoration: underline;
 }
+
+.ql-bubble .ql-editor a.bx-mention {
+  text-decoration: none;
+}
+
 .ql-bubble .ql-editor blockquote {
   border-left: 4px solid #ccc;
   margin-bottom: 5px;

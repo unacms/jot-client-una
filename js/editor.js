@@ -93,6 +93,58 @@
         this.oEditor.setSelection(range.index + sText.length, 1, Quill.sources.API);
     }
 
+    initMentions(){
+        const Embed = Quill.import("blots/embed");
+        class MessengerMentionBlot extends Embed {
+            static create(data) {
+                const { denotationChar, value, url, id } = data;
+                const node = document.createElement('a');
+                node.innerHTML = denotationChar + value;
+                node.setAttribute('class', 'bx-mention mention');
+                node.setAttribute('href', url);
+                return MessengerMentionBlot.setDataValues(node, { denotationChar, value, id, url });
+            }
+
+            static setDataValues(element, data) {
+                const domNode = element;
+                Object.keys(data).forEach(key => {
+                    domNode.dataset[key] = data[key];
+                });
+                return domNode;
+            }
+
+            static value(domNode) {
+                return domNode.dataset;
+            }
+        }
+
+        MessengerMentionBlot.blotName = "MessengerMentionBlot";
+        Quill.register(MessengerMentionBlot);
+
+        return {
+            allowedChars: /^[\w]*$/,
+            mentionDenotationChars: ["@"],
+            positioningStrategy: "fixed",
+            dataAttributes: ['id', 'url', 'value'],
+            blotName: 'MessengerMentionBlot',
+            minChars: 1,
+            listItemClass: 'ql-mention-list-item',
+            mentionContainerClass: 'ql-mention-list-container bx-popup bx-popup-color-bg bx-popup-border',
+            linkTarget: '_blank',
+            renderItem: data => `<span class="bx-def-font-small bx-def-padding-right">${data.value}</span><img src="${data.icon}" />`,
+            renderLoading: () => _t('_bx_messenger_loading'),
+            source: function(searchTerm, renderList, mentionChar) {
+                if (searchTerm.length)
+                    $.get('modules/?r=messenger/get_auto_complete', { term: searchTerm}, oData => {
+                            if (Array.isArray(oData.items) && oData.items.length){
+                                renderList(oData.items);
+                            }
+                        }
+                        ,'json');
+            }
+        };
+    }
+
     initEditor(){
         const QuillClipboard = Quill.import('modules/clipboard');
         const _this = this;
@@ -106,11 +158,14 @@
 
         Quill.register('modules/clipboard', Clipboard, true);
 
+        // Mentions initialization
+        const oMentions = typeof quillMention !== 'undefined' ? { mention: this.initMentions() } : {};
+
         this.oEditor = new Quill(this.oHtmlEditorObject, {
                 placeholder: this.oPlaceholder,
                 theme: 'bubble',
                 bounds: this.oHtmlEditorObject,
-                modules: {
+                modules: Object.assign({
                     toolbar: _this.showToolbar() && _this.aToolbarSettings,
                     clipboard: {
                         matchers: [
@@ -133,7 +188,7 @@
                             }
                         }
                     }
-                }
+                }, oMentions)
             });
 
            this.oEditor.on('text-change', function(delta, oldDelta, source) {

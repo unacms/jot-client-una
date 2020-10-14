@@ -19,20 +19,25 @@ define('BX_IM_TYPE_EVENTS', 5);
 define('BX_IM_TYPE_BROADCAST', 6);
 define('BX_IM_EMPTY_URL', '');
 define('BX_IM_EMPTY', 0);
+
+// Attachment types
 define('BX_ATT_TYPE_FILES', 'files');
 define('BX_ATT_TYPE_GIPHY', 'giphy');
 define('BX_ATT_TYPE_REPOST', 'repost');
-
 define('BX_ATT_TYPE_VC', 'vc'); // video conference
 
+// Reactions actions
 define('BX_JOT_REACTION_ADD', 'add');
 define('BX_JOT_REACTION_REMOVE', 'remove');
 
-// PUBLIC JITSI ACTIONS
+// Public jitsi actions
 define('BX_JOT_PUBLIC_JITSI_LEAVE', 'leave');
 define('BX_JOT_PUBLIC_JITSI_JOIN', 'join');
 define('BX_JOT_PUBLIC_JITSI_CLOSE', 'close');
 
+// Notifications types
+define('BX_MSG_NTFS_MESSAGE', 'message');
+define('BX_MSG_NTFS_MENTION', 'mention');
 
 /**
  * Messenger module
@@ -555,8 +560,9 @@ class BxMessengerModule extends BxBaseModTextModule
             if ($oProfile && !empty($aProfileInfoDetails) && !empty($oAccountInfo))
                 $aResult[] = array(
                     'value' => $oProfile->getDisplayName(),
-                    'icon' => $oProfile->getThumb(),
+                    'icon' => $oProfile->getIcon(),
                     'id' => $oProfile->id(),
+                    'url' => $oProfile->getUrl(),
                     'description' => _t('_bx_messenger_search_desc',
                         bx_process_output($oAccountInfo->getInfo()['logged'], BX_DATA_DATE_TS),
                         bx_process_output($aProfileInfoDetails['added'], BX_DATA_DATE_TS))
@@ -944,8 +950,36 @@ class BxMessengerModule extends BxBaseModTextModule
     {
         $iLotId = (int)bx_get('lot');
         $iJotId = (int)bx_get('jot_id');
-        $aSent = is_array(bx_get('sent')) ? bx_get('sent') : array();
+        $aReceived = is_array(bx_get('sent')) ? bx_get('sent') : array();
         if (!$this->isLogged() || !$iLotId)
+            return false;
+
+        $aLatestJot = $this->_oDb->getLatestJot($iLotId, $this->_iProfileId);
+        $CNF = &$this->_oConfig->CNF;
+        $sMessage = $aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE']];
+        if ($sMessage){
+            $sMessage = preg_replace('/<br\s?\/?>/i', "\r\n", $sMessage);
+            $sMessage = html2txt($sMessage);
+            $sMessage = get_mb_substr($sMessage, 0, (int)$CNF['PARAM_PUSH_NOTIFICATIONS_DEFAULT_SYMBOLS_NUM']);
+
+            // find mentions in the message and sent notifications
+            if ($CNF['USE_MENTIONS'] && preg_match_all('/<a[^>]*class="bx-mention[^"]*"[^>]*data-id="(\d+)".*?<\/a>/i', $aLatestJot[$CNF['FIELD_MESSAGE']],$aMatches)) {
+                list(, $aMentionedProfiles) = $aMatches;
+                if ($aMentionedProfiles) {
+                    $this->sendPushNotification($iLotId, $iJotId, $sMessage, $aReceived, $aMentionedProfiles, BX_MSG_NTFS_MENTION);
+                    $aReceived = array_diff($aReceived, $aMentionedProfiles);
+                }
+            }
+        }
+        else
+            if ($aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
+                $sMessage = _t('_bx_messenger_attached_files_message', $this->_oDb->getJotFiles($aLatestJot[$CNF['FIELD_MESSAGE_ID']], true));
+
+        return $this->sendPushNotification($iLotId, $iJotId, $sMessage, $aReceived);
+    }
+
+    private function sendPushNotification($iLotId, $iJotId, $sMessage, $aReceived = array(), $aRecipients = array(), $sType = BX_MSG_NTFS_MESSAGE){
+        if (!$sMessage)
             return false;
 
         $aParticipantList = $this->_oDb->getParticipantsList($iLotId, true);
@@ -954,7 +988,7 @@ class BxMessengerModule extends BxBaseModTextModule
 
         // user Notifications module to send notifications
         if ($this->_oDb->isModuleByName('bx_notifications'))
-            return $this->sendNotifications($iLotId, $iJotId, $aSent);
+            return $this->sendNotifications($iLotId, $iJotId, $aReceived, $aRecipients, $sType);
 
         if (!$this->_oConfig->isOneSignalEnabled())
             return false;
@@ -962,17 +996,6 @@ class BxMessengerModule extends BxBaseModTextModule
         // use own push notifications ability
         $oLanguage = BxDolStudioLanguagesUtils::getInstance();
         $sLanguage = $oLanguage->getCurrentLangName(false);
-
-        $aLatestJot = $this->_oDb->getLatestJot($iLotId, $this->_iProfileId);
-        $sMessage = $aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE']];
-        if ($sMessage){
-            $sMessage = preg_replace('/<br\s?\/?>/i', "\r\n", $sMessage);
-            $sMessage = html2txt($sMessage);
-            $sMessage = get_mb_substr($sMessage, 0, (int)$this->_oConfig->CNF['PARAM_PUSH_NOTIFICATIONS_DEFAULT_SYMBOLS_NUM']);
-        }
-
-        if (!$sMessage && $aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
-            $sMessage = _t('_bx_messenger_attached_files_message', $this->_oDb->getJotFiles($aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE_ID']], true));
 
         $aContent = array(
             'en' => $sMessage,
@@ -984,25 +1007,26 @@ class BxMessengerModule extends BxBaseModTextModule
         $oProfile = BxDolProfile::getInstance($this->_iProfileId);
         if ($oProfile)
             $aHeadings = array(
-                $sLanguage => _t('_bx_messenger_notification_subject', $oProfile->getDisplayName())
+                $sLanguage => _t("_bx_messenger_notification_subject_{$sType}", $oProfile->getDisplayName())
             );
         else
             return false;
 
-        $aWhere = array();
         $aInfo = array(
             'contents' => $aContent,
             'headings' => $aHeadings,
             'url' => $this->_oConfig->getRepostUrl($iJotId)
         );
 
-        $iKey = array_search($this->_iProfileId, $aParticipantList);
+        $aRecipients = empty($aRecipients) ? $aParticipantList : $aRecipients;
+        $iKey = array_search($this->_iProfileId, $aRecipients);
         if (isset($aParticipantList[$iKey]))
-              unset($aParticipantList[$iKey]);
+            unset($aParticipantList[$iKey]);
 
-		foreach($aParticipantList as $iKey => $iValue)
-		{
-            if (array_search($iValue, $aSent) !== FALSE || $this->_oDb->isMuted($iLotId, $iValue))
+        $aWhere = array();
+        foreach($aRecipients as &$iValue)
+        {
+            if (array_search($iValue, $aReceived) !== FALSE || $this->_oDb->isMuted($iLotId, $iValue))
                 continue;
 
             $aWhere[] = array("field" => "tag", "key" => "user", "relation" => "=", "value" => $iValue);
@@ -1035,7 +1059,6 @@ class BxMessengerModule extends BxBaseModTextModule
 
         return $sResult;
     }
-
     /**
      * Creates template with member's avatar, name and etc... It is used when member posts a message to add message to member history immediately
      * @return string json
@@ -1263,14 +1286,19 @@ class BxMessengerModule extends BxBaseModTextModule
         $aResult = array(
             'handlers' => array(
                 array('group' => $sModule, 'type' => 'insert', 'alert_unit' => $sModule, 'alert_action' => 'got_jot_ntfs', 'module_name' => $sModule, 'module_method' => 'get_message_content', 'module_class' => 'Module'),
-                array('group' => $sModule, 'type' => 'delete', 'alert_unit' => $sModule, 'alert_action' => 'delete_jot_ntfs')
+                array('group' => $sModule, 'type' => 'delete', 'alert_unit' => $sModule, 'alert_action' => 'delete_jot_ntfs'),
+                array('group' => "{$sModule}_mention", 'type' => 'insert', 'alert_unit' => $sModule, 'alert_action' => 'got_mention_ntfs', 'module_name' => $sModule, 'module_method' => 'get_message_content', 'module_class' => 'Module'),
+                array('group' => "{$sModule}_mention", 'type' => 'delete', 'alert_unit' => $sModule, 'alert_action' => 'delete_mention_ntfs')
             ),
             'settings' => array(
-                array('group' => $sModule, 'unit' => $sModule, 'action' => 'got_jot_ntfs', 'types' => array('personal'))
+                array('group' => $sModule, 'unit' => $sModule, 'action' => 'got_jot_ntfs', 'types' => array('personal')),
+                array('group' => "{$sModule}_mention", 'unit' => $sModule, 'action' => 'got_mention_ntfs', 'types' => array('personal'))
             ),
             'alerts' => array(
                 array('unit' => $sModule, 'action' => 'got_jot_ntfs'),
-                array('unit' => $sModule, 'action' => 'delete_jot_ntfs')
+                array('unit' => $sModule, 'action' => 'delete_jot_ntfs'),
+                array('unit' => "{$sModule}_mention", 'action' => 'got_mention_ntfs'),
+                array('unit' => "{$sModule}_mention", 'action' => 'delete_mention_ntfs')
             )
         );
 
@@ -1290,6 +1318,10 @@ class BxMessengerModule extends BxBaseModTextModule
         $aLotInfo = $this->_oDb->getLotByJotId($aEvent['subobject_id'], false);
         if (empty($aJotInfo) || empty($aLotInfo))
             return array();
+
+        $sType = BX_MSG_NTFS_MESSAGE;
+        if ($aEvent['action'] === 'got_mention_ntfs')
+            $sType = BX_MSG_NTFS_MENTION;
 
         $sEntryUrl = $this->_oConfig->getRepostUrl($aJotInfo[$CNF['FIELD_MESSAGE_ID']]);
         $iType = $aLotInfo[$CNF['FIELD_TYPE']];
@@ -1321,12 +1353,12 @@ class BxMessengerModule extends BxBaseModTextModule
             'subentry_sample' => $sMessage,
             'lang_key' =>  $aJotInfo[$CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES
                             || $aJotInfo[$CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_GIPHY
-                ? '_bx_messenger_txt_subobject_added_single' : '_bx_messenger_txt_subobject_added'
+                ? '_bx_messenger_txt_subobject_added_single' : "_bx_messenger_txt_subobject_added_{$sType}"
         );
 
         list($iNumber) = explode('.', bx_get_ver());
         if ((int)$iNumber > 10){
-            $sSubject = _t('_bx_messenger_notification_subject', BxDolProfile::getInstanceMagic($aEvent['owner_id'])->getDisplayName());
+            $sSubject = _t("_bx_messenger_notification_subject_{$sType}", BxDolProfile::getInstanceMagic($aEvent['owner_id'])->getDisplayName());
 
             $sAlterBody = $sTruncatedMessage;
             switch($aJotInfo[$CNF['FIELD_MESSAGE_AT_TYPE']]){
@@ -1403,22 +1435,39 @@ class BxMessengerModule extends BxBaseModTextModule
             bx_alert($this->_oConfig->getObject('alert'), 'got_jot', $iLotId, $this->_iUserId, array('recipient_id' => $iPart, 'subobject_id' => $iJotId));
     }
 
-    public function sendNotifications($iLotId, $iJotId, $aOnlineUsers = array())
+    public function sendNotifications($iLotId, $iJotId, $aOnlineUsers = array(), $aRecipients = array(), $sType = BX_MSG_NTFS_MESSAGE)
     {
+        $CNF = &$this->_oConfig->CNF;
         $aPartList = $this->_oDb->getParticipantsList($iLotId, true, $this->_iProfileId);
         if (empty($aPartList))
             return false;
 
-        $iNumber = (int)$this->_oConfig->CNF['MAX_NTFS_NUMBER'];
+        $iNumber = (int)$CNF['MAX_NTFS_NUMBER'];
         $iCount = $this->_oDb->getSentNtfsNumber($this->_iProfileId, $iLotId);
-        if ($iCount > $iNumber)
+
+        $bIsMention = ($sType == BX_MSG_NTFS_MENTION);
+        if ($iCount > $iNumber && !$bIsMention)
             return false;
 
-        foreach ($aPartList as $iKey => $iPart) {
+        if (!empty($aRecipients)){
+            $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
+            $aDiff = array_diff($aRecipients, $aPartList);
+
+            if (!empty($aDiff) && (int)$aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_PRIVATE) // in case if the mentioned profiles are not in the participants list
+                $aPartList = array_diff($aRecipients, $aDiff);
+            else
+                $aPartList = $aRecipients;
+        }
+
+        foreach ($aPartList as &$iPart) {
             if (array_search($iPart, $aOnlineUsers) !== FALSE || $this->_oDb->isMuted($iLotId, $iPart))
                     continue;
 
-            bx_alert($this->_oConfig->getObject('alert'), 'got_jot_ntfs', $iLotId, $this->_iProfileId, array('object_author_id' => $iPart, 'recipient_id' => $iPart, 'subobject_id' => $iJotId));
+            bx_alert($this->_oConfig->getObject('alert'), !$bIsMention ? 'got_jot_ntfs' : 'got_mention_ntfs', $iLotId, $this->_iProfileId, array(
+                'object_author_id' => $iPart,
+                'recipient_id' => $iPart,
+                'subobject_id' => $iJotId
+            ));
         }
 
         return true;
@@ -1429,6 +1478,7 @@ class BxMessengerModule extends BxBaseModTextModule
         $iProfileId = $iProfileId ? $iProfileId : $this->_iUserId;
         bx_alert($this->_oConfig->getObject('alert'), 'delete_jot', $iJotId, $this->_iUserId, array('author_id' => $iProfileId, 'lot_id' => $iLotId));
         bx_alert($this->_oConfig->getObject('alert'), 'delete_jot_ntfs', $iLotId, $iProfileId, array('subobject_id' => $iJotId));
+        bx_alert($this->_oConfig->getObject('alert'), 'delete_mention_ntfs', $iLotId, $iProfileId, array('subobject_id' => $iJotId));
     }
 
     public function onReactJot($iLotId, $iJotId, $iAuthor, $sAction = 'add')

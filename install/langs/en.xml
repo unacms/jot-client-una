@@ -146,7 +146,6 @@
 	<string name="_bx_messenger_txt_sample_comment_single"><![CDATA[message - <b>{0}</b>]]></string>
 	<string name="_bx_messenger_txt_sample_comment_file_single"><![CDATA[<b>{0} file(s) </b>]]></string>
 	<string name="_bx_messenger_max_ntfs_number"><![CDATA[Maximum notifications number per member from one Talk during 1 hour]]></string>
-	<string name="_bx_messenger_txt_subobject_added"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> sent a {subentry_sample}]]></string>
 	<string name="_bx_messenger_max_parts_views"><![CDATA[Allow to show messages' views for Talks which contain maximum defined number of participants]]></string>
 	<string name="_bx_messenger_allow_to_remove_messages"><![CDATA[Allow members to remove their messages]]></string>
 	<string name="_bx_messenger_remove_messages_immediately"><![CDATA[Remove messages immediately, without administration confirmation]]></string>
@@ -197,7 +196,6 @@
 	<string name="_bx_messenger_reactions_size"><![CDATA[Size of the emoji in reactions]]></string>
 	<string name="_bx_messenger_show_emoji_preview"><![CDATA[Show emoji preview with skin tones]]></string>
 	<string name="_bx_messenger_file_download"><![CDATA[Download file]]></string>
-	<string name="_bx_messenger_notification_subject"><![CDATA[Message from {0}]]></string>
 	<string name="_bx_messenger_txt_subobject_added_single"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> sent {subentry_sample}]]></string>
 	<string name="_bx_messenger_txt_sample_comment_giphy_single"><![CDATA[an animation]]></string>
 	<string name="_bx_messenger_txt_sample_email_push"><![CDATA[sent {0}]]></string>
@@ -246,5 +244,13 @@
 	<string name="_bx_messenger_public_vc_bx_organizations_message"><![CDATA[{0} meeting has been started]]></string>
 	<string name="_bx_messenger_push_vc_bx_persons_message_title"><![CDATA[Personal Video call]]></string>
 	<string name="_bx_messenger_public_vc_bx_persons_message"><![CDATA[Video call from {0}]]></string>
+	<string name="_bx_messenger_use_mentions"><![CDATA[Enable mentions in messages]]></string>
+	<string name="_bx_messenger_loading"><![CDATA[loading...]]></string>
+
+	<string name="_bx_messenger_notification_subject_message"><![CDATA[Message from {0}]]></string>
+	<string name="_bx_messenger_notification_subject_mention"><![CDATA[{0} mentioned You]]></string>
+	<string name="_bx_ntfs_alert_action_got_mention_ntfs_personal"><![CDATA[Mentions in Messenger]]></string>
+	<string name="_bx_messenger_txt_subobject_added_message"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> sent a {subentry_sample}]]></string>
+	<string name="_bx_messenger_txt_subobject_added_mention"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> mentioned you in a {subentry_sample}]]></string>
 
 </resources>

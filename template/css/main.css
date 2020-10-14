@@ -215,12 +215,11 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 	justify-content: center;
 	display:flex;
 	position:relative;
-	/*border:1px solid #dfdfdf;*/
 	border-radius: 0.7rem;
 	box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	-webkit-box-sizing: border-box;
-	line-height: normal
+	line-height: 1.46rem;
 }
 .bx-messenger-jots-message .bx-messenger-post-box-send-area
 {

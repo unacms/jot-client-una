@@ -37,8 +37,7 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_lots` (
    `author` int(11) unsigned NOT NULL default 0,
    `participants` text NOT NULL default '',
    `class` varchar(20) NOT NULL default 'custom', 
-   PRIMARY KEY  (`id`),
-   KEY `id_author` (`id`,`author`)
+   PRIMARY KEY  (`id`)
 );
 
 INSERT INTO `bx_messenger_lots` (`id`, `title`, `url`, `type`, `created`, `author`, `participants`, `class`) VALUES
@@ -70,9 +69,12 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_users_info` (
 
 CREATE TABLE IF NOT EXISTS `bx_messenger_unread_jots` (
    `lot_id` int(11) NOT NULL default 0,
-   `jot_id` int(11) NOT NULL default 0,
+   `first_jot_id` int(11) NOT NULL default 0,
+   `unread_count` int(11) NOT NULL default 0,
    `user_id` int(11) NOT NULL default 0,
-    UNIQUE KEY `id` (`lot_id`,`jot_id`,`user_id`)
+    UNIQUE KEY `id` (`lot_id`, `user_id`),
+    KEY `user` (`user_id`),
+    KEY `jot` (`jot_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `bx_messenger_jvc` (

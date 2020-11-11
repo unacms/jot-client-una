@@ -95,7 +95,8 @@ class BxMessengerConfig extends BxBaseModTextConfig
 
             // new messages table
             'FIELD_NEW_LOT' => 'lot_id',
-            'FIELD_NEW_JOT' => 'jot_id',
+            'FIELD_NEW_JOT' => 'first_jot_id',
+            'FIELD_NEW_UNREAD' => 'unread_count',
             'FIELD_NEW_PROFILE' => 'user_id',
 
             // users info fields

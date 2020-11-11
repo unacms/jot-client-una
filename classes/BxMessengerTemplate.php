@@ -72,40 +72,29 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$CNF = $this->_oConfig->CNF;
 		$aParams = array(
 			'content' => $sEmptyContent,
-			'id'	  => $iLotId,
+            'new_msg_active' => 'none',
+            'unread_count' => 0
 		);
 
-    	$iUnreadLotsJots = $this->_oDb->getUnreadJotsMessagesCount($iProfileId, $iLotId);
-		if ($iUnreadLotsJots && !$iJotId)
-			$iJotId = $this -> _oDb -> getFirstUnreadJot($iProfileId, $iLotId);
+        if ($iLotId){
+            $iUnreadLotsJots = $this->_oDb->getUnreadJotsMessagesCount($iProfileId, $iLotId);
+            if ($iUnreadLotsJots && !$iJotId)
+                $iJotId = $this -> _oDb -> getFirstUnreadJot($iProfileId, $iLotId);
 
-		$iLeftJots = 0;
-		if ($iJotId)
-			$iLeftJots = $this -> _oDb -> getLeftJots($iLotId, $iJotId);
-
-		$aParams['bx_if:show_scroll_area'] = array(
-				'condition' => $iJotId && $iLeftJots > (int)$CNF['MAX_JOTS_BY_DEFAULT']/2,
-				'content' => array(
-					'id' => $iLotId,
-					'bx_if:check_as_read' => array(
-						'condition' => $iUnreadLotsJots,
-						'content' => array()
-					)
-				)
-		);
-		
-		if ($iLotId){
-			$aOptions = array(
-								'lot_id' => $iLotId,
-								'limit' => $CNF['MAX_JOTS_BY_DEFAULT'],
-								'start' => $iJotId,
-								'display' => true,
-								'select' => true,
-                                'views' => true,
-                                'read' => true
-							 );
-						
-			$aParams['content'] = $this -> getJotsOfLot($iProfileId, $aOptions);
+			$aParams = array(
+			    'content' => $this -> getJotsOfLot($iProfileId,
+                    array(
+                            'lot_id' => $iLotId,
+                            'limit' => $CNF['MAX_JOTS_BY_DEFAULT'],
+                            'start' => $iJotId,
+                            'display' => true,
+                            'select' => true,
+                            'views' => true,
+                            'read' => $iUnreadLotsJots > (int)($CNF['MAX_JOTS_BY_DEFAULT']/2)
+                          )),
+                'new_msg_active' => $iUnreadLotsJots ? 'block' : 'none',
+                'unread_count' => $iUnreadLotsJots
+            );
 		}
 
 		BxDolSession::getInstance()->exists($iProfileId);
@@ -702,7 +691,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				$iTime = bx_time_js($aLatestJots[$CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_DATE);
 			}
 
-			$iUnreadJotsCount = $this->_oDb->getNewJots($iProfileId, true, $aLot[$CNF['FIELD_ID']]);
+			$iUnreadJotsCount = $this->_oDb->getNewJots($iProfileId, $aLot[$CNF['FIELD_ID']], true);
             $aVars['active'] = ($iSelectLotId === 0 && !$iKey) || $iSelectLotId == $aLot[$CNF['FIELD_ID']] ? 'active' : '';
 
             $aVars['class'] = $iUnreadJotsCount ? 'unread-lot' : '';
@@ -758,23 +747,23 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
      * @param $iExcludeProfile int exclude defined profile id from the list
      * @return bool|string
      */
-	public function getViewedJotProfiles($iJotId, $iExcludeProfile){
+	public function getViewedJotProfiles($iJotId, $iExcludeProfile = 0){
         $CNF = $this->_oConfig->CNF;
 	    $aJotInfo = $this -> _oDb -> getJotById($iJotId);
         if (empty($aJotInfo))
             return '';
 
-        $aResult = $aParticipants = $this -> _oDb -> getParticipantsList($aJotInfo[$CNF['FIELD_MESSAGE_FK']], true);
+        $aResult = $aParticipants = $this->_oDb->getParticipantsList($aJotInfo[$CNF['FIELD_MESSAGE_FK']], true);
         if ($CNF['MAX_VIEWS_PARTS_NUMBER'] < count($aResult))
             return '';
 
-        $aNewForProfiles = $this->_oDb->getForWhomJotIsNew($iJotId);
+        $aNewForProfiles = $this->_oDb->getForWhomJotIsNew($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iJotId);
         if (!empty($aNewForProfiles))
             $aResult = array_diff($aParticipants, $aNewForProfiles);
 
         $aIcons = array();
         foreach($aResult as &$iProfileId) {
-            if ($iExcludeProfile == $iProfileId)
+            if ($iExcludeProfile && $iExcludeProfile == $iProfileId)
                 continue;
 
             $aIcons[] = array(
@@ -826,17 +815,17 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				$iStart = current($aStartMiddleJot)[$CNF['FIELD_MESSAGE_ID']];
 		}
 		
-		$aJots = $this -> _oDb -> getJotsByLotId($aLotInfo[$CNF['FIELD_MESSAGE_ID']], $iStart, $sLoad, $iLimit, $bSelectJot && $iStart); //&& empty($aStartMiddleJot)
+		$aJots = $this->_oDb->getJotsByLotId($aLotInfo[$CNF['FIELD_MESSAGE_ID']], $iStart, $sLoad, $iLimit, $bSelectJot && $iStart); //&& empty($aStartMiddleJot)
 		if (empty($aJots))
 			return '';
 
 		$iJotCount = count($aJots);
-		$aVars['bx_repeat:jots'] = array(); 
+		$aVars['bx_repeat:jots'] = array();
+        $iFirstUnreadJot = $this->_oDb->getFirstUnreadJot($iProfileId, $iLotId);
 		foreach($aJots as $iKey => $aJot) {
             $oProfile = $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);
             $iJot = $aJot[$CNF['FIELD_MESSAGE_ID']];
 
-            $aNewFor = $this->_oDb->getForWhomJotIsNew($iJot);
             if ($oProfile) {
                 $sAttachment = $sMessage = '';
                 $bIsTrash = (int)$aJot[$CNF['FIELD_MESSAGE_TRASH']];
@@ -878,7 +867,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                     'title' => $oProfile->getDisplayName(),
                     'time' => bx_time_js($aJot[$CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_DATE_TIME),
                     'views' => $bShowViews && ($iJotCount - 1 == $iKey) ? $this->getViewedJotProfiles($iJot, $iProfileId) : '',
-                    'new' => (int)in_array($iProfileId, $aNewFor),
+                    'new' => (int)($iFirstUnreadJot && $iJot >= $iFirstUnreadJot),
                     'url' => $oProfile->getUrl(),
                     'immediately' => +$this->_oConfig->CNF['REMOVE_MESSAGE_IMMEDIATELY'],
                     'thumb' => $oProfile->getThumb(),
@@ -1030,6 +1019,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         };
 
         $bIsPushEnabled = (int)$iProfileId && $this->_oConfig->isOneSignalEnabled() && !getParam('sys_push_app_id');
+        $aUnreadJotsInfo = $this->_oDb->getNewJots($iProfileId, $iLotId);
+        $iStartJot = (int)$iJotId ? $iJotId : (int)$aUnreadJotsInfo[$CNF['FIELD_NEW_JOT']];
+        $bAttach = true;
+        if ($iStartJot)
+            $bAttach = $this->_oDb->getJotsNumber($iLotId, $iStartJot) < (int)$CNF['MAX_JOTS_BY_DEFAULT']/2;
+
         $aVars = array(
 			'profile_id' => (int)$iProfileId,
             'username' => $sUsername,
@@ -1038,14 +1033,17 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             'type' => $iType,
             'direction' => BxDolLanguages::getInstance()->getLangDirection(),
             'selected_profile' => (int)$iPersonToTalk,
-            'jot_id' => (int)$iJotId ? $iJotId : $this -> _oDb -> getFirstUnreadJot($iProfileId, $iLotId),
+            'jot_id' => $iStartJot,
 			'block_version' => +$bBlockVersion,
 			'server_url' => $this->_oConfig-> CNF['SERVER_URL'],
 			'message_length' => (int)$this->_oConfig->CNF['MAX_SEND_SYMBOLS'] ? (int)$CNF['MAX_SEND_SYMBOLS'] : 0,
 			'ip' => gethostbyname($aUrlInfo['host']),
 			'embed_template' => $sEmbedTemplate,
-			'max_history' => (int)$this->_oConfig->CNF['MAX_JOTS_BY_DEFAULT'],
+			'max_history' => (int)$CNF['MAX_JOTS_BY_DEFAULT'],
 			'jitsi_server' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER'], 'url'),
+			'last_unread_jot' => (int)$aUnreadJotsInfo[$CNF['FIELD_NEW_JOT']],
+			'unread_jots' => (int)$aUnreadJotsInfo[$CNF['FIELD_NEW_UNREAD']],
+			'allow_attach' => +$bAttach,
 			'reaction_template' => $this->parseHtmlByName('reaction.html', array(
 			    'emoji_id' => '__emoji_id__',
 			    'on_click' => 'oMessenger.onRemoveReaction(this);',

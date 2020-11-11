@@ -1242,6 +1242,57 @@ div.bx-messenger-hidden-jot
 	max-width:100%;
 }
 
+/* Popup scroll down arrow area begin */
+.bx-messenger-area-scroll
+{
+	width: 2rem;
+	height: 2rem;
+	border-radius: 1rem;
+	position: absolute;
+	bottom: 0.5rem;
+	right: 1.5rem;
+	display: none;
+}
+
+.bx-messenger-area-scroll .bx-messenger-history-arrow {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+
+.bx-messenger-area-scroll i {
+	font-size: 1.5rem;
+	line-height: 2rem;
+}
+
+.bx-messenger-area-scroll .bx-def-unit-alert {
+	top: -1rem;
+	right: initial;
+}
+
+.bx-messenger-area-scroll div
+{
+	display:flex;
+	font-weight:bold;
+	align-items:center;
+	text-align:center;
+	text-overflow:ellipsis;
+	background-color: rgba(74,144,226,0.8);
+	margin-left: 0.5rem;
+	margin-right: 0.5rem;
+	border-radius: 0.25rem;
+	height: 1.5rem;
+	color: white;
+}
+
+.bx-messenger-area-scroll div > span
+{
+	flex:1 1 auto;
+	position:relative;
+}
+/* Popup scroll down arrow area begin */
+
 /* Video Recording Area */
 div.bx-messenger-upload-area
 {

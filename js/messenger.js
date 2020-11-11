@@ -85,6 +85,7 @@
 		this.sJitsiButton = '#jitsi-button';
 		this.sJitsiJoinButton = '.bx-messenger-jots-message-vc-join-button';
 		this.sConversationBlockWrapper = '.bx-messenger-conversation-block-wrapper';
+		this.sUnreadJotsCounter = '#unread-jots-counter';
 
 		//global class options
 		this.oUsersTemplate	= null;
@@ -105,7 +106,7 @@
 		this.aJitisActiveUsers = {};
 		this.iHideUnreadBadge = 1000;
 		this.iRunSearchInterval = 500; // seconds
-		this.iMinHeightToStartLoading = 0; // scroll height to start history loading
+		this.iMinHeightToStartLoading = 5; // scroll height to start history loading
 		this.iMinTimeBeforeToStartLoadingPrev = 300; // 300 millseconds before to start loading history
 		this.iUpdateProcessedMedia = 30000; //  30 seconds to check updated media files
 		this.iTypingUsersTitleHide = 1000; //hide typing users div when users stop typing
@@ -148,6 +149,9 @@
 						};
 
 		this.iSelectedJot = oOptions.jot_id || 0;
+		this.iLastUnreadJot = oOptions.last_unread_jot || 0;
+		this.iUnreadJotsNumber = oOptions.unread_jots || 0;
+		this.bAllowAttachMessages = oOptions.allow_attach || 0;
 		this.iLotType = oOptions.type || 0;
 		this.iSelectedPersonToTalk = oOptions.selected_profile || 0;
 		this.isBlockMessenger = typeof oOptions.block_version !== 'undefined' ? oOptions.block_version : $(this.sLotsBlock).length === 0;
@@ -199,9 +203,12 @@
 
 	oMessenger.prototype.initLotSettings = function(oOptions){
 		const _this = this,
-			{ lot } = oOptions || {};
+			{ lot, jot, last_unread_jot, unread_jots } = oOptions || {};
 
-		this.oSettings.lot = +lot;
+		this.oSettings.lot = lot || 0;
+		this.iSelectedJot = jot || 0;
+		this.iLastUnreadJot = last_unread_jot || 0;
+		this.iUnreadJotsNumber = unread_jots || 0;
 
 		/* runs periodic to find not processed videos in chat history and replace them with processed videos */
 		setInterval(
@@ -213,25 +220,6 @@
 
 		this.initJotIcons(this.sTalkList);
 
-		// start to load history depends on scrolling position
-		$(_this.sTalkBlock).scroll(function(){
-			const isScrollAvail = $(this).prop('scrollHeight') > $(this).prop('clientHeight'),
-				isPrev = $(this).scrollTop() <= _this.iMinHeightToStartLoading,
-				isNew = ($(this).prop('scrollHeight') - $(this).scrollTop() - _this.iMinHeightToStartLoading == $(this).prop('clientHeight')) && $(_this.sScrollArea).is(':visible');
-
-			if ((isPrev || isNew) && isScrollAvail){
-				_this.iLoadTimout = setTimeout(function(){
-					_this.updateJots({
-						action: isPrev ? 'prev' : 'new',
-						position: isNew ? 'position' : undefined
-					});
-				}, _this.iMinTimeBeforeToStartLoadingPrev);
-			}
-			else
-				clearTimeout(_this.iLoadTimout);
-
-		}).waitForImages(() => _this.updateScrollPosition('bottom'));
-
 		_this.checkNotFinishedTalks();
 		_this.initHeaderButtons();
 
@@ -240,6 +228,85 @@
 		else
 			_this.blockSendMessages(false);
 	};
+
+	oMessenger.prototype.initScrollArea = function() {
+		const _this = this;
+		let aReadJots = [];
+		let iBottomScreenPos = $(_this.sTalkBlock).scrollTop() + $(_this.sTalkBlock).innerHeight();
+		let bStartLoading = !(_this.iLastUnreadJot || _this.iSelectedJot);
+		let iCounterValue = +$(_this.sUnreadJotsCounter).text();
+		let iUpdateCounter = null;
+
+		$(_this.sTalkBlock).scroll(function(){
+			const isScrollAvail = $(this).prop('scrollHeight') > $(this).prop('clientHeight'),
+				iScrollHeight = $(this).prop('scrollHeight') - $(this).prop('clientHeight'),
+				iScrollPosition = $(this).prop('scrollHeight') - $(this).prop('clientHeight') - $(this).scrollTop(),
+				iPassPixelsToStart = isScrollAvail ? _this.iMinHeightToStartLoading/100 * $(this).prop('clientHeight') * iScrollHeight/$(this).prop('clientHeight') : 0,
+				isTopPosition = $(this).scrollTop() <= iPassPixelsToStart,
+				isBottomPosition = $(this).scrollTop() > ($(this).prop('scrollHeight') - $(this).prop('clientHeight') - iPassPixelsToStart);
+
+			if (!isScrollAvail)
+				return;
+
+			iBottomScreenPos = $(_this.sTalkBlock).scrollTop() + $(_this.sTalkBlock).innerHeight();
+			if (_this.iLastUnreadJot) {
+
+				iCounterValue = +$(_this.sUnreadJotsCounter).text();
+				$(_this.sTalkListJotSelector).each(function () {
+					const iId = +$(this).data('id');
+					const { top } = $(this).position();
+					const iJotBottomPos = top + $(this).innerHeight();
+
+					if (iId < _this.iLastUnreadJot)
+						return;
+
+					if (iId > _this.iLastUnreadJot && iJotBottomPos <= iBottomScreenPos) {
+						aReadJots.push(iId);
+						$(_this.sUnreadJotsCounter).text(--iCounterValue);
+						if (!iCounterValue)
+							$(_this.sUnreadJotsCounter).hide();
+
+						clearTimeout(iUpdateCounter);
+					}
+				});
+
+				if (aReadJots.length && _this.iLastUnreadJot !== aReadJots[aReadJots.length - 1]) {
+					_this.iLastUnreadJot = aReadJots[aReadJots.length - 1];
+					iUpdateCounter = setTimeout(() => {
+						if (document.hasFocus()) {
+							_this.broadcastView(_this.iLastUnreadJot);
+							_this.updateCounters(iCounterValue);
+						}
+					}, 1000);
+				}
+			}
+
+			if (!isBottomPosition && !isTopPosition && bStartLoading)
+				bStartLoading = false;
+
+			if (iScrollPosition <= $(_this.sTalkListJotSelector).last().height() && !iCounterValue)
+				$(_this.sScrollArea).fadeOut();
+			else
+				$(_this.sScrollArea).fadeIn();
+
+			if ((isBottomPosition || isTopPosition)){
+				if (!bStartLoading) {
+					bStartLoading = true;
+					_this.iLoadTimout = setTimeout(
+						function () {
+							_this.updateJots({
+								action: isTopPosition ? 'prev' : 'new',
+								position: isBottomPosition ? 'freeze' : 'top',
+								last_viewed_jot: _this.iLastUnreadJot
+							});
+						}, _this.iMinTimeBeforeToStartLoadingPrev);
+				}
+			}
+			else
+				clearTimeout(_this.iLoadTimout);
+
+		});
+	}
 
 	oMessenger.prototype.loadTalkFiles = function(oBlock, iCount, fCallback) {
 		bx_loading(oBlock, true);
@@ -809,7 +876,7 @@
 	}
 	
 	oMessenger.prototype.viewJot = function(iJotId){
-		var _this = this,
+		const _this = this,
 			oObject = $(_this.sJotMessage, $('div[data-id="' + iJotId + '"]', _this.sTalkList));
 		
 		if (!oObject)
@@ -1338,11 +1405,7 @@
 			.find('> div')
 			.removeClass('bx-def-font-semibold')
 			.find('div')
-			.removeClass('bx-def-font-extrabold')
-			.end()
-			.find(this.sBubble)
-			.fadeOut(this.iHideUnreadBadge)
-			.end();	
+			.removeClass('bx-def-font-extrabold');
 	}
 	
 	/**
@@ -1394,18 +1457,42 @@
 	};
 
     oMessenger.prototype.markJotsAsRead = function(iLotId, fCallback){
-        $.post('modules/?r=messenger/mark_jots_as_read', {lot:iLotId}, function(oData){
+        $.post('modules/?r=messenger/mark_jots_as_read', { lot: iLotId }, function(oData){
             if (!parseInt(oData.code) && typeof fCallback === 'function')
                 fCallback();
         }, 'json');
     };
 
+    oMessenger.prototype.updateCounters = function(iNumber, bForceUpdate = false){
+		const oCounter = $(`${this.sLotSelector}[data-lot="${this.oSettings.lot}"] ${this.sBubble}`);
+		const iCounter = bForceUpdate ? iNumber : +$(this.sUnreadJotsCounter).text();
+
+		if (iCounter)
+			oCounter.show().text(iCounter);
+		else
+		{
+			oCounter.hide();
+			$(this.sUnreadJotsCounter).hide();
+		}
+
+		if (bForceUpdate) {
+			$(this.sUnreadJotsCounter).text(iCounter);
+			if (iCounter)
+				$(this.sUnreadJotsCounter).show();
+		}
+
+		if (!$(this.sUnreadJotsCounter).is(':visible'))
+			oCounter.hide();
+
+		this.iUnreadJotsNumber = iCounter;
+	}
+
     oMessenger.prototype.broadcastView = function(iJotId){
-		const oJot = $(this.sTalkListJotSelector).last();
-    	const iJot = iJotId ? iJotId : oJot.data('id');
+		const iJot = iJotId ? iJotId : (this.iLastUnreadJot ? this.iLastUnreadJot : $(this.sTalkListJotSelector).last().data('id'));
+		const oJot = $(`[data-id="${iJot}"]`, this.sTalkList);
 
 		if (!+oJot.data('my') && +oJot.data('new')) {
-			$.get('modules/?r=messenger/viewed_jot', { jot_id: iJot });
+			$.get('modules/?r=messenger/viewed_jot', { jot_id: iJot }, ({ unread_jots }) => this.updateCounters(unread_jots, true), 'json');
 
 			oJot.data('new', 0);
 
@@ -1419,23 +1506,23 @@
     };
 
 	/**
-	* Load history for selected lot
-	*@param int iLotId lot id
-	*@param int iJotId jot id
-	*@param bool bDontChangeCol don't change columns on mobile version 
-	*@param bool bMarkAllAsRead allows to mark all the unread messages as read
-	*@param function oCallback is called when history is loaded
-	*@param object el selected lot
-	*/
-	oMessenger.prototype.loadTalk = function(iLotId, iJotId, bDontChangeCol, bMarkAllAsRead, fCallback){
-		const _this = this,
-			oLotBlock = $(this.sLotSelector + '[data-lot="' + iLotId + '"]');
-				
-		if (!iLotId) 
+	 * Load history for selected lot
+	 * @param iLotId
+	 * @param iJotId
+	 * @param bDontChangeCol
+	 * @param fCallback
+	 * @param bMarkAsRead
+	 */
+	oMessenger.prototype.loadTalk = function(iLotId, iJotId, bDontChangeCol, fCallback, bMarkAsRead){
+		if (!iLotId && !this.oSettings.lot)
 			return;
 
-        _this.selectLotEmit(oLotBlock);
+		iLotId = iLotId || this.oSettings.lot;
 
+		const _this = this,
+			oLotBlock = $(`[data-lot="${iLotId}"]${this.sLotSelector}`);
+
+        _this.selectLotEmit(oLotBlock);
         if (_this.isActiveLot(iLotId) && _this.isMobile() && !bDontChangeCol)
 		{
 			_this.oJotWindowBuilder.changeColumn();
@@ -1454,25 +1541,25 @@
 		}
 
     	bx_loading($(this.sMainTalkBlock), true);
-		$.post('modules/?r=messenger/load_talk', { lot_id: iLotId, jot_id: iJotId, mark_as_read:+bMarkAllAsRead }, function(oData)
+		$.post('modules/?r=messenger/load_talk', { lot_id: iLotId, jot_id: iJotId, mark_as_read: +bMarkAsRead }, function({ title, history, header, code, unread_jots, last_unread_jot })
 		{
 			bx_loading($(_this.sMainTalkBlock), false);
-			if (parseInt(oData.code) === 1)
+			if (+code === 1)
 				window.location.reload();
 			else
-			if (!parseInt(oData.code))
+			if (!+code)
 			{
 					$(_this.sJotsBlock)
 						.find('.bx-db-header')
-						.replaceWith(oData.header)
+						.replaceWith(header)
 						.end()
 						.find('.history')
-						.replaceWith(oData.history)
+						.replaceWith(history)
 						.end()
 						.show(
 							function()
 							{
-								if (_this.oJotWindowBuilder !== undefined) {
+								if (_this.oJotWindowBuilder) {
 									if (!bDontChangeCol)
 										_this.oJotWindowBuilder.changeColumn();
 									else
@@ -1480,9 +1567,12 @@
 								}
 
 								_this.updateLotSettings({
-									lot: iLotId
+									lot: iLotId,
+									last_unread_jot,
+									unread_jots
 								});
 
+								_this.updateCounters(unread_jots, true);
 								_this.updatePageIcon(undefined, iLotId);
 							}
 						)
@@ -1492,24 +1582,26 @@
 							{
 								if (typeof fCallback == 'function')
 									fCallback();
-								else
-								if ($(_this.sSelectedJot, _this.sTalkList).length === 1)
-									_this.updateScrollPosition('position', 'slow', $(_this.sSelectedJot, _this.sTalkList),
+
+								if ($(_this.sSelectedJot, _this.sTalkList).length)
+									_this.updateScrollPosition('center', 'fast', $(_this.sSelectedJot, _this.sTalkList),
 										function(){
 											$(_this.sScrollArea).fadeIn('slow');
 										});
 								else
 									_this.updateScrollPosition('bottom');
+
+								_this.initScrollArea();
 							});
 
-					if (typeof oData.title !== 'undefined')
-						$(document).prop('title', oData.title);
+					if (typeof title !== 'undefined')
+						$(document).prop('title', title);
 
 					_this.setUsersStatuses(oLotBlock);
 
 					_this.blockSendMessages();
 
-					if (parseInt($(_this.sTalkListJotSelector).last().data('new')))
+					if (parseInt($(_this.sTalkListJotSelector).last().data('new')) && !_this.iLastUnreadJot)
                         _this.broadcastView();
 
 					/* ----  End ---- */
@@ -1593,7 +1685,7 @@
 		if (oParams.message.length > this.iMaxLength) 
 			oParams.message = oParams.message.substr(0, this.iMaxLength);
 
-		if (oParams.message || oParams.files.length || (typeof oParams.giphy !== 'undefined' && oParams.giphy.length))
+		if ((oParams.message || oParams.files.length || (typeof oParams.giphy !== 'undefined' && oParams.giphy.length)) && _this.bAllowAttachMessages)
 		{
 			// append content of the message to the history page
 			$(_this.sTalkList)
@@ -1614,9 +1706,8 @@
 			_this.initJotIcons('[data-tmp="' + oParams.tmp_id + '"]');
 		}
 
-		if ($(_this.sScrollArea).length)
-			_this.loadTalk(oParams.lot);
-		else
+
+		if (!+$(_this.sUnreadJotsCounter).text())
 			_this.updateScrollPosition('bottom');
 
 		// save message to database and broadcast to all participants
@@ -1835,7 +1926,7 @@
 							if (!bSilentMode)
 								$(_this).trigger(jQuery.Event('message'));
 						
-							if (_this.isActiveLot(lot) && !_this.isMobile() && !$(_this.sScrollArea).length)
+							if (_this.isActiveLot(lot) && !_this.isMobile())
 								_this.selectLotEmit($(oNewLot));
 						}
 					}
@@ -1957,14 +2048,12 @@
 			  iClient = $(this.sTalkBlock).prop('clientHeight'),
 			  _this = this;
 
-		const isScrollAvail = iHeight > iClient;
-		if (isScrollAvail){
+		if (iHeight > iClient){
 			const iCurrentScrollHeight = iHeight - iClient;
 			const iCurrentScrollPos = $(_this.sTalkBlock).scrollTop();
 
 			if ((iCurrentScrollHeight - iCurrentScrollPos) > iClient)
 				return false;
-
 		}
 
 		return true;
@@ -1976,27 +2065,39 @@
 	*@param object oObject any history item near which to place the scroll 
 	*@param function fCallback executes when scrolling complete
 	*/
-	oMessenger.prototype.updateScrollPosition = function(sPosition, sEff, oObject, fCallback){
+	oMessenger.prototype.updateScrollPosition = function(sPosition, sEff, mixedObject, fCallback){
 		const sEffect = sEff,
-			  iHeight = $(this.sTalkBlock).prop('scrollHeight')
-			  _this = this;
+			  iHeight = $(this.sTalkBlock).prop('scrollHeight');
 
 		let iPosition = 0;
 		switch(sPosition){
 			case 'top':
-					iPosition = 0;
+					const { pos } = mixedObject || {};
+					iPosition = pos ? pos : 0;
 					break;
 			case 'bottom':
 					iPosition = iHeight;
 					break;
 			case 'position':
-					iPosition = typeof oObject !== 'undefined' ? oObject.position().top : 0;
+					iPosition = typeof mixedObject !== 'undefined' ? mixedObject.position().top : 0;
+					break;
+			case 'center':
+					iPosition = mixedObject.position().top - $(this.sTalkBlock).prop('clientHeight')/2;
+					break;
+			case 'freeze':
+					iPosition = $(this.sTalkBlock).scrollTop();
 					break;
 		}
 
-		$(this.sTalkBlock).animate({
+		if (sEffect !== 'slow') {
+			$(this.sTalkBlock).scrollTop(iPosition);
+			if (typeof fCallback === 'function')
+				fCallback ();
+		}
+		else
+			$(this.sTalkBlock).animate({
 											scrollTop: iPosition,
-										 }, sEffect == 'slow' ? _this.iScrollDownSpeed : 0,
+										 }, sEffect === 'slow' ? _this.iScrollDownSpeed : 0,
 										 typeof fCallback === 'function' ? fCallback : function(){});
 	}
 	
@@ -2066,27 +2167,17 @@
 	*/
 	oMessenger.prototype.updateJots = function(oAction, bSilentMode = false){
 		const _this = this,
-			sAction = typeof oAction.addon === 'string' ? oAction.addon : (oAction.action !== 'msg' ? oAction.action : 'new'),
-			sPosition = oAction.position || (sAction === 'new' ? 'bottom' : 'position'),
+			{ addon, position, action, last_viewed_jot, callback } = oAction,
+			sAction = typeof addon === 'string' ? addon : (action !== 'msg' ? action : 'new'),
+			sPosition = position || (sAction === 'new' ? 'bottom' : 'position'),
 			oObjects = $(this.sTalkListJotSelector);
 
-			let	iJotId = 0;
-			if (oAction.action === 'msg' && $(_this.sScrollArea).length)
-				return;
-						
+			let	iRequestJot = 0, iJotId = 0;
 			if ((sAction === 'new' || sAction === 'prev') && _this.iPanding)
 				return;
 					
 			switch(sAction)
 			{
-				case 'prev':
-						iJotId = oObjects
-									.first()
-									.data('id');
-						
-						_this.iPanding = true;
-						bx_loading($(this.sTalkBlock), true);
-						break;
 				case 'check_viewed':
 				case 'reaction':
 				case 'delete':
@@ -2094,81 +2185,93 @@
 				case 'vc':
 						iJotId = oAction.jot_id || 0;
 						break;
+				case 'prev':
+					iJotId = oObjects
+						.first()
+						.data('id');
+
+					_this.iPanding = true;
+					break;
+				case 'new':
+					iRequestJot = (typeof addon === 'object' && typeof addon.jot_id !== 'undefined' ? addon.jot_id : 0);
 				default:
-						iJotId = oObjects
-									.last()
-									.data('id');
+					iJotId = oObjects
+						.last()
+						.data('id');
 									
-						_this.iPanding = true;
-						break;
+					_this.iPanding = true;
+					break;
 			}
 
 			const iLotId = _this.oSettings.lot; // additional check for case when ajax request is not finished yet but another talk is selected
+
+			if (!iRequestJot && (_this.iSelectedJot || _this.iLastUnreadJot))
+				bx_loading($(`[data-id="${iJotId}"]${_this.sJot}`), true);
+
 			$.post('modules/?r=messenger/update',
 			{
 				url: this.oSettings.url,
 				jot: iJotId,
 				lot: this.oSettings.lot,
-				load: sAction
+				load: sAction,
+				req_jot: iRequestJot,
+				focus: +document.hasFocus(),
+				last_viewed_jot
 			},
 			function(oData)
 			{
+				bx_loading($(`[data-id="${iJotId}"]${_this.sJot}`), false);
 				const oList = $(_this.sTalkList);
+				const { html, unread_jots, code, last_unread_jot, allow_attach } = oData;
+
+				_this.iPanding = false;
 				if (iLotId !== _this.oSettings.lot)
 						return ;
 
-				_this.iPanding = false;
-				if (!parseInt(oData.code))
+				if (!parseInt(code))
 				{
-						if (iJotId === undefined)
+					if (iJotId === undefined)
 							oList.html('');	
 										
 						switch(sAction)
 						{
-                            case 'new':
-									if (!oData.html.length)
-									{
-										if ($(_this.sScrollArea).is(':visible'))
-											$(_this.sScrollArea).fadeOut('slow', function(){
-												$(this).remove();
-											});
-										
-										return ;
-									}
+							case 'new':
+									_this.updateCounters(unread_jots, true);
+									if (last_unread_jot && (!_this.iLastUnreadJot || _this.iLastUnreadJot < last_unread_jot))
+										_this.iLastUnreadJot = last_unread_jot;
 
-									const bMoveTo = _this.isViewInBottomPosition();
-									$(oData.html)
-									.filter(_this.sJot)
-									.each(function(){
+									_this.bAllowAttachMessages = allow_attach;
+									if (!html.length)
+										return ;
+
+									$(html)
+										.filter(_this.sJot)
+										.each(function(){
 											if ($('div[data-id="' + $(this).data('id') + '"]', oList).length)
 												$(this).remove();
 
-											const oJotView = $(_this.sJotMessageViews, this);
-                                            if (oJotView.length) {
-												oJotView
-													.find('img')
+												$(`${_this.sJotMessageViews} img`, this)
 													.each(function(){
-														$(`${_this.sJot} ${_this.sJotMessageViews} img[data-viewer-id="${$(this).data('viewer-id')}"]`).remove();
+														$(`${_this.sJot} ${_this.sJotMessageViews} img[data-viewer-id="${$(this).data('viewer-id')}"]`).remove()
 													})
 													.end()
+													.closest(_this.sJotMessageViews)
 													.fadeIn();
-											}
 										})
 									.appendTo(oList)
 									.waitForImages(
 										function()
 										{
-											if (bMoveTo)
-												_this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'slow', oObjects.last());
+											_this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'fast', oObjects.last());
 										});
 
 									if ((_this.isBlockVersion() || (_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive())) && !bSilentMode)  /* play sound for jots only on mobile devices when chat area is active */
 										$(_this).trigger(jQuery.Event('message'));
 
-									if ($(_this.sTalkListJotSelector).length > _this.iMaxHistory && bMoveTo)
+									if ($(_this.sTalkListJotSelector).length > _this.iMaxHistory && iRequestJot)
 									{
 										let iCountToRemove = $(_this.sTalkListJotSelector).length - _this.iMaxHistory;
-										while(iCountToRemove > 0 && iCountToRemove-- > 0){
+										while(iCountToRemove-- > 0){
 											$(_this.sTalkListJotSelector).first().remove();
 										}
 									}
@@ -2176,18 +2279,19 @@
 									break;
 							case 'prev':
 								oList
-									.prepend(
-										$(oData.html)
-											.waitForImages(() => {
-												_this.updateScrollPosition(sPosition, 'fast', oObjects.first())
-											})
-									);
+									.prepend(html)
+									.waitForImages(() => {
+										const iId = oObjects.first().data('id');
+										const iTop = $(`[data-id="${iId}"]${_this.sJot}`).position().top || 0;
+										if (iTop)
+											_this.updateScrollPosition('top', 'fast', { pos: iTop });
+									})
 
 								break;
 							case 'edit':
 							case 'vc':
 									$('div[data-id="' + iJotId + '"] ' + _this.sJotMessage, oList)
-										.html(oData.html)
+										.html(html)
 										.parent()
 										.bxTime();// don't update attachment for message and don't broadcast as new message
 								return;
@@ -2196,10 +2300,10 @@
 												$(this).remove();
 												_this.updateScrollPosition('bottom');
 											};
-									if (oData.html.length)
+									if (html.length)
 									{
 											$('div[data-id="' + iJotId + '"] ' + _this.sJotMessage, oList)
-											.html(oData.html)
+											.html(html)
 											.parent()
 											.linkify(true, true)
 											.find(_this.sAttachmentArea)
@@ -2213,7 +2317,7 @@
 									}
 									break;
 							case 'check_viewed':
-							    const aUsers = $(oData.html).filter('img');
+							    const aUsers = $(html).filter('img');
 
 								if (aUsers.length) {
     							    aUsers.each(function(){
@@ -2222,14 +2326,14 @@
 									});
 
 									return $(`div[data-id="${iJotId}"] ${_this.sJotMessageViews}`, oList)
-										.html(oData.html)
+										.html(html)
 										.fadeIn();
 								}
 								break;
 							case 'reaction':
 									let iOriginalCount = 0;
 								
-									$(oData.html)
+									$(html)
 										.each(function(){
 										iOriginalCount += $(this).data('count');
 									});
@@ -2247,9 +2351,9 @@
 									$('> span', oReaction).remove();
 
 									oReaction
-										.prepend(oData.html);
+										.prepend(html);
 
-									if (oData.html.length)
+									if (html.length)
 										$(_this.sReactionMenu, oReaction).fadeIn();
 									else
 										$(_this.sReactionMenu, oReaction).fadeOut();
@@ -2265,6 +2369,8 @@
 								})
 							.bxTime();
 
+					if (typeof callback === 'function')
+						callback();
 				}
 							
 				if (sAction === 'prev')
@@ -2624,7 +2730,7 @@
 	 * @param sDirection set which browser version to use RTL or LTR
 	 * @param object oBuilder page builder class
 	 */
-	oMessenger.prototype.initMessengerPage = function() {
+	oMessenger.prototype.initMessengerPage = function(fCallback) {
 		const _this = this;
 		_this.oJotWindowBuilder = window.oJotWindowBuilder;
 		if (typeof oMessengerMemberStatus !== 'undefined') {
@@ -2646,13 +2752,21 @@
 
 				_this.oJotWindowBuilder.resizeWindow(() => {
 					$(_this.sTalkList).waitForImages(() => {
-						if ($(_this.sSelectedJot, _this.sTalkList).length === 1)
-							_this.updateScrollPosition('position', 'slow', $(_this.sSelectedJot, _this.sTalkList),
-								function () {
-									$(_this.sScrollArea).fadeIn('slow');
+						if ($(_this.sSelectedJot, _this.sTalkList).length)
+							_this.updateScrollPosition('center', 'fast', $(_this.sSelectedJot, _this.sTalkList),
+								function(){
+									$(_this.sScrollArea).fadeIn('slow', () => {
+										if (typeof fCallback === 'function')
+											fCallback();
+									});
 								});
 						else
-							_this.updateScrollPosition('bottom');
+							_this.updateScrollPosition('bottom', undefined, undefined, () => {
+								if (typeof fCallback === 'function')
+									fCallback();
+							});
+
+						_this.selectLotEmit($(`[data-lot="${_this.oSettings.lot}"]${_this.sLotSelector}`));
 					});
 				});
 			});
@@ -2800,7 +2914,7 @@
 			if (typeof _oMessenger.oRTWSF !== 'undefined' && _oMessenger.oRTWSF.isInitialized()) {
 
 				$(window).on('beforeunload', function () {
-					if (_oMessenger.oRTWSF != undefined)
+					if (_oMessenger.oRTWSF !== undefined)
 						_oMessenger.oRTWSF.end({
 							user_id: oOptions.user_id
 						});
@@ -2849,19 +2963,31 @@
 
 			// init tex area
 			_oMessenger.initTextArea();
+			const oInitParams = {
+									lot: oOptions.lot,
+									jot: oOptions.jot_id,
+									last_unread_jot: oOptions.last_unread_jot,
+									unread_jots: oOptions.unread_jots,
+									allow_attach: oOptions.allow_attach
+								};
 
 			if (!_oMessenger.isBlockVersion())
-				_oMessenger.initMessengerPage();
-
-			// init Talks settings
-			_oMessenger.updateLotSettings({ lot: oOptions.lot });
+				_oMessenger.initMessengerPage(() => {
+					_oMessenger.updateLotSettings(oInitParams);
+					_oMessenger.initScrollArea();
+				});
+			else {
+				_oMessenger.updateLotSettings(oInitParams); // init Talks settings
+				_oMessenger.initScrollArea();
+			}
 
 			// attach on ESC button return from create talk area
 			$(document).on('keydown', function(e){
 				const { keyCode } = e;
 				if (keyCode === 27 && $(e.target).prop('id') === _oMessenger.sUserSelectorInput.substr(1)) {
-					if ($(`${_oMessenger.sLotsListSelector}.active`).length)
-						$(`${_oMessenger.sLotsListSelector}.active`).click();
+					const oSelector = $(`${_oMessenger.sLotsListSelector}.active`);
+					if (oSelector.length)
+						oSelector.click();
 					else
 						$(_oMessenger.sLotsListSelector).first().click();
 				}
@@ -2875,7 +3001,7 @@
 				_oMessenger.broadcastView();
 			});
 
-			if ((+oOptions.selected_profile || +oOptions.jot_id) && _oMessenger.oJotWindowBuilder !== undefined && _oMessenger.isMobile())
+			if ((+oOptions.selected_profile || +oOptions.jot_id) && _oMessenger.oJotWindowBuilder && _oMessenger.isMobile())
 				_oMessenger.oJotWindowBuilder.changeColumn('right');
 
 			/* Init connector settings end */
@@ -2893,12 +3019,23 @@
 		initTextArea: function () {
 			_oMessenger.initTextArea();
 		},
-		// init public methods
-		loadTalk: function (iLotId, bMakeAllAsRead) {
-			_oMessenger.loadTalk(iLotId, undefined, false, !!bMakeAllAsRead);
+		loadTalk: function (iLotId/*, bMakeAllAsRead*/) {
+			_oMessenger.loadTalk(iLotId, undefined, false/*, !!bMakeAllAsRead*/);
 			if (typeof _oMessenger.oHistory.pushState === 'function') {
-				let oHistory = {'lot': iLotId};
-				_oMessenger.oHistory.pushState(oHistory, null);
+				_oMessenger.oHistory.pushState({ lot : iLotId }, null);
+			}
+			return this;
+		},
+		onScrollDown: function () {
+			const { iUnreadJotsNumber, iMaxHistory, iSelectedJot, sUnreadJotsCounter, oSettings: { lot } } = _oMessenger;
+			if (iMaxHistory >= iUnreadJotsNumber && !iSelectedJot)
+				_oMessenger.updateScrollPosition('bottom', 'fast');
+			else
+			{
+				_oMessenger.loadTalk(lot, undefined, undefined, undefined, true);
+				$(sUnreadJotsCounter)
+					.text('')
+					.hide();
 			}
 			return this;
 		},
@@ -2973,7 +3110,7 @@
 			}
 
 			try {
-				if (oData.lot === _oMessenger.oSettings.lot)
+				if (+oData.lot === +_oMessenger.oSettings.lot)
 					_oMessenger.updateJots(oData, bSilent);
 
 				if (oData.type === 'vc' && +oData.lot)

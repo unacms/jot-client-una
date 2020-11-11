@@ -23,22 +23,11 @@
 						</div>
 				  </div>
 				</div>
-		<bx_if:show_scroll_area>
-			<div class="bx-messenger-area-scroll bx-def-font-light bx-def-font-small">
-				<div>
-					<span>
-						<a href="javascript:void(0);" onclick="oMessenger.loadTalk(__id__, $('#mark_all_as_read').is(':checked'));">
-							<span><bx_text:_bx_messenger_jump_to_the_bottom /></span>
-						</a>
-						<bx_if:check_as_read>
-							<label class="checkcontainer" title="<bx_text:_bx_messenger_mark_all_as_read />">
-								<input name="mark_all_as_read" value="text" id="mark_all_as_read" class="bx-def-font-inputs bx-form-input-checkbox" type="checkbox" />
-								<span class="checkmark"></span>
-							</label>
-						</bx_if:check_as_read>
-					</span>
-				</div>
+			<div class="bx-messenger-area-scroll bx-def-border bx-def-color-bg-box-active" onclick="oMessenger.onScrollDown();">
+				<span class="bx-messenger-history-arrow">
+					<span id="unread-jots-counter" class="bx-menu-item-addon bx-def-unit-alert bg-col-red2" style="display:__new_msg_active__">__unread_count__</span>
+					<i class="sys-icon chevron-down"></i>
+				</span>
 			</div>
-		</bx_if:show_scroll_area>
 	</div>
 </div>

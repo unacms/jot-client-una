@@ -303,17 +303,21 @@ class BxMessengerModule extends BxBaseModTextModule
         $iLotId = (int)bx_get('lot_id');
         $iJotId = (int)bx_get('jot_id');
 
-        if (!$this->isLogged() || !$iLotId || !$this->_oDb->isParticipant($iLotId, $this->_iUserId)) {
+        if (!$this->isLogged() || !$iLotId || !$this->_oDb->isParticipant($iLotId, $this->_iProfileId)) {
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
         };
 
         if ((int)bx_get('mark_as_read'))
-            $this->_oDb->readAllMessages($iLotId, $this->_iUserId);
+            $this->_oDb->readAllMessages($iLotId, $this->_iProfileId);
 
+        $CNF = &$this->_oConfig->CNF;
+        $aUnreadJots = $this->_oDb->getNewJots($this->_iProfileId, $iLotId);
         $aVars = array(
             'code' => 0,
-            'header' => $this->_oTemplate->getTalkHeader($iLotId, $this->_iUserId),
-            'history' => $this->_oTemplate->getHistory($this->_iUserId, $iLotId, $iJotId, MsgBox(_t('_bx_messenger_what_do_think')))
+            'header' => $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId),
+            'history' => $this->_oTemplate->getHistory($this->_iProfileId, $iLotId, $iJotId, MsgBox(_t('_bx_messenger_what_do_think'))),
+            'last_unread_jot' => !empty($aUnreadJots) ? (int)$aUnreadJots[$CNF['FIELD_NEW_JOT']] : 0,
+            'unread_jots' => !empty($aUnreadJots) ? (int)$aUnreadJots[$CNF['FIELD_NEW_UNREAD']] : 0
         );
 
         echoJson($aVars);
@@ -330,15 +334,19 @@ class BxMessengerModule extends BxBaseModTextModule
     }
 
     public function actionViewedJot(){
-        $iJotId = bx_get('jot_id');
+        $iJotId = (int)bx_get('jot_id');
         $aJotInfo = $this->_oDb->getJotById($iJotId);
-       if (empty($aJotInfo) || !$this->isLogged() || !$this->_oDb->isParticipant($aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE_FK']], $this->_iProfileId))
+        $aLotInfo = $this->_oDb->getLotByJotId($iJotId, false);
+        $CNF = &$this->_oConfig->CNF;
+
+        if (empty($aJotInfo) || !$this->isLogged() || ($aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_PRIVATE && !$this->_oDb->isParticipant($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iProfileId)))
             return echoJson(array('code' => 1));
 
         $this->_oDb->readMessage($iJotId, $this->_iProfileId);
-        $this->_oDb->markNotificationAsRead($this->_iProfileId, $aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE_FK']]);
+        $this->_oDb->markNotificationAsRead($this->_iProfileId, $aJotInfo[$CNF['FIELD_MESSAGE_FK']]);
+        $iUnreadJotsNumber = $this->_oDb->getUnreadJotsMessagesCount($this->_iProfileId, $aJotInfo[$CNF['FIELD_MESSAGE_FK']]);
 
-        echoJson(array('code' => 0));
+        echoJson(array('code' => 0, 'unread_jots' => $iUnreadJotsNumber));
     }
 
     /**
@@ -424,9 +432,13 @@ class BxMessengerModule extends BxBaseModTextModule
         $iJot = (int)bx_get('jot');
         $iLotId = (int)bx_get('lot');
         $sLoad = bx_get('load');
+        $isFocused = (bool)bx_get('focus');
+        $iRequestedJot = (int)bx_get('req_jot');
+        $iLastViewedJot = (int)bx_get('last_viewed_jot');
+        $bUpdateHistory = true;
 		if ($sLoad == 'new' && !(int)$iJot)
 		{
-            $aMyLatestJot = $this->_oDb->getLatestJot($iLotId, $this->_iUserId);
+            $aMyLatestJot = $this->_oDb->getLatestJot($iLotId, $this->_iProfileId);
             if (empty($aMyLatestJot))
                 return echoJson(array('code' => 1));
             else
@@ -435,20 +447,39 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $sUrl = $sUrl ? $this->getPreparedUrl($sUrl) : '';
         $sContent = '';
+        $iUnreadJotsNumber = 0;
+        $iLastUnreadJotId = 0;
+        $bAttach = true;
 		switch($sLoad)
 		{
             case 'new':
+                if ($iRequestedJot) {
+                    if ($this->_oDb->getJotsNumber($iLotId, $iJot, $iRequestedJot) >= $CNF['MAX_JOTS_LOAD_HISTORY'])
+                        $bUpdateHistory = false;
+                    else if ($isFocused)
+                        $this->_oDb->readMessage($iRequestedJot, $this->_iProfileId);
+                }
+
+                if ($iLastViewedJot && $bUpdateHistory && $isFocused) {
+                    $this->_oDb->readMessage($iLastViewedJot, $this->_iProfileId);
+                }
+
+                $bAttach = $iJot ? $this->_oDb->getJotsNumber($iLotId, $iJot) < $CNF['MAX_JOTS_LOAD_HISTORY'] : false;
             case 'prev':
                 $aOptions = array(
                     'lot_id' => $iLotId,
                     'url' => $sUrl,
                     'start' => $iJot,
                     'load' => $sLoad,
-                    'limit' => ($sLoad != 'new' ? $CNF['MAX_JOTS_LOAD_HISTORY'] : 0),
+                    'limit' => $CNF['MAX_JOTS_LOAD_HISTORY'],
                     'views' => true,
                     'dynamic' => true
                 );
-                $sContent = $this->_oTemplate->getJotsOfLot($this->_iUserId, $aOptions);
+
+                $aUnreadInfo = $this->_oDb->getNewJots($this->_iProfileId, $iLotId);
+                $iLastUnreadJotId = (int)$aUnreadInfo[$CNF['FIELD_NEW_JOT']];
+                $iUnreadJotsNumber = (int)$aUnreadInfo[$CNF['FIELD_NEW_UNREAD']];
+                $sContent = $bUpdateHistory ? $this->_oTemplate->getJotsOfLot($this->_iProfileId, $aOptions) : '';
                 break;
             case 'edit':
                 $aJotInfo = $this->_oDb->getJotById($iJot);
@@ -456,11 +487,11 @@ class BxMessengerModule extends BxBaseModTextModule
                 break;
             case 'vc':
             case 'delete':
-                   $sContent = $this->_oTemplate->getMessageIcons($iJot, $sLoad, $this->_oDb->isAuthor($iLotId, $this->_iUserId) || isAdmin());
+                   $sContent = $this->_oTemplate->getMessageIcons($iJot, $sLoad, $this->_oDb->isAuthor($iLotId, $this->_iProfileId) || isAdmin());
                 break;
             case 'check_viewed':
                 if ($iLotId && $iJot)
-                    $sContent = $this->_oTemplate->getViewedJotProfiles($iJot, $this->_iUserId);
+                    $sContent = $this->_oTemplate->getViewedJotProfiles($iJot, $this->_iProfileId);
                 break;
 
             case 'reaction':
@@ -472,11 +503,17 @@ class BxMessengerModule extends BxBaseModTextModule
             break;
         }
 
-        $aResult = array('code' => 0, 'html' => $sContent);
+        $aResult = array(
+                            'code' => 0,
+                            'html' => $sContent,
+                            'unread_jots' => $iUnreadJotsNumber,
+                            'last_unread_jot' => $iLastUnreadJotId,
+                            'allow_attach' => +$bAttach
+                        );
 
         // update session
-        if ($this->_iUserId)
-            BxDolSession::getInstance()->exists($this->_iUserId);
+        if ($this->_iProfileId)
+            BxDolSession::getInstance()->exists($this->_iProfileId);
 
         echoJson($aResult);
     }
@@ -938,8 +975,8 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$this->isLogged())
             return array();
 
-       $aLots = $this->_oDb->getUpdatedLots($iProfileId ? $iProfileId : $this->_iProfileId);
-        return sizeof($aLots);
+       $aLots = $this->_oDb->getLotsWithUnreadMessages($iProfileId ? $iProfileId : $this->_iProfileId);
+       return sizeof($aLots);
     }
 
     /**

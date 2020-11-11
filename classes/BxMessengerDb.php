@@ -378,25 +378,31 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@param int iProfileId	
 	*/
 	public function readMessage($iJotId, $iProfileId){
-	    if (($aJotInfo = $this->getJotById($iJotId)) && $this->deleteNewJot($iJotId, $iProfileId))
+        $aJotInfo = $this->getJotById($iJotId);
+	    if (!empty($aJotInfo) && $this->deleteNewJot($iProfileId, $aJotInfo[$this->CNF['FIELD_MESSAGE_FK']], $iJotId))
             bx_alert($this->_oConfig->getObject('alert'), 'read_jot', $iJotId, $iProfileId, array('author_id' => $aJotInfo[$this->CNF['FIELD_MESSAGE_AUTHOR']], 'lot_id' => $aJotInfo[$this->CNF['FIELD_MESSAGE_FK']]));
     }
-	/**
-	* Mark all message as read in lot history for member
-	*@param int $iLot lot id
-	*@param int iProfileId	
-	*/
-	public function readAllMessages($iLot, $iProfileId){
-		$aNew = $this->getNewJots($iProfileId, false, $iLot);
-	    foreach($aNew as &$aJot){
-            $aJotInfo = $this->getJotById($aJot[$this->CNF['FIELD_NEW_JOT']]);
-            bx_alert($this->_oConfig->getObject('alert'), 'read_jot', $aJot[$this->CNF['FIELD_NEW_JOT']], $iProfileId,
-                       array(
-                                'author_id' => $aJotInfo[$this->CNF['FIELD_MESSAGE_AUTHOR']],
-                                'lot_id' => $iLot
-                            ));
-        }
 
+    /**
+     * Mark all message as read in lot history for member
+     * @param int $iLot lot id
+     * @param int iProfileId
+     * @return false
+     */
+	public function readAllMessages($iLot, $iProfileId){
+		$CNF = &$this->_oConfig->CNF;
+	    $aNew = $this->getNewJots($iProfileId, $iLot);
+	    if (empty($aNew))
+	        return false;
+
+	    bx_alert($this->_oConfig->getObject('alert'), 'read_bulk_jot', $iLot, $iProfileId,
+        array(
+               'first_jot' => $aNew[$CNF['FIELD_NEW_JOT']],
+               'count' => $aNew[$CNF['FIELD_NEW_JOT']],
+               'lot_id' => $iLot
+             ));
+
+        $this->deleteNewJot($iProfileId, $iLot);
         $this->markNotificationAsRead($iProfileId, $iLot);
 	}
 
@@ -407,20 +413,20 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@param int iProfile Id	owner of the message
 	*@return  int affected rows
 	*/
-	public function addJot($iLotID, $sMessage, $iProfileId)
+	public function addJot($iLotId, $sMessage, $iProfileId)
 	{
 		$sQuery = $this->prepare("INSERT INTO `{$this->CNF['TABLE_MESSAGES']}` 
 												SET  `{$this->CNF['FIELD_MESSAGE']}` = ?, 
 													 `{$this->CNF['FIELD_MESSAGE_FK']}` = ?, 
 													 `{$this->CNF['FIELD_MESSAGE_AUTHOR']}` = ?,
-													 `{$this->CNF['FIELD_MESSAGE_ADDED']}` = UNIX_TIMESTAMP()", $sMessage, $iLotID, $iProfileId/*$sParticipants*/);
+													 `{$this->CNF['FIELD_MESSAGE_ADDED']}` = UNIX_TIMESTAMP()", $sMessage, $iLotId, $iProfileId);
 
 		if (!$this->query($sQuery))
 		    return false;
 		
 		$iJotId = $this -> lastId();
-		$aParticipants = $this -> getParticipantsList($iLotID, true, $iProfileId);
-		$this->markAsNewJot($aParticipants, $iLotID, $iJotId);
+		$aParticipants = $this -> getParticipantsList($iLotId, true, $iProfileId);
+		$this->markAsNewJot($aParticipants, $iLotId, $iJotId);
 		return $iJotId;
 	}
 		
@@ -616,12 +622,18 @@ class BxMessengerDb extends BxBaseModTextDb
         if (!$iLotId)
             return false;
 
-        return $this-> getPairs( "SELECT COUNT(*) as `count`,
-                                             IF (`u`.`{$this->CNF['FIELD_NEW_JOT']}` IS NULL, 'read', 'unread') as `type`
-                                             FROM `{$this->CNF['TABLE_MESSAGES']}` as `j`
-                                             LEFT JOIN `{$this->CNF['TABLE_NEW_MESSAGES']}` as `u` ON `j`.`{$this->CNF['FIELD_MESSAGE_ID']}` = `u`.`{$this->CNF['FIELD_NEW_JOT']}`
-                                             WHERE `j`.`{$this->CNF['FIELD_MESSAGE_FK']}`=:id 
-                                        GROUP BY `type`", 'type', 'count', array('id' => $iLotId));
+        // find the user with most number of unread messages
+        $iUnread = $this->getOne("SELECT `{$this->CNF['FIELD_NEW_UNREAD']}` FROM `{$this->CNF['TABLE_NEW_MESSAGES']}`
+                                      WHERE `{$this->CNF['FIELD_NEW_LOT']}`=:id
+                                      ORDER BY `{$this->CNF['FIELD_NEW_UNREAD']}` DESC
+                                      LIMIT 1", array('id' => $iLotId));
+
+        $iTotal = $this-> getOne( "SELECT COUNT(*)
+                                             FROM `{$this->CNF['TABLE_MESSAGES']}`                                             
+                                             WHERE `{$this->CNF['FIELD_MESSAGE_FK']}`=:id 
+                                             ", array('id' => $iLotId));
+
+        return array('unread' => $iUnread, 'read' => ($iTotal - $iUnread));
     }
 	/**
 	* Get lot id by jot id 
@@ -629,17 +641,17 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@param boolean bIdOnly return id or array with info
 	*@return mixed lot id or lot info in array
 	*/
-	public function getLotByJotId($iJotId, $bIdOnly = true){
-		$iLotId = $this -> getOne("SELECT `{$this->CNF['FIELD_MESSAGE_FK']}`
+    public function getLotByJotId($iJotId, $bIdOnly = true){
+        $iLotId = $this -> getOne("SELECT `{$this->CNF['FIELD_MESSAGE_FK']}`
 						FROM `{$this->CNF['TABLE_MESSAGES']}` 
 						WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :jot LIMIT 1", array('jot' => $iJotId));
-		
-		if (!$iLotId)
-			return false;
-		
-		return $bIdOnly ? $iLotId : $this -> getRow("SELECT * FROM `{$this->CNF['TABLE_ENTRIES']}` 
-						WHERE `{$this->CNF['FIELD_ID']}` = :lot", array('lot' => $iLotId));
-	}
+
+        if (!$iLotId)
+            return false;
+
+        return $bIdOnly ? $iLotId : $this -> getRow("SELECT * FROM `{$this->CNF['TABLE_ENTRIES']}` 
+						WHERE `{$this->CNF['FIELD_ID']}` = :lot LIMIT 1", array('lot' => $iLotId));
+    }
 
 	/**
 	* Get the latest posted jot(message)
@@ -677,6 +689,27 @@ class BxMessengerDb extends BxBaseModTextDb
 		$sQuery = $this -> prepare("SELECT * FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = ?", $iJotId);
 		return $this -> getRow($sQuery);
 	}
+
+    /**
+     * Get messages number between two messages
+     * @param $iLotId
+     * @param $iJotStart
+     * @param $iJotEnd
+     * @return array with jot info
+     */
+    public function getJotsNumber($iLotId, $iJotStart, $iJotEnd = 0){
+        $aWhere = array('id' => $iLotId, 'start' => $iJotStart);
+        $sWhere = "`{$this->CNF['FIELD_MESSAGE_ID']}` > :start";
+        if ($iJotEnd) {
+            $sWhere = "`{$this->CNF['FIELD_MESSAGE_ID']}` BETWEEN :start AND :end";
+            $aWhere['end'] = $iJotEnd;
+        }
+
+        return $this -> getOne("SELECT COUNT(*) FROM `{$this->CNF['TABLE_MESSAGES']}` 
+                            WHERE `{$this->CNF['FIELD_MESSAGE_FK']}`=:id AND {$sWhere} 
+                            ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}` ASC
+                            ", $aWhere);
+    }
 
 	/**
 	* Get all pages with comments block	
@@ -733,79 +766,63 @@ class BxMessengerDb extends BxBaseModTextDb
 		if (!(int)$iLotId)
 		    return false;
 		
-		return $this->getNewJots($iProfileId,true, $iLotId);
-	}
-	
-	public function getLeftJots($iLotId, $iJotId = 0){
-		if (!(int)$iLotId) return false;
-		
-		$sWhere = '';
-		$aWhere['lot'] = $iLotId;
-		if ($iJotId)
-		{
-			$sWhere = ' AND `id` > :jot';
-			$aWhere['jot'] = $iJotId;
-		}
-		
-		return $this->getOne("SELECT COUNT(*) FROM `{$this->CNF['TABLE_MESSAGES']}` 
-								WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :lot {$sWhere}
-								ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}`", $aWhere);
+		return $this->getNewJots($iProfileId, $iLotId, true);
 	}
 
+    function getLotsWithUnreadMessages($iProfileId){
+	     if (!$iProfileId)
+	         return false;
 
-    function getUpdatedLots($iProfileId = 0){
-        $sWhere = '';
-        $aWhere = array();
-        if ($iProfileId)
-        {
-            $sWhere = "WHERE `{$this->CNF['FIELD_NEW_PROFILE']}`=:profile";
-            $aWhere['profile'] = $iProfileId;
-        }
-
-         return $this->getPairs("SELECT COUNT(*) as `count`, `{$this->CNF['FIELD_NEW_LOT']}` 
+         return $this->getPairs("SELECT `{$this->CNF['FIELD_NEW_UNREAD']}`, `{$this->CNF['FIELD_NEW_LOT']}` 
                                       FROM `{$this->CNF['TABLE_NEW_MESSAGES']}` 
-                                      {$sWhere}
-                                      GROUP BY `{$this->CNF['FIELD_NEW_LOT']}`
-                                      ", $this->CNF['FIELD_NEW_LOT'], 'count', $aWhere);
+                                      WHERE `{$this->CNF['FIELD_NEW_PROFILE']}`=:profile AND `{$this->CNF['FIELD_NEW_UNREAD']}` > 0                                       
+                                      ", $this->CNF['FIELD_NEW_LOT'], $this->CNF['FIELD_NEW_UNREAD'], array('profile' => $iProfileId));
     }
 
-	function getNewJots($iProfileId = 0, $bCount = false, $iLotId = 0){
-		$sWhere = '';
-		$aWhere['profile'] = $iProfileId;
-        if ($iLotId)
-        {
-            $sWhere = " AND `{$this->CNF['FIELD_NEW_LOT']}`=:lot";
-            $aWhere['lot'] = $iLotId;
-        }
+	function getNewJots($iProfileId, $iLotId, $bCount = false){
+        $aInfo = $this-> getRow("SELECT * 
+                                           FROM `{$this->CNF['TABLE_NEW_MESSAGES']}` 
+                                           WHERE `{$this->CNF['FIELD_NEW_PROFILE']}`=:profile AND `{$this->CNF['FIELD_NEW_LOT']}`=:lot
+                                          ", array('lot' => $iLotId, 'profile' => $iProfileId));
+        if (empty($aInfo))
+            return 0;
 
-        if ($bCount)
-            return (int)$this-> getOne("SELECT COUNT(*) FROM `{$this->CNF['TABLE_NEW_MESSAGES']}` 
-                                            WHERE `{$this->CNF['FIELD_NEW_PROFILE']}`=:profile {$sWhere} 
-                                         ", $aWhere);
-
-        return $this-> getAll("SELECT * FROM `{$this->CNF['TABLE_NEW_MESSAGES']}` 
-                                            WHERE `{$this->CNF['FIELD_NEW_PROFILE']}`=:profile {$sWhere} 
-                                            ORDER BY `{$this->CNF['FIELD_NEW_JOT']}`
-                                         ", $aWhere);
+        return $bCount ? (int)$aInfo[$this->CNF['FIELD_NEW_UNREAD']] : $aInfo;
     }
 
-    function getForWhomJotIsNew($iJotId){
-        return $this-> getColumn("SELECT `{$this->CNF['FIELD_NEW_PROFILE']}` 
+    function getForWhomJotIsNew($iLotId, $iJotId){
+	    if (!$iLotId && !$iJotId)
+	        return array();
+
+        return $this->getColumn("SELECT `{$this->CNF['FIELD_NEW_PROFILE']}` 
                                             FROM `{$this->CNF['TABLE_NEW_MESSAGES']}` 
-                                            WHERE `{$this->CNF['FIELD_NEW_JOT']}`=:jot 
-                                         ", array('jot' => $iJotId));
+                                            WHERE `{$this->CNF['FIELD_NEW_JOT']}` <= :jot AND `{$this->CNF['FIELD_NEW_LOT']}`=:lot
+                                         ", array('jot' => $iJotId, 'lot' => $iLotId));
     }
 
     private function addNewJotItem($iProfileId, $iLotId, $iJotId){
-        return $this-> query("REPLACE INTO `{$this->CNF['TABLE_NEW_MESSAGES']}` 
+	    if (!(int)$iProfileId)
+	        return false;
+
+        $iJotNumber = 0;
+        $iLastJot = $iJotId;
+        $aJotInfo = $this->getNewJots($iProfileId, $iLotId);
+	    if (!empty($aJotInfo)) {
+            $iJotNumber = (int)$aJotInfo[$this->CNF['FIELD_NEW_UNREAD']];
+            $iLastJot = (int)$aJotInfo[$this->CNF['FIELD_NEW_JOT']];
+        }
+
+	    return $this-> query("REPLACE INTO `{$this->CNF['TABLE_NEW_MESSAGES']}` 
                                             SET 
                                             `{$this->CNF['FIELD_NEW_PROFILE']}`=:profile,
+                                            `{$this->CNF['FIELD_NEW_UNREAD']}`=:number,
                                             `{$this->CNF['FIELD_NEW_LOT']}`=:lot,
                                             `{$this->CNF['FIELD_NEW_JOT']}`=:jot
                                          ", array(
             'profile' => $iProfileId,
             'lot' => $iLotId,
-            'jot' => $iJotId
+            'number' => $iJotNumber + 1,
+            'jot' => $iLastJot
         ));
     }
     function markAsNewJot($mixedProfile, $iLotId, $iJotId){
@@ -820,25 +837,41 @@ class BxMessengerDb extends BxBaseModTextDb
                                             WHERE `{$this->CNF['FIELD_ID']}` = :id", array('id' => $iLotId));
     }
 
-    function deleteNewJot($iJotId, $iProfileId = 0, $iLotId = 0){
-        $sWhere = '';
-        $aWhere['jot'] = $iJotId;
-        if ($iProfileId)
-        {
-            $sWhere .= " AND `{$this->CNF['FIELD_NEW_PROFILE']}`=:profile";
-            $aWhere['profile'] = $iProfileId;
+    function deleteNewJot($iProfileId, $iLotId = 0, $iJotId = 0){
+        if ($iJotId) {
+           $iLotId = $iLotId ? $iLotId : $this->getLotByJotId($iJotId);
+           $aNewJotInfo = $this->getNewJots($iProfileId, $iLotId);
+
+           if (!empty($aNewJotInfo) && (int)$aNewJotInfo[$this->CNF['FIELD_NEW_JOT']] > (int)$iJotId)
+                return false;
+
+           $iCount = (int)$this->getOne("SELECT COUNT(*) FROM `{$this->CNF['TABLE_MESSAGES']}`
+									WHERE `{$this->CNF['FIELD_MESSAGE_FK']}`=:lot AND `{$this->CNF['FIELD_MESSAGE_ID']}` > :jot
+									", array('lot' => $iLotId, 'jot' => $iJotId));
+           if ($iCount)
+               return $this-> query("REPLACE INTO `{$this->CNF['TABLE_NEW_MESSAGES']}` 
+                                            SET 
+                                            `{$this->CNF['FIELD_NEW_PROFILE']}`=:profile,
+                                            `{$this->CNF['FIELD_NEW_UNREAD']}`=:number,
+                                            `{$this->CNF['FIELD_NEW_JOT']}`=:jot,
+                                            `{$this->CNF['FIELD_NEW_LOT']}`=:lot                                            
+                                         ", array(
+                                            'profile' => $iProfileId,
+                                            'lot' => $iLotId,
+                                            'number' => $iCount,
+                                            'jot' => $iJotId
+                                        ));
         }
 
-        if ($iLotId)
-		{
-            $sWhere .= " AND `{$this->CNF['FIELD_NEW_LOT']}`=:lot";
-            $aWhere['lot'] = $iProfileId;
-        }
-
-	    return $this-> query("DELETE FROM `{$this->CNF['TABLE_NEW_MESSAGES']}` 
-                                            WHERE `{$this->CNF['FIELD_NEW_JOT']}`=:jot {$sWhere}                                             
-                                         ", $aWhere);
-		}
+	    return $iLotId ?
+                        $this->query("DELETE FROM `{$this->CNF['TABLE_NEW_MESSAGES']}` 
+                                                        WHERE `{$this->CNF['FIELD_NEW_LOT']}`=:lot AND `{$this->CNF['FIELD_NEW_PROFILE']}`=:profile                                        
+                                                     ", array('profile' => $iProfileId, 'lot' => $iLotId))
+                       :
+                        $this-> query("DELETE FROM `{$this->CNF['TABLE_NEW_MESSAGES']}` 
+                                                        WHERE `{$this->CNF['FIELD_NEW_PROFILE']}`=:profile                                        
+                                                     ", array('profile' => $iProfileId));
+	}
 		
     public function searchMessage($sParam, $iProfileId = 0, $iLotId = 0){
 	   $aResult = array();
@@ -916,7 +949,7 @@ class BxMessengerDb extends BxBaseModTextDb
 		
 		if ($iStar)
 		{
-			$sJoin .= "INNER JOIN `{$this->CNF['TABLE_USERS_INFO']}` as `u` ON `u`.`{$this->CNF['FIELD_INFO_LOT_ID']}` = `l`.`{$this->CNF['FIELD_ID']}`";
+			$sJoin .= "INNER JOIN `{$this->CNF['TABLE_USERS_INFO']}` as `u` ON `u`.`{$this->CNF['FIELD_INFO_LOT_ID']}` = `l`.`{$this->CNF['FIELD_ID']}` AND `u`.`{$this->CNF['FIELD_INFO_USER_ID']}`=:profile";
 			$aSWhere[] = "`u`.`{$this->CNF['FIELD_INFO_STAR']}` = 1";
 		}
 		
@@ -1107,9 +1140,11 @@ class BxMessengerDb extends BxBaseModTextDb
 	}
 	
 	public function getFirstUnreadJot($iProfileId, $iLotId){
-		if (!$iLotId) return 0;
-	 	$aUnreadJots = $this->getNewJots($iProfileId, false, $iLotId);
-		return !empty($aUnreadJots) ? $aUnreadJots[0][$this->CNF['FIELD_NEW_JOT']] : 0;
+		if (!$iLotId)
+		    return 0;
+
+		$aUnreadJots = $this->getNewJots($iProfileId, $iLotId);
+		return !empty($aUnreadJots) ? (int)$aUnreadJots[$this->CNF['FIELD_NEW_JOT']] : 0;
 	}
 
     /**

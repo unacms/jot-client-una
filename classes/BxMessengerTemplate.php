@@ -173,15 +173,14 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         $CNF = &$this -> _oConfig -> CNF;
         $sBaseUrl = $this->_oConfig->getBaseUri();
 
-        $sFilePondPath = BX_DOL_URL_MODULES . 'boonex/messenger/js/';
         $this->addCss(array(
-            'filepode.css',
+            'filepond-custom.css',
             'filepond.min.css',
             'filepond-plugin-image-preview.min.css',
             'filepond-plugin-media-preview.min.css'
         ));
 
-        $this->addCss(array(
+        $this->addJs(array(
             'filepond.min.js',
             'filepond.jquery.js',
             'filepond-plugin-image-preview.min.js',
@@ -208,15 +207,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                 'uploading' => bx_js_string(_t('_bx_messenger_uploading_file')),
                 'number_of_files' => (int)$this->_oConfig->CNF['MAX_FILES_TO_UPLOAD'],
                 'response_error' => bx_js_string(_t('_bx_messenger_invalid_server_response')),
-                'remove_button' => bx_js_string(_t('_bx_messenger_uploading_remove_button')),
-				'filepond_links' => json_encode(array(
-										$sFilePondPath . 'filepond.min.js',
-										$sFilePondPath . 'filepond.jquery.js',
-										$sFilePondPath . 'filepond-plugin-image-preview.min.js',
-										$sFilePondPath . 'filepond-plugin-file-validate-size.min.js',
-										$sFilePondPath . 'filepond-plugin-media-preview.min.js',
-										$sFilePondPath . 'filepond-plugin-file-rename.min.js'
-									)),
+                'remove_button' => bx_js_string(_t('_bx_messenger_uploading_remove_button'))
             );
         }
 

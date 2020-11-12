@@ -6,7 +6,6 @@ $(function($, oMessenger) {
     let bLoading = false;
 
 	/* FilePond plugins begin*/
-    const fInitFunc = () => {
     $.fn.filepond.registerPlugin(
 			FilePondPluginImagePreview,
 			FilePondPluginMediaPreview,
@@ -120,12 +119,6 @@ $(function($, oMessenger) {
     // set file uploader for Messenger
     $(() => oMessenger && oMessenger.initUploader(oFilePondUploader));
     /* end */
-    }
-
-    if (typeof $.fn.filepond === 'undefined')
-        bx_get_scripts(__filepond_links__, fInitFunc);
-    else
-        fInitFunc();
 
 }($, oMessenger));
 </script>

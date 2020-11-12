@@ -2205,7 +2205,7 @@
 
 			const iLotId = _this.oSettings.lot; // additional check for case when ajax request is not finished yet but another talk is selected
 
-			if (!iRequestJot && (_this.iSelectedJot || _this.iLastUnreadJot))
+			if (!iRequestJot && (_this.iSelectedJot || _this.iLastUnreadJot || sAction === 'prev'))
 				bx_loading($(`[data-id="${iJotId}"]${_this.sJot}`), true);
 
 			$.post('modules/?r=messenger/update',

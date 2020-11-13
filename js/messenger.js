@@ -380,30 +380,26 @@
 				});
 	}
 
+	oMessenger.prototype.initTextEditor = function(oSettings) {
+		return new oMessengerEditor(Object.assign({}, oSettings, {
+			showToolbar: () => !this.isMobile()
+		}));
+	}
+
 	oMessenger.prototype.initTextArea = function() {
 		const _this = this;
 
-		this.oEditor = new oMessengerEditor({
+		this.oEditor = this.initTextEditor({
 			selector: this.sMessengerBox,
 			placeholder: _t('_bx_messenger_post_area_message'),
-			onEnter: () => {
-				$(_this.sSendButton).click();
-			},
-			showToolbar: () => !_this.isMobile(),
+			onEnter: () => $(_this.sSendButton).click(),
 			onUp: () => {
-				if ($(_this.sTalkListJotSelector).length && _this.oEditor.length <= 1){
-					const aJots = $(`${_this.sTalkListJotSelector}[data-my=1]`).get().reverse();
-
-					for(let i=0; i < aJots.length; i++) {
-						const oJot = $(`${_this.sJotMenu} i.backspace`, aJots[i]);
-						if (oJot.length) {
-							_this.editJot(oJot);
-							break;
-						}
-					}
+				if ($(_this.sTalkListJotSelector).length && _this.oEditor.length <= 1) {
+					const oJot = $(`${_this.sTalkListJotSelector}`).last();
+					if (+oJot.data('my'))
+						_this.editJot(oJot);
 					return false;
 				}
-
 				return true;
 			},
 			onChange: () => {
@@ -424,7 +420,7 @@
 				});
 
 				_this.updateSendButton();
-			}
+		  }
 		});
 
 		// when member clicks on send message icon
@@ -1133,36 +1129,21 @@
 						.fadeIn('slow', function()
 						{
 							const __this = this;
-							const Keyboard = Quill.import('modules/keyboard');
-							_this.oActiveEditQuill = new Quill(_this.sEditJotAreaId, {
-								theme: 'bubble',
-								bounds: _this.sEditJotAreaId,
-								modules:{
-								toolbar: _this.aToolbarSettings,
-									keyboard: {
-										bindings : {
-											enter: {
-												key: 13,
-												shiftKey: false,
-												handler: () => {
-													_this.saveJot($(_this.sEditJotAreaId));
-												}
-											}
-										}
-									}
+							const oEditEditor = _this.initTextEditor({
+								selector: _this.sEditJotAreaId,
+								onEnter: () => {
+									_this.saveJot($(_this.sEditJotAreaId));
+									_this.oEditor.focus();
+								},
+								onChange: () => updateScrollFunction(),
+								onESC: () => {
+									_this.cancelEdit(__this);
+									_this.oEditor.focus();
 								}
 							});
 
-							_this.oActiveEditQuill.on('text-change', function(delta, oldDelta, source) {
-								updateScrollFunction();
-							});
-
-							updateScrollFunction();
-							_this.oActiveEditQuill.keyboard.addBinding({
-								key: Keyboard.keys.ESCAPE
-							}, () => _this.cancelEdit(__this));
-
-							_this.oActiveEditQuill.focus();
+							_this.oActiveEditQuill = oEditEditor.oEditor;
+							oEditEditor.focus();
 
 							if (oJot.is(':last-child'))
 								_this.updateScrollPosition('bottom');
@@ -3146,7 +3127,7 @@
 
 			$(window).dolPopupAjax({
 				url: sUrl,
-				id: {force: true, value: _oMessenger.sAddFilesForm.substr(1)},
+				id: { force: true, value: _oMessenger.sAddFilesForm.substr(1) },
 				onShow: function () {
 
 					if (typeof fCallback == 'function')

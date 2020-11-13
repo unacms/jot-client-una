@@ -13,16 +13,16 @@
 
 ;window.oMessengerEditor = class {
     constructor(oOptions) {
+        const aEditorFunctions = ['onEnter', 'onChange', 'onESC', 'onUp', 'showToolbar', 'onInit'];
+
         this.oHtmlEditorObject = oOptions['selector'] ? oOptions['selector'] : '.editor';
-
         this.oHtmlSendButton = oOptions['button'] ? oOptions['button'] : '.send-button';
-        this.oPlaceholder = oOptions['placeholder'] ? oOptions['placeholder'] : '.placeholder';
+        this.oPlaceholder = oOptions['placeholder'] || null;
+        this.bUseMantions = typeof oOptions['mentions'] === 'undefined' || oOptions['mentions'];
 
-        this.onEnter = typeof oOptions['onEnter'] === 'function' ? oOptions['onEnter'] : () => {};
-        this.onChange = typeof oOptions['onChange'] === 'function' ? oOptions['onChange'] : () => {};
-        this.onUp = typeof oOptions['onUp'] === 'function' ? oOptions['onUp'] : () => {};
-        this.showToolbar = typeof oOptions['showToolbar'] === 'function' ? oOptions['showToolbar'] : () => {};
-        this.onInit = typeof oOptions['onInit'] === 'function' ? oOptions['onInit'] : () => {};
+        aEditorFunctions.map(sFunc => {
+             this[sFunc] = typeof oOptions[sFunc] === 'function' ? oOptions[sFunc] : () => {};
+        });
 
         this.aToolbarSettings = [
             ['bold', 'italic', 'underline', 'strike', 'link'],
@@ -31,6 +31,11 @@
         ];
 
         if ($(this.oHtmlEditorObject).length){
+            if (!this.oEditor){
+                this.initClipboard();
+                // Mentions initialization
+                this.oMentions = typeof quillMention !== 'undefined' && this.bUseMantions ? { mention: this.initMentions() } : {};
+            }
             this.oEditor = null;
             this.init();
         }
@@ -39,7 +44,7 @@
     init(){
         if (typeof Quill === 'undefined')
             bx_get_scripts(['modules/boonex/messenger/js/quill/quill.min.js'], () => {
-                 this.initEditor();
+                this.initEditor();
             });
         else
             this.initEditor();
@@ -93,6 +98,18 @@
         this.oEditor.setSelection(range.index + sText.length, 1, Quill.sources.API);
     }
 
+    initClipboard(){
+        const QuillClipboard = Quill.import('modules/clipboard');
+        class Clipboard extends QuillClipboard {
+            onPaste (event) {
+                super.onPaste(event);
+                if (event.clipboardData.getData('text/plain').length > 0)
+                    $(this.oHtmlSendButton).fadeIn();
+            }
+        }
+        Quill.register('modules/clipboard', Clipboard, true);
+    }
+
     initMentions(){
         const Embed = Quill.import("blots/embed");
         class MessengerMentionBlot extends Embed {
@@ -100,11 +117,10 @@
                 const { denotationChar, value, url, id } = data;
                 const node = document.createElement('a');
                 node.innerHTML = denotationChar + value;
-                node.setAttribute('class', 'bx-mention mention');
+                node.setAttribute('class', 'bx-mention');
                 node.setAttribute('href', url);
                 return MessengerMentionBlot.setDataValues(node, { denotationChar, value, id, url });
             }
-
             static setDataValues(element, data) {
                 const domNode = element;
                 Object.keys(data).forEach(key => {
@@ -112,7 +128,6 @@
                 });
                 return domNode;
             }
-
             static value(domNode) {
                 return domNode.dataset;
             }
@@ -125,19 +140,22 @@
             allowedChars: /^[\w]*$/,
             mentionDenotationChars: ["@"],
             positioningStrategy: "fixed",
-            dataAttributes: ['id', 'url', 'value'],
+            dataAttributes: ['url', 'value', 'id'],
             blotName: 'MessengerMentionBlot',
             minChars: 1,
             listItemClass: 'ql-mention-list-item',
             mentionContainerClass: 'ql-mention-list-container bx-popup bx-popup-color-bg bx-popup-border',
             linkTarget: '_blank',
-            renderItem: data => `<span class="bx-def-font-small bx-def-padding-right">${data.value}</span><img src="${data.icon}" />`,
+            renderItem: data => `<span class="bx-def-font-small bx-def-padding-right">${data.value}</span><img src="${data.thumb}" />`,
             renderLoading: () => _t('_bx_messenger_loading'),
             source: function(searchTerm, renderList, mentionChar) {
                 if (searchTerm.length)
-                    $.get('modules/?r=messenger/get_auto_complete', { term: searchTerm}, oData => {
-                            if (Array.isArray(oData.items) && oData.items.length){
-                                renderList(oData.items);
+                    $.get("searchExtended.php?action=get_authors", { term: searchTerm}, oData => {
+                            if (Array.isArray(oData) && oData.length){
+                                renderList(oData.map((oValue => {
+                                    const { value, label, url, thumb } = oValue;
+                                    return {id: value, value: label, url, thumb };
+                                })));
                             }
                         }
                         ,'json');
@@ -146,33 +164,21 @@
     }
 
     initEditor(){
-        const QuillClipboard = Quill.import('modules/clipboard');
         const _this = this;
-        class Clipboard extends QuillClipboard {
-           onPaste (event) {
-             super.onPaste(event);
-             if (event.clipboardData.getData('text/plain').length > 0)
-                $(this.oHtmlSendButton).fadeIn();
-           }
-        }
-
-        Quill.register('modules/clipboard', Clipboard, true);
-
-        // Mentions initialization
-        const oMentions = typeof quillMention !== 'undefined' ? { mention: this.initMentions() } : {};
-
         this.oEditor = new Quill(this.oHtmlEditorObject, {
                 placeholder: this.oPlaceholder,
                 theme: 'bubble',
                 bounds: this.oHtmlEditorObject,
+                debug: 'error',
                 modules: Object.assign({
                     toolbar: _this.showToolbar() && _this.aToolbarSettings,
                     clipboard: {
                         matchers: [
-                            ['IMG', () => {
-                                return { ops: [] }
-                            }]
-                        ]
+                            [
+                                'IMG', () => { return { ops: [] } }
+                            ]
+                        ],
+                        matchVisual: false
                     },
                     keyboard: {
                         bindings: {
@@ -185,15 +191,20 @@
                                 key: 38,
                                 shiftKey: false,
                                 handler: () => this.onUp()
+                            },
+                            esc: {
+                                key: 27,
+                                shiftKey: false,
+                                handler: () => this.onESC()
                             }
                         }
                     }
-                }, oMentions)
+                }, this.oMentions)
             });
 
            this.oEditor.on('text-change', function(delta, oldDelta, source) {
                   if (source === 'user')
                         _this.onChange();
-        });
+           });
     }
 }

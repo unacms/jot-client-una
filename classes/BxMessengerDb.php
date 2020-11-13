@@ -331,8 +331,8 @@ class BxMessengerDb extends BxBaseModTextDb
                     ));
         }
 
-		$aData['message'] = clear_xss($aData['message']);
-        return $this->addJot($iLotId, $aData['message'], $aData['member_id']);
+      	$aData['message'] = clear_xss($aData['message']);
+	    return $this->addJot($iLotId, $aData['message'], $aData['member_id']);
 	}	
 
 	/**

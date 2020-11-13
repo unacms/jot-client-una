@@ -43,13 +43,13 @@
   text-decoration: none;
 }
 
-.mention {
+.bx-mention {
   border-radius: 0.3rem;
   background-color: #e3f1fb;
   padding: 1px 0;
   user-select: all;
 }
 
-.mention > span {
+.bx-mention > span {
   margin: 0 3px;
 }

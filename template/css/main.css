@@ -398,7 +398,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 .bx-messenger-jots-title div.title
 {
 	position: relative;
-	margin-right: 1rem;
+	margin-right: 0.5rem;
 }
 
 .bx-messenger-jots-title div.view{
@@ -588,6 +588,10 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 	border:none;
 	border-top: 1px solid #d7e9fb;
 	margin:0 !important;
+}
+
+.bx-messenger-block div.bx-messenger-date-time-hr:first-child {
+	margin-top: 1rem !important;
 }
 
 .bx-messenger-usernames div
@@ -1250,7 +1254,7 @@ div.bx-messenger-hidden-jot
 	border-radius: 1rem;
 	position: absolute;
 	bottom: 0.5rem;
-	right: 1.5rem;
+	right: 0.5rem;
 	display: none;
 }
 
@@ -1562,6 +1566,33 @@ div.bx-messenger-giphy-items img{
 
 #bx-messenger-send-area-plus {
 	display: none;
+}
+
+.bx-messenger-date-time-hr{
+	position: relative;
+	text-align: center;
+}
+
+.bx-messenger-date-time-hr .bx-messenger-date-time-value {
+	position: relative;
+	top: -0.75rem;
+	height: 0;
+}
+
+.bx-messenger-date-time-hr .bx-messenger-date-time-value > span{
+	margin-right: auto;
+	margin-left: auto;
+	height: 2rem;
+	padding: 0.3rem 0.5rem;
+	line-height: 1rem;
+	border-radius:0.7rem;
+}
+
+.bx-messenger-date-time-hr .attached{
+	top: 0.2rem;
+	position: fixed;
+	height: auto;
+	z-index: 100;
 }
 
 div.ui.sidebar{

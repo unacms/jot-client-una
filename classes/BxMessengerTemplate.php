@@ -81,17 +81,19 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             if ($iUnreadLotsJots && !$iJotId)
                 $iJotId = $this -> _oDb -> getFirstUnreadJot($iProfileId, $iLotId);
 
-			$aParams = array(
-			    'content' => $this -> getJotsOfLot($iProfileId,
-                    array(
-                            'lot_id' => $iLotId,
-                            'limit' => $CNF['MAX_JOTS_BY_DEFAULT'],
-                            'start' => $iJotId,
-                            'display' => true,
-                            'select' => true,
-                            'views' => true,
-                            'read' => $iUnreadLotsJots > (int)($CNF['MAX_JOTS_BY_DEFAULT']/2)
-                          )),
+            $aJots = $this -> getJotsOfLot($iProfileId,
+                array(
+                    'lot_id' => $iLotId,
+                    'limit' => $CNF['MAX_JOTS_BY_DEFAULT'],
+                    'start' => $iJotId,
+                    'display' => true,
+                    'select' => true,
+                    'views' => true,
+                    'read' => $iUnreadLotsJots > (int)($CNF['MAX_JOTS_BY_DEFAULT']/2)
+                ));
+
+            $aParams = array(
+			    'content' => $aJots['content'],
                 'new_msg_active' => $iUnreadLotsJots ? 'block' : 'none',
                 'unread_count' => $iUnreadLotsJots
             );
@@ -218,9 +220,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	    $CNF = &$this->_oConfig->CNF;
 
 	    $iJotAuthor = !empty($aJot) ? (int)$aJot[$CNF['FIELD_MESSAGE_AUTHOR']] : (int)$iProfileId;
-	    $iLotId = !empty($aJot) ? (int)$aJot[$CNF['FIELD_MESSAGE_FK']] : 0;
 	    $iJotId = !empty($aJot) ? (int)$aJot[$CNF['FIELD_MESSAGE_ID']] : 0;
-	    $bAllowToDelete = $this->_oDb->isAllowedToDeleteJot($iJotId, $iProfileId, $iJotAuthor, $iLotId);
+	    $bAllowToDelete = $this->_oDb->isAllowedToDeleteJot($iJotId, $iProfileId, $iJotAuthor);
 	    $bVC = !empty($aJot) ? (int)$aJot[$CNF['FIELD_MESSAGE_VIDEOC']] : false;
         $aMenuItems = array(
             array(
@@ -795,27 +796,43 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         $bShowViews = isset($aParams['views']);
         $bDynamic = isset($aParams['dynamic']);
 
+
+        $aResult = array('content' => '');
 		$aLotInfo = $this -> _oDb -> getLotByIdOrUrl($iLotId, $sUrl, $iProfileId);
 		if (empty($aLotInfo))
-			return '';
-		
+			return $aResult;
+
+        if ($iStart && $sLoad == 'new')
+            $aStartJot = $this->_oDb->getJotById($iStart);
+
+        $iDate = !empty($aStartJot) ? strtotime(date("Y-m-d", $aStartJot[$CNF['FIELD_MESSAGE_ADDED']])) : 0;
+
 		if ($bSelectJot && $iStart)
 		{
 		    $aStartMiddleJot = $this -> _oDb -> getJotsByLotId($aLotInfo[$CNF['FIELD_MESSAGE_ID']], $iStart, 'prev', (int)$CNF['MAX_JOTS_BY_DEFAULT']/2);
-			if (!empty($aStartMiddleJot))
-				$iStart = current($aStartMiddleJot)[$CNF['FIELD_MESSAGE_ID']];
+			if (!empty($aStartMiddleJot)) {
+			    $iStart = current($aStartMiddleJot)[$CNF['FIELD_MESSAGE_ID']];
+                $iDate = 0;
+            }
 		}
 		
-		$aJots = $this->_oDb->getJotsByLotId($aLotInfo[$CNF['FIELD_MESSAGE_ID']], $iStart, $sLoad, $iLimit, $bSelectJot && $iStart); //&& empty($aStartMiddleJot)
+		$aJots = $this->_oDb->getJotsByLotId($aLotInfo[$CNF['FIELD_MESSAGE_ID']], $iStart, $sLoad, $iLimit, $bSelectJot && $iStart);
 		if (empty($aJots))
-			return '';
+			return $aResult;
 
-		$iJotCount = count($aJots);
+        $iJotCount = count($aJots);
 		$aVars['bx_repeat:jots'] = array();
         $iFirstUnreadJot = $this->_oDb->getFirstUnreadJot($iProfileId, $iLotId);
 		foreach($aJots as $iKey => $aJot) {
             $oProfile = $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);
             $iJot = $aJot[$CNF['FIELD_MESSAGE_ID']];
+
+            $iJDate = strtotime(date("Y-m-d", $aJot[$CNF['FIELD_MESSAGE_ADDED']]));
+            $sDate = '';
+            if (!$iDate || $iDate !== $iJDate) {
+                $iDate = $iJDate;
+                $sDate = $this->getDateSeparator($aJot[$CNF['FIELD_MESSAGE_ADDED']]);
+            }
 
             if ($oProfile) {
                 $sAttachment = $sMessage = '';
@@ -856,7 +873,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                 $sReactions = $this->getJotReactions($iJot);
                 $aVars['bx_repeat:jots'][] = array(
                     'title' => $oProfile->getDisplayName(),
-                    'time' => bx_time_js($aJot[$CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_DATE_TIME),
+                    'time' => date('h:i a', $aJot[$CNF['FIELD_MESSAGE_ADDED']]),
                     'views' => $bShowViews && ($iJotCount - 1 == $iKey) ? $this->getViewedJotProfiles($iJot, $iProfileId) : '',
                     'new' => (int)($iFirstUnreadJot && $iJot >= $iFirstUnreadJot),
                     'url' => $oProfile->getUrl(),
@@ -872,6 +889,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                             'jot_menu' => $this->getJotMenuCode($aJot, $iProfileId)
                         )
                     ),
+                    'date_separator' => $sDate,
                     'bx_if:show_reactions_area' => array(
                         'condition' => !$bIsTrash,
                         'content' => array(
@@ -918,7 +936,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         if ($bMarkAsRead)
             $this->_oDb->markNotificationAsRead($iProfileId, $iLotId);
 
-		return $this -> parseHtmlByName('jots.html',  $aVars);
+		return array(
+		                'content' => $this -> parseHtmlByName('jots.html',  $aVars),
+                        'first_jot' => $sLoad == 'prev' ? $aJots[count($aJots) - 1] : $aJots[0]);
 	}
 
 	/**
@@ -1245,6 +1265,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				'my' => 1,
 				'message' => '',
 				'attachment' => '',
+                'date_separator' => '',
                 'bx_if:jot_menu' => array(
                     'condition' => $iProfileId,
                     'content'	=> array(
@@ -1889,6 +1910,24 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
 	    $sContent = $this->parseHtmlByName('conference_call.html', $aVars);
         return BxTemplFunctions::getInstance()->transBox('bx-messenger-vc-call', $sContent);
+    }
+
+    public function getDateSeparator($iTimestamp){
+        $iToday = strtotime(date("Y-m-d"));
+        $iDate = strtotime(date("Y-m-d", $iTimestamp));
+
+        $sDate = $iToday == $iDate ? _t('_bx_messenger_date_time_today') : date("D, M jS", $iTimestamp);;
+        if (preg_match('/^(\w+),(\w+),(\d+),(\d+)$/',  date("D,F,j,Y", $iTimestamp), $aMatches)) {
+            list(, $sDay, $sMonth, $iDay, $iYear) = $aMatches;
+            if (_t("_{$sMonth}") !== "_{$sMonth}")
+                $sMonth = _t("_{$sMonth}");
+
+            $sDate = _t('_week_' . strtolower($sDay)) . " {$iDay}, {$sMonth}" . ($iYear !== date('Y', time()) ? ", {$iYear}" : '');
+        }
+
+        return $this->parseHtmlByName('date-separator.html', array(
+            'date' => $sDate
+        ));
     }
 }
 

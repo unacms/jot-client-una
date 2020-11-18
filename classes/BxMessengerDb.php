@@ -618,6 +618,15 @@ class BxMessengerDb extends BxBaseModTextDb
 		return $this -> getAll( $iStart && $sMode == 'new' ? $sQuery : "({$sQuery}) ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}`", $aBindings);					
 	}
 
+    public function getPrevJot($iLotId, $iStart){
+        $sQuery = "SELECT * FROM `{$this->CNF['TABLE_MESSAGES']}`
+									WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :lot_id AND `{$this->CNF['FIELD_MESSAGE_ID']}` < :jot
+									ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}` DESC
+									LIMIT 1";
+
+        return $this -> getRow(  $sQuery, array('lot_id' => (int)$iLotId, 'jot' => (int)$iStart));
+    }
+
 	function getLotJotsCount($iLotId){
         if (!$iLotId)
             return false;
@@ -1272,7 +1281,6 @@ class BxMessengerDb extends BxBaseModTextDb
      * @return bool
      */
     public function isAllowedToDeleteJot($iJotId, $iProfileId=0, $iJotAuthor=0, $iLotAuthorId=0){
-        $CNF = &$this -> _oConfig -> CNF;
         if (!$iJotId)
             return true;
 
@@ -1281,7 +1289,7 @@ class BxMessengerDb extends BxBaseModTextDb
 
         if (!$iJotAuthor){
             $aJot = $this->getJotById($iJotId);
-            $iJotAuthor = $aJot[$CNF['FIELD_MESSAGE_AUTHOR']];
+            $iJotAuthor = $aJot[$this->CNF['FIELD_MESSAGE_AUTHOR']];
         }
 
         if (!$iLotAuthorId) {
@@ -1292,7 +1300,7 @@ class BxMessengerDb extends BxBaseModTextDb
             $bIsLotAuthor = $iLotAuthorId == $iProfileId;
 
 
-        return ($CNF['ALLOW_TO_REMOVE_MESSAGE'] && $iJotAuthor == $iProfileId) || $bIsLotAuthor || isAdmin();
+        return ($this->CNF['ALLOW_TO_REMOVE_MESSAGE'] && $iJotAuthor == $iProfileId) || $bIsLotAuthor || isAdmin();
     }
 
     function createJVC($iLotId, $iProfileId){

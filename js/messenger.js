@@ -135,6 +135,10 @@
 		this.oActiveAudioInstance = null;
 		this.oActiveEmojiObject = Object.create(null);
 		this.sJitsiServerUrl = oOptions.jitsi_server;
+		this.aDatesItervals = [];
+		this.sDateIntervalsSelector = '.bx-messenger-date-time-hr';
+		this.sDateIntervalsItem = `${this.sDateIntervalsSelector} > .bx-messenger-date-time-value`;
+		this.iScrollbarWidth = 0;
 
 		const _this = this;
 		$(this).on('message', () => this.beep());
@@ -237,6 +241,11 @@
 		let iCounterValue = +$(_this.sUnreadJotsCounter).text();
 		let iUpdateCounter = null;
 
+		// find the all intervals in history
+		_this.updateDateList();
+		_this.iScrollbarWidth = $(_this.sTalkBlock).prop('offsetWidth') - $(_this.sTalkBlock).prop('clientWidth');
+
+		$(_this.sScrollArea).css('right', parseInt($(_this.sScrollArea).css('right')) + _this.iScrollbarWidth + 'px');
 		$(_this.sTalkBlock).scroll(function(){
 			const isScrollAvail = $(this).prop('scrollHeight') > $(this).prop('clientHeight'),
 				iScrollHeight = $(this).prop('scrollHeight') - $(this).prop('clientHeight'),
@@ -296,7 +305,7 @@
 						function () {
 							_this.updateJots({
 								action: isTopPosition ? 'prev' : 'new',
-								position: isBottomPosition ? 'freeze' : 'top',
+								position: isBottomPosition ? 'freeze' : 'position',
 								last_viewed_jot: _this.iLastUnreadJot
 							});
 						}, _this.iMinTimeBeforeToStartLoadingPrev);
@@ -305,6 +314,34 @@
 			else
 				clearTimeout(_this.iLoadTimout);
 
+			_this.attachDate($(this).scrollTop());
+		});
+	}
+
+	oMessenger.prototype.updateDateList = function() {
+		this.aDatesItervals = $(this.sDateIntervalsSelector).get().reverse();
+	}
+
+	oMessenger.prototype.attachDate = function(iScrollTop) {
+		if (!iScrollTop)
+			return ;
+
+		const _this = this;
+		_this.aDatesItervals.some(function(oDateObject){
+			const { top } = $(oDateObject).position();
+			const oItem = $('>div', oDateObject);
+			if (top <= iScrollTop) {
+				$('>div', _this.sDateIntervalsSelector)
+					.removeClass('attached')
+					.css('width', '100%');
+
+				oItem
+					.addClass('attached')
+					.css('width', `calc( 100% - ${_this.iScrollbarWidth}px )`);
+				return true;
+			}
+
+			return false;
 		});
 	}
 
@@ -968,8 +1005,8 @@
 	};
 
 	oMessenger.prototype.deleteJot = function(oObject, bCompletely){
-		var _this = this,
-			oJot = $(oObject).parents(this.sJot),
+		const _this = this,
+			oJot = $(oObject).closest(this.sJot),
 			iJotId = oJot.data('id') || 0,
 			checkScroll	= function()
 			{
@@ -1012,6 +1049,10 @@
 								function()
 								{
 									checkScroll();
+
+									if (!$(this).next(_this.sJot).length)
+										$(this).prev(_this.sDateIntervalsSelector).remove();
+
 									$(this).remove();
 								});
 
@@ -1692,26 +1733,27 @@
 			_this.updateScrollPosition('bottom');
 
 		// save message to database and broadcast to all participants
-		$.post('modules/?r=messenger/send', oParams, function(oData){
-				switch(parseInt(oData.code))
+		$.post('modules/?r=messenger/send', oParams, function({ jot_id, header, tmp_id, message, code, date_separator, time, lot_id }){
+			
+				switch(parseInt(code))
 				{
 					case 0:
-						const iJotId = parseInt(oData.jot_id);
-						const sTime = oData.time || msgTime.toISOString();
+						const iJotId = parseInt(jot_id);
+						const sTime = time || msgTime.toISOString();
 						if (iJotId)
 						{
-							if (typeof oData.lot_id !== 'undefined') {
-								if (typeof oData.header !== 'undefined')
+							if (typeof lot_id !== 'undefined') {
+								if (typeof header !== 'undefined')
 									$(_this.sJotsBlock)
 										.find('.bx-db-header')
-										.replaceWith(oData.header);
+										.replaceWith(header);
 
-								_this.updateLotSettings({ lot: oData.lot_id });
+								_this.updateLotSettings({ lot: lot_id });
 							}
 
-							if (typeof oData.tmp_id != 'undefined')
-								$('[data-tmp="' + oData.tmp_id + '"]', _this.sTalkList)
-									.attr('data-id', oData.jot_id)
+							if (typeof tmp_id !== 'undefined')
+								$('[data-tmp="' + tmp_id + '"]', _this.sTalkList)
+									.attr('data-id', jot_id)
 									.find('time')
 									.html('')
 									.attr('datetime', sTime)
@@ -1730,24 +1772,27 @@
 						if (!_this.iAttachmentUpdate)
 							_this.broadcastMessage({
 								addon: {
-									jot_id: oData.jot_id
+									jot_id: jot_id
 								}
 							});
 						break;
 					case 1:
-						if (oData.message) {
-							bx_alert(oData.message);
+						if (message) {
+							bx_alert(message);
 							$(`[data-tmp="${oParams.tmp_id}"]`, _this.sTalkList).remove();
 						}
 						else
 							window.location.reload();
 						break;
 					default:						
-						bx_alert(oData.message);
+						bx_alert(message);
 						$(_this.sTalkList).find('[data-tmp="' + oParams.tmp_id + '"]').remove();
 				}			
 					if (typeof fCallBack == 'function')
 						fCallBack();
+					
+					if (typeof date_separator !== 'undefined')
+						$(`[data-tmp="${oParams.tmp_id}"]`, _this.sTalkList).before(date_separator);
 			}, 'json');
 		
 		return true;
@@ -2199,11 +2244,10 @@
 				focus: +document.hasFocus(),
 				last_viewed_jot
 			},
-			function(oData)
+			function({ html, unread_jots, code, last_unread_jot, allow_attach, remove_separator })
 			{
 				bx_loading($(`[data-id="${iJotId}"]${_this.sJot}`), false);
 				const oList = $(_this.sTalkList);
-				const { html, unread_jots, code, last_unread_jot, allow_attach } = oData;
 
 				_this.iPanding = false;
 				if (iLotId !== _this.oSettings.lot)
@@ -2212,8 +2256,8 @@
 				if (!parseInt(code))
 				{
 					if (iJotId === undefined)
-							oList.html('');	
-										
+							oList.html('');
+
 						switch(sAction)
 						{
 							case 'new':
@@ -2239,11 +2283,13 @@
 													.closest(_this.sJotMessageViews)
 													.fadeIn();
 										})
+									.end()
 									.appendTo(oList)
 									.waitForImages(
 										function()
 										{
 											_this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'fast', oObjects.last());
+											_this.updateDateList();
 										});
 
 									if ((_this.isBlockVersion() || (_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive())) && !bSilentMode)  /* play sound for jots only on mobile devices when chat area is active */
@@ -2259,6 +2305,10 @@
 
 									break;
 							case 'prev':
+								if (remove_separator && $('>', oList).first().hasClass(_this.sDateIntervalsSelector.substr(1))) {
+									$('>', oList).first().remove();
+								}
+
 								oList
 									.prepend(html)
 									.waitForImages(() => {
@@ -2266,6 +2316,8 @@
 										const iTop = $(`[data-id="${iId}"]${_this.sJot}`).position().top || 0;
 										if (iTop)
 											_this.updateScrollPosition('top', 'fast', { pos: iTop });
+
+										_this.updateDateList();
 									})
 
 								break;
@@ -2278,8 +2330,11 @@
 								return;
 							case 'delete':
 									const onRemove = function(){
+											if (!$(this).next(_this.sJot).length)
+													$(this).prev(_this.sDateIntervalsSelector).remove();
+
 												$(this).remove();
-												_this.updateScrollPosition('bottom');
+													_this.updateScrollPosition('bottom');
 											};
 									if (html.length)
 									{
@@ -2295,6 +2350,7 @@
 									{
 										$('div[data-id="' + iJotId + '"]', oList)
 											.fadeOut('slow', onRemove);
+
 									}
 									break;
 							case 'check_viewed':
@@ -2705,11 +2761,7 @@
 
 	/**
 	 * Init settings, occurs when member opens the main messenger page
-	 * @param int iLotId, if defined select this lot
-	 * @param int iJotId, if defined select this jot
-	 * @param int iProfileId if profile id of the person whom to talk
-	 * @param sDirection set which browser version to use RTL or LTR
-	 * @param object oBuilder page builder class
+	 * @param fCallback
 	 */
 	oMessenger.prototype.initMessengerPage = function(fCallback) {
 		const _this = this;
@@ -2938,6 +2990,9 @@
 				return false;
 			}
 
+			/* Init sockets settings end */
+
+			// init browser storage
 			if (typeof oMessengerStorage !== 'undefined' && !_oMessenger.oStorage) {
 				_oMessenger.oStorage = new oMessengerStorage();
 			}
@@ -2984,9 +3039,6 @@
 
 			if ((+oOptions.selected_profile || +oOptions.jot_id) && _oMessenger.oJotWindowBuilder && _oMessenger.isMobile())
 				_oMessenger.oJotWindowBuilder.changeColumn('right');
-
-			/* Init connector settings end */
-			return true;
 		},
 
 		/**

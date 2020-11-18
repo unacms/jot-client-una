@@ -252,5 +252,5 @@
 	<string name="_bx_ntfs_alert_action_got_mention_ntfs_personal"><![CDATA[Mentions in Messenger]]></string>
 	<string name="_bx_messenger_txt_subobject_added_message"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> sent a {subentry_sample}]]></string>
 	<string name="_bx_messenger_txt_subobject_added_mention"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> mentioned you in a {subentry_sample}]]></string>
-
+	<string name="_bx_messenger_date_time_today"><![CDATA[Today]]></string>
 </resources>

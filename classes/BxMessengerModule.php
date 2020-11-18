@@ -263,7 +263,7 @@ class BxMessengerModule extends BxBaseModTextModule
                 $aFilesNames = array();
 				foreach($aFiles as $iKey => $sName)
 				{
-                    $iFile = $oStorage->storeFileFromPath(BX_DIRECTORY_PATH_TMP . $sName, $iType == BX_IM_TYPE_PRIVATE, $this->_iUserId, (int)$iId);
+                    $iFile = $oStorage->storeFileFromPath(BX_DIRECTORY_PATH_TMP . $sName, $iType == BX_IM_TYPE_PRIVATE, $this->_iProfileId, (int)$iId);
 					if ($iFile)
 					{
                         $oStorage->afterUploadCleanup($iFile, $this->_iUserId);
@@ -287,6 +287,15 @@ class BxMessengerModule extends BxBaseModTextModule
                 $aResult['time'] = bx_time_utc($aJot[$CNF['FIELD_MESSAGE_ADDED']]);
 
             $this->onSendJot($iId);
+
+            $aPrevJot = $this->_oDb->getPrevJot($iLotId ? $iLotId : $aResult['lot_id'], $aResult['jot_id']);
+            if (!empty($aPrevJot)){
+                $iPrevDate = strtotime(date("Y-m-d", $aPrevJot[$CNF['FIELD_MESSAGE_ADDED']]));
+                $iCurDate = strtotime(date("Y-m-d", $aJot[$CNF['FIELD_MESSAGE_ADDED']]));
+                if ($iPrevDate !== $iCurDate){
+                    $aResult['date_separator'] = $this->_oTemplate->getDateSeparator($iCurDate);
+                }
+            }
         }
 		else
             $aResult = array('code' => 2, 'message' => _t('_bx_messenger_send_message_save_error'));
@@ -450,6 +459,7 @@ class BxMessengerModule extends BxBaseModTextModule
         $iUnreadJotsNumber = 0;
         $iLastUnreadJotId = 0;
         $bAttach = true;
+        $bRemoveSeparator = false;
 		switch($sLoad)
 		{
             case 'new':
@@ -479,7 +489,19 @@ class BxMessengerModule extends BxBaseModTextModule
                 $aUnreadInfo = $this->_oDb->getNewJots($this->_iProfileId, $iLotId);
                 $iLastUnreadJotId = (int)$aUnreadInfo[$CNF['FIELD_NEW_JOT']];
                 $iUnreadJotsNumber = (int)$aUnreadInfo[$CNF['FIELD_NEW_UNREAD']];
-                $sContent = $bUpdateHistory ? $this->_oTemplate->getJotsOfLot($this->_iProfileId, $aOptions) : '';
+                $sContent = '';
+                if ($bUpdateHistory){
+                   $aJots = $this->_oTemplate->getJotsOfLot($this->_iProfileId, $aOptions);
+                   $sContent = $aJots['content'];
+
+                    if (isset($aJots['first_jot']) && $iJot) {
+                        $aJotInfo = $this->_oDb->getJotById($iJot);
+                        $iFDate = strtotime(date("Y-m-d", $aJots['first_jot'][$CNF['FIELD_MESSAGE_ADDED']]));
+                        $iSDate = strtotime(date("Y-m-d", $aJotInfo[$CNF['FIELD_MESSAGE_ADDED']]));
+                        $bRemoveSeparator = +($iFDate == $iSDate);
+                    }
+                }
+                
                 break;
             case 'edit':
                 $aJotInfo = $this->_oDb->getJotById($iJot);
@@ -508,7 +530,8 @@ class BxMessengerModule extends BxBaseModTextModule
                             'html' => $sContent,
                             'unread_jots' => $iUnreadJotsNumber,
                             'last_unread_jot' => $iLastUnreadJotId,
-                            'allow_attach' => +$bAttach
+                            'allow_attach' => +$bAttach,
+                            'remove_separator' => +$bRemoveSeparator
                         );
 
         // update session
@@ -749,20 +772,19 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $aResult = array('code' => 1);
         $CNF = &$this->_oConfig->CNF;
-
         if (empty($aJotInfo))
             return echoJson($aResult);
 
-        $bIsLotAuthor = $this->_oDb->isAuthor($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iUserId);
-        $bIsAllowedToDelete = $this->_oDb->isAllowedToDeleteJot($iJotId, $this->_iUserId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']], $bIsLotAuthor);
-        if (!(isAdmin() || $bIsLotAuthor || ((!$bCompletely || $CNF['REMOVE_MESSAGE_IMMEDIATELY']) && $bIsAllowedToDelete)))
+        $bIsAllowedToDelete = $this->_oDb->isAllowedToDeleteJot($iJotId, $this->_iUserId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
+        if (!$bIsAllowedToDelete)
             return echoJson($aResult);
 
+        $bIsLotAuthor = $this->_oDb->isAuthor($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iUserId);
         $bDelete = $bCompletely || $CNF['REMOVE_MESSAGE_IMMEDIATELY'];
         if ($this->_oDb->deleteJot($iJotId, $this->_iUserId, $bDelete)){
             if ($bDelete)
                 $this->onDeleteJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iJotId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
-            $aResult = array('code' => 0, 'html' => !$bCompletely ? $this->_oTemplate->getMessageIcons($iJotId, 'delete', $bIsLotAuthor || isAdmin()) : '');
+            $aResult = array('code' => 0, 'html' => !$bCompletely ? $this->_oTemplate->getMessageIcons($iJotId, 'delete', $bIsLotAuthor || isAdmin() || $this->_isModerator()) : '');
         }
 
         echoJson($aResult);

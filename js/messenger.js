@@ -139,6 +139,7 @@
 		this.sDateIntervalsSelector = '.bx-messenger-date-time-hr';
 		this.sDateIntervalsItem = `${this.sDateIntervalsSelector} > .bx-messenger-date-time-value`;
 		this.iScrollbarWidth = 0;
+		this.sDateIntervalsTemplate = oOptions.date_intervals_template;
 
 		const _this = this;
 		$(this).on('message', () => this.beep());
@@ -242,7 +243,6 @@
 		let iUpdateCounter = null;
 
 		// find the all intervals in history
-		_this.updateDateList();
 		_this.iScrollbarWidth = $(_this.sTalkBlock).prop('offsetWidth') - $(_this.sTalkBlock).prop('clientWidth');
 
 		$(_this.sScrollArea).css('right', parseInt($(_this.sScrollArea).css('right')) + _this.iScrollbarWidth + 'px');
@@ -1460,12 +1460,12 @@
 			{
 				iTotalImg--;
 				if (!iTotalImg && typeof fCallback === 'function')
-					fCallback();
+					fCallback(this);
 			};
 
 			if (!iTotalImg) {
 				if (typeof fCallback === 'function')
-					setTimeout(fCallback, 0);
+					setTimeout(() => fCallback(this), 0);
 			}
 			else
 				aImg.one('load',function(){
@@ -1578,6 +1578,8 @@
 						.find('.history')
 						.replaceWith(history)
 						.end()
+						.bxTime()
+						.addTimeIntervals()
 						.show(
 							function()
 							{
@@ -1598,7 +1600,6 @@
 								_this.updatePageIcon(undefined, iLotId);
 							}
 						)
-						.bxTime()
 						.waitForImages(
 							function()
 							{
@@ -1751,7 +1752,7 @@
 								_this.updateLotSettings({ lot: lot_id });
 							}
 
-							if (typeof tmp_id !== 'undefined')
+							if (typeof tmp_id !== 'undefined') {
 								$('[data-tmp="' + tmp_id + '"]', _this.sTalkList)
 									.attr('data-id', jot_id)
 									.find('time')
@@ -1760,6 +1761,9 @@
 									.closest(_this.sJot)
 									.bxTime(undefined, true)
 									.linkify();
+
+								$(_this.sTalkList).addTimeIntervals();
+							}
 									
 							if (oParams.files.length || typeof oParams.giphy !== 'undefined') {
 								_this.attacheFiles(iJotId);
@@ -1790,9 +1794,7 @@
 				}			
 					if (typeof fCallBack == 'function')
 						fCallBack();
-					
-					if (typeof date_separator !== 'undefined')
-						$(`[data-tmp="${oParams.tmp_id}"]`, _this.sTalkList).before(date_separator);
+
 			}, 'json');
 		
 		return true;
@@ -2186,7 +2188,36 @@
 		
 		return this;
 	}
-	
+
+	oMessenger.prototype.getDateSeparator = function(sTime){
+		return this.sDateIntervalsTemplate.replace(/__date__/g, moment(sTime).format('dddd Do, MMMM'));
+	}
+
+	$.fn.addTimeIntervals = function(){
+		const oJots = $(`${_oMessenger.sJot} time`, this);
+		let sDate = oJots.first().attr('datetime');
+
+		if (!oJots.length)
+			return this;
+
+		const oFirstItem = oJots.first().closest(_oMessenger.sJot);
+		if (!oFirstItem.prev().hasClass(_oMessenger.sDateIntervalsSelector.substr(1)))
+			oFirstItem.before(_oMessenger.getDateSeparator(sDate));
+
+		oJots.each(function(){
+			const sTime = $(this).attr('datetime');
+			if (!moment(sTime).isSame(sDate, 'day')){
+				sDate = sTime;
+				const oItem = $(this).closest(_oMessenger.sJot);
+				if (!oItem.prev().hasClass(_oMessenger.sDateIntervalsSelector.substr(1)))
+					oItem.before(_oMessenger.getDateSeparator(sTime));
+			}
+		});
+
+		_oMessenger.updateDateList();
+		return this;
+	}
+
 	/**
 	* Update history area, occurs when new messages are received(move scroll to the very bottom) or member loads the history(move scroll to the very top)
 	*@param object oAction info about an action
@@ -2269,28 +2300,27 @@
 									if (!html.length)
 										return ;
 
-									$(html)
-										.filter(_this.sJot)
-										.each(function(){
-											if ($('div[data-id="' + $(this).data('id') + '"]', oList).length)
-												$(this).remove();
+									$(oList)
+									.append(
+											$(html)
+											.filter(_this.sJot)
+											.each(
+													function(){
+																if ($('div[data-id="' + $(this).data('id') + '"]', oList).length)
+																	$(this).remove();
 
-												$(`${_this.sJotMessageViews} img`, this)
-													.each(function(){
-														$(`${_this.sJot} ${_this.sJotMessageViews} img[data-viewer-id="${$(this).data('viewer-id')}"]`).remove()
+																$(`${_this.sJotMessageViews} img`, this)
+																	.each(function(){
+																		$(`${_this.sJot} ${_this.sJotMessageViews} img[data-viewer-id="${$(this).data('viewer-id')}"]`).remove()
+																	})
+																	.end()
+																	.closest(_this.sJotMessageViews)
+																	.fadeIn();
 													})
-													.end()
-													.closest(_this.sJotMessageViews)
-													.fadeIn();
-										})
-									.end()
-									.appendTo(oList)
-									.waitForImages(
-										function()
-										{
-											_this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'fast', oObjects.last());
-											_this.updateDateList();
-										});
+											.waitForImages(() => _this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'fast', oObjects.last()))
+										)
+										.addTimeIntervals();
+									
 
 									if ((_this.isBlockVersion() || (_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive())) && !bSilentMode)  /* play sound for jots only on mobile devices when chat area is active */
 										$(_this).trigger(jQuery.Event('message'));
@@ -2310,15 +2340,27 @@
 								}
 
 								oList
-									.prepend(html)
-									.waitForImages(() => {
+									.prepend($(html)
+										.filter(_this.sJot)
+										.each(function(){
+											$(`${_this.sJotMessageViews} img`, this)
+												.each(function(){
+													if ($(`${_this.sJot} ${_this.sJotMessageViews} img[data-viewer-id="${$(this).data('viewer-id')}"]`).length)
+														$(this).remove();
+												})
+												.end()
+												.closest(_this.sJotMessageViews)
+												.fadeIn();
+										}))
+									.addTimeIntervals()
+									.waitForImages(oParent => {
 										const iId = oObjects.first().data('id');
-										const iTop = $(`[data-id="${iId}"]${_this.sJot}`).position().top || 0;
-										if (iTop)
-											_this.updateScrollPosition('top', 'fast', { pos: iTop });
-
-										_this.updateDateList();
-									})
+										setTimeout(() => {
+											const iTop = $(`[data-id="${iId}"]${_this.sJot}`, oParent).position().top || 0;
+											if (iTop)
+												_this.updateScrollPosition('top', 'fast', {pos: iTop});
+										}, 0);
+									});
 
 								break;
 							case 'edit':
@@ -3016,6 +3058,8 @@
 				_oMessenger.updateLotSettings(oInitParams); // init Talks settings
 				_oMessenger.initScrollArea();
 			}
+
+			$(_oMessenger.sTalkBlock).addTimeIntervals();
 
 			// attach on ESC button return from create talk area
 			$(document).on('keydown', function(e){

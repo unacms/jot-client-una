@@ -244,4 +244,12 @@
 	<string name="_bx_messenger_public_vc_bx_organizations_message"><![CDATA[{0} конференция началась]]></string>
 	<string name="_bx_messenger_push_vc_bx_persons_message_title"><![CDATA[Персональный видео звонок]]></string>
 	<string name="_bx_messenger_public_vc_bx_persons_message"><![CDATA[Вдео звонок от {0}]]></string>
+	<string name="_bx_messenger_use_mentions"><![CDATA[Включить упоминания в соощениях]]></string>
+	<string name="_bx_messenger_loading"><![CDATA[загрузка...]]></string>
+	<string name="_bx_messenger_notification_subject_message"><![CDATA[Сообщение от {0}]]></string>
+	<string name="_bx_messenger_notification_subject_mention"><![CDATA[{0} упомянул Вас]]></string>
+	<string name="_bx_ntfs_alert_action_got_mention_ntfs_personal"><![CDATA[Упоминания в Болталке]]></string>
+	<string name="_bx_messenger_txt_subobject_added_message"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> послал {subentry_sample}]]></string>
+	<string name="_bx_messenger_txt_subobject_added_mention"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> упомянул вас в {subentry_sample}]]></string>
+	<string name="_bx_messenger_date_time_today"><![CDATA[Сегодня]]></string>
 </resources>

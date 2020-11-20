@@ -287,15 +287,6 @@ class BxMessengerModule extends BxBaseModTextModule
                 $aResult['time'] = bx_time_utc($aJot[$CNF['FIELD_MESSAGE_ADDED']]);
 
             $this->onSendJot($iId);
-
-            $aPrevJot = $this->_oDb->getPrevJot($iLotId ? $iLotId : $aResult['lot_id'], $aResult['jot_id']);
-            if (!empty($aPrevJot)){
-                $iPrevDate = strtotime(date("Y-m-d", $aPrevJot[$CNF['FIELD_MESSAGE_ADDED']]));
-                $iCurDate = strtotime(date("Y-m-d", $aJot[$CNF['FIELD_MESSAGE_ADDED']]));
-                if ($iPrevDate !== $iCurDate){
-                    $aResult['date_separator'] = $this->_oTemplate->getDateSeparator($iCurDate);
-                }
-            }
         }
 		else
             $aResult = array('code' => 2, 'message' => _t('_bx_messenger_send_message_save_error'));
@@ -784,7 +775,7 @@ class BxMessengerModule extends BxBaseModTextModule
         if ($this->_oDb->deleteJot($iJotId, $this->_iUserId, $bDelete)){
             if ($bDelete)
                 $this->onDeleteJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iJotId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
-            $aResult = array('code' => 0, 'html' => !$bCompletely ? $this->_oTemplate->getMessageIcons($iJotId, 'delete', $bIsLotAuthor || isAdmin() || $this->_isModerator()) : '');
+            $aResult = array('code' => 0, 'html' => !$bCompletely ? $this->_oTemplate->getMessageIcons($iJotId, 'delete', $bIsLotAuthor || isAdmin()) : '');
         }
 
         echoJson($aResult);

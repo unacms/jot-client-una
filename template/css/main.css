@@ -587,7 +587,8 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 {
 	border:none;
 	border-top: 1px solid #d7e9fb;
-	margin:0 !important;
+	margin-top:0.5rem;
+	margin-bottom:0.5rem;	
 }
 
 .bx-messenger-block div.bx-messenger-date-time-hr:first-child {
@@ -1571,6 +1572,10 @@ div.bx-messenger-giphy-items img{
 .bx-messenger-date-time-hr{
 	position: relative;
 	text-align: center;
+	border: none;
+    border-top: 1px solid rgba(0,0,0,0.1);
+    margin-top: .5rem;
+    margin-bottom: .5rem;
 }
 
 .bx-messenger-date-time-hr .bx-messenger-date-time-value {
@@ -1593,6 +1598,7 @@ div.bx-messenger-giphy-items img{
 	position: fixed;
 	height: auto;
 	z-index: 100;
+	transform: translate3d(0,0,0);
 }
 
 div.ui.sidebar{

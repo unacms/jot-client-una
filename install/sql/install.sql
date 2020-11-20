@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_unread_jots` (
    `user_id` int(11) NOT NULL default 0,
     UNIQUE KEY `id` (`lot_id`, `user_id`),
     KEY `user` (`user_id`),
-    KEY `jot` (`jot_id`)
+    KEY `jot` (`first_jot_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `bx_messenger_jvc` (

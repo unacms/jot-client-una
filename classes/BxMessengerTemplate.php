@@ -802,18 +802,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		if (empty($aLotInfo))
 			return $aResult;
 
-        if ($iStart && $sLoad == 'new')
-            $aStartJot = $this->_oDb->getJotById($iStart);
-
-        $iDate = !empty($aStartJot) ? strtotime(date("Y-m-d", $aStartJot[$CNF['FIELD_MESSAGE_ADDED']])) : 0;
-
 		if ($bSelectJot && $iStart)
 		{
 		    $aStartMiddleJot = $this -> _oDb -> getJotsByLotId($aLotInfo[$CNF['FIELD_MESSAGE_ID']], $iStart, 'prev', (int)$CNF['MAX_JOTS_BY_DEFAULT']/2);
-			if (!empty($aStartMiddleJot)) {
+			if (!empty($aStartMiddleJot))
 			    $iStart = current($aStartMiddleJot)[$CNF['FIELD_MESSAGE_ID']];
-                $iDate = 0;
-            }
 		}
 		
 		$aJots = $this->_oDb->getJotsByLotId($aLotInfo[$CNF['FIELD_MESSAGE_ID']], $iStart, $sLoad, $iLimit, $bSelectJot && $iStart);
@@ -826,13 +819,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		foreach($aJots as $iKey => $aJot) {
             $oProfile = $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);
             $iJot = $aJot[$CNF['FIELD_MESSAGE_ID']];
-
-            $iJDate = strtotime(date("Y-m-d", $aJot[$CNF['FIELD_MESSAGE_ADDED']]));
-            $sDate = '';
-            if (!$iDate || $iDate !== $iJDate) {
-                $iDate = $iJDate;
-                $sDate = $this->getDateSeparator($aJot[$CNF['FIELD_MESSAGE_ADDED']]);
-            }
 
             if ($oProfile) {
                 $sAttachment = $sMessage = '';
@@ -873,7 +859,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                 $sReactions = $this->getJotReactions($iJot);
                 $aVars['bx_repeat:jots'][] = array(
                     'title' => $oProfile->getDisplayName(),
-                    'time' => date('h:i a', $aJot[$CNF['FIELD_MESSAGE_ADDED']]),
+                    'time' => bx_time_js($aJot[$CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_TIME, true),
                     'views' => $bShowViews && ($iJotCount - 1 == $iKey) ? $this->getViewedJotProfiles($iJot, $iProfileId) : '',
                     'new' => (int)($iFirstUnreadJot && $iJot >= $iFirstUnreadJot),
                     'url' => $oProfile->getUrl(),
@@ -889,7 +875,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                             'jot_menu' => $this->getJotMenuCode($aJot, $iProfileId)
                         )
                     ),
-                    'date_separator' => $sDate,
                     'bx_if:show_reactions_area' => array(
                         'condition' => !$bIsTrash,
                         'content' => array(
@@ -1055,6 +1040,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'last_unread_jot' => (int)$aUnreadJotsInfo[$CNF['FIELD_NEW_JOT']],
 			'unread_jots' => (int)$aUnreadJotsInfo[$CNF['FIELD_NEW_UNREAD']],
 			'allow_attach' => +$bAttach,
+			'dates_intervals_template' => $this->parseHtmlByName('date-separator.html', array('date' => '__date__')),
 			'reaction_template' => $this->parseHtmlByName('reaction.html', array(
 			    'emoji_id' => '__emoji_id__',
 			    'on_click' => 'oMessenger.onRemoveReaction(this);',
@@ -1265,7 +1251,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				'my' => 1,
 				'message' => '',
 				'attachment' => '',
-                'date_separator' => '',
                 'bx_if:jot_menu' => array(
                     'condition' => $iProfileId,
                     'content'	=> array(
@@ -1916,15 +1901,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         $iToday = strtotime(date("Y-m-d"));
         $iDate = strtotime(date("Y-m-d", $iTimestamp));
 
-        $sDate = $iToday == $iDate ? _t('_bx_messenger_date_time_today') : date("D, M jS", $iTimestamp);;
-        if (preg_match('/^(\w+),(\w+),(\d+),(\d+)$/',  date("D,F,j,Y", $iTimestamp), $aMatches)) {
-            list(, $sDay, $sMonth, $iDay, $iYear) = $aMatches;
-            if (_t("_{$sMonth}") !== "_{$sMonth}")
-                $sMonth = _t("_{$sMonth}");
-
-            $sDate = _t('_week_' . strtolower($sDay)) . " {$iDay}, {$sMonth}" . ($iYear !== date('Y', time()) ? ", {$iYear}" : '');
-        }
-
+        $sDate = $iToday == $iDate ? _t('_bx_messenger_date_time_today') : bx_time_js($iTimestamp, BX_FORMAT_DATE, true);
         return $this->parseHtmlByName('date-separator.html', array(
             'date' => $sDate
         ));

@@ -39,6 +39,15 @@ define('BX_JOT_PUBLIC_JITSI_CLOSE', 'close');
 define('BX_MSG_NTFS_MESSAGE', 'message');
 define('BX_MSG_NTFS_MENTION', 'mention');
 
+// Membership actions
+define('BX_MSG_ACTION_ADMINISTRATE_MESSAGES', 'administrate_messages');
+define('BX_MSG_ACTION_CREATE_TALKS', 'create_talks');
+define('BX_MSG_ACTION_ADMINISTRATE_TALKS', 'administrate_talks');
+define('BX_MSG_ACTION_SEND_MESSAGE', 'send_messages');
+define('BX_MSG_ACTION_CREATE_VC', 'create_vc');
+define('BX_MSG_ACTION_CREATE_IM_VC', 'video_conference');
+
+
 /**
  * Messenger module
  */
@@ -217,8 +226,9 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$this->isLogged())
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_only_for_logged')));
 
-        if (!$this->_oConfig->isAllowToUseMessages($this->_iProfileId))
-            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_not_allowed')));
+        $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_SEND_MESSAGE, $this->_iProfileId);
+        if ($mixedResult !== true)
+            return echoJson(array('code' => 1, 'message' => $mixedResult));
 
         if (!$sMessage && empty($aFiles) && empty($aGiphy))
             return echoJson(array('code' => 2, 'message' => _t('_bx_messenger_send_message_no_data')));
@@ -540,8 +550,9 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$this->isLogged())
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged')));
 
-        if (!$this->_oConfig->isAllowToUseMessages($this->_iProfileId))
-            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_not_allowed')));
+        $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_TALKS, $this->_iProfileId);
+        if ($mixedResult !== true)
+            return echoJson(array('code' => 1, 'message' => $mixedResult));
 
         $iProfileId = (int)bx_get('profile');
         if ($iProfileId)
@@ -678,11 +689,10 @@ class BxMessengerModule extends BxBaseModTextModule
         $aParticipants = $this->getParticipantsList(bx_get('participants'));
 
         $aResult = array('message' => _t('_bx_messenger_save_part_failed'), 'code' => 1);
-        if (($iLotId && !($this->_oDb->isAuthor($iLotId, $this->_iUserId) || isAdmin())) || empty($aParticipants))
-            return echoJson($aResult);
 
-        if (!$this->_oConfig->isAllowToUseMessages($this->_iProfileId))
-            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_not_allowed')));
+        $bCheckAction = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true;
+        if (($iLotId && !($this->_oDb->isAuthor($iLotId, $this->_iProfileId) || $bCheckAction)) || empty($aParticipants))
+            return echoJson($aResult);
 
         $aLot = $this->_oDb->getLotByUrlAndParticipantsList(BX_IM_EMPTY_URL, $aParticipants, BX_IM_TYPE_PRIVATE);
         if (!empty($aLot)){
@@ -766,11 +776,11 @@ class BxMessengerModule extends BxBaseModTextModule
         if (empty($aJotInfo))
             return echoJson($aResult);
 
-        $bIsAllowedToDelete = $this->_oDb->isAllowedToDeleteJot($iJotId, $this->_iUserId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
+        $bIsAllowedToDelete = $this->_oDb->isAllowedToDeleteJot($iJotId, $this->_iProfileId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
         if (!$bIsAllowedToDelete)
             return echoJson($aResult);
 
-        $bIsLotAuthor = $this->_oDb->isAuthor($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iUserId);
+        $bIsLotAuthor = $this->_oDb->isAuthor($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iProfileId);
         $bDelete = $bCompletely || $CNF['REMOVE_MESSAGE_IMMEDIATELY'];
         if ($this->_oDb->deleteJot($iJotId, $this->_iUserId, $bDelete)){
             if ($bDelete)
@@ -865,9 +875,9 @@ class BxMessengerModule extends BxBaseModTextModule
         $aResult = array('code' => 1);
         $aJotInfo = $this->_oDb->getJotById($iJotId);
 
-        if (empty($aJotInfo) || !(isAdmin() || $this->_oDb->isAuthor($iJotId, $this->_iUserId, false) || $this->_oDb->isAuthor($aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE_FK']], $this->_iUserId))) {
+        $mixedResult = $this->_oDb->isAllowedToDeleteJot($iJotId, $this->_iProfileId);
+        if (empty($aJotInfo) || $mixedResult !== true)
             return echoJson($aResult);
-        }
 
         $aResult = array('code' => 0, 'html' => $this->_oTemplate->getEditJotArea($iJotId));
         echoJson($aResult);
@@ -877,13 +887,14 @@ class BxMessengerModule extends BxBaseModTextModule
     {
         $iJotId = bx_get('jot');
         $aJotInfo = $this->_oDb->getJotById($iJotId);
+        $aResult = array('code' => 1);
 
         $sMessage = preg_replace(array('/\<p>/i', '/\<\/p>/i'), array("", "<br/>"), bx_get('message'));
-        $aResult = array('code' => 1);
-        if (empty($aJotInfo) || !(isAdmin() || $this->_oDb->isAuthor($iJotId, $this->_iUserId, false) || $this->_oDb->isAuthor($aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE_FK']], $this->_iUserId)))
+        $mixedResult = $this->_oDb->isAllowedToDeleteJot($iJotId, $this->_iProfileId);
+        if (empty($aJotInfo) || $mixedResult !== true)
             return echoJson($aResult);
 
-        if ($this->_oDb->editJot($iJotId, $this->_iUserId, $sMessage)) {
+        if ($this->_oDb->editJot($iJotId, $this->_iProfileId, $sMessage)) {
             $aResult = array('code' => 0, 'html' => $this->_oTemplate->getMessageIcons($iJotId, 'edit'));
             $this->onUpdateJot($aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE_FK']], $iJotId, $aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE_AUTHOR']]);
         }
@@ -955,7 +966,7 @@ class BxMessengerModule extends BxBaseModTextModule
     {
         $iLotId = bx_get('lot');
 
-        if ($iLotId && $this->_oConfig->isAllowToUseMessages($this->_iProfileId)) {
+        if ($iLotId) {
             $bMuted = $this->_oDb->muteLot($iLotId, $this->_iUserId);
             return echoJson(array('code' => $bMuted, 'title' => $bMuted ? _t('_bx_messenger_lots_menu_mute_info_on') : _t('_bx_messenger_lots_menu_mute_info_off')));
         }
@@ -971,7 +982,7 @@ class BxMessengerModule extends BxBaseModTextModule
     {
         $iLotId = bx_get('lot');
 
-        if ($iLotId && $this->_oDb->isParticipant($iLotId, $this->_iUserId) && $this->_oConfig->isAllowToUseMessages($this->_iProfileId)) {
+        if ($iLotId && $this->_oDb->isParticipant($iLotId, $this->_iUserId)) {
             $bStar = $this->_oDb->starLot($iLotId, $this->_iUserId);
             return echoJson(array('code' => $bStar, 'title' => !$bStar ? _t('_bx_messenger_lots_menu_star_on') : _t('_bx_messenger_lots_menu_star_off')));
         }
@@ -1585,9 +1596,8 @@ class BxMessengerModule extends BxBaseModTextModule
     {
         if (!$this->_iProfileId || !$this->onCheckContact($this->_iProfileId, (int)$mixedObject))
             return false;
-        // check ACL
-        $aCheck = checkActionModule($this->_iProfileId, 'video conference', $this->getName(), true);
-        if ($aCheck[CHECK_ACTION_RESULT] !== CHECK_ACTION_RESULT_ALLOWED)
+
+        if ($this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_IM_VC, $this->_iProfileId) !== true)
             return false;
 
         $this->_oTemplate->addCss(array('video-conference.css'));

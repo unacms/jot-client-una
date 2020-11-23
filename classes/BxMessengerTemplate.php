@@ -106,7 +106,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	public function getTextArea($iProfileId){
 	    $CNF = $this->_oConfig->CNF;
 
-	    if (!$iProfileId || !$this->_oConfig->isAllowToUseMessages($iProfileId))
+        $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_SEND_MESSAGE, $iProfileId);
+	    if (!$iProfileId || $mixedResult !== true)
 	        return '';
 
 	    $bGiphy = $iProfileId && $CNF['GIPHY']['api_key'];
@@ -221,6 +222,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
 	    $iJotAuthor = !empty($aJot) ? (int)$aJot[$CNF['FIELD_MESSAGE_AUTHOR']] : (int)$iProfileId;
 	    $iJotId = !empty($aJot) ? (int)$aJot[$CNF['FIELD_MESSAGE_ID']] : 0;
+
 	    $bAllowToDelete = $this->_oDb->isAllowedToDeleteJot($iJotId, $iProfileId, $iJotAuthor);
 	    $bVC = !empty($aJot) ? (int)$aJot[$CNF['FIELD_MESSAGE_VIDEOC']] : false;
         $aMenuItems = array(
@@ -377,7 +379,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
     private function getTalkHeaderButtons($iLotId, $iProfileId){
         $CNF = &$this -> _oConfig -> CNF;
 
-        if (!$iProfileId || !$iLotId || !$this->_oConfig->isAllowToUseMessages($iProfileId))
+        if (!$iProfileId || !$iLotId)
             return '';
 
         $aLotInfo = $this -> _oDb -> getLotInfoById($iLotId);
@@ -402,7 +404,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             'bx_if:show_lot_menu' => array(
                 'condition' => $iProfileId,
                 'content' => array(
-                    'lot_menu' => $this -> getLotMenuCode($iLotId, $this -> _oDb -> isAuthor($iLotId, $iProfileId) || isAdmin()),
+                    'lot_menu' => $this -> getLotMenuCode($iLotId, $iProfileId /*, $this -> _oDb -> isAuthor($iLotId, $iProfileId) || isAdmin()*/),
                     'id' => $iLotId,
                     'mute' => (int)$bIsMuted,
                     'mute_title' => bx_js_string( $bIsMuted ? _t('_bx_messenger_lots_menu_mute_info_on') : _t('_bx_messenger_lots_menu_mute_info_off')),
@@ -423,17 +425,19 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             )));
 	}
 
-    private function getLotMenuCode($iLotId, $bAllowed){
+    private function getLotMenuCode($iLotId, $iProfileId){
         $CNF = &$this->_oConfig->CNF;
+
+        $bAllowed = $this->_oDb->isAuthor($iLotId, $iProfileId) || ($this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $iProfileId) === true);
         $aMenuItems = array(
             array(
-                'permissions' => true,
+                'permissions' => $bAllowed,
                 'click' => "{$CNF['JSMain']}.createLot({lot:{$iLotId}});",
                 'title' => _t("_bx_messenger_lots_menu_add_part"),
                 'icon' => 'plus-circle'
             ),
             array(
-                'permissions' => true,
+                'permissions' => $bAllowed,
                 'click' => "if (confirm('" . bx_js_string(_t('_bx_messenger_delete_lot')) . "')) 
                                                 {$CNF['JSMain']}.onDeleteLot($iLotId);",
                 'title' => _t('_bx_messenger_lots_menu_delete'),
@@ -453,7 +457,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
         $aVars = array('class' => '', 'position' => 'bottom');
         foreach ($aMenuItems as &$aItem) {
-            if (isset($aItem['permissions']) && $aItem['permissions'] === true && !$bAllowed)
+            if (isset($aItem['permissions']) && $aItem['permissions'] !== true)
                 continue;
 
             $aVars['bx_repeat:menu'][] = $aItem;
@@ -870,7 +874,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                     'attachment' => $sAttachment,
                     'my' => (int)$iProfileId === (int)$aJot[$CNF['FIELD_MESSAGE_AUTHOR']] ? 1 : 0,
                     'bx_if:jot_menu' => array(
-                        'condition' => $iProfileId && !$bIsTrash && $this->_oConfig->isAllowToUseMessages($iProfileId),
+                        'condition' => $iProfileId && !$bIsTrash,
                         'content' => array(
                             'jot_menu' => $this->getJotMenuCode($aJot, $iProfileId)
                         )
@@ -950,7 +954,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'star_icon' => $this->_oConfig->CNF['STAR_ICON'],
 			'star_color' => $this->_oConfig->CNF['STAR_BACKGROUND_COLOR'],
             'bx_if:create' => array(
-                'condition' => $this->_oConfig->isAllowToUseMessages($iProfileId),
+                'condition' => $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_TALKS, $iProfileId) === true,
                 'content' => array(
                     'create_lot_title' => bx_js_string(_t('_bx_messenger_lots_menu_create_lot_title')),
                 )
@@ -1233,6 +1237,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		    return '';
 		
 		$oProfile = $this -> getObjectUser($iProfileId);
+
         $isAllowedDelete = $this -> _oConfig -> CNF['ALLOW_TO_REMOVE_MESSAGE'] || isAdmin();
 		if ($oProfile)
 		{

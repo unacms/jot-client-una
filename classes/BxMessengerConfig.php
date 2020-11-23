@@ -403,7 +403,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 	    if ($this->CNF['JITSI-ONLY-FOR-PRIVATE'] && ($iType == BX_IM_TYPE_PUBLIC || $iType == BX_IM_TYPE_SETS))
 	        return false;
 
-	    return true;
+	    return $this->isAllowedAction(BX_MSG_ACTION_CREATE_VC) === true;
     }
 
     public function getValidUrl($sUrl, $sType = 'domain'){
@@ -435,6 +435,26 @@ class BxMessengerConfig extends BxBaseModTextConfig
         $aList = explode(',', $sList);
         if (in_array($aProfileMembership['id'], $aList))
             return false;
+
+        return true;
+    }
+
+    public function isAllowedAction($sAction = BX_MSG_ACTION_SEND_MESSAGE, $iProfileId = 0){
+        if (!isLogged())
+            return false;
+
+        if (!$iProfileId)
+            $iProfileId = bx_get_logged_profile_id();
+
+        $aProfileMembership = BxDolAcl::getInstance()->getMemberMembershipInfo($iProfileId);
+        if (isset($aProfileMembership['status']) && $aProfileMembership['status'] !== 'active')
+            return false;
+
+        if ($sAction && ($sMembershipAction = str_replace('_', ' ', $sAction))){
+           $aCheck = checkActionModule($iProfileId, $sMembershipAction, $this->getName(), true);
+           if ($aCheck[CHECK_ACTION_RESULT] !== CHECK_ACTION_RESULT_ALLOWED)
+                return $aCheck[CHECK_ACTION_MESSAGE];
+        }
 
         return true;
     }

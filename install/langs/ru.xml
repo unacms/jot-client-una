@@ -146,7 +146,7 @@
 	<string name="_bx_messenger_max_ntfs_number"><![CDATA[Максимальное количество оповещений от одного участника в одном разговоре в течении часа]]></string>
 	<string name="_bx_messenger_txt_subobject_added"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> отправил(а) {subentry_sample} <b class="bx-ntfs-content-entry">{entry_caption}</b>]]></string>
 	<string name="_bx_messenger_max_parts_views"><![CDATA[Разрешать показывать просмотры сообщений в разговорах не превышающих указанное количество пользователей]]></string>
-	<string name="_bx_messenger_allow_to_remove_messages"><![CDATA[Разрешать пользователям удалять собственные сообщения]]></string>
+	<string name="_bx_messenger_allow_to_remove_messages"><![CDATA[Разрешать пользователям модерировать собственные сообщения]]></string>
 	<string name="_bx_messenger_remove_messages_immediately"><![CDATA[Удалять сообщения сразу, без подтверждения администратора]]></string>
 	<string name="_bx_messenger_lots_menu_media"><![CDATA[Файлы]]></string>
 	<string name="_bx_messenger_no_permissions"><![CDATA[Вы не можете просматривать содержимое вкладки]]></string>
@@ -229,7 +229,7 @@
 	<string name="_bx_messenger_jitsi_watermark_link"><![CDATA[Ссылка на водяном знаке (пользователь будет перенаправлен по это ссылке, если кликнет на водяной знак)]]></string>
 	<string name="_bx_messenger_jitsi_remote_user"><![CDATA[Участник]]></string>
 	<string name="_bx_messenger_lot_parts_error"><![CDATA[Разговор с таким же списком участников уже существует.]]></string>
-	<string name="_bx_messenger_jitsi_err_cant_type_use"><![CDATA[Извините, но видео конференции публичных чатов запрещены.]]></string>
+	<string name="_bx_messenger_jitsi_err_cant_type_use"><![CDATA[Извините, видео конференции для вас недоступны.]]></string>
 	<string name="_bx_messenger_file_is_too_large_error"><![CDATA[Файл иммет слишком большой размер!]]></string>
 	<string name="_bx_messenger_file_is_too_large_error_details"><![CDATA[Максимально допустимый размер файла {filesize}]]></string>
 	<string name="_bx_messenger_file_type_is_not_allowed"><![CDATA[Загрузка файлов данного формата запрещена!]]></string>
@@ -252,4 +252,9 @@
 	<string name="_bx_messenger_txt_subobject_added_message"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> послал {subentry_sample}]]></string>
 	<string name="_bx_messenger_txt_subobject_added_mention"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> упомянул вас в {subentry_sample}]]></string>
 	<string name="_bx_messenger_date_time_today"><![CDATA[Сегодня]]></string>
+	<string name="_bx_messenger_acl_action_administrate_messages"><![CDATA[Модерировать сообщения (редактировать/удалять)]]></string>
+	<string name="_bx_messenger_acl_action_create_talks"><![CDATA[Создавать разговоры]]></string>
+	<string name="_bx_messenger_acl_action_administrate_talks"><![CDATA[Модерировать разговоры (редактировать/удалять)]]></string>
+	<string name="_bx_messenger_acl_action_send_messages"><![CDATA[Оправлять сообщения]]></string>
+	<string name="_bx_messenger_acl_action_create_vc"><![CDATA[Создавать видео конференции]]></string>
 </resources>

@@ -1284,6 +1284,10 @@ class BxMessengerDb extends BxBaseModTextDb
         if (!$iJotId)
             return true;
 
+        $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_MESSAGES, $iProfileId);
+        if ($mixedResult === true)
+            return true;
+
         if (!$iProfileId)
             $iProfileId = bx_get_logged_profile_id();
 
@@ -1300,7 +1304,7 @@ class BxMessengerDb extends BxBaseModTextDb
             $bIsLotAuthor = $iLotAuthorId == $iProfileId;
 
 
-        return ($this->CNF['ALLOW_TO_REMOVE_MESSAGE'] && $iJotAuthor == $iProfileId) || $bIsLotAuthor || isAdmin();
+        return ($this->CNF['ALLOW_TO_REMOVE_MESSAGE'] && $iJotAuthor == $iProfileId) || $bIsLotAuthor;
     }
 
     function createJVC($iLotId, $iProfileId){

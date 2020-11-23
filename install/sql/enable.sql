@@ -83,7 +83,6 @@ SET @iPBOrderHome = (SELECT IFNULL(MAX(`order`), 0) FROM `sys_pages_blocks` WHER
 INSERT INTO `sys_pages_blocks`(`object`, `cell_id`, `module`, `title`, `designbox_id`, `visible_for_levels`, `type`, `content`, `deletable`, `copyable`, `order`, `active`) VALUES 
 ('sys_home', @iPBCellHome, @sName, '_bx_messenger_home_page_all_members_block', 0, 2147483647, 'service', 'a:3:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:19:"get_block_messenger";s:6:"params";a:1:{i:0;s:7:"members";}}', 0, 0, @iPBOrderHome + 1, 0);
 
-
 -- ALERTS
 INSERT INTO `sys_alerts_handlers` (`name`, `class`, `file`, `service_call`) VALUES 
 ('bx_messenger', '', '', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:24:"delete_history_by_author";}');
@@ -105,16 +104,62 @@ REPLACE INTO `sys_storage_mime_types` (`ext`, `mime_type`, `icon`, `icon_font`) 
 -- ACL
 INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`, `Desc`, `Countable`, `DisabledForLevels`) VALUES
 (@sName, 'video conference', NULL, '_bx_messenger_acl_action_video_conference', '', 1, 0);
-SET @iIdActionEntryCreate = LAST_INSERT_ID();
+SET @iIdActionEntryIMCreate = LAST_INSERT_ID();
 
+INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`, `Desc`, `Countable`, `DisabledForLevels`) VALUES
+(@sName, 'create talks', NULL, '_bx_messenger_acl_action_create_talks', '', 1, 0);
+SET @iIdActionEntryTalkCreate = LAST_INSERT_ID();
+
+INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`, `Desc`, `Countable`, `DisabledForLevels`) VALUES
+(@sName, 'send messages', NULL, '_bx_messenger_acl_action_send_messages', '', 1, 0);
+SET @iIdActionSendMessage = LAST_INSERT_ID();
+
+INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`, `Desc`, `Countable`, `DisabledForLevels`) VALUES
+(@sName, 'administrate messages', NULL, '_bx_messenger_acl_action_administrate_messages', '', 1, 0);
+SET @iIdActionAdminMessages = LAST_INSERT_ID();
+
+INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`, `Desc`, `Countable`, `DisabledForLevels`) VALUES
+(@sName, 'administrate talks', NULL, '_bx_messenger_acl_action_administrate_talks', '', 1, 0);
+SET @iIdActionAdminTalks = LAST_INSERT_ID();
+
+INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`, `Desc`, `Countable`, `DisabledForLevels`) VALUES
+(@sName, 'create vc', NULL, '_bx_messenger_acl_action_create_vc', '', 1, 0);
+SET @iIdActionVCCreate = LAST_INSERT_ID();
+
+SET @iUnauthenticated = 1;
+SET @iAccount = 2;
 SET @iStandard = 3;
+SET @iUnconfirmed = 4;
+SET @iPending = 5;
+SET @iSuspended = 6;
 SET @iModerator = 7;
 SET @iAdministrator = 8;
 SET @iPremium = 9;
 
 INSERT INTO `sys_acl_matrix` (`IDLevel`, `IDAction`) VALUES
+-- IM video conference
+(@iStandard, @iIdActionEntryIMCreate),
+(@iModerator, @iIdActionEntryIMCreate),
+(@iAdministrator, @iIdActionEntryIMCreate),
+(@iPremium, @iIdActionEntryIMCreate),
 -- video conference
-(@iStandard, @iIdActionEntryCreate),
-(@iModerator, @iIdActionEntryCreate),
-(@iAdministrator, @iIdActionEntryCreate),
-(@iPremium, @iIdActionEntryCreate);
+(@iStandard, @iIdActionVCCreate),
+(@iModerator, @iIdActionVCCreate),
+(@iAdministrator, @iIdActionVCCreate),
+(@iPremium, @iIdActionVCCreate),
+-- create talk
+(@iStandard, @iIdActionEntryTalkCreate),
+(@iModerator, @iIdActionEntryTalkCreate),
+(@iAdministrator, @iIdActionEntryTalkCreate),
+(@iPremium, @iIdActionEntryTalkCreate),
+-- send messages
+(@iStandard, @iIdActionSendMessage),
+(@iModerator, @iIdActionSendMessage),
+(@iAdministrator, @iIdActionSendMessage),
+(@iPremium, @iIdActionSendMessage),
+-- administration messages
+(@iModerator, @iIdActionAdminMessages),
+(@iAdministrator, @iIdActionAdminMessages),
+-- administration messages
+(@iModerator, @iIdActionAdminTalks),
+(@iAdministrator, @iIdActionAdminTalks);

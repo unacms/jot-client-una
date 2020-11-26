@@ -751,16 +751,31 @@ class BxMessengerModule extends BxBaseModTextModule
         }
 
         $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
-       // $aJotsList = $this->_oDb->getJotsByLotId($iLotId);
         $CNF = &$this->_oConfig->CNF;
 
         if ($this->_oDb->deleteLot($iLotId)) {
             $aResult = array('code' => 0);
             $this->onDeleteLot($iLotId, $aLotInfo[$CNF['FIELD_AUTHOR']]);
-
-            /*foreach ($aJotsList as &$aJot)
-                $this->onDeleteJot($aJot[$CNF['FIELD_MESSAGE_FK']], $aJot[$CNF['FIELD_MESSAGE_ID']], $aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);*/
         }
+
+        echoJson($aResult);
+    }
+
+    /**
+     * Clear specified lot
+     * @return string with json
+     */
+    public function actionClearHistory()
+    {
+        $iLotId = bx_get('lot');
+        $aResult = array('code' => 1);
+        $bAllowed = $this->_oDb->isAuthor($iLotId, $this->_iProfileId) || ($this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true);
+        if (!$iLotId || !$bAllowed) {
+            return echoJson($aResult);
+        }
+
+        if ($this->_oDb->clearLot($iLotId))
+            $aResult = array('code' => 0);
 
         echoJson($aResult);
     }

@@ -258,4 +258,6 @@
 	<string name="_bx_messenger_acl_action_create_vc"><![CDATA[Создавать видео конференции]]></string>
 	<string name="_bx_messenger_disable_contact_privacy"><![CDATA[Отключить насктройки контакта пользователя. <b>Замечание</b>: Если вы отключите настройки любой профиль будет иметь возможность контакировать с любым другим профилем!]]></string>
 	<string name="_bx_messenger_allow_to_moderate_messages"><![CDATA[Разрешать создателям чатов модерировать сообщения]]></string>
+	<string name="_bx_messenger_clear_lot_menu"><![CDATA[Очистить историю]]></string>
+	<string name="_bx_messenger_clear_lot"><![CDATA[Вы уверено, что хотите безвозвратно удалить историю чата?]]></string>
 </resources>

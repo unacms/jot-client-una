@@ -388,7 +388,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             'bx_if:show_lot_menu' => array(
                 'condition' => $iProfileId,
                 'content' => array(
-                    'lot_menu' => $this -> getLotMenuCode($iLotId, $iProfileId /*, $this -> _oDb -> isAuthor($iLotId, $iProfileId) || isAdmin()*/),
+                    'lot_menu' => $this -> getLotMenuCode($iLotId, $iProfileId),
                     'id' => $iLotId,
                     'mute' => (int)$bIsMuted,
                     'mute_title' => bx_js_string( $bIsMuted ? _t('_bx_messenger_lots_menu_mute_info_on') : _t('_bx_messenger_lots_menu_mute_info_off')),
@@ -422,20 +422,26 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             ),
             array(
                 'permissions' => $bAllowed,
-                'click' => "if (confirm('" . bx_js_string(_t('_bx_messenger_delete_lot')) . "')) 
+                'click' => "if (confirm('" . bx_js_string(_t('_bx_messenger_delete_lot'), BX_ESCAPE_STR_APOS) . "')) 
                                                 {$CNF['JSMain']}.onDeleteLot($iLotId);",
                 'title' => _t('_bx_messenger_lots_menu_delete'),
                 'icon' => 'backspace'
             ),
             array(
                 'title' => _t("_bx_messenger_lots_menu_leave"),
-                'click' => "if (confirm('" . bx_js_string(_t('_bx_messenger_leave_chat_confirm')) . "')) oMessenger.onLeaveLot($iLotId);",
+                'click' => "if (confirm('" . bx_js_string(_t('_bx_messenger_leave_chat_confirm'), BX_ESCAPE_STR_APOS) . "')) oMessenger.onLeaveLot($iLotId);",
                 'icon' => 'sign-out-alt'
             ),
             array(
                 'title' => _t("_bx_messenger_lots_menu_media"),
                 'click' => "$('.bx-messenger-conversation-block-wrapper .ui.sidebar').sidebar('toggle')",
                 'icon' => 'photo-video'
+            ),
+            array(
+                'permissions' => $bAllowed,
+                'click' => "if (confirm('" . bx_js_string(_t('_bx_messenger_clear_lot'), BX_ESCAPE_STR_APOS) . "')) {$CNF['JSMain']}.onClearLot($iLotId);",
+                'title' => _t('_bx_messenger_clear_lot_menu'),
+                'icon' => 'trash'
             )
         );
 

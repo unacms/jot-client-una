@@ -1004,6 +1004,16 @@
 				}, 'json');
 	};
 
+	oMessenger.prototype.clearLot = function(iLotId){
+		if (iLotId)
+				$.post('modules/?r=messenger/clear_history', { lot: iLotId }, function({ code, message }){
+						if (!parseInt(code))
+							_oMessenger.loadTalk(iLotId, undefined, undefined, undefined, true);
+						else
+							bx_alert(message)
+				}, 'json');
+	};
+
 	oMessenger.prototype.deleteJot = function(oObject, bCompletely){
 		const _this = this,
 			oJot = $(oObject).closest(this.sJot),
@@ -3147,7 +3157,10 @@
 			_oMessenger.deleteLot(iLotId);
 			return this;
 		},
-
+		onClearLot: function (iLotId) {
+			_oMessenger.clearLot(iLotId);
+			return this;
+		},
 		showLotsByType: function (iType) {
 			_oMessenger.searchByItems(iType);
 			return this;

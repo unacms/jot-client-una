@@ -257,4 +257,6 @@
 	<string name="_bx_messenger_acl_action_create_vc"><![CDATA[Create video conferences]]></string>
 	<string name="_bx_messenger_disable_contact_privacy"><![CDATA[Disable profiles contact privacy settings. <b>Note</b>: if you enable this option any profile be able to contact with any!]]></string>
 	<string name="_bx_messenger_allow_to_moderate_messages"><![CDATA[Allow talks' authors moderate messages (delete/edit)]]></string>
+	<string name="_bx_messenger_clear_lot"><![CDATA[Are you sure you want to delete talk's history permanently?]]></string>
+	<string name="_bx_messenger_clear_lot_menu"><![CDATA[Clear history]]></string>
 </resources>

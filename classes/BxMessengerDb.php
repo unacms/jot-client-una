@@ -108,6 +108,21 @@ class BxMessengerDb extends BxBaseModTextDb
 		$iResult += $this -> query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id", array('id' => $iLotId));
 		return $iResult;
 	}
+
+    /**
+     * Clear lot history
+     *@param int $iLotId lot id
+     *@return boolean result
+     */
+    public function clearLot($iLotId){
+        $aJots = $this -> getJotsByLotId($iLotId);
+        foreach($aJots as $iKey => $aJot) {
+            $this->removeFilesByJotId($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
+            $this->deleteJotReactions($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
+        }
+
+        return $this->query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id", array('id' => $iLotId));
+    }
 	
 	/**
 	* Deletes jot

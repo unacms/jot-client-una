@@ -1590,7 +1590,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@return string html
 	*/
 	public function deleteFileCode($iFileId, $bIsDeleteAllowed = false){
-        if (!$this->_oConfig->isAllowToUseMessages())
+        if (!$bIsDeleteAllowed)
             return '';
 
 	    return $this -> parseHtmlByName('file_menu.html', array(

@@ -1574,6 +1574,10 @@ class BxMessengerModule extends BxBaseModTextModule
 
     public function onCheckContact($iSender, $iRecipient)
     {
+        $CNF = &$this->_oConfig->CNF;
+       if ($CNF['DISABLE-PROFILE-PRIVACY'])
+            return true;
+
         if(method_exists('BxDolProfile', 'checkAllowedProfileContact')) {
             $mixedResult = BxDolProfile::getInstance($iSender)->checkAllowedProfileContact($iRecipient);
             if($mixedResult !== CHECK_ACTION_RESULT_ALLOWED)
@@ -1587,14 +1591,15 @@ class BxMessengerModule extends BxBaseModTextModule
 
     public function serviceIsContactAllowed($mixedObject)
     {
-        if (!$this->_iUserId)
+        if (!$this->_iProfileId)
             return false;
-        return $this->onCheckContact($this->_iUserId, (int)$mixedObject);
+
+        return $this->onCheckContact($this->_iProfileId, (int)$mixedObject);
     }
 
     public function serviceIsVideoConferenceAllowed($mixedObject)
     {
-        if (!$this->_iProfileId || !$this->onCheckContact($this->_iProfileId, (int)$mixedObject))
+       if (!$this->_iProfileId || !$this->onCheckContact($this->_iProfileId, (int)$mixedObject))
             return false;
 
         if ($this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_IM_VC, $this->_iProfileId) !== true)

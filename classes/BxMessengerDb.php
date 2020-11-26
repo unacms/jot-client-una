@@ -1303,8 +1303,7 @@ class BxMessengerDb extends BxBaseModTextDb
         else
             $bIsLotAuthor = $iLotAuthorId == $iProfileId;
 
-
-        return ($this->CNF['ALLOW_TO_REMOVE_MESSAGE'] && $iJotAuthor == $iProfileId) || $bIsLotAuthor;
+        return ($this->CNF['ALLOW_TO_REMOVE_MESSAGE'] && $iJotAuthor == $iProfileId) || ($this->CNF['ALLOW_TO_MODERATE_MESSAGE_FOR_AUTHORS'] && $bIsLotAuthor);
     }
 
     function createJVC($iLotId, $iProfileId){

@@ -216,6 +216,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
             'MAX_NTFS_NUMBER'	=> (int)getParam($aModule['db_prefix'] . 'max_ntfs_number'),
             'MAX_VIEWS_PARTS_NUMBER' => (int)getParam($aModule['db_prefix'] . 'max_parts_views'),
             'ALLOW_TO_REMOVE_MESSAGE' => getParam($aModule['db_prefix'] . 'allow_to_remove_messages') == 'on',
+            'ALLOW_TO_MODERATE_MESSAGE_FOR_AUTHORS' => getParam($aModule['db_prefix'] . 'allow_to_moderate_messages') == 'on',
             'REMOVE_MESSAGE_IMMEDIATELY' => getParam($aModule['db_prefix'] . 'remove_messages_immediately') == 'on',
             'USE_EMBEDLY' => getParam($aModule['db_prefix'] . 'use_embedly') == 'on',
             'USE_MENTIONS' => getParam($aModule['db_prefix'] . 'enable_mentions') == 'on',
@@ -231,8 +232,8 @@ class BxMessengerConfig extends BxBaseModTextConfig
             'JITSI-ENABLE-WATERMARK' => getParam($aModule['db_prefix'] . 'jitsi_enable_watermark') == 'on',
             'JITSI-WATERMARK-URL' => getParam($aModule['db_prefix'] . 'jitsi_watermark_link'),
             'JITSI-SUPPORT-LINK' => getParam($aModule['db_prefix'] . 'jitsi_support_url'),
-            'JSMain' => 'oMessenger',
-            'ALLOWED-MEMBERSHIPS-LIST' => getParam($aModule['db_prefix'] . 'membership_restrictions'),
+            'DISABLE-PROFILE-PRIVACY' => getParam($aModule['db_prefix'] . 'disable_contact_privacy') == 'on',
+            'JSMain' => 'oMessenger'
         );
 
 		$this->_aObjects = array(
@@ -414,29 +415,6 @@ class BxMessengerConfig extends BxBaseModTextConfig
         $sDomain = str_replace(["www."], [''], $sDomain);
 
         return $sType === 'domain' ? $sDomain : "https://{$sDomain}";
-    }
-
-    public function isAllowToUseMessages($iProfileId = 0){
-        $sList = $this->CNF['ALLOWED-MEMBERSHIPS-LIST'];
-
-        if (!isLogged())
-            return false;
-
-        if (!$iProfileId)
-            $iProfileId = bx_get_logged_profile_id();
-
-        if (!$sList)
-            return true;
-
-        $aProfileMembership = BxDolAcl::getInstance()->getMemberMembershipInfo($iProfileId);
-        if (isset($aProfileMembership['status']) && $aProfileMembership['status'] !== 'active')
-            return false;
-
-        $aList = explode(',', $sList);
-        if (in_array($aProfileMembership['id'], $aList))
-            return false;
-
-        return true;
     }
 
     public function isAllowedAction($sAction = BX_MSG_ACTION_SEND_MESSAGE, $iProfileId = 0){

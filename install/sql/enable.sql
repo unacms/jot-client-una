@@ -27,27 +27,27 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_max_parts_views', '10', @iCategId, '_bx_messenger_max_parts_views', 'digit', '', '', '', 14),
 ('bx_messenger_max_drop_down_select', '5', @iCategId, '_bx_messenger_max_drop_down_select', 'digit', '', '', '', 15),
 ('bx_messenger_allow_to_remove_messages', 'on', @iCategId, '_bx_messenger_allow_to_remove_messages', 'checkbox', '', '', '', 16),
-('bx_messenger_remove_messages_immediately', '', @iCategId, '_bx_messenger_remove_messages_immediately', 'checkbox', '', '', '', 17),
-('bx_messenger_use_embedly', 'on', @iCategId, '_bx_messenger_use_embedly', 'checkbox', '', '', '', 18),
-('bx_messenger_giphy_key', '', @iCategId, '_bx_messenger_giphy_api_key', 'digit', '', '', '', 19),
-('bx_messenger_giphy_type', 'gifs', @iCategId, '_bx_messenger_giphy_type', 'select', '', '', 'gifs,stickers', 20),
-('bx_messenger_giphy_content_rating', 'g', @iCategId, '_bx_messenger_giphy_content_rating', 'select', '', '', 'g,pg,pg-13,r', 21),
-('bx_messenger_giphy_limit', '15', @iCategId, '_bx_messenger_giphy_limit', 'digit', '', '', '', 22),
-('bx_messenger_emoji_set', 'native', @iCategId, '_bx_messenger_emoji_set', 'select', '', '', 'native,apple,google,twitter,emojione,facebook,messenger', 23),
-('bx_messenger_reactions_size', '16', @iCategId, '_bx_messenger_reactions_size', 'select', '', '', '16,20,24,32', 24),
-('bx_messenger_show_emoji_preview', '', @iCategId, '_bx_messenger_show_emoji_preview', 'checkbox', '', '', '', 25),
-('bx_messenger_jitsi_enable', 'on', @iCategId, '_bx_messenger_allow_to_use_jitsi', 'checkbox', '', '', '', 26),
-('bx_messenger_jitsi_server', 'meet.jit.si', @iCategId, '_bx_messenger_jitsi_server', 'digit', '', '', '', 27),
-('bx_messenger_jitsi_chat', '', @iCategId, '_bx_messenger_jitsi_chat_enable', 'checkbox', '', '', '', 28),
-('bx_messenger_jitsi_sync', '', @iCategId, '_bx_messenger_jitsi_chat_sync', 'checkbox', '', '', '', 29),
-('bx_messenger_jitsi_hide_info', '', @iCategId, '_bx_messenger_jitsi_hide_info', 'checkbox', '', '', '', 30),
-('bx_messenger_jitsi_enable_watermark', '', @iCategId, '_bx_messenger_jitsi_watermark', 'checkbox', '', '', '', 31),
-('bx_messenger_jitsi_watermark_link', '', @iCategId, '_bx_messenger_jitsi_watermark_link', 'digit', '', '', '', 32),
-('bx_messenger_jitsi_only_for_private', 'on', @iCategId, '_bx_messenger_jitsi_enable_only_for_private', 'checkbox', '', '', '', 33),
-('bx_messenger_jitsi_support_url', 'https://community.jitsi.org/', @iCategId, '_bx_messenger_jitsi_support_url', 'digit', '', '', '', 34),
-('bx_messenger_membership_restrictions', '4,5,6', @iCategId, '_bx_messenger_restricted_memberships', 'list', '', '', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:21:"get_membership_levels";}', 35),
-('bx_messenger_enable_mentions', 'on', @iCategId, '_bx_messenger_use_mentions', 'checkbox', '', '', '', 36);
-
+('bx_messenger_allow_to_moderate_messages', 'on', @iCategId, '_bx_messenger_allow_to_moderate_messages', 'checkbox', '', '', '', 17),
+('bx_messenger_remove_messages_immediately', '', @iCategId, '_bx_messenger_remove_messages_immediately', 'checkbox', '', '', '', 18),
+('bx_messenger_use_embedly', 'on', @iCategId, '_bx_messenger_use_embedly', 'checkbox', '', '', '', 19),
+('bx_messenger_giphy_key', '', @iCategId, '_bx_messenger_giphy_api_key', 'digit', '', '', '', 21),
+('bx_messenger_giphy_type', 'gifs', @iCategId, '_bx_messenger_giphy_type', 'select', '', '', 'gifs,stickers', 22),
+('bx_messenger_giphy_content_rating', 'g', @iCategId, '_bx_messenger_giphy_content_rating', 'select', '', '', 'g,pg,pg-13,r', 23),
+('bx_messenger_giphy_limit', '15', @iCategId, '_bx_messenger_giphy_limit', 'digit', '', '', '', 24),
+('bx_messenger_emoji_set', 'native', @iCategId, '_bx_messenger_emoji_set', 'select', '', '', 'native,apple,google,twitter,emojione,facebook,messenger', 25),
+('bx_messenger_reactions_size', '16', @iCategId, '_bx_messenger_reactions_size', 'select', '', '', '16,20,24,32', 26),
+('bx_messenger_show_emoji_preview', '', @iCategId, '_bx_messenger_show_emoji_preview', 'checkbox', '', '', '', 27),
+('bx_messenger_jitsi_enable', 'on', @iCategId, '_bx_messenger_allow_to_use_jitsi', 'checkbox', '', '', '', 28),
+('bx_messenger_jitsi_server', 'meet.jit.si', @iCategId, '_bx_messenger_jitsi_server', 'digit', '', '', '', 29),
+('bx_messenger_jitsi_chat', '', @iCategId, '_bx_messenger_jitsi_chat_enable', 'checkbox', '', '', '', 30),
+('bx_messenger_jitsi_sync', '', @iCategId, '_bx_messenger_jitsi_chat_sync', 'checkbox', '', '', '', 31),
+('bx_messenger_jitsi_hide_info', '', @iCategId, '_bx_messenger_jitsi_hide_info', 'checkbox', '', '', '', 32),
+('bx_messenger_jitsi_enable_watermark', '', @iCategId, '_bx_messenger_jitsi_watermark', 'checkbox', '', '', '', 33),
+('bx_messenger_jitsi_watermark_link', '', @iCategId, '_bx_messenger_jitsi_watermark_link', 'digit', '', '', '', 34),
+('bx_messenger_jitsi_only_for_private', 'on', @iCategId, '_bx_messenger_jitsi_enable_only_for_private', 'checkbox', '', '', '', 35),
+('bx_messenger_jitsi_support_url', 'https://community.jitsi.org/', @iCategId, '_bx_messenger_jitsi_support_url', 'digit', '', '', '', 36),
+('bx_messenger_disable_contact_privacy', '', @iCategId, '_bx_messenger_disable_contact_privacy', 'checkbox', '', '', '', 37),
+('bx_messenger_enable_mentions', 'on', @iCategId, '_bx_messenger_use_mentions', 'checkbox', '', '', '', 38);
 
 
 -- MENU: notifications
@@ -55,7 +55,7 @@ SET @iMIOrder = (SELECT IFNULL(MAX(`order`), 0) FROM `sys_menu_items` WHERE `set
 INSERT INTO `sys_menu_items` (`set_name`, `module`, `name`, `title_system`, `title`, `link`, `onclick`, `target`, `icon`, `addon`, `submenu_object`, `visible_for_levels`, `active`, `copyable`, `order`, `visibility_custom`) VALUES
 ('sys_toolbar_member', @sName, 'notifications-messenger', '_bx_messenger_menu_notifications_item_sys_title', '', 'page.php?i=messenger', '', '', 'far comments col-green1', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:20:"get_updated_lots_num";}', '', 2147483646, 1, 1, @iMIOrder + 1, ''),
 ('trigger_profile_view_actions', @sName, 'messenger', '_bx_messenger_menu_new_chat_sys_title', '_bx_messenger_menu_new_chat_action_title', 'page.php?i=messenger&profile_id={profile_id}', '', '', 'far comments', '', '', 2147483646, 1, 0, 0, 'a:3:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:18:"is_contact_allowed";s:6:"params";a:1:{i:0;s:12:"{profile_id}";}}'),
-('trigger_profile_view_actions', @sName, 'public-vc-messenger', '_bx_messenger_menu_video_conference_sys_title', '_bx_messenger_menu_video_conference_action_title', 'javascript:void(0)', 'javascript:oMessengerPublicLib.showConferenceWindow(''modules/?r=messenger/get_video_conference_form/{profile_id}'')', '', 'far video', '', '', 2147483646, 1, 0, 0, 'a:3:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:27:"is_video_conference_allowed";s:6:"params";a:1:{i:0;s:12:"{profile_id}";}}');
+('trigger_profile_view_actions', @sName, 'public-vc-messenger', '_bx_messenger_menu_video_conference_sys_title', '_bx_messenger_menu_video_conference_action_title', 'javascript:void(0)', 'javascript:oMessengerPublicLib.showConferenceWindow(''modules/?r=messenger/get_video_conference_form/{profile_id}'')', '', 'video', '', '', 2147483646, 1, 0, 0, 'a:3:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:27:"is_video_conference_allowed";s:6:"params";a:1:{i:0;s:12:"{profile_id}";}}');
 
 -- PAGE: module home
 INSERT INTO `sys_objects_page`(`object`, `title_system`, `title`, `module`, `layout_id`, `visible_for_levels`, `visible_for_levels_editable`, `uri`, `url`, `meta_description`, `meta_keywords`, `meta_robots`, `cache_lifetime`, `cache_editable`, `deletable`, `override_class_name`, `override_class_file`, `cover`) VALUES 

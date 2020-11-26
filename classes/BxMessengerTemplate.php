@@ -89,7 +89,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                     'display' => true,
                     'select' => true,
                     'views' => true,
-                    'read' => $iUnreadLotsJots > (int)($CNF['MAX_JOTS_BY_DEFAULT']/2)
+                    'read' => $iUnreadLotsJots < (int)($CNF['MAX_JOTS_BY_DEFAULT']/2)
                 ));
 
             $aParams = array(
@@ -304,12 +304,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             return '';
 
 	    return $this -> parseHtmlByName('talk_header.html', array(
-            'bx_if:count' => array(
-                'condition' => false,
-                'content' => array(
-                    'back_count' => ''
-                )
-            ),
             'buttons' => '',
             'back_title' => bx_js_string(_t('_bx_messenger_lots_menu_back_title')),
             'title' => $this->getThumbsWithUsernames($iProfileId)
@@ -359,17 +353,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                 _t($sTitle);
         }
 
-        $iUnreadLotsJots = 0;
-        if ($iProfileId && $iLotId)
-            $iUnreadLotsJots = $this -> _oDb -> getUnreadJotsMessagesCount($iProfileId, $iLotId);
-
         return $this -> parseHtmlByName('talk_header.html', array(
-            'bx_if:count' => array(
-                'condition' => $iUnreadLotsJots,
-                'content' => array(
-                    'back_count' => $iUnreadLotsJots
-                )
-            ),
             'buttons' => $this->getTalkHeaderButtons($iLotId, $iProfileId),
             'back_title' => bx_js_string(_t('_bx_messenger_lots_menu_back_title')),
             'title' => $sTitle
@@ -688,7 +672,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			}
 
 			$iUnreadJotsCount = $this->_oDb->getNewJots($iProfileId, $aLot[$CNF['FIELD_ID']], true);
-            $aVars['active'] = ($iSelectLotId === 0 && !$iKey) || $iSelectLotId == $aLot[$CNF['FIELD_ID']] ? 'active' : '';
+            //$aVars['active'] = ($iSelectLotId === 0 && !$iKey) || $iSelectLotId == $aLot[$CNF['FIELD_ID']] ? 'active' : '';
 
             $aVars['class'] = $iUnreadJotsCount ? 'unread-lot' : '';
 			$aVars['title_class'] = $iUnreadJotsCount ? 'bx-def-font-extrabold' : '';
@@ -938,11 +922,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@return string html code
 	*/
 	public function getLotsList($iLotId = BX_IM_EMPTY, $iProfileId, $iTalkPerson = BX_IM_EMPTY){
-		$aMyLots = $this -> _oDb -> getMyLots($iProfileId);
+		$aMyLots = $this->_oDb->getMyLots($iProfileId);
 		if (!empty($aMyLots))
-			$sContent = $this -> getLotsPreview($iProfileId, $aMyLots, $iTalkPerson ? FALSE : $iLotId);
+			$sContent = $this->getLotsPreview($iProfileId, $aMyLots, $iTalkPerson ? FALSE : $iLotId);
 		else 
-			$sContent = $this -> getFriendsList();
+			$sContent = $this->getFriendsList();
 		
 		$aVars = array(
 			'items' => $sContent,

@@ -70,12 +70,12 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$this->isLogged())
             return '';
 
-        $iProfile = bx_get('profile_id');
-        if (!((int)$iProfile && (int)$iProfile != (int)$this->_iProfileId && $this->onCheckContact($this->_iProfileId, $iProfile)))
-          $iProfile = 0;
+        $iProfileId = (int)bx_get('profile_id');
+        if (!((int)$iProfileId && (int)$iProfileId != (int)$this->_iProfileId && $this->onCheckContact($this->_iProfileId, $iProfileId)))
+            $iProfileId = 0;
 
         $iLotId = BX_IM_EMPTY;
-        if (!$iProfile) {
+        if (!$iProfileId) {
             if ($this->_iJotId) {
                 $iLotId = $this->_oDb->getLotByJotId($this->_iJotId);
                 if ($iLotId && !$this->_oDb->isParticipant($iLotId, $this->_iProfileId)) {
@@ -88,8 +88,8 @@ class BxMessengerModule extends BxBaseModTextModule
             }
         }
 
-		$sConfig = $this->_oTemplate->loadConfig($this -> _iProfileId, false, $iLotId, $this -> _iJotId, (int)$iProfile);
-        return	$sConfig . $this->_oTemplate->getLotsList($iLotId, $this -> _iUserId, (int)$iProfile);
+		$sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, false, $iLotId, $this->_iJotId, $iProfileId);
+        return	$sConfig . $this->_oTemplate->getLotsList($iLotId, $this->_iProfileId, $iProfileId);
     }
     /**
      * Returns right side block for messenger page
@@ -407,10 +407,10 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$this->isLogged() || !$iLotId)
             return echoJson(array('code' => 1));
 
-        $aMyLots = $this->_oDb->getMyLots($this->_iUserId, $iLotId);
+        $aMyLots = $this->_oDb->getMyLots($this->_iProfileId, $iLotId);
 		if (!empty($aMyLots))
 		{
-            $sContent = $this->_oTemplate->getLotsPreview($this->_iUserId, $aMyLots);
+            $sContent = $this->_oTemplate->getLotsPreview($this->_iProfileId, $aMyLots);
             return echoJson(array('code' => 0, 'html' => $sContent));
         }
 

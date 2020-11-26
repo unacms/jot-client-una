@@ -1535,7 +1535,7 @@
 	 * @param fCallback
 	 * @param bMarkAsRead
 	 */
-	oMessenger.prototype.loadTalk = function(iLotId, iJotId, bDontChangeCol, fCallback, bMarkAsRead){
+	oMessenger.prototype.loadTalk = function(iLotId, iJotId, bDontChangeCol, fCallback, bMarkAsRead = false){
 		if (!iLotId && !this.oSettings.lot)
 			return;
 
@@ -1563,7 +1563,8 @@
 		}
 
     	bx_loading($(this.sMainTalkBlock), true);
-		$.post('modules/?r=messenger/load_talk', { lot_id: iLotId, jot_id: iJotId, mark_as_read: +bMarkAsRead }, function({ title, history, header, code, unread_jots, last_unread_jot })
+		$.post('modules/?r=messenger/load_talk', { lot_id: iLotId, jot_id: iJotId, mark_as_read: +bMarkAsRead },
+			function({ title, history, header, code, unread_jots, last_unread_jot })
 		{
 			bx_loading($(_this.sMainTalkBlock), false);
 			if (+code === 1)
@@ -1686,8 +1687,7 @@
 				oParams.files = mixedObjects.files;
 
 		oParams.participants = _this.getParticipantsList();
-
-		if (!+_this.lot){
+		if (!+_this.oSettings.lot){
 			if (!oParams.participants.length && +_this.iSelectedPersonToTalk) {
 				oParams.participants.push(_this.iSelectedPersonToTalk);
 				_this.iSelectedPersonToTalk = 0;
@@ -1902,8 +1902,7 @@
 	oMessenger.prototype.upLotsPosition = function(oObject, bSilentMode = false){
 		const _this = this,
 			lot = parseInt(oObject.lot), 
-			oLot = $('div[data-lot=' + lot + ']'),
-			oJot = $('div[data-id=' + oObject.jot_id + ']', _this.sTalkList);
+			oLot = $('div[data-lot=' + lot + ']');
 
 		let	oNewLot = undefined;
 		if (typeof oObject.addon === 'string' && oObject.addon !== 'delete')
@@ -1923,6 +1922,7 @@
 						{
 							const sFunc = function()
 										{
+
 											$(_this.sLotsListBlock)
 												.prepend($(oNewLot)
 												.bxTime()
@@ -1954,7 +1954,7 @@
 							if (!bSilentMode)
 								$(_this).trigger(jQuery.Event('message'));
 						
-							if (_this.isActiveLot(lot) && !_this.isMobile())
+							if (_this.isActiveLot(lot))
 								_this.selectLotEmit($(oNewLot));
 						}
 					}
@@ -2262,7 +2262,7 @@
 
 			const iLotId = _this.oSettings.lot; // additional check for case when ajax request is not finished yet but another talk is selected
 
-			if (!iRequestJot && (_this.iSelectedJot || _this.iLastUnreadJot || sAction === 'prev'))
+			if (sAction === 'prev')
 				bx_loading($(`[data-id="${iJotId}"]${_this.sJot}`), true);
 
 			$.post('modules/?r=messenger/update',
@@ -2272,7 +2272,7 @@
 				lot: this.oSettings.lot,
 				load: sAction,
 				req_jot: iRequestJot,
-				focus: +document.hasFocus(),
+				focus: +((_this.isMobile() && !_oMessenger.oJotWindowBuilder.isHistoryColActive()) ? false : document.hasFocus()),
 				last_viewed_jot
 			},
 			function({ html, unread_jots, code, last_unread_jot, allow_attach, remove_separator })
@@ -2463,7 +2463,7 @@
 	*@param boolean bMode if used for edit or to create new lot
 	*/
 	oMessenger.prototype.initUsersSelector = function(bMode){
-			const _this = this,
+		const _this = this,
 				onSelectFunc = function(fCallback)
 				{
 					if (bMode !== 'edit')
@@ -2476,8 +2476,8 @@
 				$(_this.sUserSelectorBlock + ' .ui.search')
 						.search({
 									clearable: true,
-									duration: 100,
-									searchDelay: 100,
+									duration: 0,
+									searchDelay: 0,
 									apiSettings:
 									{
 										url: 'modules/?r=messenger/get_auto_complete&term={query}&except={except}',
@@ -2826,6 +2826,7 @@
 					_this.updateSendAreaButtons();
 
 				_this.oJotWindowBuilder.resizeWindow(() => {
+					_this.selectLotEmit($(`[data-lot="${_this.oSettings.lot}"]${_this.sLotSelector}`));
 					$(_this.sTalkList).waitForImages(() => {
 						if ($(_this.sSelectedJot, _this.sTalkList).length)
 							_this.updateScrollPosition('center', 'fast', $(_this.sSelectedJot, _this.sTalkList),
@@ -2840,8 +2841,6 @@
 								if (typeof fCallback === 'function')
 									fCallback();
 							});
-
-						_this.selectLotEmit($(`[data-lot="${_this.oSettings.lot}"]${_this.sLotSelector}`));
 					});
 				});
 			});
@@ -3179,7 +3178,7 @@
 			const bSilent = _oMessenger.oSettings.user_id === oData.user_id || ( oData.type === 'vc' && oData.vc !== 'start' );
 			try
 			{
-				if (!_oMessenger.isBlockVersion() && (!_oMessenger.isMobile() || (_oMessenger.isMobile() && oData.lot !== _oMessenger.oSettings.lot)))
+				if (!_oMessenger.isBlockVersion())
 					_oMessenger.upLotsPosition(oData, bSilent);
 
 			} catch (e) {

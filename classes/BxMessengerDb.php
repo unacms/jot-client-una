@@ -965,11 +965,12 @@ class BxMessengerDb extends BxBaseModTextDb
 		if (!empty($aSWhere))
 				$sWhere = ' AND ' . implode(' AND ', $aSWhere);
 
-		return $this-> getAll("SELECT *
+		return $this-> getAll("SELECT *, 
+                                         IF (`l`.`{$this->CNF['FIELD_UPDATED']}` = 0, `l`.`{$this->CNF['FIELD_ADDED']}`, `l`.`{$this->CNF['FIELD_UPDATED']}`) as `order` 
 			                             FROM `{$this->CNF['TABLE_ENTRIES']}` as `l`
                                          {$sJoin}
                                          WHERE (`l`.`{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP :parts OR `l`.`{$this->CNF['FIELD_AUTHOR']}`=:profile) {$sWhere}
-                                         ORDER BY `l`.`{$this->CNF['FIELD_UPDATED']}` DESC", $aWhere);
+                                         ORDER BY `order` DESC", $aWhere);
 	}
 	
 	/**

@@ -672,7 +672,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			}
 
 			$iUnreadJotsCount = $this->_oDb->getNewJots($iProfileId, $aLot[$CNF['FIELD_ID']], true);
-            //$aVars['active'] = ($iSelectLotId === 0 && !$iKey) || $iSelectLotId == $aLot[$CNF['FIELD_ID']] ? 'active' : '';
 
             $aVars['class'] = $iUnreadJotsCount ? 'unread-lot' : '';
 			$aVars['title_class'] = $iUnreadJotsCount ? 'bx-def-font-extrabold' : '';
@@ -1004,7 +1003,15 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
         $bIsPushEnabled = (int)$iProfileId && $this->_oConfig->isOneSignalEnabled() && !getParam('sys_push_app_id');
         $aUnreadJotsInfo = $this->_oDb->getNewJots($iProfileId, $iLotId);
-        $iStartJot = (int)$iJotId ? $iJotId : (int)$aUnreadJotsInfo[$CNF['FIELD_NEW_JOT']];
+
+        $iUnreadJotsNumber = $iLastUnreadJot = 0;
+        $iStartJot = (int)$iJotId;
+        if (!empty($aUnreadJotsInfo)){
+            $iStartJot = $iStartJot ? $iStartJot : (int)$aUnreadJotsInfo[$CNF['FIELD_NEW_JOT']];
+            $iUnreadJotsNumber = (int)$aUnreadJotsInfo[$CNF['FIELD_NEW_UNREAD']];
+            $iLastUnreadJot = (int)$aUnreadJotsInfo[$CNF['FIELD_NEW_JOT']];
+        }
+
         $bAttach = true;
         if ($iStartJot)
             $bAttach = $this->_oDb->getJotsNumber($iLotId, $iStartJot) < (int)$CNF['MAX_JOTS_BY_DEFAULT']/2;
@@ -1025,8 +1032,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'embed_template' => $sEmbedTemplate,
 			'max_history' => (int)$CNF['MAX_JOTS_BY_DEFAULT'],
 			'jitsi_server' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER'], 'url'),
-			'last_unread_jot' => (int)$aUnreadJotsInfo[$CNF['FIELD_NEW_JOT']],
-			'unread_jots' => (int)$aUnreadJotsInfo[$CNF['FIELD_NEW_UNREAD']],
+			'last_unread_jot' => $iLastUnreadJot,
+			'unread_jots' => $iUnreadJotsNumber,
 			'allow_attach' => +$bAttach,
 			'dates_intervals_template' => $this->parseHtmlByName('date-separator.html', array('date' => '__date__')),
 			'reaction_template' => $this->parseHtmlByName('reaction.html', array(

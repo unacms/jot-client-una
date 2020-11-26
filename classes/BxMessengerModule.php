@@ -487,9 +487,13 @@ class BxMessengerModule extends BxBaseModTextModule
                     'dynamic' => true
                 );
 
+                $iLastUnreadJotId = $iUnreadJotsNumber = 0;
                 $aUnreadInfo = $this->_oDb->getNewJots($this->_iProfileId, $iLotId);
-                $iLastUnreadJotId = (int)$aUnreadInfo[$CNF['FIELD_NEW_JOT']];
-                $iUnreadJotsNumber = (int)$aUnreadInfo[$CNF['FIELD_NEW_UNREAD']];
+                if (!empty($aUnreadInfo)) {
+                    $iLastUnreadJotId = (int)$aUnreadInfo[$CNF['FIELD_NEW_JOT']];
+                    $iUnreadJotsNumber = (int)$aUnreadInfo[$CNF['FIELD_NEW_UNREAD']];
+                }
+
                 $sContent = '';
                 if ($bUpdateHistory){
                    $aJots = $this->_oTemplate->getJotsOfLot($this->_iProfileId, $aOptions);

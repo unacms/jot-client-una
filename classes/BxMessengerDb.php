@@ -99,10 +99,8 @@ class BxMessengerDb extends BxBaseModTextDb
 	*/
 	public function deleteLot($iLotId){
 		$aJots = $this -> getJotsByLotId($iLotId);
-		foreach($aJots as $iKey => $aJot) {
-            $this->removeFilesByJotId($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
-            $this->deleteJotReactions($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
-        }
+		foreach($aJots as $iKey => $aJot)
+            $this->clearJotsConnections($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
 
         $iResult = $this -> query("DELETE FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = :id", array('id' => $iLotId));
 		$iResult += $this -> query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id", array('id' => $iLotId));
@@ -116,10 +114,8 @@ class BxMessengerDb extends BxBaseModTextDb
      */
     public function clearLot($iLotId){
         $aJots = $this -> getJotsByLotId($iLotId);
-        foreach($aJots as $iKey => $aJot) {
-            $this->removeFilesByJotId($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
-            $this->deleteJotReactions($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
-        }
+        foreach($aJots as $iKey => $aJot)
+            $this->clearJotsConnections($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
 
         return $this->query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id", array('id' => $iLotId));
     }
@@ -135,8 +131,7 @@ class BxMessengerDb extends BxBaseModTextDb
 		$iJotId = (int)$iJotId;
 		if ($bCompletely)
 		{
-			$this -> removeFilesByJotId($iJotId);
-			$this -> deleteJotReactions($iJotId);
+            $this->clearJotsConnections($iJotId);
 			return $this -> query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('id' => $iJotId));
 		}		
 		
@@ -147,7 +142,18 @@ class BxMessengerDb extends BxBaseModTextDb
 									`{$this->CNF['FIELD_MESSAGE_EDIT_BY']}` = :profile
 								WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('id' => $iJotId, 'profile' => $iProfileId));
 	}	
-	
+
+	public function clearJotsConnections($iJotId){
+        $this->removeFilesByJotId($iJotId);
+        $this->deleteJotReactions($iJotId);
+
+        $aUnreadJots = $this->getColumn("SELECT `{$this->CNF['FIELD_NEW_PROFILE']}` 
+                                            FROM `{$this->CNF['TABLE_NEW_MESSAGES']}` 
+                                            WHERE `{$this->CNF['FIELD_NEW_JOT']}`=:jot", array('jot' => $iJotId));
+        foreach($aUnreadJots as &$iProfileId)
+           $this->deleteNewJot($iProfileId, false, $iJotId);
+    }
+
 	public function updateJot($iJotId, $sField, $mixedValue){
 	    return $this -> query("UPDATE `{$this->CNF['TABLE_MESSAGES']}` 
 								SET 
@@ -1036,10 +1042,8 @@ class BxMessengerDb extends BxBaseModTextDb
 			FROM `{$this->CNF['TABLE_MESSAGES']}` 
 			WHERE `{$this->CNF['FIELD_MESSAGE_AUTHOR']}`=:profile", $aWhere);
 		
-		foreach($aJots as $iKey => $aJot) {
-           $this->removeFilesByJotId($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
-           $this->deleteJotReactions($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
-        }
+		foreach($aJots as $iKey => $aJot)
+           $this->clearJotsConnections($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
 			
 		$bResult &= $this-> query("DELETE
 			FROM `{$this->CNF['TABLE_MESSAGES']}` 

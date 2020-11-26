@@ -256,6 +256,7 @@
 
 			if (!isScrollAvail)
 				return;
+			
 
 			iBottomScreenPos = $(_this.sTalkBlock).scrollTop() + $(_this.sTalkBlock).innerHeight();
 			if (_this.iLastUnreadJot) {
@@ -1005,12 +1006,18 @@
 	};
 
 	oMessenger.prototype.clearLot = function(iLotId){
+		const _this = this;
 		if (iLotId)
 				$.post('modules/?r=messenger/clear_history', { lot: iLotId }, function({ code, message }){
-						if (!parseInt(code))
-							_oMessenger.loadTalk(iLotId, undefined, undefined, undefined, true);
+						if (!parseInt(code)) {
+							_this.loadTalk(iLotId, undefined, undefined, undefined, true);
+							_this.broadcastMessage({
+								action: 'msg',
+								addon: 'clear'
+							});
+						}
 						else
-							bx_alert(message)
+							bx_alert(message);
 				}, 'json');
 	};
 
@@ -1573,6 +1580,10 @@
 		}
 
     	bx_loading($(this.sMainTalkBlock), true);
+
+        // to change active lot ID in the same time when user click on load but not when history is loaded
+		_this.oSettings.lot = iLotId;
+
 		$.post('modules/?r=messenger/load_talk', { lot_id: iLotId, jot_id: iJotId, mark_as_read: +bMarkAsRead },
 			function({ title, history, header, code, unread_jots, last_unread_jot })
 		{
@@ -2252,6 +2263,8 @@
 				case 'vc':
 						iJotId = oAction.jot_id || 0;
 						break;
+				case 'clear':
+					  return _this.loadTalk(_this.oSettings.lot, undefined, undefined, undefined, true);
 				case 'prev':
 					iJotId = oObjects
 						.first()

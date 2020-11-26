@@ -321,11 +321,15 @@ class BxMessengerModule extends BxBaseModTextModule
             $this->_oDb->readAllMessages($iLotId, $this->_iProfileId);
 
         $CNF = &$this->_oConfig->CNF;
+
+        $sHeader = $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId);
+        $sHistory = $this->_oTemplate->getHistory($this->_iProfileId, $iLotId, $iJotId, MsgBox(_t('_bx_messenger_what_do_think')));
+
         $aUnreadJots = $this->_oDb->getNewJots($this->_iProfileId, $iLotId);
         $aVars = array(
             'code' => 0,
-            'header' => $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId),
-            'history' => $this->_oTemplate->getHistory($this->_iProfileId, $iLotId, $iJotId, MsgBox(_t('_bx_messenger_what_do_think'))),
+            'header' => $sHeader,
+            'history' => $sHistory,
             'last_unread_jot' => !empty($aUnreadJots) ? (int)$aUnreadJots[$CNF['FIELD_NEW_JOT']] : 0,
             'unread_jots' => !empty($aUnreadJots) ? (int)$aUnreadJots[$CNF['FIELD_NEW_UNREAD']] : 0
         );
@@ -449,10 +453,7 @@ class BxMessengerModule extends BxBaseModTextModule
 		if ($sLoad == 'new' && !(int)$iJot)
 		{
             $aMyLatestJot = $this->_oDb->getLatestJot($iLotId, $this->_iProfileId);
-            if (empty($aMyLatestJot))
-                return echoJson(array('code' => 1));
-            else
-                $iJot = (int)$aMyLatestJot[$CNF['FIELD_MESSAGE_ID']];
+            $iJot = !empty($aMyLatestJot) ? (int)$aMyLatestJot[$CNF['FIELD_MESSAGE_ID']] : 0;
         }
 
         $sUrl = $sUrl ? $this->getPreparedUrl($sUrl) : '';
@@ -768,7 +769,7 @@ class BxMessengerModule extends BxBaseModTextModule
     public function actionClearHistory()
     {
         $iLotId = bx_get('lot');
-        $aResult = array('code' => 1);
+        $aResult = array('code' => 1, 'message' => _t('_Empty'));
         $bAllowed = $this->_oDb->isAuthor($iLotId, $this->_iProfileId) || ($this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true);
         if (!$iLotId || !$bAllowed) {
             return echoJson($aResult);

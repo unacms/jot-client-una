@@ -1436,12 +1436,14 @@ div.bx-messenger-video-block div:first-child
 	position:relative;
 }
 
+.ui.category.search>.results .result .image,
 .ui.search>.results .result .image
 {
 	width:3rem !important;
 	border-radius:3rem !important;	
 }
 
+.ui.category.search>.results .category .image+.content,
 .ui.search>.results .result .image+.content
 {
 	margin:0 !important;
@@ -1453,12 +1455,34 @@ div.bx-messenger-video-block div:first-child
 	color: inherit;
 	font-family: inherit;
 }
-/* fonts styles only for the home page */
-/*#bx-page-home .bx-messenger-main-block,
-#bx-page-home .bx-messenger-main-block div.bx-messenger-post-box-send-area div.bx-messenger-text-box
+
+.ui.search>.results{
+   border-radius: inherit;
+}
+
+.ui.category.search > .results .category:last-child{
+	border-bottom: inherit;
+}
+
+.ui.category.search>.results .category,
+.ui.category.search>.results .result,
+.ui.category.search>.results .result .title,
+.ui.category.search>.results .result .description,
+.ui.category.search>.results .category .results
 {
-	font-size: 0.85rem;
-}*/
+	color: inherit;
+	font-family: inherit;
+	background-color: inherit;
+	border-color: inherit;
+}
+
+.ui.category.search>.results .category>.name
+{
+	color: inherit;
+	font-family: inherit;
+	background-color: rgba(0,0,0,0.04);
+	border-color: inherit;
+}
 
 #bx-messenger-send-area-giphy{
 	font-weight: 700;

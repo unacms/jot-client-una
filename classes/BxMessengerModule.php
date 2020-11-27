@@ -625,18 +625,22 @@ class BxMessengerModule extends BxBaseModTextModule
             $aProfileInfoDetails = BxDolService::call($aProfileInfo['type'], 'get_content_info_by_id', array($aProfileInfo['content_id']));
             $oAccountInfo = BxDolAccount::getInstance($aProfileInfo['account_id']);
             if ($oProfile && !empty($aProfileInfoDetails) && !empty($oAccountInfo))
-                $aResult[] = array(
+                $aResult[$aProfileInfo['type']]['results'][] = array(
                     'value' => $oProfile->getDisplayName(),
                     'icon' => $oProfile->getIcon(),
                     'id' => $oProfile->id(),
-                    'url' => $oProfile->getUrl(),
+                    'profile_url' => $oProfile->getUrl(),
                     'description' => _t('_bx_messenger_search_desc',
                         bx_process_output($oAccountInfo->getInfo()['logged'], BX_DATA_DATE_TS),
                         bx_process_output($aProfileInfoDetails['added'], BX_DATA_DATE_TS))
                 );
         }
 
-        echoJson(array('items' => $aResult));
+        foreach($aResult as $sKey => $aValues){
+            $aResult[$sKey]['name'] =_t("_{$sKey}");
+        }
+
+        echoJson(array('results' => $aResult));
     }
 
     /**

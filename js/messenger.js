@@ -2501,6 +2501,7 @@
 									clearable: true,
 									duration: 0,
 									searchDelay: 0,
+									type : 'category',
 									apiSettings:
 									{
 										url: 'modules/?r=messenger/get_auto_complete&term={query}&except={except}',
@@ -2530,9 +2531,13 @@
 									},
 									cache : false,
 									fields: {
-									  results : 'items',
+									  categories : 'results',
+									  categoryResults : 'results',
+									  categoryName    : 'name',
+									  results : 'results',
 									  title   : 'value',
-									  image	  : 'icon'
+									  image	  : 'icon',
+									  name	  : 'name'
 									},
 									maxResults: 20,
 									onResults: function(){

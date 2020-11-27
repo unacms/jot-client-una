@@ -29,9 +29,17 @@
 	display:none;
 }
 
+#bx-messenger-add-users .ui.category.search > .results .result:hover,
 #bx-messenger-add-users .ui.search > .results .result:hover{
 	background-color: rgba(0,0,0,0.08);
 }
+
+#bx-messenger-add-users .ui.category.search > .results > .category{
+	background-color: inherit;
+	border: inherit;
+}
+
+.ui.category.search>.results .category .results
 
 #bx-messenger-add-users .ui.input,
 #bx-messenger-add-users .ui.input > input{

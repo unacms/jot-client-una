@@ -140,6 +140,7 @@
 		this.sDateIntervalsItem = `${this.sDateIntervalsSelector} > .bx-messenger-date-time-value`;
 		this.iScrollbarWidth = 0;
 		this.sDateIntervalsTemplate = oOptions.date_intervals_template;
+		this.aLoadingRequestsPool = []; // contains requests to load the talks when member clicks many talks with small delay and there is not enough time to load each talk
 
 		const _this = this;
 		$(this).on('message', () => this.beep());
@@ -225,7 +226,6 @@
 
 		this.initJotIcons(this.sTalkList);
 
-		_this.checkNotFinishedTalks();
 		_this.initHeaderButtons();
 
 		if (!_this.oRTWSF.isInitialized() || (!lot && !_this.iSelectedPersonToTalk && _this.iLotType === 2))
@@ -1034,6 +1034,7 @@
 										});
 			};
 
+
 		if (iJotId)
 			$.post('modules/?r=messenger/delete_jot', {jot:iJotId, completely: +bCompletely || 0}, 
 			function(oData)
@@ -1553,24 +1554,23 @@
 	 * @param bMarkAsRead
 	 */
 	oMessenger.prototype.loadTalk = function(iLotId, iJotId, bDontChangeCol, fCallback, bMarkAsRead = false){
-		if (!iLotId && !this.oSettings.lot)
+		const _this = this;
+
+		if (!iLotId)
 			return;
 
-		iLotId = iLotId || this.oSettings.lot;
-
-		const _this = this,
-			oLotBlock = $(`[data-lot="${iLotId}"]${this.sLotSelector}`);
+		const oLotBlock = $(`[data-lot="${iLotId}"]${this.sLotSelector}`);
 
         _this.selectLotEmit(oLotBlock);
-        if (_this.isActiveLot(iLotId) && _this.isMobile() && !bDontChangeCol)
+        if (_this.isActiveLot(iLotId))
 		{
-			_this.oJotWindowBuilder.changeColumn();
-            _this.markJotsAsRead(iLotId, () => this.broadcastView());
-            _this.updateScrollPosition('bottom');
-            return;
+			if (_this.isMobile() && !bDontChangeCol) {
+				_this.oJotWindowBuilder.changeColumn();
+				return;
+			}
 		}
-
-        if (_this.isMobile()){
+        else
+        {
 			$(_this.sJotsBlock)
 				.find('.bx-db-header')
 				.html('')
@@ -1583,17 +1583,21 @@
 
         // to change active lot ID in the same time when user click on load but not when history is loaded
 		_this.oSettings.lot = iLotId;
+		_this.checkNotFinishedTalks();
+		_this.blockSendMessages(true);
 
-		$.post('modules/?r=messenger/load_talk', { lot_id: iLotId, jot_id: iJotId, mark_as_read: +bMarkAsRead },
+		return $.post('modules/?r=messenger/load_talk', { lot_id: iLotId, jot_id: iJotId, mark_as_read: +bMarkAsRead },
 			function({ title, history, header, code, unread_jots, last_unread_jot })
 		{
+
 			bx_loading($(_this.sMainTalkBlock), false);
-			if (+code === 1)
+			if (+code)
 				window.location.reload();
 			else
-			if (!+code)
+			if (~code)
 			{
-					$(_this.sJotsBlock)
+				_this.blockSendMessages(false);
+				$(_this.sJotsBlock)
 						.find('.bx-db-header')
 						.replaceWith(header)
 						.end()
@@ -1926,29 +1930,29 @@
 			oLot = $('div[data-lot=' + lot + ']');
 
 		let	oNewLot = undefined;
-		if (typeof oObject.addon === 'string' && oObject.addon !== 'delete')
+		if ((typeof oObject.addon === 'string' && oObject.addon !== 'delete') || !oLot.length)
 			return;
 
-			
-		if (lot)
-			$.get('modules/?r=messenger/update_lot_brief', { lot_id: lot },
-				function(oData)
+		$.get('modules/?r=messenger/update_lot_brief', { lot_id: lot },
+				function({ html, code })
 				{
-					if (!parseInt(oData.code))
-					{					
-						const sHtml = oData.html.replace(new RegExp(_this.sJotUrl + '\\d+', 'i'), _t('_bx_messenger_repost_message'));
-						oNewLot = $(sHtml).css('display', 'flex');
-												
-						if (!oLot.is(':first-child'))
-						{
-							const sFunc = function()
-										{
+					if (+code)
+						return ;
 
-											$(_this.sLotsListBlock)
-												.prepend($(oNewLot)
-												.bxTime()
-												.fadeIn('slow'));
-										};
+					const sHtml = html.replace(new RegExp(_this.sJotUrl + '\\d+', 'i'), _t('_bx_messenger_repost_message'));
+					oNewLot = $(sHtml).css('display', 'flex');
+												
+					if (!oLot.is(':first-child'))
+					{
+							const sFunc = () =>	{
+
+													$(_this.sLotsListBlock)
+														.prepend($(oNewLot)
+														.bxTime()
+														.fadeIn('slow'));
+
+													_this.updatePageIcon();
+												};
 										
 							if (oLot.length)
 								oLot.fadeOut('slow', function()
@@ -1974,15 +1978,20 @@
 						{
 							if (!bSilentMode)
 								$(_this).trigger(jQuery.Event('message'));
-						
-							if (_this.isActiveLot(lot))
+
+							if (_this.isActiveLot(lot) && !(_this.isMobile() && !_oMessenger.oJotWindowBuilder.isHistoryColActive()))
 								_this.selectLotEmit($(oNewLot));
 						}
-					}
+
 				}, 'json');
 	};
 
 	oMessenger.prototype.notifyNewUnreadChats = function(iNewNumberOfUnreadChats) {
+		if (window.glBxMessengerOnNotificationChange && window.glBxMessengerOnNotificationChange instanceof Array)
+				window.glBxMessengerOnNotificationChange.push((o) => console.log('----indecator----', o));
+		else
+			window.glBxMessengerOnNotificationChange = [(o) => console.log('----indecator----', o)];
+
 		if (typeof window.glBxMessengerOnNotificationChange !== 'undefined' && window.glBxMessengerOnNotificationChange instanceof Array) {
 			for (let i = 0; i < window.glBxMessengerOnNotificationChange.length; i++)
 				if (typeof window.glBxMessengerOnNotificationChange[i] === "function")
@@ -1994,11 +2003,11 @@
 	* Show member's typing area when member is typing a message
 	*@param object oData profile info
 	*/
-	oMessenger.prototype.showTyping = function(oData) {	
-		var _this = this,
-			sName = oData.name != undefined ? (oData.name).toLowerCase() : '';
+	oMessenger.prototype.showTyping = function({ name, lot }) {
+		const _this = this,
+			sName = name ? name.toLowerCase() : '';
 	
-		if (oData.lot != undefined && this.isActiveLot(oData.lot))
+		if (this.isActiveLot(lot))
 		{			
 			if (!~this.aUsers.indexOf(sName)) 
 							this.aUsers.push(sName);
@@ -2030,7 +2039,7 @@
 		clearInterval(this.iTimer);	
 
 		this.iTimer = setInterval(function(){
-			var sHTML = $(' > span', _this.sConnectingArea).html();
+			let sHTML = $(' > span', _this.sConnectingArea).html();
 			sHTML += '.';
 			$(' > span', _this.sConnectingArea).html(sHTML);
 		}, 1000);		
@@ -2061,7 +2070,7 @@
 	*@return boolean
 	*/
 	oMessenger.prototype.isActiveLot = function(iId){
-		return +this.oSettings.lot === +iId;
+		return iId && +this.oSettings.lot === +iId;
 	}
 
 	/**
@@ -2300,6 +2309,7 @@
 			},
 			function({ html, unread_jots, code, last_unread_jot, allow_attach, remove_separator })
 			{
+
 				bx_loading($(`[data-id="${iJotId}"]${_this.sJot}`), false);
 				const oList = $(_this.sTalkList);
 
@@ -3086,6 +3096,7 @@
 				_oMessenger.initScrollArea();
 			}
 
+			_oMessenger.checkNotFinishedTalks();
 			$(_oMessenger.sTalkBlock).addTimeIntervals();
 
 			// attach on ESC button return from create talk area
@@ -3123,11 +3134,41 @@
 		initTextArea: function () {
 			_oMessenger.initTextArea();
 		},
-		loadTalk: function (iLotId/*, bMakeAllAsRead*/) {
-			_oMessenger.loadTalk(iLotId, undefined, false/*, !!bMakeAllAsRead*/);
-			if (typeof _oMessenger.oHistory.pushState === 'function') {
-				_oMessenger.oHistory.pushState({ lot : iLotId }, null);
+		loadTalk: function (iLotId) {
+			if (~_oMessenger.aLoadingRequestsPool.indexOf(iLotId))
+				return;
+
+			const iLength = _oMessenger.aLoadingRequestsPool.length;
+			const fLoading = () => 	{
+				const lot = _oMessenger.aLoadingRequestsPool[0];
+
+				if (+lot)
+					_oMessenger
+						.loadTalk(lot, undefined, false)
+						.done(() =>
+						{
+							if (typeof _oMessenger.oHistory.pushState === 'function') {
+								_oMessenger.oHistory.pushState({ lot : iLotId }, null);
+							}
+
+							if (_oMessenger.aLoadingRequestsPool.length){
+								if (_oMessenger.aLoadingRequestsPool.length > 1)
+									_oMessenger.aLoadingRequestsPool = _oMessenger.aLoadingRequestsPool.slice(-1);
+								else
+									_oMessenger.aLoadingRequestsPool.shift();
+
+								fLoading();
+							}
+					});
+
+				return;
 			}
+
+			_oMessenger.aLoadingRequestsPool.push(iLotId);
+
+			if (!iLength)
+				fLoading();
+
 			return this;
 		},
 		onScrollDown: function () {
@@ -3403,17 +3444,17 @@
 		*/
 
 		onStartVideoCall: function(oEl, iLotId, sRoom){
-            _oMessenger.startVideoCall(oEl, iLotId || _oMessenger.oSettings.lot, sRoom);
+            _oMessenger.startVideoCall(oEl, iLotId, sRoom);
 		},
 
         getCall: function (oEl, iLotId, sRoom, bAudioOnly = false){
 			if (!iLotId)
 				return ;
 
-			if (_oMessenger.oSettings.lot !== iLotId)
+			if (!_oMessenger.isActiveLot(iLotId))
 				_oMessenger.loadTalk(iLotId);
 
-			_oMessenger.startVideoCall(undefined, iLotId || _oMessenger.oSettings.lot, sRoom,{
+			_oMessenger.startVideoCall(undefined, iLotId, sRoom,{
 				startAudioOnly: +bAudioOnly,
 				callback : () => {
 					_oMessenger.onCloseCallPopup(oEl, iLotId, 'get_call', false);

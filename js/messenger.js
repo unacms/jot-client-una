@@ -251,7 +251,7 @@
 				iScrollHeight = $(this).prop('scrollHeight') - $(this).prop('clientHeight'),
 				iScrollPosition = $(this).prop('scrollHeight') - $(this).prop('clientHeight') - $(this).scrollTop(),
 				iPassPixelsToStart = isScrollAvail ? _this.iMinHeightToStartLoading/100 * $(this).prop('clientHeight') * iScrollHeight/$(this).prop('clientHeight') : 0,
-				isTopPosition = $(this).scrollTop() <= iPassPixelsToStart,
+				isTopPosition = ($(this).scrollTop() <= iPassPixelsToStart) || ($(this).scrollTop() === 0),
 				isBottomPosition = $(this).scrollTop() > ($(this).prop('scrollHeight') - $(this).prop('clientHeight') - iPassPixelsToStart);
 
 			if (!isScrollAvail)
@@ -1554,19 +1554,20 @@
 	 * @param bMarkAsRead
 	 */
 	oMessenger.prototype.loadTalk = function(iLotId, iJotId, bDontChangeCol, fCallback, bMarkAsRead = false){
-		const _this = this;
+		const _this = this,
+              fEmpty = { done: (r) => r()};
 
 		if (!iLotId)
-			return;
+			return fEmpty;
 
 		const oLotBlock = $(`[data-lot="${iLotId}"]${this.sLotSelector}`);
-
         _this.selectLotEmit(oLotBlock);
+
         if (_this.isActiveLot(iLotId))
 		{
 			if (_this.isMobile() && !bDontChangeCol) {
 				_this.oJotWindowBuilder.changeColumn();
-				return;
+				return fEmpty;
 			}
 		}
         else
@@ -1610,6 +1611,7 @@
 							function()
 							{
 								if (_this.oJotWindowBuilder) {
+									
 									if (!bDontChangeCol)
 										_this.oJotWindowBuilder.changeColumn();
 									else
@@ -3139,7 +3141,7 @@
 
 				if (+lot)
 					_oMessenger
-						.loadTalk(lot, undefined, false)
+						.loadTalk(lot, undefined, _oMessenger.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive())
 						.done(() =>
 						{
 							if (typeof _oMessenger.oHistory.pushState === 'function') {
@@ -3154,11 +3156,12 @@
 
 								fLoading();
 							}
-					});
+					    });
 
 				return;
 			}
 
+			_oMessenger.selectLotEmit($(`[data-lot="${iLotId}"]${_oMessenger.sLotSelector}`));
 			_oMessenger.aLoadingRequestsPool.push(iLotId);
 
 			if (!iLength)

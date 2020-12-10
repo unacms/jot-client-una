@@ -196,14 +196,14 @@ class BxMessengerModule extends BxBaseModTextModule
 
     /**
      * Create List of participants received from request (POST, GET)
-     * @param mixed $mixedPartisipants participants list
+     * @param mixed $mixedParticipants participants list
      * @return array  participants list
      */
-    private function getParticipantsList($mixedPartisipants)
+    private function getParticipantsList($mixedParticipants)
     {
-        if (empty($mixedPartisipants))
+        if (empty($mixedParticipants))
             return array();
-        $aParticipants = is_array($mixedPartisipants) ? $mixedPartisipants : array(intval($mixedPartisipants));
+        $aParticipants = is_array($mixedParticipants) ? $mixedParticipants : array(intval($mixedParticipants));
         $aParticipants[] = $this->_iUserId;
         return array_unique($aParticipants, SORT_NUMERIC);
     }

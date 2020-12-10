@@ -89,7 +89,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                     'display' => true,
                     'select' => true,
                     'views' => true,
-                    'read' => $iUnreadLotsJots < (int)($CNF['MAX_JOTS_BY_DEFAULT']/2)
+                    'read' => $iUnreadLotsJots && $iUnreadLotsJots < (int)($CNF['MAX_JOTS_BY_DEFAULT']/2)
                 ));
 
             $aParams = array(
@@ -271,7 +271,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@return array content and title of the block
 	*/
 	public function getTalkBlock($iProfileId, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $bShowMessenger = false){
-        $aLotInfo = $iLotId ? $this -> _oDb -> getLotInfoById($iLotId) : array();
+        $aLotInfo = $iLotId ? $this->_oDb->getLotInfoById($iLotId) : array();
         return $this -> parseHtmlByName('talk.html', array(
 			'header' => $this->getTalkHeader($iLotId, $iProfileId),
 			'history' => !$bShowMessenger && empty($aLotInfo) ?

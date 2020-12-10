@@ -1987,11 +1987,6 @@
 	};
 
 	oMessenger.prototype.notifyNewUnreadChats = function(iNewNumberOfUnreadChats) {
-		if (window.glBxMessengerOnNotificationChange && window.glBxMessengerOnNotificationChange instanceof Array)
-				window.glBxMessengerOnNotificationChange.push((o) => console.log('----indecator----', o));
-		else
-			window.glBxMessengerOnNotificationChange = [(o) => console.log('----indecator----', o)];
-
 		if (typeof window.glBxMessengerOnNotificationChange !== 'undefined' && window.glBxMessengerOnNotificationChange instanceof Array) {
 			for (let i = 0; i < window.glBxMessengerOnNotificationChange.length; i++)
 				if (typeof window.glBxMessengerOnNotificationChange[i] === "function")

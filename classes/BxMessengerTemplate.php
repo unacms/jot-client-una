@@ -270,10 +270,10 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@param boolean $bShowMessenger show empty chat window if there is no history
 	*@return array content and title of the block
 	*/
-	public function getTalkBlock($iProfileId, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $bShowMessenger = false){
+	public function getTalkBlock($iProfileId, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $bShowMessenger = false, $bIsBlockVersion = false){
         $aLotInfo = $iLotId ? $this->_oDb->getLotInfoById($iLotId) : array();
         return $this -> parseHtmlByName('talk.html', array(
-			'header' => $this->getTalkHeader($iLotId, $iProfileId),
+			'header' => $this->getTalkHeader($iLotId, $iProfileId, $bIsBlockVersion),
 			'history' => !$bShowMessenger && empty($aLotInfo) ?
 								MsgBox(_t('_bx_messenger_txt_msg_no_results')) : 
 								$this-> getHistory($iProfileId, $iLotId, $iJotId, MsgBox(_t('_bx_messenger_what_do_think'))),
@@ -334,23 +334,30 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         return $this -> parseHtmlByName('thumb_usernames.html', $aVars);
     }
 
-	public function getTalkHeader($iLotId, $iProfileId){
+    /**
+     * @param integer $iLotId Talk's id
+     * @param integer $iProfileId Viewer id
+     * @param bool $bIsBlockVersion indicates if it is Block Messenger version
+     * @return false|string
+     */
+
+	public function getTalkHeader($iLotId, $iProfileId, $bIsBlockVersion = false){
         $CNF = &$this->_oConfig->CNF;
         $aLotInfo = array();
         if ($iLotId)
             $aLotInfo = $this -> _oDb -> getLotInfoById($iLotId);
 
-        $sTitle = _t('_bx_messenger_linked_title', '<a href ="'. $this->_oConfig->getPageLink($this->_oConfig->getPageIdent()) .'">' . BxDolTemplate::getInstance()->aPage['header'] . '</a>');
+        $sTitle = _t('_bx_messenger_page_block_title');
+        //_t('_bx_messenger_linked_title', '<a href ="'. $this->_oConfig->getPageLink($this->_oConfig->getPageIdent()) .'">' . BxDolTemplate::getInstance()->aPage['header'] . '</a>');
         if (!empty($aLotInfo))
         {
-            $sTitle = !empty($aLotInfo[$CNF['FIELD_TITLE']])
-                ? $aLotInfo[$CNF['FIELD_TITLE']]
-                : $this -> getParticipantsNames($iProfileId, $iLotId);
-
-            $iType = $aLotInfo[$CNF['FIELD_TYPE']];
-            $sTitle = $this -> _oDb -> isLinkedTitle($iType) ?
-                _t('_bx_messenger_linked_title', '<a href ="'. $this->_oConfig->getPageLink($aLotInfo[$CNF['FIELD_URL']]) .'">' . $sTitle . '</a>') :
-                _t($sTitle);
+            if (!empty($aLotInfo[$CNF['FIELD_TITLE']]))
+                $sTitle = _t($aLotInfo[$CNF['FIELD_TITLE']]);
+            else
+              if ($this->_oDb->isLinkedTitle($aLotInfo[$CNF['FIELD_TYPE']]) && !$bIsBlockVersion)
+                  $sTitle = _t('_bx_messenger_linked_title', '<a href ="'. $this->_oConfig->getPageLink($aLotInfo[$CNF['FIELD_URL']]) .'">' . $sTitle . '</a>');
+              else if ($aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
+                  $sTitle = $this -> getParticipantsNames($iProfileId, $iLotId);
         }
 
         return $this -> parseHtmlByName('talk_header.html', array(

@@ -138,7 +138,7 @@ class BxMessengerModule extends BxBaseModTextModule
         $iLotId = isset($aLotInfo[$CNF['FIELD_ID']]) && (int)$aLotInfo[$CNF['FIELD_ID']] ? (int)$aLotInfo[$CNF['FIELD_ID']] : 0;
 
         $sConfig = $this->_oTemplate->loadConfig($this->_iUserId, true, $iLotId, BX_IM_EMPTY, BX_IM_EMPTY, $this->_oConfig->getTalkType($sModule));
-        $sContent = $this->_oTemplate->getTalkBlock($this->_iUserId, $iLotId, BX_IM_EMPTY, true /* create messenger window even if chat doesn't exist yet */);
+        $sContent = $this->_oTemplate->getTalkBlock($this->_iUserId, $iLotId, BX_IM_EMPTY, true /* create messenger window even if chat doesn't exist yet */, true);
         return $sConfig . $sContent;
     }
 

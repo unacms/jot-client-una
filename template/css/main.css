@@ -1108,19 +1108,6 @@ div.bx-messenger-edit-jot
 	min-height:2rem;
 }
 
-.bx-messenger-jot-emoji.edit,
-.bx-messenger-jot-emoji {
-	z-index: 1000;
-	right:1rem;
-	position: absolute;
-	height: 0;
-	overflow: hidden;
-}
-
-.bx-messenger-jot-emoji.edit{
-	left: 1rem;
-}
-
 div.bx-messenger-edit-jot div.bx-messenger-post-box-send-area
 {
 	margin-bottom:1rem;
@@ -1573,14 +1560,6 @@ div.bx-messenger-giphy-items img{
 	margin-bottom: 0.5rem;
 }
 
-#emoji-picker{
-	max-width:320px;
-	width: min-content;
-	margin-right: 0.5rem;
-	display: unset;
-	visibility: hidden;
-}
-
 .bx-messenger-attachment-giphy picture,
 .bx-messenger-static-giphy{
 	width: calc(100% - 2.8rem);
@@ -1644,16 +1623,6 @@ input#bx-messenger-add-users-input::placeholder {
 
 @media (max-width:480px)
 {
-	.bx-messenger-jot-emoji.edit,
-	.bx-messenger-jot-emoji {
-		width:100%;
-		right:0;
-	}
-
-	.bx-messenger-jot-emoji.edit{
-		left: 0;
-	}
-
 	div.ui.sidebar.giphy {
 		min-height:80%;
 		max-height:80%;

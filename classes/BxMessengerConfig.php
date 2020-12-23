@@ -179,6 +179,13 @@ class BxMessengerConfig extends BxBaseModTextConfig
                 'LIB-LINK' => 'external_api.js'
             ),
 
+            // Emoji Plugin
+            'EMOJI' => array(
+                'path' => $this->getHomeUrl() . 'js/emoji-mart/',
+                'css' => $this->getHomeUrl() . 'js/emoji-mart/css/emoji-mart.css',
+                'js' => $this->getHomeUrl() . 'js/emoji-mart/js/emoji-mart.js',
+            ),
+
              // objects
             'OBJECT_STORAGE' => 'bx_messenger_files',
             'OBJECT_IMAGES_TRANSCODER_GALLERY' => 'bx_messenger_photos_resized',

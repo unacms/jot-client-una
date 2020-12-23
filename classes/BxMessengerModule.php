@@ -2348,6 +2348,14 @@ class BxMessengerModule extends BxBaseModTextModule
     function serviceGenerateRoomName($sIdent){
         return $this->_oConfig->getRoomId($sIdent);
     }
+
+    function actionGetEmojiPicker(){
+		if (!$this->_iProfileId)
+		    return;
+
+        echo $this->_oTemplate->getEmojiCode();
+        exit;
+    }
 }
 
 /** @} */

@@ -1,0 +1,26 @@
+.bx-messenger-jot-emoji.edit,
+.bx-messenger-jot-emoji {
+    z-index: 1000;
+    right:1rem;
+    position: absolute;
+    overflow: hidden;
+    display: none;
+    width: min-content;
+    height: min-content;
+}
+
+.bx-messenger-jot-emoji.edit{
+    left: 1rem;
+}
+
+@media (max-width:480px) {
+    .bx-messenger-jot-emoji.edit,
+    .bx-messenger-jot-emoji {
+        width: 100%;
+        right: 0;
+    }
+
+    .bx-messenger-jot-emoji.edit {
+        left: 0;
+    }
+}

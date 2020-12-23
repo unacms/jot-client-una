@@ -475,25 +475,33 @@
 		$(document).on('mouseup', function(oEvent){
 			_this.removeEditArea(oEvent);
 		})
-		.on('click', (oEvent) => _this.onOuterClick(oEvent));
+		.on('click touchend', (oEvent) => _this.onOuterClick(oEvent));
 
 		this.updateSendAreaButtons();
 
 		$(_this.sSendAreaActionsButtons)
 			.find('a.smiles')
-			.on('click', function(){
-				const oEmoji = $(_this.sEmojiId),
-					bHidden = !$(_this.sEmojiId).height() || !oEmoji.is(":visible"),
-					iHeight = oEmoji.css('height', 'min-content').height(),
-					iParentHeight = oEmoji.closest(_this.sTalkAreaWrapper).height();
+			.on('click', () => _this.getEmojiPopUp(() => {
+					const oEmoji = $(_this.sEmojiId),
+						bHidden = !oEmoji.is(":visible"),
+						iParentHeight = $(_this.sTalkAreaWrapper).height();
 
-				if (bHidden)
-					oEmoji.css({ visibility: 'visible', display: 'block', top: iParentHeight - iHeight - $(_this.sMessangerParentBox).height(), left: '0.5rem', right:""});
-				else
-					oEmoji.fadeOut();
+					if (bHidden)
+						oEmoji.fadeIn('fast', function () {
+							const iHeight = oEmoji.height();
 
-				_this.oActiveEmojiObject = {'type': 'textarea'};
-			});
+							$(this).css({
+								top: iParentHeight - iHeight - $(_this.sMessangerParentBox).height(),
+								left: '0.5rem',
+								right: '',
+								visibility: 'visible'
+							});
+						});
+					else
+						oEmoji.fadeOut().css('visibility', 'hidden');
+
+					_this.oActiveEmojiObject = {'type': 'textarea'};
+				}));
 
 		// enable video recorder if it is not IOS/Mac devices
 		if(!this.aPlatforms.includes(navigator.platform))
@@ -510,7 +518,20 @@
 								_this.initGiphy(e);
 							});
 					});
-   }
+    }
+
+   oMessenger.prototype.getEmojiPopUp = function(fCallback) {
+	   const _this = this;
+		if (!$('emoji-picker').length)
+		   $.get('modules/?r=messenger/get_emoji_picker',(sData) => {
+			   $(_this.sTalkAreaWrapper)
+				   .append($(sData));
+
+			   fCallback();
+		   });
+	   else
+		   fCallback();
+	}
 
 	oMessenger.prototype.updateSendAreaHeight = function() {
 		const fMaxHeight = parseInt($(this.sMessengerBox).css('max-height'));
@@ -544,7 +565,9 @@
 
 	oMessenger.prototype.onOuterClick = function(oEvent){
 		if (!($(oEvent.target).is('[class*=smile]') || $(oEvent.target).closest(this.sEmojiId).length || $(oEvent.target).siblings('[class*=smile]').length))
-			$(`${this.sEmojiId}`).hide();
+			$(`${this.sEmojiId}`)
+				.hide()
+				.css('visibility', 'hidden');
 
 		if ($(oEvent.target).closest(this.sMessengerBox).length)
 			return;
@@ -966,17 +989,20 @@
 	oMessenger.prototype.onAddReaction = function(oObject, bNear){
 		const _this = this,
 			oJot = $(oObject).closest(this.sJot),
-			iJotId = oJot.data('id') || 0,
-			oEmoji = $(_this.sEmojiId);
+			iJotId = oJot.data('id') || 0;
 
-			oEmoji.css({
-				top: _this.calculatePositionTop(oJot, $(_this.sEmojiId).css({height: 'min-content'})),
-				display: 'block',
-				visibility: 'visible',
-				left: bNear && !_this.isMobile() ? $(oObject).position().left : '',
-			}).show(100);
 
-		_this.oActiveEmojiObject = {'type': 'reaction', 'param': iJotId};
+			_this.getEmojiPopUp(() => {
+				const oEmoji = $(_this.sEmojiId);
+				oEmoji.fadeIn('fast', function() {
+					$(this).css({
+						top: _this.calculatePositionTop(oJot, $(_this.sEmojiId)),
+						left: bNear && !_this.isMobile() ? $(oObject).position().left : '',
+						visibility: 'visible'
+					});
+					_this.oActiveEmojiObject = {'type': 'reaction', 'param': iJotId};
+				})
+			});
 	};
 
 	oMessenger.prototype.deleteLot = function(iLotId){

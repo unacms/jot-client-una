@@ -1921,16 +1921,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	    $sContent = $this->parseHtmlByName('conference_call.html', $aVars);
         return BxTemplFunctions::getInstance()->transBox('bx-messenger-vc-call', $sContent);
     }
-
-    public function getDateSeparator($iTimestamp){
-        $iToday = strtotime(date("Y-m-d"));
-        $iDate = strtotime(date("Y-m-d", $iTimestamp));
-
-        $sDate = $iToday == $iDate ? _t('_bx_messenger_date_time_today') : bx_time_js($iTimestamp, BX_FORMAT_DATE, true);
-        return $this->parseHtmlByName('date-separator.html', array(
-            'date' => $sDate
-        ));
-    }
 }
 
 /** @} */

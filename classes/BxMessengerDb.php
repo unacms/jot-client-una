@@ -102,6 +102,10 @@ class BxMessengerDb extends BxBaseModTextDb
 		foreach($aJots as $iKey => $aJot)
             $this->clearJotsConnections($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
 
+        $this->query("DELETE FROM `{$this->CNF['TABLE_NEW_MESSAGES']}` 
+                                                        WHERE `{$this->CNF['FIELD_NEW_LOT']}`=:lot                                        
+                                                     ", array('lot' => $iLotId));
+
         $iResult = $this -> query("DELETE FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = :id", array('id' => $iLotId));
 		$iResult += $this -> query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id", array('id' => $iLotId));
 		return $iResult;
@@ -168,6 +172,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@return int/false 
 	*/	
 	public function leaveLot($iLotId, $iParticipant){
+        $this->deleteNewJot($iParticipant, $iLotId);
 		return $this -> removeParticipant($iLotId, $iParticipant);
 	}
 	
@@ -330,7 +335,8 @@ class BxMessengerDb extends BxBaseModTextDb
             return false;
 
         if (empty($aLotInfo)) {
-            $iLotId = $this->createNewLot($this->findThePageOwner($aData['url']), $aData['title'], $aData['type'], $aData['url'], $aParticipants);
+            $iAuthorId = $this->findThePageOwner($aData['url']);
+            $iLotId = $this->createNewLot($iAuthorId ? $iAuthorId : (int)$aData['member_id'], $aData['title'], $aData['type'], $aData['url'], $aParticipants);
             bx_alert($this->_oConfig->getObject('alert'), 'create_lot', $iLotId, $aData['member_id']);
 
             foreach($aParticipants as &$iParticipant) {

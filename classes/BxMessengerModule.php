@@ -256,7 +256,7 @@ class BxMessengerModule extends BxBaseModTextModule
             array(
                     'message' => $sMessage,
                     'type' => $iType,
-                    'member_id' => $this->_iUserId,
+                    'member_id' => $this->_iProfileId,
                     'url' => $sUrl,
                     'title' => $sTitle,
                     'lot' => $iLotId
@@ -723,7 +723,7 @@ class BxMessengerModule extends BxBaseModTextModule
         $aResult = array('message' => _t('_bx_messenger_save_part_success'), 'code' => 0);
 		if (!$iLotId)
 		{
-            $iLotId = $this->_oDb->createNewLot($this->_iUserId, BX_IM_EMPTY_URL, BX_IM_TYPE_PRIVATE, BX_IM_EMPTY_URL, $aParticipants);
+            $iLotId = $this->_oDb->createNewLot($this->_iProfileId, BX_IM_EMPTY_URL, BX_IM_TYPE_PRIVATE, BX_IM_EMPTY_URL, $aParticipants);
             $aResult['lot'] = $iLotId;
             $this->onCreateLot($iLotId);
 		}
@@ -738,8 +738,10 @@ class BxMessengerModule extends BxBaseModTextModule
         foreach ($aNewParticipants as &$iPartId)
             $this->onAddNewParticipant($iLotId, $iPartId);
 
-        foreach ($aRemoveParticipants as &$iPartId)
+        foreach ($aRemoveParticipants as &$iPartId) {
+            $this->_oDb->deleteNewJot($iPartId, $iLotId);
             $this->onRemoveParticipant($iLotId, $iPartId);
+        }
 
         if ($iLotId)
             $aResult['header'] = $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId);

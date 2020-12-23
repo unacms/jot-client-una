@@ -1239,7 +1239,7 @@ div.bx-messenger-hidden-jot
 {
 	width: 2rem;
 	height: 2rem;
-	border-radius: 1rem;
+	border-radius: 1.5rem;
 	position: absolute;
 	bottom: 0.5rem;
 	right: 0.5rem;
@@ -1261,6 +1261,7 @@ div.bx-messenger-hidden-jot
 .bx-messenger-area-scroll .bx-def-unit-alert {
 	top: -1rem;
 	right: initial;
+	border-radius: 1.5rem;
 }
 
 .bx-messenger-area-scroll div

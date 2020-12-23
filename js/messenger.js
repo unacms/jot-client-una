@@ -821,7 +821,8 @@
 							$(document).prop('title', title);
 					
 						_this.updateScrollPosition('bottom');
-						_this.initUsersSelector(!lot && !user ? 'edit' : '');
+
+						_this.initUsersSelector(+lot ? 'edit' : '');
 						if (_this.oJotWindowBuilder !== undefined)
 							_this.oJotWindowBuilder.changeColumn('right');
 
@@ -1273,8 +1274,9 @@
 				oSel.addRange(oRange); // Does not work for Firefox if a textarea or input
 				oTextArea.select(); // Firefox will only select a form element with select()
 
-				if (oTextArea.setSelectionRange && navigator.userAgent.match(/ipad|ipod|iphone/i))
+				if (oTextArea.setSelectionRange && navigator.userAgent.match(/ipad|ipod|iphone/i)) {
 					oTextArea.setSelectionRange(0, 999999); // iOS only selects "form" elements with SelectionRange
+				}
 
 				if (document.queryCommandSupported("copy"))
 					document.execCommand('copy');
@@ -1792,8 +1794,7 @@
 		}
 
 
-		if (!+$(_this.sUnreadJotsCounter).text())
-			_this.updateScrollPosition('bottom');
+		_this.updateScrollPosition('bottom');
 
 		// save message to database and broadcast to all participants
 		$.post('modules/?r=messenger/send', oParams, function({ jot_id, header, tmp_id, message, code, time, lot_id }){

@@ -301,7 +301,7 @@ class BxMessengerModule extends BxBaseModTextModule
 		else
             $aResult = array('code' => 2, 'message' => _t('_bx_messenger_send_message_save_error'));
 
-        BxDolSession::getInstance()->exists($this->_iUserId);
+        BxDolSession::getInstance()->exists($this->_iProfileId);
         echoJson($aResult);
     }
 
@@ -321,19 +321,20 @@ class BxMessengerModule extends BxBaseModTextModule
             $this->_oDb->readAllMessages($iLotId, $this->_iProfileId);
 
         $CNF = &$this->_oConfig->CNF;
+        $aUnreadJots = $this->_oDb->getNewJots($this->_iProfileId, $iLotId);
+        $iUnreadLotsJots = !empty($aUnreadJots) ? (int)$aUnreadJots[$CNF['FIELD_NEW_UNREAD']] : 0;
 
         $sHeader = $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId);
-        $sHistory = $this->_oTemplate->getHistory($this->_iProfileId, $iLotId, $iJotId, MsgBox(_t('_bx_messenger_what_do_think')));
-
-        $aUnreadJots = $this->_oDb->getNewJots($this->_iProfileId, $iLotId);
+        $sHistory = $this->_oTemplate->getHistoryArea($this->_iProfileId, $iLotId, $iJotId, $iUnreadLotsJots && $iUnreadLotsJots < ($CNF['MAX_JOTS_BY_DEFAULT']/2));
         $aVars = array(
             'code' => 0,
             'header' => $sHeader,
-            'history' => $sHistory,
+            'history' => $sHistory ? $sHistory : MsgBox(_t('_bx_messenger_what_do_think')),
             'last_unread_jot' => !empty($aUnreadJots) ? (int)$aUnreadJots[$CNF['FIELD_NEW_JOT']] : 0,
             'unread_jots' => !empty($aUnreadJots) ? (int)$aUnreadJots[$CNF['FIELD_NEW_UNREAD']] : 0
         );
 
+        BxDolSession::getInstance()->exists($this->_iProfileId);
         echoJson($aVars);
     }
 
@@ -375,7 +376,7 @@ class BxMessengerModule extends BxBaseModTextModule
 	    if (!$this->_oDb->isParticipant($iId, $this->_iProfileId))
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_participant'))));
 
-        $sContent = $this->_oTemplate->getHistory($this->_iUserId, (int)$iId ? $iId : BX_IM_EMPTY, BX_IM_TYPE_PRIVATE);
+        $sContent = $this->_oTemplate->getHistoryArea($this->_iProfileId, (int)$iId ? $iId : BX_IM_EMPTY);
         echoJson(array('code' => 0, 'history' => $sContent));
     }
 
@@ -560,19 +561,23 @@ class BxMessengerModule extends BxBaseModTextModule
             return echoJson(array('code' => 1, 'message' => $mixedResult));
 
         $iProfileId = (int)bx_get('profile');
+        $sHeader = '';
         if ($iProfileId)
         {
             $aLotInfo = $this->_oDb->getLotByUrlAndParticipantsList(BX_IM_EMPTY_URL, array($this->_iProfileId, $iProfileId));
             $iLotId = empty($aLotInfo) ? BX_IM_EMPTY : $aLotInfo[$this -> _oConfig -> CNF['FIELD_ID']];
+            $sHeader = $this->_oTemplate->getTalkHeaderForUsername($this->_iProfileId, $iProfileId);
         } else
             $iLotId = (int)bx_get('lot');
 
+        if (!$sHeader)
+            $sHeader = $this->_oTemplate->getEditTalkArea($iProfileId, $iLotId);
 
         echoJson(
             array(
                  'title' => _t('_bx_messenger_lots_menu_create_lot_title'),
-                 'history' => $this->_oTemplate->getHistory($this->_iProfileId, $iLotId),
-                 'header' => $this->_oTemplate->getEditTalkArea($iProfileId, $iLotId),
+                 'history' => $this->_oTemplate->getHistoryArea($this->_iProfileId, $iLotId),//$this->_oTemplate->getHistory($this->_iProfileId, $iLotId),
+                 'header' => $sHeader,
                  'code' => 0
             ));
     }

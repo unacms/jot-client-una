@@ -24,10 +24,10 @@
 </div>
 <script>
 	$(function(){
-		 var oOptions = 
+		 const oOptions =
 			{
 				start: function(oCamera){
-					var _this = this,
+					const _this = this,
                         mimeType = oJotRecorder.getMimeType(),
 						iMaxLength = parseInt('__max_video_length__');
 
@@ -82,7 +82,7 @@
 				}
 			}
 			
-			var oJotRecorder = new oJotVideoRecorder(oOptions);
+			const oJotRecorder = new oJotVideoRecorder(oOptions);
 			oJotRecorder.init();
 	});
 </script>

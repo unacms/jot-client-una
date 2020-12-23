@@ -81,6 +81,26 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             if ($iUnreadLotsJots && !$iJotId)
                 $iJotId = $this -> _oDb -> getFirstUnreadJot($iProfileId, $iLotId);
 
+            $sContent = $this->getHistoryArea($iProfileId, $iLotId, $iJotId, $iUnreadLotsJots && $iUnreadLotsJots < (int)($CNF['MAX_JOTS_BY_DEFAULT']/2));
+            $aParams = array(
+			    'content' => $sContent ? $sContent : $sEmptyContent,
+                'new_msg_active' => $iUnreadLotsJots ? 'block' : 'none',
+                'unread_count' => $iUnreadLotsJots
+            );
+		}
+
+		return $this -> parseHtmlByName('history.html', $aParams);
+	}
+
+    public function getHistoryArea($iProfileId, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $bRead = false){
+        $CNF = $this->_oConfig->CNF;
+
+        $aJots['content'] = '';
+        if ($iLotId){
+            $iUnreadLotsJots = $this->_oDb->getUnreadJotsMessagesCount($iProfileId, $iLotId);
+            if ($iUnreadLotsJots && !$iJotId)
+                $iJotId = $this -> _oDb -> getFirstUnreadJot($iProfileId, $iLotId);
+
             $aJots = $this -> getJotsOfLot($iProfileId,
                 array(
                     'lot_id' => $iLotId,
@@ -89,19 +109,14 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                     'display' => true,
                     'select' => true,
                     'views' => true,
-                    'read' => $iUnreadLotsJots && $iUnreadLotsJots < (int)($CNF['MAX_JOTS_BY_DEFAULT']/2)
+                    'read' => $bRead
                 ));
+        }
 
-            $aParams = array(
-			    'content' => $aJots['content'],
-                'new_msg_active' => $iUnreadLotsJots ? 'block' : 'none',
-                'unread_count' => $iUnreadLotsJots
-            );
-		}
-
-		BxDolSession::getInstance()->exists($iProfileId);
-		return $this -> parseHtmlByName('history.html', $aParams);
-	}
+        return $this -> parseHtmlByName('history-block.html', array(
+            'content' => $aJots['content']
+        ));
+    }
 
 	public function getTextArea($iProfileId){
 	    $CNF = $this->_oConfig->CNF;
@@ -348,7 +363,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             $aLotInfo = $this -> _oDb -> getLotInfoById($iLotId);
 
         $sTitle = _t('_bx_messenger_page_block_title');
-        //_t('_bx_messenger_linked_title', '<a href ="'. $this->_oConfig->getPageLink($this->_oConfig->getPageIdent()) .'">' . BxDolTemplate::getInstance()->aPage['header'] . '</a>');
         if (!empty($aLotInfo))
         {
             if (!empty($aLotInfo[$CNF['FIELD_TITLE']]))

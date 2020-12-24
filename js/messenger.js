@@ -1064,7 +1064,7 @@
 			iJotId = oJot.data('id') || 0,
 			checkScroll	= function()
 			{
-				if ($(_this.sTalkBlock).prop('scrollHeight') <= $(_this.sTalkBlock).prop('clientHeight'))
+				if ($(_this.sTalkBlock).prop('scrollHeight') <= $(_this.sTalkBlock).prop('clientHeight') && $(_this.sJot, _this.sTalkBlock).length === 1)
 						_this.updateJots({
 											action: 'prev',
 											position: 'bottom'
@@ -1103,12 +1103,11 @@
 							.fadeOut('slow',
 								function()
 								{
-									checkScroll();
-
 									if (!$(this).next(_this.sJot).length)
 										$(this).prev(_this.sDateIntervalsSelector).remove();
 
 									$(this).remove();
+									checkScroll();
 								});
 
 					$(_this.sJotIcons, oJot)
@@ -1585,7 +1584,10 @@
 		const oJot = $(`[data-id="${iJot}"]`, this.sTalkList);
 
 		if (!+oJot.data('my') && +oJot.data('new')) {
-			$.get('modules/?r=messenger/viewed_jot', { jot_id: iJot }, ({ unread_jots }) => this.updateCounters(unread_jots, true), 'json');
+			$.get('modules/?r=messenger/viewed_jot', { jot_id: iJot }, ({ unread_jots, last_unread_jot }) => {
+				this.updateCounters(unread_jots, true);
+				this.iLastUnreadJot = last_unread_jot;
+			}, 'json');
 
 			oJot.data('new', 0);
 
@@ -1703,9 +1705,11 @@
 
 					_this.blockSendMessages();
 
-					if (parseInt($(_this.sTalkListJotSelector).last().data('new')) && !_this.iLastUnreadJot)
-                        _this.broadcastView();
-
+					if (+$(_this.sTalkListJotSelector).last().data('new')) {
+						console.log('---- unrad count ----- ', $(_this.sSelectedJot, _this.sTalkList).nextAll(_this.sJot).length, _this.iMaxHistory);
+						if (!_this.iLastUnreadJot || $(_this.sSelectedJot, _this.sTalkList).nextAll(_this.sJot).length < _this.iMaxHistory/2)						console.log('---- unrad count ----- ', $(_this.sSelectedJot, _this.sTalkList).nextAll(_this.sJot).length, _this.iMaxHistory);
+						_this.broadcastView($(_this.sTalkListJotSelector).last().data('id'));
+					}
 					/* ----  End ---- */
 				}
 		}, 'json');
@@ -2450,11 +2454,12 @@
 									.addTimeIntervals()
 									.waitForImages(oParent => {
 										const iId = oObjects.first().data('id');
-										setTimeout(() => {
-											const iTop = $(`[data-id="${iId}"]${_this.sJot}`, oParent).position().top || 0;
-											if (iTop)
-												_this.updateScrollPosition('top', 'fast', {pos: iTop});
-										}, 0);
+										if (+iId)
+											setTimeout(() => {
+												const iTop = $(`[data-id="${iId}"]${_this.sJot}`, oParent).position().top || 0;
+												if (iTop)
+													_this.updateScrollPosition('top', 'fast', {pos: iTop});
+											}, 0);
 									});
 
 								break;

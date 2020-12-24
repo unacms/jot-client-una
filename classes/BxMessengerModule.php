@@ -359,9 +359,14 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $this->_oDb->readMessage($iJotId, $this->_iProfileId);
         $this->_oDb->markNotificationAsRead($this->_iProfileId, $aJotInfo[$CNF['FIELD_MESSAGE_FK']]);
-        $iUnreadJotsNumber = $this->_oDb->getUnreadJotsMessagesCount($this->_iProfileId, $aJotInfo[$CNF['FIELD_MESSAGE_FK']]);
+        $aUnreadInfo = $this->_oDb->getNewJots($this->_iProfileId, $aJotInfo[$CNF['FIELD_MESSAGE_FK']]);
+        $iUnreadJotsNumber = $iLastUnreadJotId = 0;
+        if (!empty($aUnreadInfo)) {
+            $iLastUnreadJotId = (int)$aUnreadInfo[$CNF['FIELD_NEW_JOT']];
+            $iUnreadJotsNumber = (int)$aUnreadInfo[$CNF['FIELD_NEW_UNREAD']];
+        }
 
-        echoJson(array('code' => 0, 'unread_jots' => $iUnreadJotsNumber));
+        echoJson(array('code' => 0, 'unread_jots' => $iUnreadJotsNumber, 'last_unread_jot' => $iLastUnreadJotId));
     }
 
     /**

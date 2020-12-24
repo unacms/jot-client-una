@@ -1015,6 +1015,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             '_bx_messenger_file_type_is_not_allowed',
             '_bx_messenger_jitsi_mobile_warning',
             '_bx_messenger_loading',
+            '_bx_messenger_share_jot'
         ));
 
         $sUsername = '';

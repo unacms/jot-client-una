@@ -1,6 +1,6 @@
 #emoji-picker{
   max-width:320px;
-  width: min-content;
+  height:360px;
   margin-right: 0.5rem;
   visibility: hidden;
 }

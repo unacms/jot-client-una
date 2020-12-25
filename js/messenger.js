@@ -475,7 +475,7 @@
 		$(document).on('mouseup', function(oEvent){
 			_this.removeEditArea(oEvent);
 		})
-		.on('click touchend', (oEvent) => _this.onOuterClick(oEvent));
+		.on('click touchstart', (oEvent) => _this.onOuterClick(oEvent));
 
 		this.updateSendAreaButtons();
 
@@ -1814,7 +1814,6 @@
 			_this.initJotIcons('[data-tmp="' + oParams.tmp_id + '"]');
 		}
 
-
 		_this.updateScrollPosition('bottom');
 
 		// save message to database and broadcast to all participants
@@ -1976,6 +1975,9 @@
                             _this.beep();
                         }
                     }
+				break;
+				case 'join':
+					_this.stopActiveSound();
 				break;
 		}
 	};
@@ -2758,7 +2760,6 @@
 							 
 							 $.get('modules/?r=messenger/create_jitsi_video_conference/', { lot_id: iLotId }, function (oData) {
 									 const { message, opened, code, jot_id } = oData;
-
 									 bx_loading_btn($(oEl), false);
 
 									 if (+code === 1) {
@@ -2768,9 +2769,9 @@
 
 									 if (typeof opened !== 'undefined' && Array.isArray(opened))
 										 if (Array.isArray(opened))
-											 opened.map(iLotId => _this.updateJots({
+											 opened.map(jot_id => _this.updateJots({
 												 action: 'vc',
-												 jot_id: iLotId
+												 jot_id
 											 }));
 
 									 if (iLotId) {
@@ -2780,6 +2781,8 @@
 											 oInfo.jot_id = jot_id;
 											 oInfo.vc = 'join';
 										 }
+										  else
+											 _this.playSound('call', true);
 
 										 _this.broadcastMessage(oInfo);
 										 _this.updateJots(oInfo);
@@ -2790,6 +2793,7 @@
 									 }
 
 									 window.glBxVideoCallTerminated.push(function (e) {
+										 	 _this.stopActiveSound();
 											 $.get('modules/?r=messenger/stop_jvc/', {lot_id: iLotId}, (oData) => {
 												 const oInfo = {
 													 jot_id: jot_id,
@@ -2887,6 +2891,7 @@
 							  delete _this.aJitisActiveUsers[iLotID];
 					  };
 
+				  	  _this.stopActiveSound();
 					  $.get('modules/?r=messenger/stop_jvc/', { lot_id: iLotID || _this.oSettings.lot }, (oData) => {
 						  if (+oData.code && oData.msg)
 							  bx_alert(oData.msg);
@@ -3462,8 +3467,10 @@
 				if (oJitsi._jotId && !bNew) {
 					oInfo.jot_id = oJitsi._jotId;
 					oInfo.vc = 'join';
-				} else
-                    _oMessenger.aJitisActiveUsers[oJitsi._lotId] = { owner: _oMessenger.oSettings.user_id, got: 0 };
+				} else {
+					_oMessenger.playSound('call', true);
+					_oMessenger.aJitisActiveUsers[oJitsi._lotId] = {owner: _oMessenger.oSettings.user_id, got: 0};
+				}
 
 				_oMessenger.broadcastMessage(oInfo);
 				_oMessenger.updateJots({
@@ -3482,7 +3489,8 @@
 							};
 							_oMessenger.broadcastMessage(oInfo);
 							_oMessenger.updateJots(oInfo);
-
+							_oMessenger.stopActiveSound();
+							
 						}, 'json');
 						oJitsi.dispose();
 					});
@@ -3712,7 +3720,6 @@
 		onHangUp: (oEl, iLotId) => {
 			_oMessenger.onCloseCallPopup(oEl, iLotId);
 		},
-		
 		updateAttachmentArea: function(bCanHide){
 			return _oMessenger.updateSendArea(bCanHide);
 		},

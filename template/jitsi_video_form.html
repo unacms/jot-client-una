@@ -117,17 +117,19 @@
         oApi
             .on('videoConferenceJoined', () => {
                  $.get('modules/?r=messenger/create_jitsi_video_conference/', { lot_id: '__id__' }, function(oData){
-                    if (+oData.code === 1) {
-                        bx_alert(oData.message);
+                     const { jot_id, parts, opened, code, message } = oData;
+
+                     if (+code === 1) {
+                        bx_alert(message);
                         return;
                     }
 
-                    oApi._jotId = oData.jot_id;
-                    oApi._participantsNumber = oData.parts;
-                    if ( typeof oData.opened !== 'undefined' && Array.isArray(oData.opened))
-                        oMessenger.updateJots(oData.opened, 'vc');
+                    oApi._jotId = jot_id;
+                    oApi._participantsNumber = parts;
+                    if ( typeof opened !== 'undefined' && Array.isArray(opened))
+                        oMessenger.updateJots(opened, 'vc');
 
-                    oMessenger.initJitsi(oApi, oData.new, __chat_sync__);
+                  oMessenger.initJitsi(oApi, oData.new, __chat_sync__);
                 },
                 'json');
             });

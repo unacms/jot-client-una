@@ -9,6 +9,7 @@
 
 #bx-messenger-vc-call {
 	cursor:move;
+	min-width: 300px;
 }
 
 #bx-messenger-vc-call .bx-popup-close-wrapper{
@@ -20,6 +21,12 @@
 	overflow: hidden;
 	display: flex;
 	justify-content: flex-end;
+}
+
+#bx-messenger-vc-call .bx-messenger-conference-call-title div{
+	overflow: visible;
+	float: none;
+	text-align: center;
 }
 
 #bx-messenger-jitsi-video .bx-popup-content-indent{

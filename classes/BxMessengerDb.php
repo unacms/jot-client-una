@@ -317,6 +317,24 @@ class BxMessengerDb extends BxBaseModTextDb
 
 	    return $iAuthorId;
     }
+
+    function createLot($iProfileId, $sUrl = '', $sTitle = '', $sType = '', $aParticipants = array()){
+        $iAuthorId = $this->findThePageOwner($sUrl);
+        $iAuthorId = $iAuthorId ? $iAuthorId : (int)$iProfileId;
+        $iLotId = $this->createNewLot($iAuthorId, $sTitle, $sType, $sUrl, $aParticipants);
+        if (!$iLotId)
+            return false;
+
+        bx_alert($this->_oConfig->getObject('alert'), 'create_lot', $iLotId, $iProfileId);
+        foreach($aParticipants as &$iParticipant) {
+            if ((int)$iParticipant === (int)$iProfileId)
+                continue;
+
+            bx_alert($this->_oConfig->getObject('alert'), 'add_part', $iParticipant, $iProfileId, array('lot_id' => $iLotId, 'author_id' => $iAuthorId));
+        }
+        
+        return $iLotId;
+    }
 	/**
 	* Save message for participants to database
 	*@param array $aData lot settings
@@ -615,7 +633,10 @@ class BxMessengerDb extends BxBaseModTextDb
 		$aBindings['lot_id'] = (int)$iLotId;
 		$sInsideOrder = 'DESC';
 
-		if ($iStart)
+        if ($sMode == 'new' || $sMode == 'all')
+            $sInsideOrder = 'ASC';
+
+		if ($iStart && $sMode !== 'all')
 		{ 
 			$sEqual = '';
 			if ($bInclude)
@@ -623,9 +644,6 @@ class BxMessengerDb extends BxBaseModTextDb
 				
 			$aSWhere[] = "`{$this->CNF['FIELD_MESSAGE_ID']}` " . ($sMode == 'new' ? '>' . $sEqual : '<' . $sEqual) . " :start ";
 			$aBindings['start'] = (int)$iStart;
-			
-			if ($sMode == 'new')
-				$sInsideOrder = 'ASC';
 		}
 
 		if ($iLimit)
@@ -636,7 +654,7 @@ class BxMessengerDb extends BxBaseModTextDb
 
 		if (!empty($aBindings))
 			$sWhere = 'WHERE ' . implode(' AND ', $aSWhere);
-		
+
 		$sQuery = "SELECT * FROM `{$this->CNF['TABLE_MESSAGES']}`
 									{$sWhere}	
 									ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}` {$sInsideOrder}

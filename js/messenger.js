@@ -2324,243 +2324,252 @@
 	*@param object oAction info about an action
 	*/
 	oMessenger.prototype.updateJots = function(oAction, bSilentMode = false){
-		const _this = this,
-			{ addon, position, action, last_viewed_jot, callback } = oAction,
-			sAction = typeof addon === 'string' ? addon : (action !== 'msg' ? action : 'new'),
-			sPosition = position || (sAction === 'new' ? 'bottom' : 'position'),
+		const _this = this;
+		const { addon, position, action, last_viewed_jot, callback } = oAction;
+
+		let sAction = typeof addon === 'string' ? addon : (action !== 'msg' ? action : 'new'),
+			iRequestJot = 0,
+			iJotId = 0;
+
+		const sPosition = position || (sAction === 'new' ? 'bottom' : 'position'),
 			oObjects = $(this.sTalkListJotSelector);
 
-			let	iRequestJot = 0, iJotId = 0;
-			if ((sAction === 'new' || sAction === 'prev') && _this.iPanding)
-				return;
-					
-			switch(sAction)
-			{
-				case 'check_viewed':
-				case 'reaction':
-				case 'delete':
-				case 'edit':
-				case 'vc':
-						iJotId = oAction.jot_id || 0;
-						break;
-				case 'clear':
-					  return $(_this.sTalkList).html('');
-				case 'prev':
-					iJotId = oObjects
-						.first()
-						.data('id');
+		if ((sAction === 'new' || sAction === 'prev') && _this.iPanding)
+			return;
 
-					_this.iPanding = true;
+		switch(sAction)
+		{
+			case 'check_viewed':
+			case 'reaction':
+			case 'delete':
+			case 'edit':
+			case 'vc':
+					iJotId = oAction.jot_id || 0;
 					break;
-				case 'new':
-					iRequestJot = (typeof addon === 'object' && typeof addon.jot_id !== 'undefined' ? addon.jot_id : 0);
-				default:
-					iJotId = oObjects
-						.last()
-						.data('id');
-									
-					_this.iPanding = true;
-					break;
-			}
+			case 'clear':
+				  return $(_this.sTalkList).html('');
+			case 'prev':
+				iJotId = oObjects
+					.first()
+					.data('id');
 
-			const iLotId = _this.oSettings.lot; // additional check for case when ajax request is not finished yet but another talk is selected
+				_this.iPanding = true;
+				break;
+			case 'new':
+				iRequestJot = (typeof addon === 'object' && typeof addon.jot_id !== 'undefined' ? addon.jot_id : 0);
+				if (!$(_this.sTalkListJotSelector).length)
+					sAction = 'all';
+			default:
+				iJotId = oObjects
+					.last()
+					.data('id');
 
-			if (sAction === 'prev')
-				bx_loading($(`[data-id="${iJotId}"]${_this.sJot}`), true);
+				_this.iPanding = true;
+				break;
+		}
 
-			$.post('modules/?r=messenger/update',
+		const iLotId = _this.oSettings.lot; // additional check for case when ajax request is not finished yet but another talk is selected
+
+		if (sAction === 'prev')
+			bx_loading($(`[data-id="${iJotId}"]${_this.sJot}`), true);
+
+		$.post('modules/?r=messenger/update',
+		{
+			url: this.oSettings.url,
+			jot: iJotId,
+			lot: this.oSettings.lot,
+			load: sAction,
+			req_jot: iRequestJot,
+			focus: +((_this.isMobile() && !_oMessenger.oJotWindowBuilder.isHistoryColActive()) ? false : document.hasFocus()),
+			last_viewed_jot
+		},
+		function({ html, unread_jots, code, last_unread_jot, allow_attach, remove_separator })
+		{
+			bx_loading($(`[data-id="${iJotId}"]${_this.sJot}`), false);
+			const oList = $(_this.sTalkList);
+
+			_this.iPanding = false;
+			if (iLotId !== _this.oSettings.lot)
+					return ;
+
+			if (!parseInt(code))
 			{
-				url: this.oSettings.url,
-				jot: iJotId,
-				lot: this.oSettings.lot,
-				load: sAction,
-				req_jot: iRequestJot,
-				focus: +((_this.isMobile() && !_oMessenger.oJotWindowBuilder.isHistoryColActive()) ? false : document.hasFocus()),
-				last_viewed_jot
-			},
-			function({ html, unread_jots, code, last_unread_jot, allow_attach, remove_separator })
-			{
+				if (iJotId === undefined)
+						oList.html('');
 
-				bx_loading($(`[data-id="${iJotId}"]${_this.sJot}`), false);
-				const oList = $(_this.sTalkList);
+					switch(sAction)
+					{
+						case 'all':
+						case 'new':
+								_this.updateCounters(unread_jots, true);
+								if (last_unread_jot && (!_this.iLastUnreadJot || _this.iLastUnreadJot < last_unread_jot))
+									_this.iLastUnreadJot = last_unread_jot;
 
-				_this.iPanding = false;
-				if (iLotId !== _this.oSettings.lot)
-						return ;
+								_this.bAllowAttachMessages = allow_attach;
+								if (!html.length)
+									return ;
 
-				if (!parseInt(code))
-				{
-					if (iJotId === undefined)
-							oList.html('');
+								$(oList)
+								.append(
+										$(html)
+										.filter(_this.sJot)
+										.each(
+												function(){
+															if ($('div[data-id="' + $(this).data('id') + '"]', oList).length)
+																$(this).remove();
 
-						switch(sAction)
-						{
-							case 'new':
-									_this.updateCounters(unread_jots, true);
-									if (last_unread_jot && (!_this.iLastUnreadJot || _this.iLastUnreadJot < last_unread_jot))
-										_this.iLastUnreadJot = last_unread_jot;
+															$(`${_this.sJotMessageViews} img`, this)
+																.each(function(){
+																	$(`${_this.sJot} ${_this.sJotMessageViews} img[data-viewer-id="${$(this).data('viewer-id')}"]`).remove()
+																})
+																.end()
+																.closest(_this.sJotMessageViews)
+																.fadeIn();
+												})
+										.waitForImages(() => _this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'fast', oObjects.last()))
+									)
+									.addTimeIntervals();
 
-									_this.bAllowAttachMessages = allow_attach;
-									if (!html.length)
-										return ;
 
-									$(oList)
-									.append(
-											$(html)
-											.filter(_this.sJot)
-											.each(
-													function(){
-																if ($('div[data-id="' + $(this).data('id') + '"]', oList).length)
-																	$(this).remove();
+								if ((_this.isBlockVersion() || (_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive())) && !bSilentMode)  /* play sound for jots only on mobile devices when chat area is active */
+									$(_this).trigger(jQuery.Event('message'));
 
-																$(`${_this.sJotMessageViews} img`, this)
-																	.each(function(){
-																		$(`${_this.sJot} ${_this.sJotMessageViews} img[data-viewer-id="${$(this).data('viewer-id')}"]`).remove()
-																	})
-																	.end()
-																	.closest(_this.sJotMessageViews)
-																	.fadeIn();
-													})
-											.waitForImages(() => _this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'fast', oObjects.last()))
-										)
-										.addTimeIntervals();
-									
-
-									if ((_this.isBlockVersion() || (_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive())) && !bSilentMode)  /* play sound for jots only on mobile devices when chat area is active */
-										$(_this).trigger(jQuery.Event('message'));
-
-									if ($(_this.sTalkListJotSelector).length > _this.iMaxHistory && iRequestJot)
-									{
-										let iCountToRemove = $(_this.sTalkListJotSelector).length - _this.iMaxHistory;
-										while(iCountToRemove-- > 0){
-											$(_this.sTalkListJotSelector).first().remove();
-										}
+								if ($(_this.sTalkListJotSelector).length > _this.iMaxHistory && iRequestJot)
+								{
+									let iCountToRemove = $(_this.sTalkListJotSelector).length - _this.iMaxHistory;
+									while(iCountToRemove-- > 0){
+										$(_this.sTalkListJotSelector).first().remove();
 									}
-
-									break;
-							case 'prev':
-								if (remove_separator && $('>', oList).first().hasClass(_this.sDateIntervalsSelector.substr(1))) {
-									$('>', oList).first().remove();
 								}
 
-								oList
-									.prepend($(html)
-										.filter(_this.sJot)
-										.each(function(){
-											$(`${_this.sJotMessageViews} img`, this)
-												.each(function(){
-													if ($(`${_this.sJot} ${_this.sJotMessageViews} img[data-viewer-id="${$(this).data('viewer-id')}"]`).length)
-														$(this).remove();
-												})
-												.end()
-												.closest(_this.sJotMessageViews)
-												.fadeIn();
-										}))
-									.addTimeIntervals()
-									.waitForImages(oParent => {
-										const iId = oObjects.first().data('id');
-										if (+iId)
-											setTimeout(() => {
-												const iTop = $(`[data-id="${iId}"]${_this.sJot}`, oParent).position().top || 0;
-												if (iTop)
-													_this.updateScrollPosition('top', 'fast', {pos: iTop});
-											}, 0);
-									});
-
 								break;
-							case 'edit':
-							case 'vc':
-									$('div[data-id="' + iJotId + '"] ' + _this.sJotMessage, oList)
+						case 'prev':
+							if (remove_separator && $('>', oList).first().hasClass(_this.sDateIntervalsSelector.substr(1))) {
+								$('>', oList).first().remove();
+							}
+
+							oList
+								.prepend($(html)
+									.filter(_this.sJot)
+									.each(function(){
+										$(`${_this.sJotMessageViews} img`, this)
+											.each(function(){
+												if ($(`${_this.sJot} ${_this.sJotMessageViews} img[data-viewer-id="${$(this).data('viewer-id')}"]`).length)
+													$(this).remove();
+											})
+											.end()
+											.closest(_this.sJotMessageViews)
+											.fadeIn();
+									}))
+								.addTimeIntervals()
+								.waitForImages(oParent => {
+									const iId = oObjects.first().data('id');
+									if (+iId)
+										setTimeout(() => {
+											const iTop = $(`[data-id="${iId}"]${_this.sJot}`, oParent).position().top || 0;
+											if (iTop)
+												_this.updateScrollPosition('top', 'fast', {pos: iTop});
+										}, 0);
+								});
+
+							break;
+						case 'edit':
+						case 'vc':
+							if (!$('div[data-id="' + iJotId + '"]').length)
+								oList
+									.append(html);
+							else
+							$('div[data-id="' + iJotId + '"] ' + _this.sJotMessage, oList)
+									.html(html)
+									.parent()
+									.bxTime();// don't update attachment for message and don't broadcast as new message
+							return;
+						case 'delete':
+								const onRemove = function(){
+										if (!$(this).next(_this.sJot).length)
+												$(this).prev(_this.sDateIntervalsSelector).remove();
+
+											$(this).remove();
+												_this.updateScrollPosition('bottom');
+										};
+								if (html.length)
+								{
+										$('div[data-id="' + iJotId + '"] ' + _this.sJotMessage, oList)
 										.html(html)
 										.parent()
-										.bxTime();// don't update attachment for message and don't broadcast as new message
-								return;
-							case 'delete':
-									const onRemove = function(){
-											if (!$(this).next(_this.sJot).length)
-													$(this).prev(_this.sDateIntervalsSelector).remove();
+										.linkify(true, true)
+										.find(_this.sAttachmentArea)
+										.fadeOut('slow', onRemove);
+								}
+									/*  if nothing returns, then remove html code completely */
+								 else
+								{
+									$('div[data-id="' + iJotId + '"]', oList)
+										.fadeOut('slow', onRemove);
 
-												$(this).remove();
-													_this.updateScrollPosition('bottom');
-											};
-									if (html.length)
-									{
-											$('div[data-id="' + iJotId + '"] ' + _this.sJotMessage, oList)
-											.html(html)
-											.parent()
-											.linkify(true, true)
-											.find(_this.sAttachmentArea)
-											.fadeOut('slow', onRemove);
-									} 
-										/*  if nothing returns, then remove html code completely */
-									 else
-									{
-										$('div[data-id="' + iJotId + '"]', oList)
-											.fadeOut('slow', onRemove);
-
-									}
-									break;
-							case 'check_viewed':
-							    const aUsers = $(html).filter('img');
-
-								if (aUsers.length) {
-    							    aUsers.each(function(){
-										let iProfileId = $(this).data('viewer-id');
-										$(`${_this.sJot} ${_this.sJotMessageViews} img[data-viewer-id="${iProfileId}"]`).remove();
-									});
-
-									return $(`div[data-id="${iJotId}"] ${_this.sJotMessageViews}`, oList)
-										.html(html)
-										.fadeIn();
 								}
 								break;
-							case 'reaction':
-									let iOriginalCount = 0;
-								
-									$(html)
-										.each(function(){
-										iOriginalCount += $(this).data('count');
+						case 'check_viewed':
+						    const aUsers = $(html).filter('img');
+
+							if (aUsers.length) {
+    						    aUsers.each(function(){
+									let iProfileId = $(this).data('viewer-id');
+									$(`${_this.sJot} ${_this.sJotMessageViews} img[data-viewer-id="${iProfileId}"]`).remove();
+								});
+
+								return $(`div[data-id="${iJotId}"] ${_this.sJotMessageViews}`, oList)
+									.html(html)
+									.fadeIn();
+							}
+							break;
+						case 'reaction':
+								let iOriginalCount = 0;
+
+								$(html)
+									.each(function(){
+									iOriginalCount += $(this).data('count');
+								});
+
+								$(`div[data-id="${iJotId}"] ${_this.sReactionsArea} > span`, oList)
+									.each(function(){
+										iOriginalCount -= $(this).data('count');
 									});
-										
-									$(`div[data-id="${iJotId}"] ${_this.sReactionsArea} > span`, oList)
-										.each(function(){
-											iOriginalCount -= $(this).data('count');
-										});
 
-									if (iOriginalCount > 0)
-										_this.playSound('reaction');
+								if (iOriginalCount > 0)
+									_this.playSound('reaction');
 
-									const oReaction = $(`div[data-id="${iJotId}"] ${_this.sReactionsArea}`, oList);
+								const oReaction = $(`div[data-id="${iJotId}"] ${_this.sReactionsArea}`, oList);
 
-									$('> span', oReaction).remove();
+								$('> span', oReaction).remove();
 
-									oReaction
-										.prepend(html);
+								oReaction
+									.prepend(html);
 
-									if (html.length)
-										$(_this.sReactionMenu, oReaction).fadeIn();
-									else
-										$(_this.sReactionMenu, oReaction).fadeOut();
-						}
-						
-						oList
-							.find(_this.sJot + ':hidden')
-							.fadeIn(
-								function()
-								{
-									$(this).css('display', 'flex');
-									_this.initJotIcons(this);
-								})
-							.bxTime();
+								if (html.length)
+									$(_this.sReactionMenu, oReaction).fadeIn();
+								else
+									$(_this.sReactionMenu, oReaction).fadeOut();
+					}
 
-					if (typeof callback === 'function')
-						callback();
-				}
-							
-				if (sAction === 'prev')
-					bx_loading($(_this.sTalkBlock), false);
-				
-			}, 'json');
+					oList
+						.find(_this.sJot + ':hidden')
+						.fadeIn(
+							function()
+							{
+								$(this).css('display', 'flex');
+								_this.initJotIcons(this);
+							})
+						.bxTime();
+
+				if (typeof callback === 'function')
+					callback();
+			}
+
+			if (sAction === 'prev')
+				bx_loading($(_this.sTalkBlock), false);
+
+		}, 'json');
 	};
 		
 	/**

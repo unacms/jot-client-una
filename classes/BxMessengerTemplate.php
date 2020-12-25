@@ -64,13 +64,14 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@param int $iProfileId logged member id
 	*@param int $iLotId id of conversation. It can be empty if new talk
 	*@param int $iJotId jot id, allows to load history from jot's position
-	*@param string $sEmptyContent  html content which may be added to the center of the talk when there are no messages yet
 	*@return string html code
 	*/
-	public function getHistory($iProfileId, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $sEmptyContent = ''){
+	public function getHistory($iProfileId, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY){
 		$CNF = $this->_oConfig->CNF;
 		$aParams = array(
-			'content' => $sEmptyContent,
+			'content' => $this -> parseHtmlByName('history-block.html', array(
+                'content' => MsgBox(_t('_bx_messenger_txt_msg_no_results'))
+            )),
             'new_msg_active' => 'none',
             'unread_count' => 0
 		);
@@ -82,7 +83,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
             $sContent = $this->getHistoryArea($iProfileId, $iLotId, $iJotId, $iUnreadLotsJots && $iUnreadLotsJots < (int)($CNF['MAX_JOTS_BY_DEFAULT']/2));
             $aParams = array(
-			    'content' => $sContent ? $sContent : $sEmptyContent,
+			    'content' => $sContent,
                 'new_msg_active' => $iUnreadLotsJots ? 'block' : 'none',
                 'unread_count' => $iUnreadLotsJots
             );
@@ -91,15 +92,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		return $this -> parseHtmlByName('history.html', $aParams);
 	}
 
-    public function getHistoryArea($iProfileId, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $bRead = false){
+    public function getHistoryArea($iProfileId, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $bRead = false, $bEmptyMessage = false){
         $CNF = $this->_oConfig->CNF;
 
-        $aJots['content'] = '';
+        $sContent = !$bEmptyMessage ? MsgBox(_t('_bx_messenger_txt_msg_no_results')) : '';
         if ($iLotId){
-            $iUnreadLotsJots = $this->_oDb->getUnreadJotsMessagesCount($iProfileId, $iLotId);
-            if ($iUnreadLotsJots && !$iJotId)
-                $iJotId = $this -> _oDb -> getFirstUnreadJot($iProfileId, $iLotId);
-
             $aJots = $this -> getJotsOfLot($iProfileId,
                 array(
                     'lot_id' => $iLotId,
@@ -110,10 +107,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                     'views' => true,
                     'read' => $bRead
                 ));
+            if (!empty($aJots) && $aJots['content'])
+                $sContent = $aJots['content'];
         }
 
         return $this -> parseHtmlByName('history-block.html', array(
-            'content' => $aJots['content']
+            'content' => $sContent
         ));
     }
 
@@ -278,22 +277,19 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
 	    return $this->parseHtmlByName('popup-menu-item.html', $aVars);
     }
-  	/**
-	* Main function to build post message block for any page
-	*@param int $iProfileId logged member id
-	*@param int $iLotId id of conversation. It can be empty if new talk
-	*@param int $iJotId id of the message in history
-	*@param int $iType type of talk (Private, Public and etc..)
-	*@param boolean $bShowMessenger show empty chat window if there is no history
-	*@return array content and title of the block
-	*/
-	public function getTalkBlock($iProfileId, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $bShowMessenger = false, $bIsBlockVersion = false){
-        $aLotInfo = $iLotId ? $this->_oDb->getLotInfoById($iLotId) : array();
+
+    /**
+     * Main function to build post message block for any page
+     * @param int $iProfileId logged member id
+     * @param int $iLotId id of conversation. It can be empty if new talk
+     * @param int $iJotId id of the message in history
+     * @param bool $bIsBlockVersion
+     * @return array content and title of the block
+     */
+	public function getTalkBlock($iProfileId, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $bIsBlockVersion = false){
         return $this -> parseHtmlByName('talk.html', array(
 			'header' => $this->getTalkHeader($iLotId, $iProfileId, $bIsBlockVersion),
-			'history' => !$bShowMessenger && empty($aLotInfo) ?
-								MsgBox(_t('_bx_messenger_txt_msg_no_results')) : 
-								$this-> getHistory($iProfileId, $iLotId, $iJotId, MsgBox(_t('_bx_messenger_what_do_think'))),
+			'history' => $this->getHistory($iProfileId, $iLotId, $iJotId),
             'text_area' => $this->getTextArea($iProfileId)
 		));
 	}
@@ -797,7 +793,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*	- boolean $bDisplay make jots visible before loading
 	*	- string html code
 	*	- boolean load history from defined jot id and to select it
-    *@return string HTML code
+    *@return array HTML code
 	*/
 	public function getJotsOfLot($iProfileId, $aParams){
         $CNF = &$this -> _oConfig -> CNF;
@@ -812,14 +808,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         $bShowViews = isset($aParams['views']);
         $bDynamic = isset($aParams['dynamic']);
 
-
         $aResult = array('content' => '');
 		$aLotInfo = $this -> _oDb -> getLotByIdOrUrl($iLotId, $sUrl, $iProfileId);
 		if (empty($aLotInfo))
 			return $aResult;
 
-		if ($bSelectJot && $iStart)
-		{
+		if ($bSelectJot && $iStart){
 		    $aStartMiddleJot = $this -> _oDb -> getJotsByLotId($aLotInfo[$CNF['FIELD_MESSAGE_ID']], $iStart, 'prev', (int)$CNF['MAX_JOTS_BY_DEFAULT']/2);
 			if (!empty($aStartMiddleJot))
 			    $iStart = current($aStartMiddleJot)[$CNF['FIELD_MESSAGE_ID']];
@@ -1904,7 +1898,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             return false;
 
         $sTitle = isset($aLotInfo[$CNF['FIELD_TITLE']]) && $aLotInfo[$CNF['FIELD_TITLE']]
-                ? $aLotInfo[$CNF['FIELD_TITLE']]
+                ? _t($aLotInfo[$CNF['FIELD_TITLE']])
                 : $this -> getParticipantsNames($iProfileId, $iLotId);
 
 
@@ -1913,7 +1907,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             return MsgBox(_t('_bx_messenger_jitsi_err_vc_was_not_found'));
 
         $aVars = array(
-            'title' => _t($sTitle),
+            'title' => $sTitle,
             'thumb' => $oProfile -> getThumb(),
             'id' => $iLotId,
             'room' => $aJVC[$CNF['FJVC_ROOM']]

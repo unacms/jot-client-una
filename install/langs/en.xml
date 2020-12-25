@@ -26,7 +26,7 @@
 	<string name="_bx_messenger_not_logged"><![CDATA[Login first please!]]></string>
 	<string name="_bx_messenger_not_found"><![CDATA[Talk is not found!]]></string>
 	<string name="_bx_messenger_jot_number_default"><![CDATA[Messages number in messenger history by default]]></string>
-	<string name="_bx_messenger_what_do_think"><![CDATA[Send first message!]]></string>
+	<string name="_bx_messenger_what_do_think"><![CDATA[Leave a first message]]></string>
 	<string name="_bx_messenger_post_button_title"><![CDATA[Send]]></string>
 	<string name="_bx_messenger_menu_item_title_system_messenger"><![CDATA[Messenger]]></string>	
 	<string name="_bx_messenger_menu_notifications_item_sys_title"><![CDATA[Messenger]]></string>

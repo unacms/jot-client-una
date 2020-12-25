@@ -130,15 +130,22 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $this->_oTemplate->loadCssJs('view');
         $aLotInfo = $this->_oDb->getLotByClass($sModule);
-        if (empty($aLotInfo)) {
-          $sUrl = $this->_oConfig->getPageIdent();
-          $aLotInfo = $this->_oDb->getLotByUrl($sUrl);
+        $sUrl = $this->_oConfig->getPageIdent();
+        $iType = $this->_oConfig->getTalkType($sModule);
+        if (empty($aLotInfo))
+            $aLotInfo = $this->_oDb->getLotByUrl($sUrl);
+
+        $iLotId = !empty($aLotInfo) && isset($aLotInfo[$CNF['FIELD_ID']]) ? (int)$aLotInfo[$CNF['FIELD_ID']] : 0;
+        if (!$iLotId) {
+            $sTalkUrl = $this->getPreparedUrl($sUrl);
+            $iLotId = $this->_oDb->createLot($this->_iProfileId, $sTalkUrl, '', $iType, array($this->_iProfileId));
         }
 
-        $iLotId = isset($aLotInfo[$CNF['FIELD_ID']]) && (int)$aLotInfo[$CNF['FIELD_ID']] ? (int)$aLotInfo[$CNF['FIELD_ID']] : 0;
+        if ($iLotId && $iType !== BX_IM_TYPE_PUBLIC && !$this->_oDb->isParticipant($iLotId, $this->_iProfileId))
+            $this->_oDb->addMemberToParticipantsList($iLotId, $this->_iProfileId);
 
-        $sConfig = $this->_oTemplate->loadConfig($this->_iUserId, true, $iLotId, BX_IM_EMPTY, BX_IM_EMPTY, $this->_oConfig->getTalkType($sModule));
-        $sContent = $this->_oTemplate->getTalkBlock($this->_iUserId, $iLotId, BX_IM_EMPTY, true /* create messenger window even if chat doesn't exist yet */, true);
+        $sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, true, $iLotId, BX_IM_EMPTY, BX_IM_EMPTY, $this->_oConfig->getTalkType($sModule));
+        $sContent = $this->_oTemplate->getTalkBlock($this->_iProfileId, $iLotId, BX_IM_EMPTY, true);
         return $sConfig . $sContent;
     }
 
@@ -329,7 +336,7 @@ class BxMessengerModule extends BxBaseModTextModule
         $aVars = array(
             'code' => 0,
             'header' => $sHeader,
-            'history' => $sHistory ? $sHistory : MsgBox(_t('_bx_messenger_what_do_think')),
+            'history' => $sHistory,
             'last_unread_jot' => !empty($aUnreadJots) ? (int)$aUnreadJots[$CNF['FIELD_NEW_JOT']] : 0,
             'unread_jots' => !empty($aUnreadJots) ? (int)$aUnreadJots[$CNF['FIELD_NEW_UNREAD']] : 0
         );
@@ -456,11 +463,6 @@ class BxMessengerModule extends BxBaseModTextModule
         $iRequestedJot = (int)bx_get('req_jot');
         $iLastViewedJot = (int)bx_get('last_viewed_jot');
         $bUpdateHistory = true;
-		if ($sLoad == 'new' && !(int)$iJot)
-		{
-            $aMyLatestJot = $this->_oDb->getLatestJot($iLotId, $this->_iProfileId);
-            $iJot = !empty($aMyLatestJot) ? (int)$aMyLatestJot[$CNF['FIELD_MESSAGE_ID']] : 0;
-        }
 
         $sUrl = $sUrl ? $this->getPreparedUrl($sUrl) : '';
         $sContent = '';
@@ -470,7 +472,16 @@ class BxMessengerModule extends BxBaseModTextModule
         $bRemoveSeparator = false;
 		switch($sLoad)
 		{
-            case 'new':
+		    case 'new':
+                if (!$iJot)
+                {
+                    $iJot = $this->_oDb->getFirstUnreadJot($this->_iProfileId, $iLotId);
+                    if (!$iJot) {
+                        $aMyLatestJot = $this->_oDb->getLatestJot($iLotId, $this->_iProfileId);
+                        $iJot = !empty($aMyLatestJot) ? (int)$aMyLatestJot[$CNF['FIELD_MESSAGE_ID']] : 0;
+                    }
+                }
+
                 if ($iRequestedJot) {
                     if ($this->_oDb->getJotsNumber($iLotId, $iJot, $iRequestedJot) >= $CNF['MAX_JOTS_LOAD_HISTORY'])
                         $bUpdateHistory = false;
@@ -483,6 +494,7 @@ class BxMessengerModule extends BxBaseModTextModule
                 }
 
                 $bAttach = $iJot ? $this->_oDb->getJotsNumber($iLotId, $iJot) < $CNF['MAX_JOTS_LOAD_HISTORY'] : false;
+            case 'all':
             case 'prev':
                 $aOptions = array(
                     'lot_id' => $iLotId,
@@ -516,12 +528,12 @@ class BxMessengerModule extends BxBaseModTextModule
                 
                 break;
             case 'edit':
-                $aJotInfo = $this->_oDb->getJotById($iJot);
-                $sContent = $aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE']];
+                  $aJotInfo = $this->_oDb->getJotById($iJot);
+                  $sContent = $aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE']];
                 break;
             case 'vc':
             case 'delete':
-                   $sContent = $this->_oTemplate->getMessageIcons($iJot, $sLoad, $this->_oDb->isAuthor($iLotId, $this->_iProfileId) || isAdmin());
+                  $sContent = $this->_oTemplate->getMessageIcons($iJot, $sLoad, $this->_oDb->isAuthor($iLotId, $this->_iProfileId) || isAdmin());
                 break;
             case 'check_viewed':
                 if ($iLotId && $iJot)
@@ -581,7 +593,7 @@ class BxMessengerModule extends BxBaseModTextModule
         echoJson(
             array(
                  'title' => _t('_bx_messenger_lots_menu_create_lot_title'),
-                 'history' => $this->_oTemplate->getHistoryArea($this->_iProfileId, $iLotId),//$this->_oTemplate->getHistory($this->_iProfileId, $iLotId),
+                 'history' => $this->_oTemplate->getHistoryArea($this->_iProfileId, $iLotId),
                  'header' => $sHeader,
                  'code' => 0
             ));
@@ -2200,8 +2212,13 @@ class BxMessengerModule extends BxBaseModTextModule
         );
     }
 
-    public function actionGetJitsiConferenceForm($iLotId)
+    public function actionGetJitsiConferenceForm($iLotId = 0)
     {
+        if (!$this->_iProfileId){
+            echo MsgBox(_t('_bx_messenger_jitsi_err_can_join_conference'));
+            exit;
+        }
+
         header('Content-type: text/html; charset=utf-8');
 
         $aParams['audio_only'] = bx_get('startAudioOnly') ? 1 : 0;
@@ -2211,6 +2228,11 @@ class BxMessengerModule extends BxBaseModTextModule
             $aLot = $this -> _oDb -> getLotByUrlAndParticipantsList($sUrl);
             $iLotId = empty($aLot) ? $this->_oDb->createNewLot($this->_iProfileId, $sTitle, BX_IM_TYPE_PRIVATE, $sUrl) : $aLot[$this->_oConfig->CNF['FIELD_ID']];
         }
+
+        $CNF = &$this->_oConfig->CNF;
+        $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
+        if (!$this->_oDb->isParticipant($iLotId, $this->_iProfileId) && $aLotInfo[$CNF['FIELD_TYPE']] !== BX_IM_TYPE_PRIVATE)
+            $this->_oDb->addMemberToParticipantsList($iLotId, $this->_iProfileId);
 
         echo $this->_oTemplate->getJitsi($iLotId, $this->_iProfileId, $aParams);
         exit;
@@ -2233,10 +2255,13 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$iLotId)
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_found')));
 
-        if (!$this->isLogged() || !$this->_oDb->isParticipant($iLotId, $this->_iProfileId))
+        if (!$this->isLogged())
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_jitsi_err_can_join_conference')));
 
         $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
+        if (!$this->_oDb->isParticipant($iLotId, $this->_iProfileId) && $aLotInfo[$CNF['FIELD_TYPE']] !== BX_IM_TYPE_PRIVATE)
+            $this->_oDb->addMemberToParticipantsList($iLotId, $this->_iProfileId);
+
         if ($aLotInfo[$CNF['FIELD_TYPE']] && !$this->_oConfig->isJitsiAllowed($aLotInfo[$CNF['FIELD_TYPE']]))
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_jitsi_err_cant_type_use')));
 

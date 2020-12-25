@@ -575,6 +575,7 @@
 
 		if (!$(oEvent.target).closest(this.sGiphySendArea).length && !$(oEvent.target).closest(this.sGiphMain).length)
 			$(this.sGiphMain).fadeOut();
+
 	};
 
 	oMessenger.prototype.checkNotFinishedTalks = function(){
@@ -1044,18 +1045,20 @@
 
 	oMessenger.prototype.clearLot = function(iLotId){
 		const _this = this;
-		if (iLotId)
-				$.post('modules/?r=messenger/clear_history', { lot: iLotId }, function({ code, message }){
-						if (!parseInt(code)) {
-							_this.loadTalk(iLotId, undefined, undefined, undefined, true);
-							_this.broadcastMessage({
-								action: 'msg',
-								addon: 'clear'
-							});
-						}
-						else
-							bx_alert(message);
-				}, 'json');
+		if (iLotId) {
+			bx_loading($(_this.sMainTalkBlock), true);
+			$.post('modules/?r=messenger/clear_history', {lot: iLotId}, function ({code, message}) {
+				if (!parseInt(code)) {
+					bx_loading($(_this.sMainTalkBlock), false);
+					$(_this.sTalkList).html('');
+					_this.broadcastMessage({
+						action: 'msg',
+						addon: 'clear'
+					});
+				} else
+					bx_alert(message);
+			}, 'json');
+		}
 	};
 
 	oMessenger.prototype.deleteJot = function(oObject, bCompletely){
@@ -2339,7 +2342,7 @@
 						iJotId = oAction.jot_id || 0;
 						break;
 				case 'clear':
-					  return _this.loadTalk(_this.oSettings.lot, undefined, undefined, undefined, true);
+					  return $(_this.sTalkList).html('');
 				case 'prev':
 					iJotId = oObjects
 						.first()
@@ -2762,6 +2765,7 @@
 										 bx_alert(message);
 										 return;
 									 }
+
 									 if (typeof opened !== 'undefined' && Array.isArray(opened))
 										 if (Array.isArray(opened))
 											 opened.map(iLotId => _this.updateJots({

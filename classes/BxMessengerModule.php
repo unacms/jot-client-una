@@ -330,15 +330,16 @@ class BxMessengerModule extends BxBaseModTextModule
         $CNF = &$this->_oConfig->CNF;
         $aUnreadJots = $this->_oDb->getNewJots($this->_iProfileId, $iLotId);
         $iUnreadLotsJots = !empty($aUnreadJots) ? (int)$aUnreadJots[$CNF['FIELD_NEW_UNREAD']] : 0;
+        $iLastUnreadJot = !empty($aUnreadJots) ? (int)$aUnreadJots[$CNF['FIELD_NEW_JOT']] : 0;
 
         $sHeader = $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId);
-        $sHistory = $this->_oTemplate->getHistoryArea($this->_iProfileId, $iLotId, $iJotId, $iUnreadLotsJots && $iUnreadLotsJots < ($CNF['MAX_JOTS_BY_DEFAULT']/2));
+        $sHistory = $this->_oTemplate->getHistoryArea($this->_iProfileId, $iLotId, $iJotId ? $iJotId : $iLastUnreadJot, $iUnreadLotsJots && $iUnreadLotsJots < ($CNF['MAX_JOTS_BY_DEFAULT']/2));
         $aVars = array(
             'code' => 0,
             'header' => $sHeader,
             'history' => $sHistory,
-            'last_unread_jot' => !empty($aUnreadJots) ? (int)$aUnreadJots[$CNF['FIELD_NEW_JOT']] : 0,
-            'unread_jots' => !empty($aUnreadJots) ? (int)$aUnreadJots[$CNF['FIELD_NEW_UNREAD']] : 0
+            'last_unread_jot' => $iLastUnreadJot,
+            'unread_jots' => $iUnreadLotsJots
         );
 
         BxDolSession::getInstance()->exists($this->_iProfileId);
@@ -1776,6 +1777,7 @@ class BxMessengerModule extends BxBaseModTextModule
         if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')
         {
            $sPageUrl = $this->getPageIdent();
+           /* ADD ABILITY TO call members when they on any page of the site and have incoming call */
            if (preg_match('/.*page\/(.*)\?id=(\d+).*/', $sPageUrl,$aParams)) {
                if (!empty($aParams) && isset($aParams[1]) && isset($aParams[2])){
                    $iPageOwner = $this->_oDb->findThePageOwner(array('i' => $aParams[1], 'id' => $aParams[2]));

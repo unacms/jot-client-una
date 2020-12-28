@@ -1686,20 +1686,7 @@
 								_this.updatePageIcon(undefined, iLotId);
 							}
 						)
-						.waitForImages(
-							function()
-							{
-								if (typeof fCallback == 'function')
-									fCallback();
-
-								if ($(_this.sSelectedJot, _this.sTalkList).length)
-									_this.updateScrollPosition('center', 'fast', $(_this.sSelectedJot, _this.sTalkList),
-										function(){
-											$(_this.sScrollArea).fadeIn('slow');
-										});
-								else
-									_this.updateScrollPosition('bottom');
-							});
+						.waitForImages(() => _this.setPositionOnSelectedJot(fCallback));
 
 					if (typeof title !== 'undefined')
 						$(document).prop('title', title);
@@ -1709,8 +1696,7 @@
 					_this.blockSendMessages();
 
 					if (+$(_this.sTalkListJotSelector).last().data('new')) {
-						console.log('---- unrad count ----- ', $(_this.sSelectedJot, _this.sTalkList).nextAll(_this.sJot).length, _this.iMaxHistory);
-						if (!_this.iLastUnreadJot || $(_this.sSelectedJot, _this.sTalkList).nextAll(_this.sJot).length < _this.iMaxHistory/2)						console.log('---- unrad count ----- ', $(_this.sSelectedJot, _this.sTalkList).nextAll(_this.sJot).length, _this.iMaxHistory);
+						if (!_this.iLastUnreadJot || $(_this.sSelectedJot, _this.sTalkList).nextAll(_this.sJot).length < _this.iMaxHistory/2)
 						_this.broadcastView($(_this.sTalkListJotSelector).last().data('id'));
 					}
 					/* ----  End ---- */
@@ -2925,6 +2911,23 @@
 		$(window).unbind('beforeunload');
 	};
 
+	oMessenger.prototype.setPositionOnSelectedJot = function(fCallback){
+		const _this = this;
+		if ($(_this.sSelectedJot, _this.sTalkList).length)
+			_this.updateScrollPosition('center', 'fast', $(_this.sSelectedJot, _this.sTalkList),
+				function(){
+					$(_this.sScrollArea).fadeIn('slow', () => {
+						if (typeof fCallback === 'function')
+							fCallback();
+					});
+				});
+		else
+			_this.updateScrollPosition('bottom', undefined, undefined, () => {
+				if (typeof fCallback === 'function')
+					fCallback();
+			});
+	}
+
 	/**
 	 * Init settings, occurs when member opens the main messenger page
 	 * @param fCallback
@@ -2951,21 +2954,7 @@
 
 				_this.oJotWindowBuilder.resizeWindow(() => {
 					_this.selectLotEmit($(`[data-lot="${_this.oSettings.lot}"]${_this.sLotSelector}`));
-					$(_this.sTalkList).waitForImages(() => {
-						if ($(_this.sSelectedJot, _this.sTalkList).length)
-							_this.updateScrollPosition('center', 'fast', $(_this.sSelectedJot, _this.sTalkList),
-								function(){
-									$(_this.sScrollArea).fadeIn('slow', () => {
-										if (typeof fCallback === 'function')
-											fCallback();
-									});
-								});
-						else
-							_this.updateScrollPosition('bottom', undefined, undefined, () => {
-								if (typeof fCallback === 'function')
-									fCallback();
-							});
-					});
+					$(_this.sTalkList).waitForImages(() => _this.setPositionOnSelectedJot(fCallback));
 				});
 			});
 
@@ -3174,6 +3163,8 @@
 
 			if (!_oMessenger.isBlockVersion())
 				_oMessenger.initMessengerPage();
+			else
+				_oMessenger.setPositionOnSelectedJot();
 
 			_oMessenger.updateLotSettings(oInitParams);
 			_oMessenger.initScrollArea();

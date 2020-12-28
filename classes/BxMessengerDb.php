@@ -631,10 +631,7 @@ class BxMessengerDb extends BxBaseModTextDb
 		$sLimit = '';
 		$aSWhere[] = "`{$this->CNF['FIELD_MESSAGE_FK']}` = :lot_id ";
 		$aBindings['lot_id'] = (int)$iLotId;
-		$sInsideOrder = 'DESC';
-
-        if ($sMode == 'new' || $sMode == 'all')
-            $sInsideOrder = 'ASC';
+		$sInsideOrder = $sMode == 'all' ? 'ASC' : 'DESC';
 
 		if ($iStart && $sMode !== 'all')
 		{ 
@@ -644,7 +641,10 @@ class BxMessengerDb extends BxBaseModTextDb
 				
 			$aSWhere[] = "`{$this->CNF['FIELD_MESSAGE_ID']}` " . ($sMode == 'new' ? '>' . $sEqual : '<' . $sEqual) . " :start ";
 			$aBindings['start'] = (int)$iStart;
-		}
+
+            if ($sMode == 'new')
+                $sInsideOrder = 'ASC';
+        }
 
 		if ($iLimit)
 		{ 

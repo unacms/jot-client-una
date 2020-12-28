@@ -24,12 +24,14 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	*@param string $sMode 
 	*/
 	public function loadCssJs($sMode = 'all'){
+        $CNF = $this->_oConfig->CNF;
 	    $aCss = array(
 						'filepode.css',
 						'semantic.min.css',
 						'main.css',
                         'video-conference.css',
-                        'emoji.css'
+                        'emoji.css',
+                        $CNF['EMOJI']['css']
 					 );
 
 		$aJs = array(
@@ -43,7 +45,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						'RecordRTC.min.js',
 						'adapter.js',
 						'semantic.min.js',
-                        'soundjs.min.js'
+                        'soundjs.min.js',
+                        $CNF['EMOJI']['js']
 					);
 
 		if ($sMode == 'all'){
@@ -147,10 +150,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	public function getEmojiCode($bTextArea = true){
         $CNF = $this->_oConfig->CNF;
 
-        $sCss = $this->addCss($CNF['EMOJI']['css'], true);
-        $sJs = $this->addJs($CNF['EMOJI']['js'], true);
-
-	    return $sCss . $this->parseHtmlByName('emoji-picker.html', array(
+	    return $this->parseHtmlByName('emoji-picker.html', array(
             'title' => $bTextArea ? _t('_bx_messenger_emoji_text_title') : _t('_bx_messenger_emoji_reaction_title'),
             'function' => "{$CNF['JSMain']}.onEmojiInsert",
             'set' => $CNF['EMOJI_SET'],
@@ -184,8 +184,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                         5 => _t('_bx_messenger_emoji_skintones_5'),
                         6 => _t('_bx_messenger_emoji_skintones_6'),
                     ),
-                )))))
-                . $sJs;
+                )))));
     }
 
 	public function initFilesUploader($iProfileId){

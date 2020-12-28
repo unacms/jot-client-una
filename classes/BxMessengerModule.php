@@ -141,7 +141,7 @@ class BxMessengerModule extends BxBaseModTextModule
             $iLotId = $this->_oDb->createLot($this->_iProfileId, $sTalkUrl, '', $iType, array($this->_iProfileId));
         }
 
-        if ($iLotId && $iType !== BX_IM_TYPE_PUBLIC && !$this->_oDb->isParticipant($iLotId, $this->_iProfileId))
+        if ($iLotId && $iType !== BX_IM_TYPE_PRIVATE && $iType !== BX_IM_TYPE_PUBLIC && !$this->_oDb->isParticipant($iLotId, $this->_iProfileId))
             $this->_oDb->addMemberToParticipantsList($iLotId, $this->_iProfileId);
 
         $sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, true, $iLotId, BX_IM_EMPTY, BX_IM_EMPTY, $this->_oConfig->getTalkType($sModule));

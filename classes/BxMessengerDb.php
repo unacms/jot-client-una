@@ -352,19 +352,9 @@ class BxMessengerDb extends BxBaseModTextDb
         if ($iLotId && $aData['type'] == BX_IM_TYPE_PRIVATE && !$this->isParticipant($iLotId, $aData['member_id']))
             return false;
 
-        if (empty($aLotInfo)) {
-            $iAuthorId = $this->findThePageOwner($aData['url']);
-            $iLotId = $this->createNewLot($iAuthorId ? $iAuthorId : (int)$aData['member_id'], $aData['title'], $aData['type'], $aData['url'], $aParticipants);
-            bx_alert($this->_oConfig->getObject('alert'), 'create_lot', $iLotId, $aData['member_id']);
-
-            foreach($aParticipants as &$iParticipant) {
-                if ((int)$iParticipant === (int)$aData['member_id'])
-                    continue;
-
-                bx_alert($this->_oConfig->getObject('alert'), 'add_part', $iParticipant, $aData['member_id'], array('lot_id' => $iLotId, 'author_id' => $aData['member_id']));
-            }
-
-		} else 
+        if (empty($aLotInfo))
+            $this->createLot((int)$aData['member_id'], $aData['url'], $aData['title'], $aData['type'], $aParticipants);
+        else
             $iLotId = $aLotInfo[$this->CNF['FIELD_ID']];
 
         if (($aData['type'] != BX_IM_TYPE_PRIVATE || $this->isAuthor($iLotId, $aData['member_id'])) && !$this->isParticipant($iLotId, $aData['member_id'], true)) {

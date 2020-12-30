@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="en" flag="gb" title="English">			
+	<string_del name="_bx_messenger_notification_subject"><![CDATA[Message from {0}]]></string_del>
+	<string_del name="_bx_messenger_txt_subobject_added"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> sent a {subentry_sample}]]></string_del>
+	<string_upd name="_bx_messenger_jitsi_err_cant_type_use"><![CDATA[Sorry, video conference for is not allowed for you.]]></string_upd>
+	<string_upd name="_bx_messenger_what_do_think"><![CDATA[Leave a first message]]></string_upd>
+	<string_upd name="_bx_messenger_allow_to_remove_messages"><![CDATA[Allow members to moderate their messages (delete/edit)]]></string_upd>	
+	<string_add name="_bx_messenger_allow_to_moderate_messages"><![CDATA[Allow talks' authors moderate messages (delete/edit)]]></string_add>
+	<string_add name="_bx_messenger_menu_video_conference_sys_title"><![CDATA[Video Chat]]></string_add>
+	<string_add name="_bx_messenger_menu_video_conference_action_title"><![CDATA[Video Chat]]></string_add>
+	<string_add name="_bx_messenger_acl_action_video_conference"><![CDATA[Create personal video chat]]></string_add>
+	<string_add name="_bx_messenger_profile_not_found"><![CDATA[Profile not found!]]></string_add>
+	<string_add name="_bx_messenger_push_vc_bx_organizations_message_title"><![CDATA[Video Meeting]]></string_add>
+	<string_add name="_bx_messenger_public_vc_bx_organizations_message"><![CDATA[{0} meeting has been started]]></string_add>
+	<string_add name="_bx_messenger_push_vc_bx_persons_message_title"><![CDATA[Personal Video call]]></string_add>
+	<string_add name="_bx_messenger_public_vc_bx_persons_message"><![CDATA[Video call from {0}]]></string_add>
+	<string_add name="_bx_messenger_use_mentions"><![CDATA[Enable mentions in messages]]></string_add>
+	<string_add name="_bx_messenger_loading"><![CDATA[loading...]]></string_add>
+	<string_add name="_bx_messenger_notification_subject_message"><![CDATA[Message from {0}]]></string_add>
+	<string_add name="_bx_messenger_notification_subject_mention"><![CDATA[{0} mentioned You]]></string_add>
+	<string_add name="_bx_ntfs_alert_action_got_mention_ntfs_personal"><![CDATA[Mentions in Messenger]]></string_add>
+	<string_add name="_bx_messenger_txt_subobject_added_message"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> sent a {subentry_sample}]]></string_add>
+	<string_add name="_bx_messenger_txt_subobject_added_mention"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> mentioned you in a {subentry_sample}]]></string_add>
+	<string_add name="_bx_messenger_date_time_today"><![CDATA[Today]]></string_add>
+	<string_add name="_bx_messenger_acl_action_administrate_messages"><![CDATA[Administrate messages (edit/delete)]]></string_add>
+	<string_add name="_bx_messenger_acl_action_create_talks"><![CDATA[Create talks]]></string_add>
+	<string_add name="_bx_messenger_acl_action_administrate_talks"><![CDATA[Administrate talks (remove/edit)]]></string_add>
+	<string_add name="_bx_messenger_acl_action_send_messages"><![CDATA[Send messages]]></string_add>
+	<string_add name="_bx_messenger_acl_action_create_vc"><![CDATA[Create video conferences]]></string_add>
+	<string_add name="_bx_messenger_disable_contact_privacy"><![CDATA[Disable profiles contact privacy settings. <b>Note</b>: if you enable this option any profile be able to contact with any!]]></string_add>	
+	<string_add name="_bx_messenger_clear_lot"><![CDATA[Are you sure you want to delete talk's history permanently?]]></string_add>
+	<string_add name="_bx_messenger_clear_lot_menu"><![CDATA[Clear history]]></string_add>
+</resources>

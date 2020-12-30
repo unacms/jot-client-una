@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="ru" flag="ru" title="Russian">
+	<string_del name="_bx_messenger_notification_subject"><![CDATA[Сообщение от {0}]]></string_del>
+	<string_del name="_bx_messenger_txt_subobject_added"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> отправил(а) {subentry_sample} <b class="bx-ntfs-content-entry">{entry_caption}</b>]]></string_del>	
+	<string_upd name="_bx_messenger_allow_to_remove_messages"><![CDATA[Разрешать пользователям модерировать собственные сообщения]]></string_upd>
+	<string_add name="_bx_messenger_menu_video_conference_sys_title"><![CDATA[Видео Чат]]></string_add>
+	<string_add name="_bx_messenger_menu_video_conference_action_title"><![CDATA[Видео Чат]]></string_add>
+	<string_add name="_bx_messenger_acl_action_video_conference"><![CDATA[Создать персональный видео чат]]></string_add>
+	<string_add name="_bx_messenger_profile_not_found"><![CDATA[Профиль не найден!]]></string_add>
+	<string_add name="_bx_messenger_push_vc_bx_organizations_message_title"><![CDATA[Видео Конференция]]></string_add>
+	<string_add name="_bx_messenger_public_vc_bx_organizations_message"><![CDATA[{0} конференция началась]]></string_add>
+	<string_add name="_bx_messenger_push_vc_bx_persons_message_title"><![CDATA[Персональный видео звонок]]></string_add>
+	<string_add name="_bx_messenger_public_vc_bx_persons_message"><![CDATA[Вдео звонок от {0}]]></string_add>
+	<string_add name="_bx_messenger_use_mentions"><![CDATA[Включить упоминания в соощениях]]></string_add>
+	<string_add name="_bx_messenger_loading"><![CDATA[загрузка...]]></string_add>
+	<string_add name="_bx_messenger_notification_subject_message"><![CDATA[Сообщение от {0}]]></string_add>
+	<string_add name="_bx_messenger_notification_subject_mention"><![CDATA[{0} упомянул Вас]]></string_add>
+	<string_add name="_bx_ntfs_alert_action_got_mention_ntfs_personal"><![CDATA[Упоминания в Болталке]]></string_add>
+	<string_add name="_bx_messenger_txt_subobject_added_message"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> послал {subentry_sample}]]></string_add>
+	<string_add name="_bx_messenger_txt_subobject_added_mention"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> упомянул вас в {subentry_sample}]]></string_add>
+	<string_add name="_bx_messenger_date_time_today"><![CDATA[Сегодня]]></string_add>
+	<string_add name="_bx_messenger_acl_action_administrate_messages"><![CDATA[Модерировать сообщения (редактировать/удалять)]]></string_add>
+	<string_add name="_bx_messenger_acl_action_create_talks"><![CDATA[Создавать разговоры]]></string_add>
+	<string_add name="_bx_messenger_acl_action_administrate_talks"><![CDATA[Модерировать разговоры (редактировать/удалять)]]></string_add>
+	<string_add name="_bx_messenger_acl_action_send_messages"><![CDATA[Оправлять сообщения]]></string_add>
+	<string_add name="_bx_messenger_acl_action_create_vc"><![CDATA[Создавать видео конференции]]></string_add>
+	<string_add name="_bx_messenger_disable_contact_privacy"><![CDATA[Отключить насктройки контакта пользователя. <b>Замечание</b>: Если вы отключите настройки любой профиль будет иметь возможность контакировать с любым другим профилем!]]></string_add>
+	<string_add name="_bx_messenger_allow_to_moderate_messages"><![CDATA[Разрешать создателям чатов модерировать сообщения]]></string_add>
+	<string_add name="_bx_messenger_clear_lot_menu"><![CDATA[Очистить историю]]></string_add>
+	<string_add name="_bx_messenger_clear_lot"><![CDATA[Вы уверено, что хотите безвозвратно удалить историю чата?]]></string_add>
+</resources>

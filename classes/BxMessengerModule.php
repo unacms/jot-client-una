@@ -1329,20 +1329,27 @@ class BxMessengerModule extends BxBaseModTextModule
 
     public function actionDownloadFile($iFileId)
     {
-        $CNF = &$this->_oConfig->CNF;
-        $aResult = array('code' => 1, 'message' => _t('_bx_messenger_post_file_not_found'));
-        if (!$iFileId)
-            return echoJson($aResult);
+        if (!$iFileId || !$this->_iProfileId)
+            return '';
 
+        $CNF = &$this->_oConfig->CNF;
         $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
         $aFile = $oStorage->getFile((int)$iFileId);
-        $sToken = $oStorage -> genToken($iFileId);
-
-        if (!empty($aFile))
-            return $oStorage->download($aFile[$CNF['FIELD_ST_REMOTE']], $sToken);
+        if (empty($aFile)){
+            echo _t('_bx_messenger_post_file_not_found');
             exit;
+        }
 
-        echoJson($aResult);
+        if (isset($aFile[$CNF['FIELD_ST_JOT']])){
+            $iLotId = $this->_oDb->getLotByJotId($aFile[$CNF['FIELD_ST_JOT']], true);
+            if (!$iLotId || !$this->_oDb->isParticipant($iLotId, $this->_iProfileId)) {
+                echo _t('_bx_messenger_not_participant');
+                exit;
+            }
+        }
+
+        $sToken = $oStorage->genToken($iFileId);
+        return $oStorage->download($aFile[$CNF['FIELD_ST_REMOTE']], $sToken);
     }
 
     /**

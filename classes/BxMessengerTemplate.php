@@ -363,11 +363,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         {
             if (!empty($aLotInfo[$CNF['FIELD_TITLE']]))
                 $sTitle = _t($aLotInfo[$CNF['FIELD_TITLE']]);
-            else
-              if ($this->_oDb->isLinkedTitle($aLotInfo[$CNF['FIELD_TYPE']]) && !$bIsBlockVersion)
-                  $sTitle = _t('_bx_messenger_linked_title', '<a href ="'. $this->_oConfig->getPageLink($aLotInfo[$CNF['FIELD_URL']]) .'">' . $sTitle . '</a>');
-              else if ($aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
-                  $sTitle = $this -> getParticipantsNames($iProfileId, $iLotId);
+
+            if (!$bIsBlockVersion && $this->_oDb->isLinkedTitle($aLotInfo[$CNF['FIELD_TYPE']]))
+                $sTitle = _t('_bx_messenger_linked_title', '<a href ="'. $this->_oConfig->getPageLink($aLotInfo[$CNF['FIELD_URL']]) .'">' . $sTitle . '</a>');
+            else if ($aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
+                $sTitle = $this -> getParticipantsNames($iProfileId, $iLotId);
         }
 
         return $this -> parseHtmlByName('talk_header.html', array(
@@ -1779,7 +1779,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             $sError = MsgBox(_t('_bx_messenger_jitsi_err_can_join_conference'));
 
         $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
-        if ($aLotInfo[$CNF['FIELD_TYPE']] && !$this->_oConfig->isJitsiAllowed($aLotInfo[$CNF['FIELD_TYPE']]))
+        if (!empty($aLotInfo) && $aLotInfo[$CNF['FIELD_TYPE']] && !$this->_oConfig->isJitsiAllowed($aLotInfo[$CNF['FIELD_TYPE']]))
             $sError = MsgBox(_t('_bx_messenger_jitsi_err_cant_type_use'));
 
         if ($sError)

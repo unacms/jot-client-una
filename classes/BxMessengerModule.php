@@ -138,11 +138,9 @@ class BxMessengerModule extends BxBaseModTextModule
         $iLotId = !empty($aLotInfo) && isset($aLotInfo[$CNF['FIELD_ID']]) ? (int)$aLotInfo[$CNF['FIELD_ID']] : 0;
         if (!$iLotId) {
             $sTalkUrl = $this->getPreparedUrl($sUrl);
-            $iLotId = $this->_oDb->createLot($this->_iProfileId, $sTalkUrl, '', $iType, array($this->_iProfileId));
+            $sTalkTitle = BxDolTemplate::getInstance()->getPageHeader();
+            $iLotId = $this->_oDb->createLot($this->_iProfileId, $sTalkUrl, $sTalkTitle, $iType, array($this->_iProfileId));
         }
-
-        if ($iLotId && $iType !== BX_IM_TYPE_PRIVATE && $iType !== BX_IM_TYPE_PUBLIC && !$this->_oDb->isParticipant($iLotId, $this->_iProfileId))
-            $this->_oDb->addMemberToParticipantsList($iLotId, $this->_iProfileId);
 
         $sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, true, $iLotId, BX_IM_EMPTY, BX_IM_EMPTY, $this->_oConfig->getTalkType($sModule));
         $sContent = $this->_oTemplate->getTalkBlock($this->_iProfileId, $iLotId, BX_IM_EMPTY, true);
@@ -240,7 +238,12 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$sMessage && empty($aFiles) && empty($aGiphy))
             return echoJson(array('code' => 2, 'message' => _t('_bx_messenger_send_message_no_data')));
 
-        $iType = ($iType && $this->_oDb->isLotType($iType)) ? $iType : BX_IM_TYPE_PRIVATE;
+        if ($iLotId) {
+            $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
+            $iType = $aLotInfo[$CNF['FIELD_TYPE']];
+        } else
+            $iType = ($iType && $this->_oDb->isLotType($iType)) ? $iType : BX_IM_TYPE_PRIVATE;
+
         if ($iType !== BX_IM_TYPE_PRIVATE) {
             $sUrl = bx_get('url');
             $sTitle = bx_get('title');
@@ -2233,7 +2236,7 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $CNF = &$this->_oConfig->CNF;
         $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
-        if (!$this->_oDb->isParticipant($iLotId, $this->_iProfileId) && $aLotInfo[$CNF['FIELD_TYPE']] !== BX_IM_TYPE_PRIVATE)
+        if (!$this->_oDb->isParticipant($iLotId, $this->_iProfileId) && !empty($aLotInfo) && $aLotInfo[$CNF['FIELD_TYPE']] !== BX_IM_TYPE_PRIVATE)
             $this->_oDb->addMemberToParticipantsList($iLotId, $this->_iProfileId);
 
         echo $this->_oTemplate->getJitsi($iLotId, $this->_iProfileId, $aParams);
@@ -2261,7 +2264,7 @@ class BxMessengerModule extends BxBaseModTextModule
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_jitsi_err_can_join_conference')));
 
         $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
-        if (!$this->_oDb->isParticipant($iLotId, $this->_iProfileId) && $aLotInfo[$CNF['FIELD_TYPE']] !== BX_IM_TYPE_PRIVATE)
+        if (!$this->_oDb->isParticipant($iLotId, $this->_iProfileId) && !empty($aLotInfo) && $aLotInfo[$CNF['FIELD_TYPE']] !== BX_IM_TYPE_PRIVATE)
             $this->_oDb->addMemberToParticipantsList($iLotId, $this->_iProfileId);
 
         if ($aLotInfo[$CNF['FIELD_TYPE']] && !$this->_oConfig->isJitsiAllowed($aLotInfo[$CNF['FIELD_TYPE']]))

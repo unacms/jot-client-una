@@ -87,6 +87,7 @@
 		this.sJitsiJoinButton = '.bx-messenger-jots-message-vc-join-button';
 		this.sConversationBlockWrapper = '.bx-messenger-conversation-block-wrapper';
 		this.sUnreadJotsCounter = '#unread-jots-counter';
+		this.sDateNavigator = '#date-time-navigator';
 
 		//global class options
 		this.oUsersTemplate	= null;
@@ -324,25 +325,21 @@
 
 	oMessenger.prototype.attachDate = function(iScrollTop) {
 		if (!iScrollTop)
-			return ;
+			return false;
 
 		const _this = this;
 		_this.aDatesItervals.some(function(oDateObject){
 			const { top } = $(oDateObject).position();
 			const oItem = $('>div', oDateObject);
 			if (top <= iScrollTop) {
-				$('>div', _this.sDateIntervalsSelector)
-					.removeClass('attached')
-					.css('width', '100%');
+				$(`${_this.sDateNavigator} span`).text($('span', oItem).text());
+					$(_this.sDateNavigator).fadeIn();
 
-				oItem
-					.addClass('attached')
-					.css('width', `calc( 100% - ${_this.iScrollbarWidth}px )`);
 				return true;
 			}
-
-			return false;
 		});
+
+		return false;
 	}
 
 	oMessenger.prototype.loadTalkFiles = function(oBlock, iCount, fCallback) {
@@ -1638,7 +1635,9 @@
 				.html('');
 		}
 
-    	bx_loading($(this.sMainTalkBlock), true);
+
+		$(_this.sDateNavigator).hide();
+		bx_loading($(this.sMainTalkBlock), true);
 
         // to change active lot ID in the same time when user click on load but not when history is loaded
 		_this.oSettings.lot = iLotId;

@@ -2277,7 +2277,15 @@
 	}
 
 	oMessenger.prototype.getDateSeparator = function(sTime){
-		return this.sDateIntervalsTemplate.replace(/__date__/g, moment(sTime).format('dddd Do, MMMM'));
+		let sFormat = 'dddd Do';
+
+		if (!moment().isSame(sTime, 'month'))
+			sFormat += ', MMMM ';
+
+		if (!moment().isSame(sTime, 'year'))
+			sFormat += 'YYYY';
+
+		return this.sDateIntervalsTemplate.replace(/__date__/g, moment(sTime).lang(glBxTimeLang).format(sFormat));
 	}
 
 	$.fn.addTimeIntervals = function(){

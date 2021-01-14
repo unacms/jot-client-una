@@ -321,8 +321,6 @@
 			clearTimeout(iDateIntervalTimer);
 			iDateIntervalTimer = setTimeout(() => {
 				$(_this.sDateNavigator).fadeOut();
-				console.log(' loloo');
-				
 			}, 1500);
 		});
 	}
@@ -3742,7 +3740,8 @@
 		updateAttachmentArea: function(bCanHide){
 			return _oMessenger.updateSendArea(bCanHide);
 		},
-		initUploader: oUploader => _oMessenger.oFilesUploader = oUploader
+		initUploader: oUploader => _oMessenger.oFilesUploader = oUploader,
+		stopActiveSound: () => _oMessenger.stopActiveSound()
 	}
 })(jQuery);
 

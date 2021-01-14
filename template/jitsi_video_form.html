@@ -116,7 +116,7 @@
         oApi._lotId = '__id__';
         oApi
             .on('videoConferenceJoined', () => {
-                 $.get('modules/?r=messenger/create_jitsi_video_conference/', { lot_id: '__id__' }, function(oData){
+                  $.get('modules/?r=messenger/create_jitsi_video_conference/', { lot_id: '__id__' }, function(oData){
                      const { jot_id, parts, opened, code, message } = oData;
 
                      if (+code === 1) {
@@ -132,6 +132,7 @@
                   oMessenger.initJitsi(oApi, oData.new, __chat_sync__);
                 },
                 'json');
-            });
+            })
+          .on('participantJoined', () => oMessenger.stopActiveSound());
 	});
 </script>

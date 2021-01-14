@@ -1223,6 +1223,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                                 'bx_if:join' => array(
                                     'condition' => !$aJVCItem[$CNF['FJVCT_END']],
                                     'content' => array(
+                                        'id' => $aLotInfo[$CNF['FIELD_ID']],
                                         'room' => $sRoom
                                     )
                                 ),

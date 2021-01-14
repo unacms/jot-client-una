@@ -51,8 +51,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 	background-color: rgba(0,0,0,0);
 	max-height: 10rem;
 	padding: 0;
-	/*font-size: 1rem;
-	min-height: 1rem;*/
+	height: auto;
 	display: block;
 	-webkit-touch-callout: none;
 }

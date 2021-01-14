@@ -243,6 +243,7 @@
 		let bStartLoading = !(_this.iLastUnreadJot || _this.iSelectedJot);
 		let iCounterValue = +$(_this.sUnreadJotsCounter).text();
 		let iUpdateCounter = null;
+		let iDateIntervalTimer = null;
 
 		// find the all intervals in history
 		_this.iScrollbarWidth = $(_this.sTalkBlock).prop('offsetWidth') - $(_this.sTalkBlock).prop('clientWidth');
@@ -316,6 +317,13 @@
 				clearTimeout(_this.iLoadTimout);
 
 			_this.attachDate($(this).scrollTop());
+
+			clearTimeout(iDateIntervalTimer);
+			iDateIntervalTimer = setTimeout(() => {
+				$(_this.sDateNavigator).fadeOut();
+				console.log(' loloo');
+				
+			}, 1500);
 		});
 	}
 
@@ -332,12 +340,16 @@
 			const { top } = $(oDateObject).position();
 			const oItem = $('>div', oDateObject);
 			if (top <= iScrollTop) {
-				$(`${_this.sDateNavigator} span`).text($('span', oItem).text());
-					$(_this.sDateNavigator).fadeIn();
+				let sDate = $('span', oItem).text();
+				$(`${_this.sDateNavigator} span`)
+					.text(sDate);
 
 				return true;
 			}
 		});
+
+		$(_this.sDateNavigator)
+			.fadeIn();
 
 		return false;
 	}

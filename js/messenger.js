@@ -236,6 +236,16 @@
 			_this.blockSendMessages(false);
 	};
 
+
+	oMessenger.prototype.setScrollBarWidth = function() {
+		this.iScrollbarWidth = $(this.sTalkBlock).prop('offsetWidth') - $(this.sTalkBlock).prop('clientWidth');
+
+		// set dates intervals top div width without scrollbar width
+		$(this.sDateNavigator).width($(this.sTalkBlock).prop('clientWidth'));
+
+		$(this.sScrollArea).css('right', parseInt($(this.sScrollArea).css('right')) + this.iScrollbarWidth + 'px');
+	}
+
 	oMessenger.prototype.initScrollArea = function() {
 		const _this = this;
 		let aReadJots = [];
@@ -245,10 +255,6 @@
 		let iUpdateCounter = null;
 		let iDateIntervalTimer = null;
 
-		// find the all intervals in history
-		_this.iScrollbarWidth = $(_this.sTalkBlock).prop('offsetWidth') - $(_this.sTalkBlock).prop('clientWidth');
-
-		$(_this.sScrollArea).css('right', parseInt($(_this.sScrollArea).css('right')) + _this.iScrollbarWidth + 'px');
 		$(_this.sTalkBlock).scroll(function(){
 			const isScrollAvail = $(this).prop('scrollHeight') > $(this).prop('clientHeight'),
 				iScrollHeight = $(this).prop('scrollHeight') - $(this).prop('clientHeight'),
@@ -2972,6 +2978,7 @@
 				_this.oJotWindowBuilder.resizeWindow(() => {
 					_this.selectLotEmit($(`[data-lot="${_this.oSettings.lot}"]${_this.sLotSelector}`));
 					$(_this.sTalkList).waitForImages(() => _this.setPositionOnSelectedJot(fCallback));
+					_this.setScrollBarWidth();
 				});
 			});
 
@@ -3168,8 +3175,10 @@
 				_oMessenger.oStorage = new oMessengerStorage();
 			}
 
-			// init tex area
+			// init text area
 			_oMessenger.initTextArea();
+
+			// init default talks params
 			const oInitParams = {
 									lot: oOptions.lot,
 									jot: oOptions.jot_id,
@@ -3187,6 +3196,8 @@
 			_oMessenger.initScrollArea();
 
 			_oMessenger.checkNotFinishedTalks();
+
+			// find the all intervals in history
 			$(_oMessenger.sTalkBlock).addTimeIntervals();
 
 			// attach on ESC button return from create talk area
@@ -3249,6 +3260,8 @@
 
 								fLoading();
 							}
+
+							_oMessenger.setScrollBarWidth();
 					    });
 			}
 

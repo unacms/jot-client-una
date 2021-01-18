@@ -243,7 +243,8 @@
 		// set dates intervals top div width without scrollbar width
 		$(this.sDateNavigator).width($(this.sTalkBlock).prop('clientWidth'));
 
-		$(this.sScrollArea).css('right', parseInt($(this.sScrollArea).css('right')) + this.iScrollbarWidth + 'px');
+		if (this.iScrollbarWidth)
+			$(this.sScrollArea).css('right', `calc( ${this.iScrollbarWidth}px + 0.5rem )`);
 	}
 
 	oMessenger.prototype.initScrollArea = function() {
@@ -3190,7 +3191,7 @@
 			if (!_oMessenger.isBlockVersion())
 				_oMessenger.initMessengerPage();
 			else
-				_oMessenger.setPositionOnSelectedJot();
+				_oMessenger.setPositionOnSelectedJot(() => _oMessenger.setScrollBarWidth());
 
 			_oMessenger.updateLotSettings(oInitParams);
 			_oMessenger.initScrollArea();

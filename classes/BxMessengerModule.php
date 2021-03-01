@@ -46,6 +46,7 @@ define('BX_MSG_ACTION_ADMINISTRATE_TALKS', 'administrate_talks');
 define('BX_MSG_ACTION_SEND_MESSAGE', 'send_messages');
 define('BX_MSG_ACTION_CREATE_VC', 'create_vc');
 define('BX_MSG_ACTION_CREATE_IM_VC', 'video_conference');
+define('BX_MSG_ACTION_VIDEO_RECORDER', 'video_recorder');
 
 
 /**
@@ -1194,7 +1195,7 @@ class BxMessengerModule extends BxBaseModTextModule
      */
     public function serviceDeleteHistoryByAuthor($oAlert)
     {
-        return $oAlert->iObject && $oAlert->aExtras['delete_with_content'] ?
+        return $oAlert->iObject && !empty($oAlert->aExtras['delete_with_content']) ?
             $this->_oDb->deleteProfileInfo($oAlert->iObject) : false;
     }
 

@@ -258,4 +258,5 @@
 	<string name="_bx_messenger_allow_to_moderate_messages"><![CDATA[Allow talks' authors moderate messages (delete/edit)]]></string>
 	<string name="_bx_messenger_clear_lot"><![CDATA[Are you sure you want to delete talk's history permanently?]]></string>
 	<string name="_bx_messenger_clear_lot_menu"><![CDATA[Clear history]]></string>
+	<string name="_bx_messenger_acl_action_video_recorder"><![CDATA[Use video recording]]></string>
 </resources>

@@ -749,35 +749,36 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
      * @param $iExcludeProfile int exclude defined profile id from the list
      * @return bool|string
      */
-	public function getViewedJotProfiles($iJotId, $iExcludeProfile = 0){
+    public function getViewedJotProfiles($iJotId, $iExcludeProfile){
         $CNF = $this->_oConfig->CNF;
-	    $aJotInfo = $this -> _oDb -> getJotById($iJotId);
+        $aJotInfo = $this -> _oDb -> getJotById($iJotId);
         if (empty($aJotInfo))
             return '';
 
-        $aResult = $aParticipants = $this->_oDb->getParticipantsList($aJotInfo[$CNF['FIELD_MESSAGE_FK']], true);
+        $aResult = $aParticipants = $this -> _oDb -> getParticipantsList($aJotInfo[$CNF['FIELD_MESSAGE_FK']], true);
         if ($CNF['MAX_VIEWS_PARTS_NUMBER'] < count($aResult))
             return '';
 
-        $aNewForProfiles = $this->_oDb->getForWhomJotIsNew($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iJotId);
-        if (!empty($aNewForProfiles))
-            $aResult = array_diff($aParticipants, $aNewForProfiles);
+        $aUnreadProfiles = $this->_oDb->getForWhomJotIsNew($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iJotId);
+        if (!empty($aUnreadProfiles))
+            $aResult = array_diff($aParticipants, $aUnreadProfiles);
 
         $aIcons = array();
         foreach($aResult as &$iProfileId) {
-            if ($iExcludeProfile && $iExcludeProfile == $iProfileId)
+            if ($iExcludeProfile == $iProfileId)
                 continue;
 
-            $aIcons[] = array(
-                'id' => $iProfileId,
-                'icon' => BxDolProfile::getInstance($iProfileId)->getIcon(),
-                'name' => BxDolProfile::getInstance($iProfileId)->getDisplayName(),
-            );
+            if ($oProfile = BxDolProfile::getInstance($iProfileId))
+                $aIcons[] = array(
+                    'id' => $iProfileId,
+                    'icon' => $oProfile->getIcon(),
+                    'name' => $oProfile->getDisplayName(),
+                );
         }
 
         return $this -> parseHtmlByName('viewed.html', array(
             'bx_repeat:viewed' => $aIcons
-         ));
+        ));
     }
 	/**
 	* Get jots list by specified criteria

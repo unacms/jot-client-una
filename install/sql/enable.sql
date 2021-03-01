@@ -125,6 +125,10 @@ INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`,
 (@sName, 'create vc', NULL, '_bx_messenger_acl_action_create_vc', '', 1, 0);
 SET @iIdActionVCCreate = LAST_INSERT_ID();
 
+INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`, `Desc`, `Countable`, `DisabledForLevels`) VALUES
+(@sName, 'video recorder', NULL, '_bx_messenger_acl_action_video_recorder', '', 1, 0);
+SET @iIdActionVRecorder = LAST_INSERT_ID();
+
 SET @iUnauthenticated = 1;
 SET @iAccount = 2;
 SET @iStandard = 3;
@@ -146,6 +150,11 @@ INSERT INTO `sys_acl_matrix` (`IDLevel`, `IDAction`) VALUES
 (@iModerator, @iIdActionVCCreate),
 (@iAdministrator, @iIdActionVCCreate),
 (@iPremium, @iIdActionVCCreate),
+-- video recorder
+(@iStandard, @iIdActionVRecorder),
+(@iModerator, @iIdActionVRecorder),
+(@iAdministrator, @iIdActionVRecorder),
+(@iPremium, @iIdActionVRecorder),
 -- create talk
 (@iStandard, @iIdActionEntryTalkCreate),
 (@iModerator, @iIdActionEntryTalkCreate),

@@ -126,11 +126,16 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	        return '';
 
 	    $bGiphy = $iProfileId && $CNF['GIPHY']['api_key'];
+	    $bRecorder = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_VIDEO_RECORDER, $iProfileId) === true;
         $aVars = array(
              'bx_if:giphy' => array(
                 'condition' => $bGiphy,
                 'content' 	=> array()
              ),
+            'bx_if:recording' => array(
+                'condition' => $bRecorder,
+                'content' 	=> array()
+            ),
             'giphy' => $bGiphy ? $this -> getGiphyPanel() : '',
             'files_uploader' => $CNF['FILES_UPLOADER']
         );
@@ -749,7 +754,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
      * @param $iExcludeProfile int exclude defined profile id from the list
      * @return bool|string
      */
-    public function getViewedJotProfiles($iJotId, $iExcludeProfile){
+	public function getViewedJotProfiles($iJotId, $iExcludeProfile = 0){
         $CNF = $this->_oConfig->CNF;
         $aJotInfo = $this -> _oDb -> getJotById($iJotId);
         if (empty($aJotInfo))
@@ -765,7 +770,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
         $aIcons = array();
         foreach($aResult as &$iProfileId) {
-            if ($iExcludeProfile == $iProfileId)
+            if ($iExcludeProfile && $iExcludeProfile == $iProfileId)
                 continue;
 
             if ($oProfile = BxDolProfile::getInstance($iProfileId))

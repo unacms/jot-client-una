@@ -305,7 +305,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         ));
     }
 
-    public function getCreateTalkFrom($iProfileId, $iLotId = 0){
+    public function getCreateTalkForm($iProfileId, $iLotId = 0){
         return $this -> parseHtmlByName('talk.html', array(
             'header' => $this->getEditTalkArea($iProfileId, $iLotId),
             'history' => $this-> getHistory($iProfileId, $iLotId),
@@ -1022,6 +1022,29 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             $sUsername = bx_js_string($oProfile -> getDisplayName());
 
         $sUrl = $this->_oConfig->getPageIdent();
+        if ($iPersonToTalk && ($oModuleProfile = BxDolProfile::getInstance($iPersonToTalk))) {
+            $sModule = $oModuleProfile->getModule();
+            if (BxDolRequest::serviceExists($sModule, 'is_group_profile') && BxDolService::call($sModule, 'is_group_profile')) {
+                $aOwnerInfo = BxDolService::call($sModule, 'get_info', array($oModuleProfile->getContentId(), false));
+                if (!empty($aOwnerInfo) && is_array($aOwnerInfo) && BxDolService::call($sModule, 'check_allowed_view_for_profile', array($aOwnerInfo)) === CHECK_ACTION_RESULT_ALLOWED) {
+                    $oModule = BxDolModule::getInstance($sModule);
+                    if ($oModule->_oConfig) {
+                        $oMCNF = $oModule->_oConfig->CNF;
+
+                        $sUrl = "i={$oMCNF['URI_VIEW_ENTRY']}&id=" . $oModuleProfile->getContentId();
+                        if ($sUrl && $aTalk = $this->_oDb->getLotByUrl($sUrl))
+                            $iLotId = $aTalk[$CNF['FIELD_ID']];
+                        else
+                        {
+                            $sTalkTitle = $oModuleProfile->getDisplayName();
+                            $iType = $this->_oConfig->getTalkType($sModule);
+                            $iLotId = $this->_oDb->createLot($iProfileId, $sUrl, $sTalkTitle, $iType, array($iProfileId));
+                        }
+                    }
+                }
+            }
+        }
+
         if ($iLotId && ($aLotInfo = $this->_oDb->getLotInfoById($iLotId))){
             if ($aLotInfo[$CNF['FIELD_TYPE']] != BX_IM_TYPE_PRIVATE && isset($aLotInfo[$CNF['FIELD_URL']]))
                 $sUrl =  $aLotInfo[$CNF['FIELD_URL']];
@@ -1205,10 +1228,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
                             $aIcons = array();
                             foreach($aParticipants as &$iProfileId) {
+                                if ($oProfile = BxDolProfile::getInstance($iProfileId))
                                 $aIcons[] = array(
                                     'id' => $iProfileId,
-                                    'icon' => BxDolProfile::getInstance($iProfileId)->getIcon(),
-                                    'name' => BxDolProfile::getInstance($iProfileId)->getDisplayName(),
+                                    'icon' => $oProfile->getIcon(),
+                                    'name' => $oProfile->getDisplayName(),
                                 );
                             }
 
@@ -1808,7 +1832,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             'id' => $iLotId,
             'domain' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER']),
             'lang' => $sLanguage,
-            'site_title' => getParam('site_title'),
+            'site_title' =>  bx_js_string(getParam('site_title')),
             'lib_link' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER'], 'url') . '/' . $JITSI['LIB-LINK'],
             'info_enabled' => +$CNF['JITSI-HIDDEN-INFO'],
             'chat_enabled' => +$CNF['JITSI-CHAT'],

@@ -158,7 +158,8 @@ class BxMessengerConfig extends BxBaseModTextConfig
             'PARAM_ICONS_NUMBER' => 3,
             'PARAM_MODULE_TYPES' => array(
                                             'bx_groups' => BX_IM_TYPE_GROUPS,
-                                            'bx_events' => BX_IM_TYPE_EVENTS
+                                            'bx_events' => BX_IM_TYPE_EVENTS,
+                                            'bx_spaces' => BX_IM_TYPE_GROUPS
                                         ),
             'URL_IDENT_PARAMS' => array('i','r','id','profile_id'),
 

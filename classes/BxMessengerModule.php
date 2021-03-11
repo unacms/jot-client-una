@@ -102,11 +102,31 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $CNF = &$this->_oConfig->CNF;
         if ($iViewedProfileId = (int)bx_get('profile_id')) {
-            $aExistedTalk = $this->_oDb->getLotByUrlAndParticipantsList(BX_IM_EMPTY_URL, array($iViewedProfileId, $this->_iProfileId));
-            if (!empty($aExistedTalk))
-                return $this->_oTemplate->getTalkBlock($this->_iProfileId, $aExistedTalk[$CNF['FIELD_ID']]);
-            else if ($this->onCheckContact($this->_iProfileId, $iViewedProfileId))
-                return $this->_oTemplate->getTalkBlockByUserName($this->_iProfileId, $iViewedProfileId);
+            $oProfile = BxDolProfile::getInstance($iViewedProfileId);
+            $sModule = $oProfile->getModule();
+            if (BxDolRequest::serviceExists($sModule, 'is_group_profile') && BxDolService::call($sModule, 'is_group_profile')) {
+                $aOwnerInfo = BxDolService::call($sModule, 'get_info', array($oProfile->getContentId(), false));
+
+                if(!empty($aOwnerInfo) && is_array($aOwnerInfo) && BxDolService::call($sModule, 'check_allowed_view_for_profile', array($aOwnerInfo)) === CHECK_ACTION_RESULT_ALLOWED) {
+                    $oModule = BxDolModule::getInstance($sModule);
+                    if ($oModule->_oConfig) {
+                        $oMCNF = $oModule->_oConfig->CNF;
+
+                        $sUrl = "i={$oMCNF['URI_VIEW_ENTRY']}&id=" . $oProfile->getContentId();
+                        if ($sUrl && $aTalk = $this->_oDb->getLotByUrl($sUrl))
+                            return $this->_oTemplate->getTalkBlock($this->_iProfileId, $aTalk[$CNF['FIELD_ID']]);
+                    }
+                }
+            }
+            else
+            {
+
+                $aExistedTalk = $this->_oDb->getLotByUrlAndParticipantsList(BX_IM_EMPTY_URL, array($iViewedProfileId, $this->_iProfileId));
+                if (!empty($aExistedTalk))
+                    return $this->_oTemplate->getTalkBlock($this->_iProfileId, $aExistedTalk[$CNF['FIELD_ID']]);
+                else if ($this->onCheckContact($this->_iProfileId, $iViewedProfileId))
+                    return $this->_oTemplate->getTalkBlockByUserName($this->_iProfileId, $iViewedProfileId);
+            }
         }
 
         if ($this->_iJotId && ($iLotId = $this->_oDb->getLotByJotId($this->_iJotId)))
@@ -117,7 +137,7 @@ class BxMessengerModule extends BxBaseModTextModule
             return $this->_oTemplate->getTalkBlock($this->_iProfileId, current($aLotsList)[$CNF['FIELD_ID']]);
 
 
-        return $this->_oTemplate->getCreateTalkFrom($this->_iProfileId);
+        return $this->_oTemplate->getCreateTalkForm($this->_iProfileId);
     }
 
     /**
@@ -1653,6 +1673,16 @@ class BxMessengerModule extends BxBaseModTextModule
     {
         if (!$this->_iProfileId)
             return false;
+
+        $oProfile = BxDolProfile::getInstance($mixedObject);
+        $sModule = $oProfile->getModule();
+        if (BxDolRequest::serviceExists($sModule, 'is_group_profile') && BxDolService::call($sModule, 'is_group_profile')) {
+            $aOwnerInfo = BxDolService::call($sModule, 'get_info', array($oProfile->getContentId(), false));
+            if(empty($aOwnerInfo) || !is_array($aOwnerInfo))
+                return CHECK_ACTION_RESULT_ALLOWED;
+
+            return BxDolService::call($sModule, 'check_allowed_view_for_profile', array($aOwnerInfo)) === CHECK_ACTION_RESULT_ALLOWED;
+        }
 
         return $this->onCheckContact($this->_iProfileId, (int)$mixedObject);
     }

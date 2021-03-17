@@ -1828,6 +1828,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
         $aJVC = $this->_oDb->getJVC($iLotId);
         $sRoom = empty($aJVC) ? $this->_oConfig->getRoomId($aLotInfo[$CNF['FIELD_ID']], $aLotInfo[$CNF['FIELD_AUTHOR']]) : $aJVC[$CNF['FJVC_ROOM']];
+
+        $mixedJWT = $this->getJWTToken($sRoom, $iProfileId);
         $sCode = $this -> parseHtmlByName('jitsi_video_form.html', array(
             'id' => $iLotId,
             'domain' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER']),
@@ -1846,7 +1848,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             'me' => _t('_bx_messenger_jitsi_meet_me'),
             'avatar' => $oProfileInfo->getAvatar(),
             'name' => $sRoom,
-            'title' => bx_js_string(strmaxtextlen($sTitle))
+            'title' => bx_js_string(strmaxtextlen($sTitle)),
+            'jwt_token' => $mixedJWT !== false ? $mixedJWT : ''
         ));
 
         return $sCode;
@@ -1866,6 +1869,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         $sLanguage = $oLanguage->getCurrentLangName(false);
 
         $sRoom = $this->_oConfig->getRoomId($sIdent ? $sIdent : $iProfileId);
+        
+        $mixedJWT = $this->getJWTToken($sRoom, $iProfileId);
         $sCode = $this -> parseHtmlByName('jitsi_public_video_form.html', array(
             'domain' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER']),
             'lang' => $sLanguage,
@@ -1885,10 +1890,48 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             'name' => $sRoom,
             'id' => $sId,
             'title' => bx_js_string(strmaxtextlen($sTitle)),
-            'interface_config' => json_encode($aInterfaceConfig)
+            'interface_config' => json_encode($aInterfaceConfig),
+            'jwt_token' => $mixedJWT !== false ? $mixedJWT : ''
         ));
 
         return $sCode;
+    }
+
+    function getJWTToken($sRoom, $iProfileId){
+        $oProfileInfo = BxDolProfile::getInstance( $iProfileId );
+        if (empty($oProfileInfo) || !$sRoom)
+            return false;
+
+        $CNF = $this->_oConfig->CNF;
+        if (empty($CNF['JWT']['app_id']) || empty($CNF['JWT']['secret']))
+            return false;
+
+        // Encode Header to Base64Url String
+        $sHeader = json_encode(['alg' => 'HS256', 'typ' => 'JWT']);
+        $sHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($sHeader));
+
+        // Create token payload as a JSON string
+        $sPayload = json_encode(['context' =>
+            [
+                'user' => [
+                    'avatar' => $oProfileInfo->getThumb(),
+                    'name' => $oProfileInfo->getDisplayName(),
+                    'email' => $oProfileInfo->getAccountObject()->getEmail()
+                ],
+            ],
+            "aud" => $this->_oConfig->CNF['JITSI-SERVER'],
+            "iss" => $CNF['JWT']['app_id'],
+            "sub" => $this->_oConfig->CNF['JITSI-SERVER'],
+            "room" => $sRoom
+        ]);
+
+        $sPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($sPayload));
+
+        // Create Signature Hash
+        $sSignature = hash_hmac('sha256', $sHeader . "." . $sPayload, $CNF['JWT']['secret'], true);
+        $sSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($sSignature));
+
+        return "{$sHeader}.{$sPayload}.{$sSignature}";
     }
 
     public function getTalkFiles($iProfileId, $iLotId, $iStart = 0){

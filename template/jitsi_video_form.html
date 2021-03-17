@@ -104,6 +104,9 @@
             }
 		};
 
+        if ('__jwt_token__')
+            oOptions.jwt = '__jwt_token__';
+
         bx_loading('bx-messenger-jitsi', true);
         const oApi = new JitsiMeetExternalAPI('__domain__', oOptions);
         oApi.executeCommand('subject', '__title__');

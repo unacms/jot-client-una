@@ -107,6 +107,9 @@
             }
 		};
 
+        if ('__jwt_token__')
+            oOptions.jwt = '__jwt_token__';
+
         const oApi = new JitsiMeetExternalAPI('__domain__', oOptions);
         oApi.executeCommand('subject', '__title__');
         oApi.executeCommand('displayName', '__user_name__');

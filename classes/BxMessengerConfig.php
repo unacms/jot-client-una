@@ -241,6 +241,10 @@ class BxMessengerConfig extends BxBaseModTextConfig
             'JITSI-WATERMARK-URL' => getParam($aModule['db_prefix'] . 'jitsi_watermark_link'),
             'JITSI-SUPPORT-LINK' => getParam($aModule['db_prefix'] . 'jitsi_support_url'),
             'DISABLE-PROFILE-PRIVACY' => getParam($aModule['db_prefix'] . 'disable_contact_privacy') == 'on',
+            'JWT' => array(
+              'app_id' => getParam($aModule['db_prefix'] . 'jwt_app_id'),
+              'secret' => getParam($aModule['db_prefix'] . 'jwt_app_secret'),
+            ),
             'JSMain' => 'oMessenger'
         );
 

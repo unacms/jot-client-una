@@ -1000,6 +1000,10 @@ class BxMessengerDb extends BxBaseModTextDb
 		if (!empty($aSWhere))
 				$sWhere = ' AND ' . implode(' AND ', $aSWhere);
 
+		/*$sLimit = "";
+		if (!$iLotId && !$sParam && !$iStar && !$iType)
+            $sLimit = "LIMIT 200";*/
+
 		return $this-> getAll("SELECT *, 
                                          IF (`l`.`{$this->CNF['FIELD_UPDATED']}` = 0, `l`.`{$this->CNF['FIELD_ADDED']}`, `l`.`{$this->CNF['FIELD_UPDATED']}`) as `order` 
 			                             FROM `{$this->CNF['TABLE_ENTRIES']}` as `l`
@@ -1145,11 +1149,8 @@ class BxMessengerDb extends BxBaseModTextDb
 		return $iResult ? $iResult : $iJotId;
 	}
 	
-	public function updateFiles($iJotId, $sField = 'jot_id', $sValue){
-		$sQuery = $this->prepare("UPDATE `{$this->CNF['OBJECT_STORAGE']}`
-									SET  `{$sField}` = ?
-									WHERE `{$this->CNF['FIELD_ST_ID']}` = ?", $sValue, $iJotId);
-		
+	public function updateFiles($iJotId, $mixedValues){
+	    $sQuery = $this->prepare("UPDATE `{$this->CNF['OBJECT_STORAGE']}` SET " . $this->arrayToSQL($mixedValues) . " WHERE `{$this->CNF['FIELD_ST_ID']}` = ?", $iJotId);
 		return $this -> query($sQuery);
 	}
 	

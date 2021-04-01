@@ -142,7 +142,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
 
             // some params
             'STAR_BACKGROUND_COLOR' => '#f5a623',
-            'FILES_UPLOADER' => 'filepond',
+            'FILES_UPLOADER' => 'messenger_uploader_',
             'BELL_ICON_ON' => 'bell',
             'STAR_ICON' => 'star',
             'BELL_ICON_OFF' => 'bell-slash',

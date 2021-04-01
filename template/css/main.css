@@ -305,9 +305,9 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 .bx-messenger-block .bx-db-header
 {
 	position: relative;
-	min-height: 2.5rem;
+	/*min-height: 2.5rem;*/
 	vertical-align: middle;
-	padding: 0 1rem 0 1rem;
+	/*padding: 0 1rem 0 1rem;*/
 	display: flex;
 	align-items: center;
 }
@@ -1044,10 +1044,10 @@ div.bx-messenger-attachment-file-images img
 	padding-right:0rem !important;
 }
 
-.bx-db-header{
+/*.bx-db-header{
 	min-height:2.5rem;
 	height:auto;
-}
+}*/
 
 .bx-messenger-right-column{
 	text-align:left;

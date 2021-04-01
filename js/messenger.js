@@ -88,6 +88,7 @@
 		this.sConversationBlockWrapper = '.bx-messenger-conversation-block-wrapper';
 		this.sUnreadJotsCounter = '#unread-jots-counter';
 		this.sDateNavigator = '#date-time-navigator';
+		this.sUploaderAreaPrefix = 'bx-messenger-uploading-placeholder';
 
 		//global class options
 		this.oUsersTemplate	= null;
@@ -118,6 +119,10 @@
 		this.bActiveConnect = true;
 		this.iPanding = false; // don't update jots while previous update is not finished
 		this.aUsers = [];
+
+		// files uploader
+		this.aUploaderQueue = Object.create(null);
+		this.sUploaderInputPrefix = 'messenger_uploader_';
 		// quill toolbar settings
 		this.aToolbarSettings = [
 			['bold', 'italic', 'underline', 'strike', 'link'],
@@ -153,7 +158,7 @@
 							'title'  : document.title || '',
 							'lot'	 : oOptions.lot || 0,
 							'name': (oOptions && oOptions.name) || 0,
-							'user_id': (oOptions && oOptions.user_id) || 0
+							'user_id': (oOptions && oOptions.user_id) || 0							
 						};
 
 		this.iSelectedJot = oOptions.jot_id || 0;
@@ -163,6 +168,7 @@
 		this.iLotType = oOptions.type || 0;
 		this.iSelectedPersonToTalk = oOptions.selected_profile || 0;
 		this.isBlockMessenger = typeof oOptions.block_version !== 'undefined' ? oOptions.block_version : $(this.sLotsBlock).length === 0;
+		this.oFilesUploaderSettings = typeof oOptions['files_uploader'] !== 'undefined' ? oOptions['files_uploader'] : null;
 
 		// Real-time WebSockets framework class
 		this.oRTWSF = (oOptions && oOptions.oRTWSF) || window.oRTWSF || null;
@@ -437,6 +443,63 @@
 		}));
 	}
 
+	oMessenger.prototype.initFilesUploader = function() {
+		const _this = this;			
+		
+		if (!this.oFilesUploaderSettings)
+			return;
+
+		let iTime = (new Date()).getTime();
+		const InputName = `${_this.sUploaderInputPrefix}${iTime}`;
+		const sInput = `<input type="file" name="${InputName}"  required  style="display:none;"/>`;
+
+		$(_this.sSendAttachmentArea).before(sInput);
+		this.oFilesUploaderSettings['input_name'] = InputName;
+
+		this.oFilesUploader = (new oMessengerUploader(Object.assign({}, this.oFilesUploaderSettings, {
+				onAddFilesCallback: () => {
+					if ($(this.sSendAttachmentArea).children().length) {
+						$(this.sGiphMain).fadeOut();
+						$(this.sSendAttachmentArea).html('');
+					}
+				},
+				onUpdateAttachments: (bUpdate) => this.updateSendArea(bUpdate),
+				onUploadingComplete: (sName, aFiles, fCallback) => {
+					const iTmpJotId = _this.aUploaderQueue[sName];
+					if (sName && iTmpJotId && aFiles.length) {
+
+						const iJotId = +$(`[data-tmp="${iTmpJotId}"]`).data('id');
+						$.post('modules/?r=messenger/update_uploaded_files/', {
+							jot_id: iJotId,
+							files: aFiles
+						}, function ({code, message}) {
+							if (+code)
+								bx_alert(message);
+
+							_this.broadcastMessage({
+								jot_id: iJotId,
+								addon: 'update_attachment'
+							});
+
+							_this.attacheFiles(iJotId, true, () => {
+								$(`#${_this.sUploaderAreaPrefix}-${iTmpJotId}`).fadeOut(function () {
+									$(this).remove();
+								});
+							});
+
+							if (typeof fCallback === 'function')
+								fCallback();
+
+						}, 'json');
+
+						delete _this.aUploaderQueue[sName];
+					}
+				}
+			}))).getUploader();
+
+		return this.oFilesUploader;
+	}
+
 	oMessenger.prototype.initTextArea = function() {
 		const _this = this;
 
@@ -479,7 +542,10 @@
 			if (_this.sendMessage(_this.oEditor.length === 1 ? '' : _this.oEditor.html())){
 				_this.oEditor.setContents([]);
 				_this.oEditor.focus();
-				_this.oFilesUploader.clean();
+
+				if (_this.oFilesUploader)
+					_this.oFilesUploader.clean();
+
 				_this.oStorage.deleteLot(_this.oSettings.lot);
 				$(_this.sSendButton).hide();
 			}
@@ -1088,7 +1154,6 @@
 										});
 			};
 
-
 		if (iJotId)
 			$.post('modules/?r=messenger/delete_jot', {jot:iJotId, completely: +bCompletely || 0}, 
 			function(oData)
@@ -1321,7 +1386,6 @@
 	};
 
 	$.fn.setRandomBGColor = function() {
-
 		$('img', this).each(function(){
 			let hex = Math.floor(Math.random() * 0xFFFFFF);
 			$(this).css('background-color', "#" + ("000000" + hex.toString(16)).substr(-6));
@@ -1476,17 +1540,25 @@
 	*@param string sUrl internal or external link
 	*@return object this
 	*/
-	oMessenger.prototype.attacheFiles = function(iJotId){
+	oMessenger.prototype.attacheFiles = function(iJotId, bBottom = true, fCallback){
 		const _this = this;
 		_this.iAttachmentUpdate = true;
 		$.post('modules/?r=messenger/get_attachment', { jot_id: iJotId}, function(oData)
 		{
 			if (!parseInt(oData['code']))
 			{
+				$(_this.sAttachmentArea, '[data-id="' + iJotId + '"]').remove();
+
 				$(_this.sReactionsArea, '[data-id="' + iJotId + '"]')
 					.before(
 								$(oData['html'])
-									.waitForImages(() => _this.updateScrollPosition('bottom'))
+									.waitForImages(() => {
+										if (typeof fCallback === 'function')
+											fCallback();
+
+										if (bBottom || $(_this.sTalkListJotSelector).last().data('id') == iJotId)
+											_this.updateScrollPosition('bottom');
+									})
 							);
 
 				_this.initJotIcons('[data-id="' + iJotId + '"]');
@@ -1760,14 +1832,12 @@
 			oParams = Object.assign({}, this.oSettings, _this.getSendAreaAttachmentsIds()),
 			msgTime = new Date();
 
-		if (_this.oFilesUploader)
-		{
-			if (!_this.oFilesUploader.isReady()) {
-				bx_alert(_t('_bx_messenger_wait_for_uploading'));
-				return false;
-			}
-			else
-				oParams.files = _this.oFilesUploader.getFiles();
+		oParams.tmp_id = msgTime.getTime();
+
+		if (_this.oFilesUploader) {
+			oParams.files = _this.oFilesUploader.getAllFiles();
+			if (oParams.files.length && !_this.oFilesUploader.isReady())
+				_this.aUploaderQueue[_this.oFilesUploader.name()] = oParams.tmp_id;			
 		}
 
 		if (typeof mixedObjects !== 'undefined' && Array.isArray(mixedObjects.files))
@@ -1786,8 +1856,6 @@
 		if (!oParams.message.length && !oParams.files.length && typeof oParams.giphy === 'undefined')
 			return;
 
-		oParams.tmp_id = msgTime.getTime();
-
 		// remove MSG (if it exists) from clean history page
 		if ($('.bx-msg-box-container', _this.sTalkList).length)
 				$('.bx-msg-box-container', _this.sTalkList).remove();	
@@ -1797,6 +1865,10 @@
 
 		if ((oParams.message || oParams.files.length || (typeof oParams.giphy !== 'undefined' && oParams.giphy.length)) && _this.bAllowAttachMessages)
 		{
+			let sUploadingArea = '';
+			if (_this.oFilesUploader && oParams.files.length && !_this.oFilesUploader.isReady())
+				sUploadingArea = `<div class="${_this.sUploaderAreaPrefix}" id="${_this.sUploaderAreaPrefix}-${oParams.tmp_id}"></div>`;
+
 			// append content of the message to the history page
 			$(_this.sTalkList)
 				.append(
@@ -1808,11 +1880,17 @@
 								.end()
 									.find(_this.sJotMessage)
 									.html(oParams.message)
+									.after(sUploadingArea)
 									.fadeIn('slow')
 								.end()
 						);
-								
-			
+
+			if (sUploadingArea) {
+				_this.oFilesUploader.move(`#${_this.sUploaderAreaPrefix}-${oParams.tmp_id}`);
+				_this.oFilesUploader = null;
+				_this.initFilesUploader();
+			}
+
 			_this.initJotIcons('[data-tmp="' + oParams.tmp_id + '"]');
 		}
 
@@ -1820,7 +1898,6 @@
 
 		// save message to database and broadcast to all participants
 		$.post('modules/?r=messenger/send', oParams, function({ jot_id, header, tmp_id, message, code, time, lot_id }){
-			
 				switch(parseInt(code))
 				{
 					case 0:
@@ -1851,9 +1928,8 @@
 								$(_this.sTalkList).addTimeIntervals();
 							}
 									
-							if (oParams.files.length || typeof oParams.giphy !== 'undefined') {
+							if ((_this.oFilesUploader && oParams.files && _this.oFilesUploader.isReady()) || typeof oParams.giphy !== 'undefined')
 								_this.attacheFiles(iJotId);
-							}
 							
 							if (!_this.isBlockVersion())
 								_this.upLotsPosition(_this.oSettings);
@@ -2228,7 +2304,7 @@
 		else
 			$(this.sTalkBlock).animate({
 											scrollTop: iPosition,
-										 }, sEffect === 'slow' ? _this.iScrollDownSpeed : 0,
+										 }, sEffect === 'slow' ? this.iScrollDownSpeed : 0,
 										 typeof fCallback === 'function' ? fCallback : function(){});
 	}
 	
@@ -2335,7 +2411,7 @@
 	*/
 	oMessenger.prototype.updateJots = function(oAction, bSilentMode = false){
 		const _this = this;
-		const { addon, position, action, last_viewed_jot, callback } = oAction;
+		const { addon, position, action, last_viewed_jot, callback, jot_id } = oAction;
 
 		let sAction = typeof addon === 'string' ? addon : (action !== 'msg' ? action : 'new'),
 			iRequestJot = 0,
@@ -2349,12 +2425,15 @@
 
 		switch(sAction)
 		{
+			case 'update_attachment':
+				_this.attacheFiles(jot_id);
+				return;
 			case 'check_viewed':
 			case 'reaction':
 			case 'delete':
 			case 'edit':
 			case 'vc':
-					iJotId = oAction.jot_id || 0;
+					iJotId = jot_id || 0;
 					break;
 			case 'clear':
 				  return $(_this.sTalkList).html('');
@@ -3110,7 +3189,7 @@
 			const _this = this;
 			if (_oMessenger != null)
 				return true;
-
+			
 			_oMessenger = new oMessenger(oOptions);
 			if (createjs) {
 				createjs.Sound.registerSound(_oMessenger.incomingMessage, 'incomingMessage');
@@ -3179,6 +3258,15 @@
 			// init text area
 			_oMessenger.initTextArea();
 
+			// init files uploader
+			_oMessenger.initFilesUploader();
+			$('a.attachefile').on('click', () => {
+				if (!$(`${_oMessenger.sBottomGroupsArea} [name^="${_oMessenger.sUploaderInputPrefix}"]`).length || !_oMessenger.oFilesUploader)
+					_oMessenger.initFilesUploader();
+
+				_oMessenger.oFilesUploader.browse();
+			});
+
 			// init default talks params
 			const oInitParams = {
 									lot: oOptions.lot,
@@ -3235,6 +3323,10 @@
 
 		initTextArea: function () {
 			_oMessenger.initTextArea();
+		},
+
+		initFilesUploader: function () {
+			_oMessenger.initFilesUploader();
 		},
 		loadTalk: function (iLotId) {
 			if (~_oMessenger.aLoadingRequestsPool.indexOf(iLotId))
@@ -3387,23 +3479,22 @@
 		},
 
 		/**
-		 * Loads form for files uploading in popup
+		 * Loads popup form by service name
 		 *@param string sUrl link, if not specify default one will be used
 		 *@param function fCallback callback function,  executes on window show
 		 */
 		showPopForm: function (sMethod, fCallback) {
-			const sUrl = 'modules/?r=messenger/' + (sMethod || 'get_upload_files_form'),
+			const sUrl = 'modules/?r=messenger/' + sMethod,
 				sText = _oMessenger.oEditor.getText();
 
 			$(window).dolPopupAjax({
 				url: sUrl,
 				id: { force: true, value: _oMessenger.sAddFilesForm.substr(1) },
 				onShow: function () {
-
 					if (typeof fCallback == 'function')
 						fCallback();
 
-					if (sText.length)
+					if (sText && sText.length)
 						$(_oMessenger.sAddFilesFormComments).text(sText);
 
 					setTimeout(() => _oMessenger.updateCommentsAreaWidth(), 100);
@@ -3735,12 +3826,6 @@
 			setTimeout(() => $(`${_oMessenger.sEmojiId}`)
 				.hide(), 0); // if to close in the same time, emoji categories will not work in the next open
 		},
-		cleanGiphyAreas: () => {
-			if ($(_oMessenger.sSendAttachmentArea).children().length) {
-				$(_oMessenger.sGiphMain).fadeOut();
-				$(_oMessenger.sSendAttachmentArea).html('');
-			}
-		},
 		updateJots(oJots, sType){
 			if (Array.isArray(oJots))
 				oJots.map( iJot => _oMessenger.updateJots({
@@ -3751,10 +3836,6 @@
 		onHangUp: (oEl, iLotId) => {
 			_oMessenger.onCloseCallPopup(oEl, iLotId);
 		},
-		updateAttachmentArea: function(bCanHide){
-			return _oMessenger.updateSendArea(bCanHide);
-		},
-		initUploader: oUploader => _oMessenger.oFilesUploader = oUploader,
 		stopActiveSound: () => _oMessenger.stopActiveSound()
 	}
 })(jQuery);

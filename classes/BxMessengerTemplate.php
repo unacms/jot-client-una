@@ -191,10 +191,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                 )))));
     }
 
-	public function initFilesUploader($iProfileId){
-        $CNF = &$this -> _oConfig -> CNF;
-        $sBaseUrl = $this->_oConfig->getBaseUri();
-
+	public function initFilesUploader(){
         $this->addCss(array(
             'filepond-custom.css',
             'filepond.min.css',
@@ -203,37 +200,26 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         ));
 
         $this->addJs(array(
+            'uploader.js',
             'filepond.min.js',
-            'filepond.jquery.js',
             'filepond-plugin-image-preview.min.js',
             'filepond-plugin-file-validate-size.min.js',
             'filepond-plugin-media-preview.min.js',
             'filepond-plugin-file-rename.min.js'
         ));
 
-        $aParams = array();
-        $oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);
-	    if ($oStorage) {
-            $aParams = array(
-                'files_uploader' => $CNF['FILES_UPLOADER'],
-                'restricted_extensions' => json_encode($oStorage->getRestrictedExt()),
-                'server_files_uploader_url' => $sBaseUrl . 'upload_temp_file',
-                'remove_temp_file_url' => $sBaseUrl . 'upload_temp_file',
-                'delete' => bx_js_string(_t('_bx_messenger_upload_delete')),
-                'delete_confirm' => bx_js_string(_t('_bx_messenger_delete_confirm')),
-                'invalid_file_type' => bx_js_string(_t('_bx_messenger_upload_invalid_file_type')),
-                'file_size' => (int)$oStorage->getMaxUploadFileSize($iProfileId)/(1024*1024),// in bytes
-                'max_files_exceeded' => bx_js_string(_t('_bx_messenger_max_files_upload_error')),
-                'upload_is_complete' => bx_js_string(_t('_bx_messenger_upload_is_complete')),
-                'upload_cancelled' => bx_js_string(_t('_bx_messenger_upload_cancelled')),
-                'uploading' => bx_js_string(_t('_bx_messenger_uploading_file')),
-                'number_of_files' => (int)$this->_oConfig->CNF['MAX_FILES_TO_UPLOAD'],
-                'response_error' => bx_js_string(_t('_bx_messenger_invalid_server_response')),
-                'remove_button' => bx_js_string(_t('_bx_messenger_uploading_remove_button'))
-            );
-        }
+        $this->addJsTranslation(array(
+            '_bx_messenger_upload_delete',
+            '_bx_messenger_delete_confirm',
+            '_bx_messenger_upload_invalid_file_type',
+            '_bx_messenger_max_files_upload_error',
+            '_bx_messenger_upload_is_complete',
+            '_bx_messenger_upload_cancelled',
+            '_bx_messenger_uploading_file',
+            '_bx_messenger_invalid_server_response',
+            '_bx_messenger_uploading_remove_button',
 
-        return !empty($aParams) ? $this->parseHtmlByName('filepond_config.html', $aParams) : '';
+        ));
     }
 
     private function getJotMenuCode(&$aJot, $iProfileId){
@@ -1007,13 +993,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             '_bx_messenger_are_you_sure_close_jisti',
             '_bx_messenger_jisti_connection_error',
             '_bx_messenger_post_area_message',
-            '_bx_messenger_file_is_too_large_error',
-            '_bx_messenger_max_files_upload_error',
-            '_bx_messenger_file_is_too_large_error_details',
-            '_bx_messenger_file_type_is_not_allowed',
             '_bx_messenger_jitsi_mobile_warning',
             '_bx_messenger_loading',
-            '_bx_messenger_share_jot'
+            '_bx_messenger_share_jot',
+            '_bx_messenger_notification_request',
+            '_bx_messenger_notification_request_yes',
+            '_bx_messenger_notification_request_no',
         ));
 
         $sUsername = '';
@@ -1108,13 +1093,25 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 											'one_signal_api' => $CNF['PUSH_APP_ID'],
 											'short_name' => $CNF['PUSH_SHORT_NAME'],
 											'safari_key' => $CNF['PUSH_SAFARI_WEB_ID'],
-											'jot_chat_page_url' => BxDolPermalinks::getInstance()->permalink($CNF['URL_HOME']),
-											'notification_request' => bx_js_string(_t('_bx_messenger_notification_request')),
-											'notification_request_yes' => bx_js_string(_t('_bx_messenger_notification_request_yes')),
-											'notification_request_no' => bx_js_string(_t('_bx_messenger_notification_request_no'))
+											'jot_chat_page_url' => BxDolPermalinks::getInstance()->permalink($CNF['URL_HOME'])
 										)
 									)
 		);
+
+        // init files Uploader
+        $oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);
+        if ($oStorage) {
+            $sBaseUrl = $this->_oConfig->getBaseUri();
+            $aVars['files_uploader'] = json_encode(array(
+                            'input_name' => $CNF['FILES_UPLOADER'],
+                            'restricted_extensions' => json_encode($oStorage->getRestrictedExt()),
+                            'uploader_url' => $sBaseUrl . 'upload_temp_file',
+                            'remove_temp_file_url' => $sBaseUrl . 'upload_temp_file',
+                            'file_size' => (int)$oStorage->getMaxUploadFileSize($iProfileId)/(1024*1024),// in bytes
+                            'number_of_files' => (int)$this->_oConfig->CNF['MAX_FILES_TO_UPLOAD'],
+                        ));
+        }
+
 
 		if ($bIsPushEnabled) {
 		    if(class_exists('BxDolPush', false) && method_exists('BxDolPush', 'getTags')){
@@ -1417,10 +1414,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		{
 			switch($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']])
 			{
-				case 'repost':
+				case BX_ATT_TYPE_REPOST:
 						$sHTML = $this -> getJotAsAttachment($aJot[$CNF['FIELD_MESSAGE_AT']]);
 						break;
-                case 'giphy':
+
+				case BX_ATT_TYPE_GIPHY:
                         $sHTML = $this -> parseHtmlByName('giphy.html', array(
                             'gif' => $aJot[$CNF['FIELD_MESSAGE_AT']],
                             'time' => time(),
@@ -1428,13 +1426,17 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                             'dynamic' => $bIsDynamicallyLoad ? 'block' : 'none',
                         ));
                         break;
-				case 'files':
+
+                case BX_ATT_TYPE_FILES_UPLOADING:
+                case BX_ATT_TYPE_FILES:
+                        $aUploadingFilesList = $aJot[$CNF['FIELD_MESSAGE_AT']] ? explode(',', $aJot[$CNF['FIELD_MESSAGE_AT']]) : array();
 						$aFiles = $this -> _oDb -> getJotFiles($aJot[$CNF['FIELD_MESSAGE_ID']]);
 						$aItems = array(
 							'bx_repeat:images' => array(),
 							'bx_repeat:files' => array(),
 							'bx_repeat:videos' => array(),
 							'bx_repeat:audios' => array(),
+                            'bx_repeat:loading_placeholder' => array()
 						);
 						
 						$aTranscodersVideo = $this -> getAttachmentsVideoTranscoders();
@@ -1443,7 +1445,10 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
 						foreach($aFiles as $iKey => $aFile)
 						{
-    						    $isAllowedDelete = $this->_oDb->isAllowedToDeleteJot($aJot[$CNF['FIELD_MESSAGE_ID']], $iViewer, $aJot[$CNF['FIELD_MESSAGE_AUTHOR']], $bIsLotAuthor);
+    						    if (($iKey = array_search($aFile[$CNF['FIELD_ST_NAME']], $aUploadingFilesList)) !== FALSE)
+    						        unset($aUploadingFilesList[$iKey]);
+
+						        $isAllowedDelete = $this->_oDb->isAllowedToDeleteJot($aJot[$CNF['FIELD_MESSAGE_ID']], $iViewer, $aJot[$CNF['FIELD_MESSAGE_AUTHOR']], $bIsLotAuthor);
     				            $isVideo = $aTranscodersVideo && (0 == strncmp('video/', $aFile['mime_type'], 6)) && $aTranscodersVideo['poster']->isMimeTypeSupported($aFile['mime_type']);
 								if ($oStorage -> isImageFile($aFile[$CNF['FIELD_ST_TYPE']]))
 								{
@@ -1458,7 +1463,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 										'name' => $aFile[$CNF['FIELD_ST_NAME']],
 										'delete_code' => $bMenu ? $this -> deleteFileCode($aFile[$CNF['FIELD_ST_ID']], $isAllowedDelete) : ''
 									);
-								}elseif ($isVideo)
+								}
+								   elseif ($isVideo)
 								{
 									$aItems['bx_repeat:videos'][] = array(
 										'id' => $aFile[$CNF['FIELD_ST_ID']],
@@ -1494,6 +1500,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 										'url' => BX_DOL_URL_ROOT
 									);
 						}
+
+                        foreach($aUploadingFilesList as $sFileName)
+                            $aItems['bx_repeat:loading_placeholder'][] = array(
+                                'url' => $this->getImageUrl('audio-na.png'),
+                                'name' => $sFileName,
+                            );
 						
 						$sHTML = $this -> parseHtmlByName('files.html', $aItems);
 						break;
@@ -1656,30 +1668,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	    return $this -> parseHtmlByName('file_menu.html', array(
                     'file_menu' => $this -> getFileMenuCode($iFileId, $bIsDeleteAllowed)
 				));
-	}
-	
-	/**
-	* Returns files uploading form
-	*@param int $iProfile viewer profile id
-	*@return string html form
-	*/
-	public function getFilesUploadingForm($iProfileId){
-		$oStorage = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE']);
-		if (!$oStorage)
-			return '';	
-		
-		return $this -> parseHtmlByName('uploader_form.html', array(
-			'restrictions_text' => '',
-			'delete' => bx_js_string(_t('_bx_messenger_upload_delete')),
-			'delete_confirm' => bx_js_string(_t('_bx_messenger_delete_confirm')),
-			'all_files_confirm' => bx_js_string(_t('_bx_messenger_delete_all_files_confirm')),
-			'message' => bx_js_string(_t('_bx_messenger_upload_drop_area_message')),
-			'invalid_file_type' => bx_js_string(_t('_bx_messenger_upload_invalid_file_type')),
-			'file_size' => (int)$oStorage -> getMaxUploadFileSize($iProfileId)/(1024*1024), //convert to MB
-			'big_file' => bx_js_string($oStorage -> getRestrictionsTextFileSize($iProfileId)),
-			'number_of_files' => (int)$this->_oConfig-> CNF['MAX_FILES_TO_UPLOAD'],
-			'response_error' => bx_js_string(_t('_bx_messenger_invalid_server_response')),
-        ));
 	}
 
 	/**

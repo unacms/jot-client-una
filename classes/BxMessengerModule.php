@@ -22,6 +22,7 @@ define('BX_IM_EMPTY', 0);
 
 // Attachment types
 define('BX_ATT_TYPE_FILES', 'files');
+define('BX_ATT_TYPE_FILES_UPLOADING', 'uploading');
 define('BX_ATT_TYPE_GIPHY', 'giphy');
 define('BX_ATT_TYPE_REPOST', 'repost');
 define('BX_ATT_TYPE_VC', 'vc'); // video conference
@@ -298,25 +299,29 @@ class BxMessengerModule extends BxBaseModTextModule
                 $aResult['header'] = $this->_oTemplate->getTalkHeader($aResult['lot_id'], $this->_iProfileId);
             }
 
-			if (!empty($aFiles))
-			{
+		    if (!empty($aFiles)) {
                 $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
-                $aFilesNames = array();
-				foreach($aFiles as $iKey => $sName)
-				{
-                    $iFile = $oStorage->storeFileFromPath(BX_DIRECTORY_PATH_TMP . $sName, $iType == BX_IM_TYPE_PRIVATE, $this->_iProfileId, (int)$iId);
-					if ($iFile)
-					{
+                $aUploadingFilesNames = $aCompleteFilesNames = array();
+                foreach ($aFiles as &$aFile) {
+                    if (!(int)$aFile['complete']) {
+                        $aUploadingFilesNames[] = $aFile['realname'];
+                        continue;
+                    }
+
+                    $iFile = $oStorage->storeFileFromPath(BX_DIRECTORY_PATH_TMP . $aFile['name'], $iType == BX_IM_TYPE_PRIVATE, $this->_iProfileId, (int)$iId);
+                    if ($iFile) {
                         $oStorage->afterUploadCleanup($iFile, $this->_iUserId);
-                        $this->_oDb->updateFiles($iFile, $CNF['FIELD_ST_JOT'], $iId);
-                        $aFilesNames[] = $sName;
-					}
-					else 
+                        $this->_oDb->updateFiles($iFile, array(
+                            $CNF['FIELD_ST_JOT'] => $iId,
+                            $CNF['FIELD_ST_NAME'] => $aFile['realname']
+                        ));
+                        $aCompleteFilesNames[] = $aFile['realname'];
+                    } else
                         $aResult = array('code' => 2, 'message' => $oStorage->getErrorString());
                 }
 
-                if (!empty($aFilesNames))
-                    $this->_oDb->addAttachment($iId, implode(',', $aFilesNames), BX_ATT_TYPE_FILES);
+                if (!empty($aCompleteFilesNames) || !empty($aUploadingFilesNames))
+                    $this->_oDb->addAttachment($iId, implode(',', array_merge($aCompleteFilesNames, $aUploadingFilesNames)), !empty($aUploadingFilesNames) ? BX_ATT_TYPE_FILES_UPLOADING : BX_ATT_TYPE_FILES);               
             }
 
 			if (is_array($aGiphy) && !empty($aGiphy))
@@ -1269,13 +1274,6 @@ class BxMessengerModule extends BxBaseModTextModule
         echoJson(array('code' => 1));
     }
 
-    public function actionGetUploadFilesForm()
-    {
-        header('Content-type: text/html; charset=utf-8');
-        echo $this->_oTemplate->getFilesUploadingForm($this->_iUserId);
-        exit;
-    }
-
     public function actionGetRecordVideoForm()
     {
         header('Content-type: text/html; charset=utf-8');
@@ -1303,9 +1301,14 @@ class BxMessengerModule extends BxBaseModTextModule
                     exit;
                 }
 
-                if (($oFiles = $_FILES[$CNF['FILES_UPLOADER']]) && $oStorage->isValidFileExt($oFiles['name'])) {
-                    $sTempFile = $oFiles['tmp_name'];
-                    $sTargetFile = BX_DIRECTORY_PATH_TMP . $oFiles['name'];
+                $aFiles = array_filter($_FILES, function(&$aFile, $sName) use ($CNF) {
+                    return stripos($sName, $CNF['FILES_UPLOADER']) !== FALSE;
+                }, ARRAY_FILTER_USE_BOTH);
+
+                $aUploader = current($aFiles);
+                if (!empty($aUploader) && $oStorage->isValidFileExt($aUploader['name'])) {
+                    $sTempFile = $aUploader['tmp_name'];
+                    $sTargetFile = BX_DIRECTORY_PATH_TMP . $aUploader['name'];
                     move_uploaded_file($sTempFile, $sTargetFile);
                     echo 'OK';
                 }
@@ -2430,6 +2433,46 @@ class BxMessengerModule extends BxBaseModTextModule
 
         echo $this->_oTemplate->getEmojiCode();
         exit;
+    }
+
+    function actionUpdateUploadedFiles(){
+        $iJotId = bx_get('jot_id');
+        $aFiles = bx_get('files');
+        if (!$this->isLogged() || !$iJotId || empty($aFiles))
+            return echoJson(array('code' => 1, 'message' => MsgBox(_t('_bx_messenger_not_logged'))));
+
+        $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_SEND_MESSAGE, $this->_iProfileId);
+        if ($mixedResult !== true)
+            return echoJson(array('code' => 1, 'message' => $mixedResult));
+
+
+        $CNF = &$this->_oConfig->CNF;
+        $aLotInfo = $this->_oDb->getLotByJotId($iJotId, false);
+        if (empty($aLotInfo) || ($aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_PRIVATE &&
+                !$this->_oDb->isParticipant($aLotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iProfileId)))
+            return echoJson(array('code' => 1, 'message' => '_bx_messenger_not_participant'));
+
+        $aUploadedFiles = $this->_oDb->getJotFiles($iJotId);
+        $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
+        foreach ($aFiles as &$aFile) {
+            $sRealName = $aFile['realname'];
+            if (!empty($aUploadedFiles) && array_filter($aUploadedFiles, function($aF) use ($sRealName, $CNF) {
+                    return $aF[$CNF['FIELD_ST_NAME']] == $sRealName;
+                }))
+                continue;
+
+            $iFileId = $oStorage->storeFileFromPath(BX_DIRECTORY_PATH_TMP . $aFile['name'], $aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE, $this->_iProfileId, (int)$iJotId);
+            if ($iFileId) {
+                $oStorage->afterUploadCleanup($iFileId, $this->_iProfileId);
+                $this->_oDb->updateFiles($iFileId, array(
+                    $CNF['FIELD_ST_JOT'] => $iJotId,
+                    $CNF['FIELD_ST_NAME'] => $sRealName
+                ));
+                $this->_oDb->updateJot($iJotId, $CNF['FIELD_MESSAGE_AT_TYPE'], BX_ATT_TYPE_FILES);
+            }
+        }
+
+        echoJson(array('code' => 0));
     }
 }
 

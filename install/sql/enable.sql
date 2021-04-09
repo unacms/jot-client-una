@@ -47,7 +47,9 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_jitsi_only_for_private', 'on', @iCategId, '_bx_messenger_jitsi_enable_only_for_private', 'checkbox', '', '', '', 35),
 ('bx_messenger_jitsi_support_url', 'https://community.jitsi.org/', @iCategId, '_bx_messenger_jitsi_support_url', 'digit', '', '', '', 36),
 ('bx_messenger_disable_contact_privacy', '', @iCategId, '_bx_messenger_disable_contact_privacy', 'checkbox', '', '', '', 37),
-('bx_messenger_enable_mentions', 'on', @iCategId, '_bx_messenger_use_mentions', 'checkbox', '', '', '', 38);
+('bx_messenger_enable_mentions', 'on', @iCategId, '_bx_messenger_use_mentions', 'checkbox', '', '', '', 38),
+('bx_messenger_jwt_app_id', '', @iCategId, '_bx_messenger_jwt_app_id', 'digit', '', '', '', 39),
+('bx_messenger_jwt_app_secret', '', @iCategId, '_bx_messenger_jwt_app_secret', 'digit', '', '', '', 40);
 
 
 -- MENU: notifications

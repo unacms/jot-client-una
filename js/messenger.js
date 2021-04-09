@@ -376,7 +376,7 @@
 			if (!code && !($('.bx-msg-box-container', oBlock).length && $(html).hasClass('bx-msg-box-container')))
 				$(oBlock)
 					.append(html)
-					.bxTime();
+					.bxMsgTime();
 
 			if (typeof (fCallback) === 'function')
 				fCallback({ total });
@@ -862,7 +862,7 @@
 												{			
 													$(_this.sLotsListBlock)
 														.html(oData.html)
-														.bxTime()
+														.bxMsgTime()
 														.fadeIn(fCallback);
 													
 													_this.iFilterType = iFilterType;
@@ -1412,6 +1412,17 @@
 		return this;
 	};
 
+	$.fn.bxMsgTime = function() {
+		$(this)
+			.bxTime()
+			.find('time')
+			.each(function(){
+				$(this).prop('title', $(this).text());
+			});
+
+		return this;
+	};
+
 	/**
 	* Convert plan text links/emails to urls, mailto
 	*@param string sText text of the message
@@ -1772,7 +1783,7 @@
 						.find('.text-area')
 						.replaceWith(text_area)
 						.end()
-						.bxTime()
+						.bxMsgTime()
 						.addTimeIntervals()
 						.show(
 							function()
@@ -1832,7 +1843,7 @@
 					.find(_this.sTalkBlock)
 					.html(history)
 					.end()
-					.bxTime()
+					.bxMsgTime()
 					.waitForImages(() => _this.updateScrollPosition('bottom'));
 
 					if (typeof fCallback == 'function')
@@ -1947,7 +1958,7 @@
 									.html('')
 									.attr('datetime', sTime)
 									.closest(_this.sJot)
-									.bxTime(undefined, true)
+									.bxMsgTime()
 									.linkify();
 
 								$(_this.sTalkList).addTimeIntervals();
@@ -2127,7 +2138,7 @@
 
 													$(_this.sLotsListBlock)
 														.prepend($(oNewLot)
-														.bxTime()
+														.bxMsgTime()
 														.fadeIn('slow'));
 
 													_this.updatePageIcon();
@@ -2148,7 +2159,7 @@
 								.replaceWith($(oNewLot)
 								.fadeTo(150, 0.5)
 								.fadeTo(150, 1)
-								.bxTime());
+								.bxMsgTime());
 						}
 
 						_this.setUsersStatuses(oLot);
@@ -2596,7 +2607,7 @@
 							$('div[data-id="' + iJotId + '"] ' + _this.sJotMessage, oList)
 									.html(html)
 									.parent()
-									.bxTime();// don't update attachment for message and don't broadcast as new message
+									.bxMsgTime();// don't update attachment for message and don't broadcast as new message
 							return;
 						case 'delete':
 								const onRemove = function(){
@@ -2674,7 +2685,7 @@
 								$(this).css('display', 'flex');
 								_this.initJotIcons(this);
 							})
-						.bxTime();
+						.bxMsgTime();
 
 				if (typeof callback === 'function')
 					callback();
@@ -3302,7 +3313,12 @@
 			_oMessenger.checkNotFinishedTalks();
 
 			// find the all intervals in history
-			$(_oMessenger.sTalkBlock).addTimeIntervals();
+			$(_oMessenger.sTalkBlock)
+				.addTimeIntervals()
+				.bxMsgTime();
+
+			$(_oMessenger.sLotsListSelector)
+				.bxMsgTime();
 
 			// attach on ESC button return from create talk area
 			$(document).on('keydown', function(e){

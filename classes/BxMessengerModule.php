@@ -49,6 +49,12 @@ define('BX_MSG_ACTION_CREATE_VC', 'create_vc');
 define('BX_MSG_ACTION_CREATE_IM_VC', 'video_conference');
 define('BX_MSG_ACTION_VIDEO_RECORDER', 'video_recorder');
 
+// Lot settings
+define('BX_MSG_SETTING_MSG', 'msg'); // allow to send messages
+define('BX_MSG_SETTING_GIPHY', 'giphy'); // allow to send giphy
+define('BX_MSG_SETTING_FILES', 'files'); // allow to send files
+define('BX_MSG_SETTING_VIDEO_RECORD', 'video_rec'); // allow to record videos
+define('BX_MSG_SETTING_SMILES', 'smiles'); // allow to record videos
 
 /**
  * Messenger module
@@ -363,10 +369,12 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $sHeader = $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId);
         $sHistory = $this->_oTemplate->getHistoryArea($this->_iProfileId, $iLotId, $iJotId ? $iJotId : $iLastUnreadJot, $iUnreadLotsJots && $iUnreadLotsJots < ($CNF['MAX_JOTS_BY_DEFAULT']/2));
+        $sTextArea = $this->_oTemplate->getTextArea($this->_iProfileId, $iLotId);
         $aVars = array(
             'code' => 0,
             'header' => $sHeader,
             'history' => $sHistory,
+            'text_area' => $sTextArea,
             'last_unread_jot' => $iLastUnreadJot,
             'unread_jots' => $iUnreadLotsJots
         );
@@ -625,6 +633,7 @@ class BxMessengerModule extends BxBaseModTextModule
                  'title' => _t('_bx_messenger_lots_menu_create_lot_title'),
                  'history' => $this->_oTemplate->getHistoryArea($this->_iProfileId, $iLotId),
                  'header' => $sHeader,
+                 'text_area' => $this->_oTemplate->getTextArea($this->_iProfileId, $iLotId),
                  'code' => 0
             ));
     }
@@ -2377,6 +2386,50 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $mixedContent = $this->_oTemplate->getCallPopup($iLotId, $this->_iProfileId);
         $aResult = array('code' => +($mixedContent === false), 'popup' => $mixedContent);
+        return echoJson($aResult);
+    }
+
+    function actionGetLotSettings(){
+        $iLotId = (int)bx_get('lot');
+        $aResult = array('code' => 1, 'msg' => _t('_bx_messenger_not_found'));
+        if (!$iLotId || !isLogged())
+            return echoJson($aResult);
+
+        $aResult = array('code' => 1, 'msg' => _t('_bx_messenger_lot_can_change_settings'));
+        $bCheckAction = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true;
+        if (!($this->_oDb->isAuthor($iLotId, $this->_iProfileId) || $bCheckAction))
+            return echoJson($aResult);
+
+        $mixedContent = $this->_oTemplate->getLotSettingsForm($iLotId);
+        $aResult = array(
+            'code' => +($mixedContent === false),
+            'popup' => array(
+                'html' => $mixedContent,
+                'options' => array(
+                    'closeElement' => true,
+			        'closeOnOuterClick' => true,
+			        'removeOnClose' => true,
+                )
+            )
+        );
+        return echoJson($aResult);
+    }
+
+    function actionSaveLotSettings(){
+        $iLotId = (int)bx_get('lot');
+        $aOptions = bx_get('options');
+        $aResult = array('code' => 1, 'msg' => _t('_bx_messenger_not_found'));
+        if (!$iLotId || !isLogged() || !($aLotInfo = $this->_oDb->getLotInfoById($iLotId)))
+            return echoJson($aResult);
+
+        $aResult = array('code' => 1, 'msg' => _t('_bx_messenger_lot_can_change_settings'));
+        $bCheckAction = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true;
+        if (!($this->_oDb->isAuthor($iLotId, $this->_iProfileId) || $bCheckAction))
+            return echoJson($aResult);
+
+        if ($this->_oDb->saveLotSettings($iLotId, $aOptions))
+            return echoJson(array('code' => 0/*, 'text_area' => $this->_oTemplate->getTextArea($this->_iProfileId, $iLotId)*/));
+
         return echoJson($aResult);
     }
 

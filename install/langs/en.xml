@@ -261,4 +261,13 @@
 	<string name="_bx_messenger_acl_action_video_recorder"><![CDATA[Use video recording]]></string>
 	<string name="_bx_messenger_jwt_app_id"><![CDATA[JWT token App id]]></string>
 	<string name="_bx_messenger_jwt_app_secret"><![CDATA[JWT token App secret]]></string>
+	<string name="_bx_messenger_lot_menu_settings"><![CDATA[Settings]]></string>
+	<string name="_bx_messenger_lot_action_not_allowed"><![CDATA[{0} action is not allowed for this talk]]></string>
+	<string name="_bx_messenger_lot_can_change_settings"><![CDATA[You can not change settings of the talk]]></string>
+	<string name="_bx_messenger_lot_options_item_msg"><![CDATA[messages]]></string>
+	<string name="_bx_messenger_lot_options_item_giphy"><![CDATA[animation]]></string>
+	<string name="_bx_messenger_lot_options_item_files"><![CDATA[files]]></string>
+	<string name="_bx_messenger_lot_options_item_video_rec"><![CDATA[video recordings]]></string>
+	<string name="_bx_messenger_lot_options_item_smiles"><![CDATA[smiles]]></string>
+	<string name="_bx_messenger_lot_options_title"><![CDATA[Allow to perform selected actions for the talk:]]></string>
 </resources>

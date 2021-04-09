@@ -114,10 +114,10 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 	text-align: end;
 }
 
-.bx-messenger-post-box-send-actions ul li:first-child
+/*.bx-messenger-post-box-send-actions ul li:first-child
 {
 	display:none;
-}
+}*/
 
 .bx-messenger-post-box-send-button
 {
@@ -1627,6 +1627,11 @@ input#items::placeholder,
 .ql-editor.ql-blank,
 input#bx-messenger-add-users-input::placeholder {
 	color: dimgrey;
+}
+
+.bx-messenger-options-buttons {
+	display: flex;
+	justify-content: space-between;
 }
 
 @media (max-width:480px)

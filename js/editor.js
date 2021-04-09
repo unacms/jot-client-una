@@ -81,7 +81,7 @@
     }
 
     get length(){
-       return this.oEditor.getLength();
+       return  this.oEditor && this.oEditor.getLength();
     }
 
     setContents(aValues){

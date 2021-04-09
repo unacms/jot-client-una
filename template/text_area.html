@@ -1,22 +1,26 @@
-<div class="bx-messenger-table-wrapper-rows">
+<div class="bx-messenger-table-wrapper-rows text-area">
     <div class="cell">
         <div class="bx-messenger-post-box bx-def-border-block">
-            <div class="bx-messenger-post-box-set">
-                <div class="bx-messenger-post-box-send-area bx-def-font-default bx-def-font-middle">
-                    <div id="bx-messenger-message-box" class="bx-form-input-text bx-messenger-text-box bx-def-font"></div>
+            <bx_if:text>
+                <div class="bx-messenger-post-box-set">
+                    <div class="bx-messenger-post-box-send-area bx-def-font-default bx-def-font-middle">
+                        <div id="bx-messenger-message-box" class="bx-form-input-text bx-messenger-text-box bx-def-font"></div>
+                    </div>
                 </div>
-            </div>
+            </bx_if:text>
             <div class="bx-messenger-attachment-group">
                 <div class="bx-messenger-send-area-attachments"></div>
             </div>
             <div class="bx-messenger-post-box-send-actions">
                 <div class="bx-messenger-post-box-send-actions-items">
                     <ul>
-                        <li>
-                            <a class="smiles" title="<bx_text:_bx_messenger_post_emoji />">
-                                <i class="sys-icon smile"></i>
-                            </a>
-                        </li>
+                        <bx_if:smiles>
+                            <li>
+                                <a class="smiles" title="<bx_text:_bx_messenger_post_emoji />">
+                                    <i class="sys-icon smile"></i>
+                                </a>
+                            </li>
+                        </bx_if:smiles>
                         <bx_if:recording>
                             <li class="video">
                                 <a title="<bx_text:_bx_messenger_send_recorded_video />" onclick="oMessenger.showPopForm('get_record_video_form');">
@@ -24,11 +28,13 @@
                                 </a>
                             </li>
                         </bx_if:recording>
-                        <li>
-                            <a title="<bx_text:_bx_messenger_post_attache_files />" class="attachefile">
-                                <i class="sys-icon paperclip"></i>
-                            </a>
-                        </li>
+                        <bx_if:files>
+                            <li>
+                                <a title="<bx_text:_bx_messenger_post_attache_files />" class="attachefile">
+                                    <i class="sys-icon paperclip"></i>
+                                </a>
+                            </li>
+                        </bx_if:files>
                         <bx_if:giphy>
                             <li>
                                 <a title="<bx_text:_bx_messenger_giphy_gifs_button />" id="bx-messenger-send-area-giphy">
@@ -45,6 +51,6 @@
                 </div>
             </div>
         </div>
+        __giphy__
     </div>
 </div>
-__giphy__

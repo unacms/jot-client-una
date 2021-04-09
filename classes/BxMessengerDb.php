@@ -106,9 +106,11 @@ class BxMessengerDb extends BxBaseModTextDb
                                                         WHERE `{$this->CNF['FIELD_NEW_LOT']}`=:lot                                        
                                                      ", array('lot' => $iLotId));
 
-        $iResult = $this -> query("DELETE FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = :id", array('id' => $iLotId));
-		$iResult += $this -> query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id", array('id' => $iLotId));
-		return $iResult;
+        $this -> query("DELETE FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = :id", array('id' => $iLotId));
+        $this -> query("DELETE FROM `{$this->CNF['TABLE_LOT_SETTINGS']}` WHERE `{$this->CNF['FLS_ID']}` = :id", array('id' => $iLotId));
+		$this -> query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id", array('id' => $iLotId));
+
+		return true;
 	}
 
     /**
@@ -1798,6 +1800,37 @@ class BxMessengerDb extends BxBaseModTextDb
                                                 'status' => (int)!empty($aParticipants)
                                             )
                              );
+    }
+
+    function saveLotSettings($iLotId, $aOptions){
+        if (!$iLotId)
+            return false;
+
+        if (empty($aOptions))
+            $aOptions = array();
+
+        return $this->query("REPLACE INTO `{$this->CNF['TABLE_LOT_SETTINGS']}` 
+                                            SET 
+                                                `{$this->CNF['FLS_SETTINGS']}` = :values, 
+                                                `{$this->CNF['FLS_ID']}` = :id", array('values' => serialize($aOptions), 'id' => $iLotId));
+    }
+
+    function isActionAllowed($iLotId, $sAction = BX_MSG_SETTING_MSG){
+        $mixedOptions = $this->getLotSettings($iLotId);
+        if ($mixedOptions === false)
+            return true;
+
+        return in_array($sAction, $mixedOptions);
+    }
+
+    function getLotSettings($iLotId){
+        if (!$iLotId || !($aOptions = $this -> getOne("SELECT `{$this->CNF['FLS_SETTINGS']}`                             
+                                               FROM `{$this->CNF['TABLE_LOT_SETTINGS']}` 
+                                               
+                                               WHERE `{$this->CNF['FLS_ID']}` = :id", array('id' => $iLotId))))
+            return false;
+
+        return @unserialize($aOptions);
     }
 }
 

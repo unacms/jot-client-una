@@ -13,7 +13,7 @@ bx_import('BxDolPrivacy');
 
 class BxMessengerConfig extends BxBaseModTextConfig
 {
-	function __construct($aModule)
+    function __construct($aModule)
 	{
 		parent::__construct($aModule);
 
@@ -32,6 +32,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
             'TABLE_JVC' => $aModule['db_prefix'] . 'jvc',
             'TABLE_PUBLIC_JVC' => $aModule['db_prefix'] . 'public_jvc',
             'TABLE_JVCT' => $aModule['db_prefix'] . 'jvc_track',
+            'TABLE_LOT_SETTINGS' => $aModule['db_prefix'] . 'lots_settings',
             'TABLE_CMTS_OBJECTS' => 'sys_objects_cmts',
             'TABLE_ENTRIES_FULLTEXT' => 'search_title',
             'TABLE_ENTRIES_COMMENTS_FULLTEXT' => 'search_fields',
@@ -135,6 +136,10 @@ class BxMessengerConfig extends BxBaseModTextConfig
             'FPJVC_STATUS' => 'active',
             'FPJVC_CREATED' => 'created',
 
+            // messenger lot settings
+            'FLS_ID' => 'lot_id',
+            'FLS_SETTINGS' => 'settings',
+
             // page URIs
             'URL_HOME' => BX_DOL_URL_ROOT . 'page.php?i=messenger',
             'URL_REPOST' => 'archive/',
@@ -207,6 +212,15 @@ class BxMessengerConfig extends BxBaseModTextConfig
             'OBJECT_MENU_MANAGE_TOOLS' => 'bx_messenger_menu_manage_tools', //manage menu in content administration tools
             'OBJECT_GRID' => 'bx_messenger',
             'OBJECT_UPLOADERS' => array(),
+
+            // available lot options
+            'LOT_OPTIONS' => array(
+                'msg',
+                'giphy',
+                'files',
+                'video_rec',
+                'smiles'
+            ),
 
             //options
             'MAX_SEND_SYMBOLS'	=> (int)getParam($aModule['db_prefix'] . 'max_symbols_number'),

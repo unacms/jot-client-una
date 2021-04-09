@@ -30,6 +30,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						'main.css',
                         'video-conference.css',
                         'emoji.css',
+                        'quill.bubble.css',
                         $CNF['EMOJI']['css']
 					 );
 
@@ -45,6 +46,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						'adapter.js',
 						'semantic.min.js',
                         'soundjs.min.js',
+                        'quill.min.js',
+                        'jquery-ui/jquery.ui.widget.min.js',
+                        'jquery-ui/jquery.ui.tooltip.min.js',
                         $CNF['EMOJI']['js']
 					);
 
@@ -54,8 +58,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		}
 
         if ($this->_oConfig->CNF['USE_MENTIONS']) {
-            $this->addCss('quill.mention.css');
+            array_push($aCss, 'quill.mention.css');
+            array_push($aJs, 'quill.mention.min.js');
         }
+
+        $this->initFilesUploader();
 
         $this->addCss($aCss);
 		$this->addJs($aJs); 
@@ -118,7 +125,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         ));
     }
 
-	public function getTextArea($iProfileId){
+	public function getTextArea($iProfileId, $iLotId = 0){
 	    $CNF = $this->_oConfig->CNF;
 
         $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_SEND_MESSAGE, $iProfileId);
@@ -127,28 +134,51 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
 	    $bGiphy = $iProfileId && $CNF['GIPHY']['api_key'];
 	    $bRecorder = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_VIDEO_RECORDER, $iProfileId) === true;
-        $aVars = array(
-             'bx_if:giphy' => array(
-                'condition' => $bGiphy,
-                'content' 	=> array()
-             ),
-            'bx_if:recording' => array(
-                'condition' => $bRecorder,
-                'content' 	=> array()
-            ),
-            'giphy' => $bGiphy ? $this -> getGiphyPanel() : '',
-            'files_uploader' => $CNF['FILES_UPLOADER']
-        );
+        $bMSG = $bSmiles = $bFiles = true;
 
-        $this->addCss(array('quill.bubble.css'));
-        $this->addJs(array('quill.min.js'));
+	    if ($iLotId) {
+          $mixedOptions = $this->_oDb->getLotSettings($iLotId);
 
-        if ($this->_oConfig->CNF['USE_MENTIONS']) {
-            $this->addJs('quill.mention.min.js');
+          $bMSG = $mixedOptions === false || in_array(BX_MSG_SETTING_MSG, $mixedOptions);
+          $bFiles = $mixedOptions === false || in_array(BX_MSG_SETTING_FILES, $mixedOptions);
+          $bRecorder = $mixedOptions === false || in_array(BX_MSG_SETTING_VIDEO_RECORD, $mixedOptions);
+          $bGiphy = $mixedOptions === false || in_array(BX_MSG_SETTING_GIPHY, $mixedOptions);
+          $bSmiles = $mixedOptions === false || in_array(BX_MSG_SETTING_SMILES, $mixedOptions);
         }
 
-        $sFilesUploader = $this->initFilesUploader($iProfileId);
-        return $this -> parseHtmlByName('text_area.html', $aVars) . $sFilesUploader;
+        $bCheckAction = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $iProfileId) === true;
+        $bIsAuthor = $bCheckAction || $this->_oDb->isAuthor($iLotId, $iProfileId);
+
+        $sContent = '';
+	    if ($bMSG || $bFiles || $bRecorder || $bGiphy || $bSmiles || $bIsAuthor) {
+            $aVars = array(
+                'bx_if:giphy' => array(
+                    'condition' => $bGiphy || $bIsAuthor,
+                    'content' => array()
+                ),
+                'bx_if:recording' => array(
+                    'condition' => $bRecorder || $bIsAuthor,
+                    'content' => array()
+                ),
+                'bx_if:files' => array(
+                    'condition' => $bFiles || $bIsAuthor,
+                    'content' => array()
+                ),
+                'bx_if:smiles' => array(
+                    'condition' => ($bMSG && $bSmiles) || $bIsAuthor,
+                    'content' => array()
+                ),
+                'bx_if:text' => array(
+                    'condition' => $bMSG || $bIsAuthor,
+                    'content' => array()
+                ),
+                'giphy' => $bGiphy ? $this->getGiphyPanel() : ''
+            );
+
+            $sContent = $this -> parseHtmlByName('text_area.html', $aVars);
+        }
+
+        return $sContent;
     }
 
 	public function getEmojiCode($bTextArea = true){
@@ -279,7 +309,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         return $this -> parseHtmlByName('talk.html', array(
 			'header' => $this->getTalkHeader($iLotId, $iProfileId, $bIsBlockVersion),
 			'history' => $this->getHistory($iProfileId, $iLotId, $iJotId),
-            'text_area' => $this->getTextArea($iProfileId)
+            'text_area' => $this->getTextArea($iProfileId, $iLotId)
 		));
 	}
 
@@ -295,7 +325,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         return $this -> parseHtmlByName('talk.html', array(
             'header' => $this->getEditTalkArea($iProfileId, $iLotId),
             'history' => $this-> getHistory($iProfileId, $iLotId),
-            'text_area' => $this->getTextArea($iProfileId)
+            'text_area' => $this->getTextArea($iProfileId, $iLotId)
         ));
     }
 
@@ -450,6 +480,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                 'click' => "if (confirm('" . bx_js_string(_t('_bx_messenger_clear_lot'), BX_ESCAPE_STR_APOS) . "')) {$CNF['JSMain']}.onClearLot($iLotId);",
                 'title' => _t('_bx_messenger_clear_lot_menu'),
                 'icon' => 'trash'
+            ),
+            array(
+                'permissions' => $bAllowed,
+                'click' => "{$CNF['JSMain']}.onLotSettings();",
+                'title' => _t('_bx_messenger_lot_menu_settings'),
+                'icon' => 'cogs'
             )
         );
 
@@ -1975,6 +2011,66 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
 	    $sContent = $this->parseHtmlByName('conference_call.html', $aVars);
         return BxTemplFunctions::getInstance()->transBox('bx-messenger-vc-call', $sContent);
+    }
+
+    public function getLotSettingsForm($iLotId){
+        $CNF = &$this->_oConfig->CNF;
+        $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
+
+        if (empty($aLotInfo) || empty($CNF['LOT_OPTIONS']))
+            $sContent = MsgBox(_t('_Empty'));
+        else
+        {
+            $aOptions = array();
+            $aLotSettings = $this->_oDb->getLotSettings($iLotId);
+            foreach ($CNF['LOT_OPTIONS'] as &$sValue) {
+                $aOptions[] = array(
+                    'type' => 'checkbox',
+                    'name' => $sValue,
+                    'label' => _t("_bx_messenger_lot_options_item_{$sValue}"),
+                    'checked' => $aLotSettings === false || in_array($sValue, $aLotSettings)
+                );
+            }
+
+            $aForm = array(
+                'form_attrs' => array(
+                    'name' => 'lot_options',
+                    'method' => 'post',
+                    'enctype' => 'multipart/form-data'
+                ),
+                'inputs' => array(
+                    'options' => array(
+                        'type' => 'input_set',
+                        'dv' => '<br/>'
+                    ),
+                    'buttons' => array(
+                        'type' => 'input_set',
+                        'attrs_wrapper' => array('class' => 'bx-messenger-options-buttons'),
+                        array(
+                            'type' => 'button',
+                            'name' => 'save',
+                            'value' => _t("_bx_messenger_save_button"),
+                            'attrs' => array('onclick' => "javascript:{$CNF['JSMain']}.onSaveLotSettings(this);")
+                        ),
+                        array(
+                            'type' => 'button',
+                            'name' => 'close',
+                            'value' => _t("_bx_messenger_cancel_button"),
+                            'attrs' => array('onclick' => "javascript:$(this).closest('.bx-popup-applied:visible').dolPopupHide();")
+                        ),
+                    )
+                )
+            );
+
+            if (!empty($aOptions))
+                $aForm['inputs']['options'] = array_merge($aForm['inputs']['options'], $aOptions);
+
+
+            $oForm = new BxTemplFormView($aForm);
+            $sContent = $oForm -> getCode();
+        }
+
+        return BxTemplFunctions::getInstance()->popupBox(time(), _t('_bx_messenger_lot_options_title'), $sContent);
     }
 }
 

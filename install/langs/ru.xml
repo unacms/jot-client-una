@@ -258,4 +258,5 @@
 	<string name="_bx_messenger_allow_to_moderate_messages"><![CDATA[Разрешать создателям чатов модерировать сообщения]]></string>
 	<string name="_bx_messenger_clear_lot_menu"><![CDATA[Очистить историю]]></string>
 	<string name="_bx_messenger_clear_lot"><![CDATA[Вы уверено, что хотите безвозвратно удалить историю чата?]]></string>
+	<string name="_bx_messenger_lot_menu_settings"><![CDATA[Настройки]]></string>
 </resources>

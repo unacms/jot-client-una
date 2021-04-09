@@ -67,6 +67,12 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_users_info` (
     UNIQUE KEY `id` (`lot_id`,`user_id`)
 );
 
+CREATE TABLE IF NOT EXISTS `bx_messenger_lots_settings` (
+   `lot_id` int(11) NOT NULL,
+   `settings` text NOT NULL,
+   UNIQUE KEY `id` (`lot_id`)
+);
+
 CREATE TABLE IF NOT EXISTS `bx_messenger_unread_jots` (
    `lot_id` int(11) NOT NULL default 0,
    `first_jot_id` int(11) NOT NULL default 0,

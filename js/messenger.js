@@ -583,8 +583,18 @@
 					_this.oActiveEmojiObject = {'type': 'textarea'};
 				}));
 
+		// init files uploader
+		_this.initFilesUploader();
+		$('a.attachefile').on('click', () => {
+			if (!$(`${_this.sBottomGroupsArea} [name^="${_this.sUploaderInputPrefix}"]`).length || !_this.oFilesUploader)
+				_this.initFilesUploader();
+
+			_this.oFilesUploader.browse();
+		});
+
+
 		// enable video recorder if it is not IOS/Mac devices
-		if(!this.aPlatforms.includes(navigator.platform))
+		if(!_this.aPlatforms.includes(navigator.platform))
 			$(_this.sSendAreaActionsButtons)
 				.find('li.video').show();
 
@@ -886,7 +896,7 @@
 		if (!lot)
 			_this.blockSendMessages(true);
 
-		$.post('modules/?r=messenger/create_lot', { profile: user || 0, lot: lot || 0 }, function({ header, code, history, title, message }){
+		$.post('modules/?r=messenger/create_lot', { profile: user || 0, lot: lot || 0 }, function({ header, code, history, title, message, text_area }){
 			bx_loading($(_this.sMainTalkBlock), false);
 					if (!code){
 						$(_this.sJotsBlock)
@@ -897,6 +907,13 @@
 							$(_this.sJotsBlock)
 								.find(_this.sTalkBlock)
 								.html(history);
+						}
+
+						if (text_area) {
+							if ($('.text-area', _this.sJotsBlock).length)
+								$('.text-area', _this.sJotsBlock).replaceWith(text_area);
+							else
+								$(_this.sTalkAreaWrapper).append(text_area);
 						}
 
 						if (typeof title !== 'undefined')
@@ -918,7 +935,8 @@
                         if (message)
                             bx_alert(message);
                     }
-				
+
+				_this.initTextArea();
 				_this.blockSendMessages();
 
 		}, 'json');	
@@ -1734,7 +1752,7 @@
 		_this.blockSendMessages(true);
 
 		return $.post('modules/?r=messenger/load_talk', { lot_id: iLotId, jot_id: iJotId, mark_as_read: +bMarkAsRead },
-			function({ title, history, header, code, unread_jots, last_unread_jot })
+			function({ title, history, header, code, unread_jots, last_unread_jot, text_area })
 		{
 
 			bx_loading($(_this.sMainTalkBlock), false);
@@ -1750,6 +1768,9 @@
 						.end()
 						.find(_this.sTalkBlock)
 						.html(history)
+						.end()
+						.find('.text-area')
+						.replaceWith(text_area)
 						.end()
 						.bxTime()
 						.addTimeIntervals()
@@ -1787,7 +1808,11 @@
 						if (!_this.iLastUnreadJot || $(_this.sSelectedJot, _this.sTalkList).nextAll(_this.sJot).length < _this.iMaxHistory/2)
 						_this.broadcastView($(_this.sTalkListJotSelector).last().data('id'));
 					}
-					/* ----  End ---- */
+
+					// init text area
+					_this.initTextArea();
+
+				/* ----  End ---- */
 				}
 		}, 'json');
 	};
@@ -3081,9 +3106,8 @@
 	 *@param function fCallback callback function,  executes on window show
 	 */
 
-	oMessenger.prototype.showPopForm = function (sMethod, fCallback) {
-		const sUrl = `modules/?r=messenger/${sMethod}`,
-			sText = _oMessenger.oEditor.getText();
+	/*oMessenger.prototype.showPopForm = function (sMethod, fCallback) {
+		const sUrl = `modules/?r=messenger/${sMethod}`;
 
 		$(window).dolPopupAjax({
 			url: sUrl,
@@ -3092,13 +3116,13 @@
 				setTimeout(() => typeof fCallback === 'function' && fCallback(), 100);
 			},
 			closeElement: true,
-			closeOnOuterClick: false,
+			closeOnOuterClick: true,
 			removeOnClose: true,
 			onHide: function () {
 				_oMessenger.updateScrollPosition('bottom');
 			}
 		});
-	}
+	}*/
 	oMessenger.prototype.initGiphy = function() {
 		let iTotal = 0;
 		let iScrollPosition = 0;
@@ -3258,15 +3282,6 @@
 			// init text area
 			_oMessenger.initTextArea();
 
-			// init files uploader
-			_oMessenger.initFilesUploader();
-			$('a.attachefile').on('click', () => {
-				if (!$(`${_oMessenger.sBottomGroupsArea} [name^="${_oMessenger.sUploaderInputPrefix}"]`).length || !_oMessenger.oFilesUploader)
-					_oMessenger.initFilesUploader();
-
-				_oMessenger.oFilesUploader.browse();
-			});
-
 			// init default talks params
 			const oInitParams = {
 									lot: oOptions.lot,
@@ -3394,6 +3409,33 @@
 		onLeaveLot: function (iLotId) {
 			_oMessenger.leaveLot(iLotId);
 			return this;
+		},
+		onLotSettings: function () {
+			$.post('modules/?r=messenger/get_lot_settings', { lot: _oMessenger.oSettings.lot }, (oData) =>{
+				processJsonData(oData);
+			}, 'json');
+
+			return this;
+		},
+		onSaveLotSettings: function(oEl){
+			const aOptions = [];
+			$(oEl)
+				.closest('form')
+				.find('input[type="checkbox"]:checked')
+				.each(function(){
+					aOptions.push($(this).prop('name'));
+				})
+
+			$.post('modules/?r=messenger/save_lot_settings', { lot: _oMessenger.oSettings.lot, options: aOptions }, ({ code, msg }) =>{
+				$(oEl)
+					.closest('.bx-popup-applied:visible')
+					.dolPopupHide();
+
+				if (+code && msg)
+					bx_alert(msg);
+
+			}, 'json');
+
 		},
 		onViewDeletedJot: function (iJotId) {
 			_oMessenger.viewJot(iJotId);

@@ -500,13 +500,18 @@
 		return this.oFilesUploader;
 	}
 
-	oMessenger.prototype.initTextArea = function() {
+	oMessenger.prototype.initTextArea = function(fCallback) {
 		const _this = this;
 
 		this.oEditor = this.initTextEditor({
 			selector: this.sMessengerBox,
 			placeholder: _t('_bx_messenger_post_area_message'),
 			onEnter: () => $(_this.sSendButton).click(),
+			onInit : function(){
+				if (typeof fCallback === 'function') {
+					fCallback();
+				}
+			},
 			onUp: () => {
 				if ($(_this.sTalkListJotSelector).length && _this.oEditor.length <= 1) {
 					const oJot = $(`${_this.sTalkListJotSelector}`).last();
@@ -538,7 +543,7 @@
 		});
 
 		// when member clicks on send message icon
-		$(this.sSendButton).on('click', () => {
+		$(_this.sSendButton).on('click', () => {
 			if (_this.sendMessage(_this.oEditor.length === 1 ? '' : _this.oEditor.html())){
 				_this.oEditor.setContents([]);
 				_this.oEditor.focus();
@@ -551,13 +556,7 @@
 			}
 		});
 
-		//remove all edit jot areas on their lost focus
-		$(document).on('mouseup', function(oEvent){
-			_this.removeEditArea(oEvent);
-		})
-		.on('click touchstart', (oEvent) => _this.onOuterClick(oEvent));
-
-		this.updateSendAreaButtons();
+		_this.updateSendAreaButtons();
 
 		$(_this.sSendAreaActionsButtons)
 			.find('a.smiles')
@@ -585,6 +584,7 @@
 
 		// init files uploader
 		_this.initFilesUploader();
+
 		$('a.attachefile').on('click', () => {
 			if (!$(`${_this.sBottomGroupsArea} [name^="${_this.sUploaderInputPrefix}"]`).length || !_this.oFilesUploader)
 				_this.initFilesUploader();
@@ -609,6 +609,19 @@
 								_this.initGiphy(e);
 							});
 					});
+
+		// check if the not finished message for the talk exists
+		const sStorageMessage = _this.oStorage.getLot(_this.oSettings.lot);
+		if (typeof sStorageMessage === 'string' && sStorageMessage.length) {
+			let mixedValue = JSON.parse(sStorageMessage);
+			if (Array.isArray(mixedValue)) {
+				_this.oEditor.setContents(mixedValue);
+				$(_this.sSendButton).fadeIn();
+			} else
+				_this.oEditor.setText(mixedValue);
+		}
+
+		_this.checkNotFinishedTalks();
     }
 
    oMessenger.prototype.getEmojiPopUp = function(fCallback) {
@@ -668,10 +681,13 @@
 
 	};
 
+	/**
+	 * Mark talks in case if they are contains not finiched messages
+	 */
+
 	oMessenger.prototype.checkNotFinishedTalks = function(){
-		const 	_this = this,
-				oLots = this.oStorage.getLots(),
-			  	oLotsKeys = (oLots && Object.keys(oLots)) || [];
+		const oLots = this.oStorage.getLots(),
+			  oLotsKeys = (oLots && Object.keys(oLots)) || [];
 
 		$(`${this.sLotSelector} .info`).each(function(){
 			$(this).html('');
@@ -679,22 +695,6 @@
 
 		if (oLotsKeys.length)
 			oLotsKeys.map((iLot) => $(`${this.sLotSelector}[data-lot="${iLot}"] .info`).html( oLots[iLot].length ? '<i class="sys-icon pen"></i>' : ''));
-
-		// If member didn't finish the message, add it to post message area
-		let sStorageMessage = this.oStorage.getLot(this.oSettings.lot);
-
-		_this.oEditor.setContents([]);
-		if (typeof sStorageMessage === 'string' && sStorageMessage.length){
-			let mixedValue = JSON.parse(sStorageMessage);
-			if (Array.isArray(mixedValue)) {
-				_this.oEditor.setContents(mixedValue);
-				$(_this.sSendButton).fadeIn();
-			}
-			else
-				_this.oEditor.setText(mixedValue);
-
-			_this.updateSendAreaHeight();
-		}
 	};
 	
 	/**
@@ -1303,7 +1303,7 @@
 		if (iJotId)
 		{
 			bx_loading($(_this.sJotMessage, oJot).parent(), true);
-			$.post('modules/?r=messenger/edit_jot_form', {jot:iJotId}, function(oData)
+			$.post('modules/?r=messenger/edit_jot_form', { jot:iJotId }, function(oData)
 			{						
 				bx_loading($(_this.sJotMessage, oJot).parent(), false);	
 				if (!parseInt(oData.code))
@@ -1759,7 +1759,6 @@
 
         // to change active lot ID in the same time when user click on load but not when history is loaded
 		_this.oSettings.lot = iLotId;
-		_this.checkNotFinishedTalks();
 		_this.blockSendMessages(true);
 
 		return $.post('modules/?r=messenger/load_talk', { lot_id: iLotId, jot_id: iJotId, mark_as_read: +bMarkAsRead },
@@ -3292,7 +3291,6 @@
 
 			// init text area
 			_oMessenger.initTextArea();
-
 			// init default talks params
 			const oInitParams = {
 									lot: oOptions.lot,
@@ -3309,8 +3307,6 @@
 
 			_oMessenger.updateLotSettings(oInitParams);
 			_oMessenger.initScrollArea();
-
-			_oMessenger.checkNotFinishedTalks();
 
 			// find the all intervals in history
 			$(_oMessenger.sTalkBlock)
@@ -3339,6 +3335,12 @@
 				_oMessenger.updatePageIcon();
 				_oMessenger.broadcastView();
 			});
+
+			//remove all edit jot areas on their lost focus
+			$(document).on('mouseup', function(oEvent){
+				_oMessenger.removeEditArea(oEvent);
+			})
+			.on('click touchstart', (oEvent) => _oMessenger.onOuterClick(oEvent));
 
 			if ((+oOptions.selected_profile || +oOptions.jot_id) && _oMessenger.oJotWindowBuilder && _oMessenger.isMobile())
 				_oMessenger.oJotWindowBuilder.changeColumn('right');

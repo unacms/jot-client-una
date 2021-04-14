@@ -21,7 +21,7 @@
         this.bUseMantions = typeof oOptions['mentions'] === 'undefined' || oOptions['mentions'];
 
         aEditorFunctions.map(sFunc => {
-             this[sFunc] = typeof oOptions[sFunc] === 'function' ? oOptions[sFunc] : () => {};
+             this[sFunc] = typeof oOptions[sFunc] === 'function' ? oOptions[sFunc] : () => true;
         });
 
         this.aToolbarSettings = [
@@ -48,8 +48,6 @@
             });
         else
             this.initEditor();
-
-        this.onInit();
     }
 
     setText(mixedValue){
@@ -206,5 +204,7 @@
                   if (source === 'user')
                         _this.onChange();
            });
+
+          this.onInit();
     }
 }

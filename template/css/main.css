@@ -54,6 +54,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 	height: auto;
 	display: block;
 	-webkit-touch-callout: none;
+	overflow-y: auto;
 }
 
 div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
@@ -218,8 +219,8 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 	box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	-webkit-box-sizing: border-box;
-	line-height: 1.46rem;
 }
+
 .bx-messenger-jots-message .bx-messenger-post-box-send-area
 {
 	width:100%;
@@ -920,7 +921,6 @@ div.bx-messenger-attachment-file-images span.title
 }
 
 div.bx-messenger-attachment-temp-video img,
-div.bx-messenger-attachment-file-videos video,
 div.bx-messenger-attachment-file-audio audio
 {
 	max-width: 480px;

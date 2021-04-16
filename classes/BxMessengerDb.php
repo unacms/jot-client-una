@@ -100,7 +100,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	public function deleteLot($iLotId){
 		$aJots = $this -> getJotsByLotId($iLotId);
 		foreach($aJots as $iKey => $aJot)
-            $this->clearJotsConnections($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
+            $this->clearJotsConnections($aJot[$this->CNF['FIELD_MESSAGE_ID']], $iLotId);
 
         $this->query("DELETE FROM `{$this->CNF['TABLE_NEW_MESSAGES']}` 
                                                         WHERE `{$this->CNF['FIELD_NEW_LOT']}`=:lot                                        
@@ -121,7 +121,7 @@ class BxMessengerDb extends BxBaseModTextDb
     public function clearLot($iLotId){
         $aJots = $this -> getJotsByLotId($iLotId);
         foreach($aJots as $iKey => $aJot)
-            $this->clearJotsConnections($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
+            $this->clearJotsConnections($aJot[$this->CNF['FIELD_MESSAGE_ID']], $iLotId);
 
         return $this->query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id", array('id' => $iLotId));
     }
@@ -149,15 +149,30 @@ class BxMessengerDb extends BxBaseModTextDb
 								WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('id' => $iJotId, 'profile' => $iProfileId));
 	}	
 
-	public function clearJotsConnections($iJotId){
+	public function clearJotsConnections($iJotId, $iLotId = 0){
         $this->removeFilesByJotId($iJotId);
         $this->deleteJotReactions($iJotId);
 
-        $aUnreadJots = $this->getColumn("SELECT `{$this->CNF['FIELD_NEW_PROFILE']}` 
-                                            FROM `{$this->CNF['TABLE_NEW_MESSAGES']}` 
-                                            WHERE `{$this->CNF['FIELD_NEW_JOT']}`=:jot", array('jot' => $iJotId));
-        foreach($aUnreadJots as &$iProfileId)
-           $this->deleteNewJot($iProfileId, false, $iJotId);
+        if (!$iLotId)
+            $iLotId = $this->getLotByJotId($iJotId, true);
+
+        if ($iLotId) {
+            $aUnreadJots = $this->getAll("SELECT * 
+                                                    FROM `{$this->CNF['TABLE_NEW_MESSAGES']}` 
+                                                    WHERE `{$this->CNF['FIELD_NEW_JOT']}`<=:jot AND `{$this->CNF['FIELD_NEW_LOT']}`=:lot", array('jot' => $iJotId, 'lot' => $iLotId));
+            foreach ($aUnreadJots as &$aUnreadJot) {
+               $iProfileId = (int)$aUnreadJot[$this->CNF['FIELD_NEW_PROFILE']];
+               $iUnreadJotId = (int)$aUnreadJot[$this->CNF['FIELD_NEW_JOT']];
+               if ($iUnreadJotId && $iUnreadJotId < (int)$iJotId)
+                   $this->query("
+                                           UPDATE `{$this->CNF['TABLE_NEW_MESSAGES']}` 
+                                           SET `{$this->CNF['FIELD_NEW_UNREAD']}`=`{$this->CNF['FIELD_NEW_UNREAD']}` - 1
+                                           WHERE `{$this->CNF['FIELD_NEW_LOT']}`=:lot AND `{$this->CNF['FIELD_NEW_PROFILE']}`=:profile AND `{$this->CNF['FIELD_NEW_UNREAD']}` > 0 
+                                          ", array('lot' => $iLotId, 'profile' => $iProfileId));
+               else
+                   $this->deleteNewJot($iProfileId, $iLotId, $iJotId);
+            }
+        }
     }
 
 	public function updateJot($iJotId, $sField, $mixedValue){
@@ -887,7 +902,6 @@ class BxMessengerDb extends BxBaseModTextDb
         if ($iJotId) {
            $iLotId = $iLotId ? $iLotId : $this->getLotByJotId($iJotId);
            $aNewJotInfo = $this->getNewJots($iProfileId, $iLotId);
-
            if (!empty($aNewJotInfo) && (int)$aNewJotInfo[$this->CNF['FIELD_NEW_JOT']] > (int)$iJotId)
                 return false;
 
@@ -1063,7 +1077,7 @@ class BxMessengerDb extends BxBaseModTextDb
 			WHERE `{$this->CNF['FIELD_MESSAGE_AUTHOR']}`=:profile", $aWhere);
 		
 		foreach($aJots as $iKey => $aJot)
-           $this->clearJotsConnections($aJot[$this->CNF['FIELD_MESSAGE_ID']]);
+           $this->clearJotsConnections($aJot[$this->CNF['FIELD_MESSAGE_ID']], $aJot[$this->CNF['FIELD_MESSAGE_FK']]);
 			
 		$bResult &= $this-> query("DELETE
 			FROM `{$this->CNF['TABLE_MESSAGES']}` 

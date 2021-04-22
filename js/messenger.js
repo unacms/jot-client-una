@@ -3066,6 +3066,55 @@
 			});
 	}
 
+	oMessenger.prototype.initTalksListLazyLoading = function(){
+		const _this = this;
+		let stopLoading = false,
+			iTimerOut = null,
+			bFinished = false;
+
+		$(_this.sLotsListBlock).scroll(function(){
+			const
+				scrollTop = $(this).scrollTop(),
+				scrollHeight = $(this).prop('scrollHeight'),
+				clientHeight = $(this).prop('clientHeight'),
+				scrollMax = scrollHeight - clientHeight,
+				bPassed = scrollTop >= scrollMax * 0.7; // 70% passed
+
+			if (!bPassed || bFinished)
+				return;
+
+			if (!stopLoading) {
+				stopLoading = true;
+				clearTimeout(iTimerOut);
+				iTimerOut = setTimeout(() => {
+					fTalksLoad(() => setTimeout(() => {
+						stopLoading = false;
+					}, 0));
+				}, 1000);
+			}
+		});
+
+		fTalksLoad = (fCallback) => {
+			const oLastLot = $(_this.sLotSelector).last();
+			bx_loading(oLastLot, true);
+			$.post('modules/?r=messenger/get_talks_list', {
+					last_lot: oLastLot.data('lot'),
+					count: $(_this.sLotSelector).length
+				}, function ({ code, html }) {
+					bx_loading(oLastLot, false);
+
+					if (!+code)
+						oLastLot
+							.after($(html).bxMsgTime());
+					else
+						bFinished = true;
+
+					if (typeof fCallback === 'function')
+						fCallback();
+				},
+				'json');
+		};
+	}
 	/**
 	 * Init settings, occurs when member opens the main messenger page
 	 * @param fCallback
@@ -3107,6 +3156,7 @@
 			console.log('Page Builder was not initialized');
 		}
 
+		_this.initTalksListLazyLoading();
 		_this.updatePageIcon();
 	};
 

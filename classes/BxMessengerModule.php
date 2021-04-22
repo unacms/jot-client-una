@@ -440,8 +440,8 @@ class BxMessengerModule extends BxBaseModTextModule
 
         $sParam = bx_get('param');
         $iStarred = bx_get('starred');
-
-        $aMyLots = $this->_oDb->getMyLots($this->_iUserId, BX_IM_EMPTY, $sParam, $iStarred);
+        $aParams = array('term' => $sParam, 'star' => (bool)$iStarred);
+        $aMyLots = $this->_oDb->getMyLots($this->_iUserId, $aParams);
         if (empty($aMyLots))
             $sContent = MsgBox(_t('_bx_messenger_txt_msg_no_results'));
         else
@@ -459,15 +459,11 @@ class BxMessengerModule extends BxBaseModTextModule
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 
         $iLotId = (int)bx_get('lot_id');
-        if (!$this->isLogged() || !$iLotId)
+        if (!$this->isLogged() || !$iLotId || !$this->_oDb->isParticipant($iLotId, $this->_iProfileId))
             return echoJson(array('code' => 1));
 
-        $aMyLots = $this->_oDb->getMyLots($this->_iProfileId, $iLotId);
-		if (!empty($aMyLots))
-		{
-            $sContent = $this->_oTemplate->getLotsPreview($this->_iProfileId, $aMyLots);
-            return echoJson(array('code' => 0, 'html' => $sContent));
-        }
+        if ($aLots = $this->_oDb->getLotInfoById($iLotId))
+	        return echoJson(array('code' => 0, 'html' => $this->_oTemplate->getLotsPreview($this->_iProfileId, array($aLots))));
 
         echoJson(array('code' => 1));
     }
@@ -1068,9 +1064,8 @@ class BxMessengerModule extends BxBaseModTextModule
     public function actionStar()
     {
         $iLotId = bx_get('lot');
-
-        if ($iLotId && $this->_oDb->isParticipant($iLotId, $this->_iUserId)) {
-            $bStar = $this->_oDb->starLot($iLotId, $this->_iUserId);
+        if ($iLotId && $this->_oDb->isParticipant($iLotId, $this->_iProfileId)) {
+            $bStar = $this->_oDb->starLot($iLotId, $this->_iProfileId);
             return echoJson(array('code' => $bStar, 'title' => !$bStar ? _t('_bx_messenger_lots_menu_star_on') : _t('_bx_messenger_lots_menu_star_off')));
         }
 
@@ -2270,6 +2265,23 @@ class BxMessengerModule extends BxBaseModTextModule
             return echoJson(array('code' => 0, 'html' => $aContent['content'], 'total' => isset($aContent['pagination']) ? $aContent['pagination']['total_count'] : (int)bx_get('start')));
 
         return echoJson(array('code' => 1, 'message' => MsgBox(_t('_bx_messenger_giphy_gifs_nothing_found'))));
+    }
+
+    function actionGetTalksList(){
+        if (!$this->isLogged())
+            return '';
+
+        $aParams = array('start' => (int)bx_get('count'));
+        $aLotsList = $this->_oDb->getMyLots($this->_iProfileId, $aParams);
+        if (!empty($aLotsList)) {
+            $sContent = $this->_oTemplate->getLotsPreview($this->_iProfileId, $aLotsList);
+            return echoJson(array(
+                'code' => 0,
+                'html' => $sContent
+            ));
+        }
+
+        return echoJson(array('code' => 1));
     }
 
     public function serviceGetLotStat($mixedLotId = ''){

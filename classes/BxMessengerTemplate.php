@@ -632,7 +632,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$CNF = &$this->_oConfig->CNF;
 		$sContent = '';
 
-		foreach($aLots as $iKey => $aLot)
+		foreach($aLots as &$aLot)
 		{
 			$aParticipantsList = $this -> _oDb -> getParticipantsList($aLot[$CNF['FIELD_ID']], true, $iProfileId);
 			
@@ -664,7 +664,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 					$sTitle = implode(', ', $aNickNames);
 			}	
 
-			$sStatus=$sCount = '';
+			$sStatus = $sCount = '';
 			if ($iParticipantsCount <= 1 && $oProfile && empty($aLot[$CNF['FIELD_TITLE']])){
                 $sStatus = (method_exists($oProfile, 'isOnline') ? $oProfile -> isOnline() : false) ?
 					$this -> getOnlineStatus($oProfile-> id(), 1) : 

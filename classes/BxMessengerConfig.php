@@ -228,6 +228,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
             'MAX_PREV_JOTS_SYMBOLS' => (int)getParam($aModule['db_prefix'] . 'max_symbols_brief_jot'),
             'MAX_JOTS_BY_DEFAULT' => (int)getParam($aModule['db_prefix'] . 'max_jot_number_default'),
             'MAX_JOTS_LOAD_HISTORY' => (int)getParam($aModule['db_prefix'] . 'max_jot_number_in_history'),
+            'MAX_LOTS_NUMBER' => (int)getParam($aModule['db_prefix'] . 'max_lots_number'),
             'IS_PUSH_ENABLED' => getParam($aModule['db_prefix'] . 'is_push_enabled') == 'on',
             'PUSH_APP_ID' => getParam('sys_push_app_id') ? getParam('sys_push_app_id') : getParam($aModule['db_prefix'] . 'push_app_id'),
             'PUSH_REST_API' => getParam('sys_push_rest_api') ? getParam('sys_push_rest_api') : getParam($aModule['db_prefix'] . 'push_rest_api'),

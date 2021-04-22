@@ -971,16 +971,16 @@ class BxMessengerDb extends BxBaseModTextDb
 	/**
 	* Get all member's lots
 	*@param int $iProfileId
-    *@param int $iLotId lot id
-	*@param string $sParam search keyword
-	*@param int $iType
+	*@param array $aParams filter params
 	*@return array list of lots
 	*/
-	public function getMyLots($iProfileId, $iLotId = 0, $sParam = '', $iStar = 0, $iType = 0)
+	public function getMyLots($iProfileId, &$aParams = array())
 	{
         $sJoin = $sWhere = '';
 		$aSWhere = array();
 		$aWhere = array('profile' => (int)$iProfileId, 'parts' => '(^|,)' . (int)$iProfileId . '(,|$)');
+
+		$sParam = isset($aParams['term']) && $aParams['term'] ? $aParams['term'] : '';
 		if ($sParam)
 		{
 		    $sParamWhere = "`l`.`{$this->CNF['FIELD_TITLE']}` LIKE :title";
@@ -998,44 +998,60 @@ class BxMessengerDb extends BxBaseModTextDb
                 }
             }
 
-            $aSelectedLots = $this->searchMessage($sParam, $iProfileId, $iLotId);
+            $aSelectedLots = $this->searchMessage($sParam, $iProfileId);
             if (!empty($aSelectedLots))
                 $sParamWhere .= " OR `l`.`{$this->CNF['FIELD_ID']}` IN (" . implode(',', $aSelectedLots) .")";
 
             $aSWhere[] = "({$sParamWhere})";
 		}
 
+        $iType = isset($aParams['type']) ? (int)$aParams['type'] : '';
 		if ($iType)
 		{
 			$aSWhere[] = " `l`.`{$this->CNF['FIELD_TYPE']}` = :type ";
 			$aWhere['type'] = $iType;
 		}
-		
-		if ($iLotId)
-		{
-			$aSWhere[] = " `l`.`{$this->CNF['FIELD_ID']}` = :id ";
-			$aWhere['id'] = $iLotId;	
-		}
-		
-		if ($iStar)
+
+        $bStar = isset($aParams['star']) && $aParams['star'] === true;
+		if ($bStar)
 		{
 			$sJoin .= "INNER JOIN `{$this->CNF['TABLE_USERS_INFO']}` as `u` ON `u`.`{$this->CNF['FIELD_INFO_LOT_ID']}` = `l`.`{$this->CNF['FIELD_ID']}` AND `u`.`{$this->CNF['FIELD_INFO_USER_ID']}`=:profile";
 			$aSWhere[] = "`u`.`{$this->CNF['FIELD_INFO_STAR']}` = 1";
 		}
-		
+
+        $iLastLot = isset($aParams['last_lot']) ? (int)$aParams['last_lot'] : 0;
+        if ($iLastLot) {
+            $aWhere['last_lot'] = $iLastLot;
+            $aSWhere[] = "`l`.`{$this->CNF['FIELD_ID']}` < :last_lot";
+        }
+
 		if (!empty($aSWhere))
-				$sWhere = ' AND ' . implode(' AND ', $aSWhere);
+			$sWhere = ' AND ' . implode(' AND ', $aSWhere);
 
-		/*$sLimit = "";
-		if (!$iLotId && !$sParam && !$iStar && !$iType)
-            $sLimit = "LIMIT 200";*/
+       $aWhere['start'] = isset($aParams['start']) ? (int)$aParams['start'] : 0;
+       $aWhere['per_page'] = isset($aParams['per_page']) ? (int)$aParams['per_page'] : (int)$this->CNF['MAX_LOTS_NUMBER'];
+       $sLimit = "LIMIT :start, :per_page";
 
-		return $this-> getAll("SELECT *, 
+
+       $bShowLeft = isset($aParams['left']);
+       $sLeft = "";
+       if ($bShowLeft)
+           $sLeft = "SQL_CALC_FOUND_ROWS";
+
+       $aResult = $this-> getAll("SELECT 
+                                        {$sLeft}   
+                                        `l`.*, 
                                          IF (`l`.`{$this->CNF['FIELD_UPDATED']}` = 0, `l`.`{$this->CNF['FIELD_ADDED']}`, `l`.`{$this->CNF['FIELD_UPDATED']}`) as `order` 
 			                             FROM `{$this->CNF['TABLE_ENTRIES']}` as `l`
                                          {$sJoin}
                                          WHERE (`l`.`{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP :parts OR `l`.`{$this->CNF['FIELD_AUTHOR']}`=:profile) {$sWhere}
-                                         ORDER BY `order` DESC", $aWhere);
+                                         ORDER BY `order` DESC
+                                         {$sLimit}", $aWhere);
+
+       if ($bShowLeft)
+           $aParams['left'] = (int)$this->getOne("SELECT FOUND_ROWS()") - $aWhere['start'];
+
+       return $aResult;
 	}
 	
 	/**

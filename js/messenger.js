@@ -1853,7 +1853,7 @@
 		
 	oMessenger.prototype.sendPushNotification = function(oData){
 			const { sent, addon: { jot_id }, lot } = oData;
-			$.post('modules/?r=messenger/send_push_notification', { sent, jot_id, lot });
+			//$.post('modules/?r=messenger/send_push_notification', { sent, jot_id, lot });
 	}
 
 	/**
@@ -3502,6 +3502,7 @@
 			return this;
 		},
 		onMessage: function (oData) {
+
 			const bSilent = _oMessenger.oSettings.user_id === oData.user_id || ( oData.type === 'vc' && oData.vc !== 'start' );
 			try
 			{
@@ -3539,7 +3540,7 @@
 		},
 
 		/**
-		 * Loads popup form by service name
+		 *Loads popup form by service name
 		 *@param string sUrl link, if not specify default one will be used
 		 *@param function fCallback callback function,  executes on window show
 		 */

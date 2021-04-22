@@ -1093,8 +1093,8 @@ class BxMessengerModule extends BxBaseModTextModule
     /**
      * Sends push notifications for participants of specified lot
      * @return boolean TRUE on success or FALSE on failure
-     */
-    public function actionSendPushNotification()
+
+    public function actionSendNotification()
     {
         $iLotId = (int)bx_get('lot');
         $iJotId = (int)bx_get('jot_id');
@@ -1114,7 +1114,7 @@ class BxMessengerModule extends BxBaseModTextModule
             if ($CNF['USE_MENTIONS'] && preg_match_all('/<a[^>]*class="bx-mention[^"]*"[^>]*data-id="(\d+)".*?<\/a>/i', $aLatestJot[$CNF['FIELD_MESSAGE']],$aMatches)) {
                 list(, $aMentionedProfiles) = $aMatches;
                 if ($aMentionedProfiles) {
-                    $this->sendPushNotification($iLotId, $iJotId, $sMessage, $aReceived, $aMentionedProfiles, BX_MSG_NTFS_MENTION);
+                    $this->sendNotification($iLotId, $iJotId, $sMessage, $aReceived, $aMentionedProfiles, BX_MSG_NTFS_MENTION);
                     $aReceived = array_diff($aReceived, $aMentionedProfiles);
                 }
             }
@@ -1123,22 +1123,52 @@ class BxMessengerModule extends BxBaseModTextModule
             if ($aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
                 $sMessage = _t('_bx_messenger_attached_files_message', $this->_oDb->getJotFiles($aLatestJot[$CNF['FIELD_MESSAGE_ID']], true));
 
-        return $this->sendPushNotification($iLotId, $iJotId, $sMessage, $aReceived);
+        return $this->sendNotification($iLotId, $iJotId, $sMessage, $aReceived);
     }
 
-    private function sendPushNotification($iLotId, $iJotId, $sMessage, $aReceived = array(), $aRecipients = array(), $sType = BX_MSG_NTFS_MESSAGE){
+     * */
+    private function sendMessageNotification($iLotId, $iJotId){
+        $aReceived = array();
+        if (!$iLotId || !$iJotId)
+            return false;
+
+        $CNF = &$this->_oConfig->CNF;
+        $aJot = $this->_oDb->getJotById($iJotId);
+        $sMessage = $aJot[$this->_oConfig->CNF['FIELD_MESSAGE']];
+        if ($sMessage){
+            $sMessage = preg_replace('/<br\s?\/?>/i', "\r\n", $sMessage);
+            $sMessage = html2txt($sMessage);
+            $sMessage = get_mb_substr($sMessage, 0, (int)$CNF['PARAM_PUSH_NOTIFICATIONS_DEFAULT_SYMBOLS_NUM']);
+
+            // find mentions in the message and send notifications
+            if ($CNF['USE_MENTIONS'] && preg_match_all('/<a[^>]*class="bx-mention[^"]*"[^>]*data-id="(\d+)".*?<\/a>/i', $aJot[$CNF['FIELD_MESSAGE']],$aMatches)) {
+                list(, $aMentionedProfiles) = $aMatches;
+                if ($aMentionedProfiles) {
+                    $this->sendNotification($iLotId, $iJotId, $sMessage, $aReceived, $aMentionedProfiles, BX_MSG_NTFS_MENTION);
+                    $aReceived = array_diff($aReceived, $aMentionedProfiles);
+                }
+            }
+        }
+        else
+            if ($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
+                $sMessage = _t('_bx_messenger_attached_files_message', $this->_oDb->getJotFiles($aJot[$CNF['FIELD_MESSAGE_ID']], true));
+
+        return $this->sendNotification($iLotId, $iJotId, $sMessage, $aReceived);
+    }
+
+    private function sendNotification($iLotId, $iJotId, $sMessage, $aReceived = array(), $aRecipients = array(), $sType = BX_MSG_NTFS_MESSAGE){
         if (!$sMessage)
             return false;
 
-        $aParticipantList = $this->_oDb->getParticipantsList($iLotId, true);
-        if (empty($aParticipantList) || !in_array($this->_iProfileId, $aParticipantList))
-            return false;
-
-        // user Notifications module to send notifications
+        // check if the Notifications module is installed and send notifications through it
         if ($this->_oDb->isModuleByName('bx_notifications'))
             return $this->sendNotifications($iLotId, $iJotId, $aReceived, $aRecipients, $sType);
 
         if (!$this->_oConfig->isOneSignalEnabled())
+            return false;
+
+        $aParticipantList = $this->_oDb->getParticipantsList($iLotId, true);
+        if (empty($aParticipantList) || !in_array($this->_iProfileId, $aParticipantList))
             return false;
 
         // use own push notifications ability
@@ -1584,8 +1614,11 @@ class BxMessengerModule extends BxBaseModTextModule
         if (empty($aPartList))
             return false;
 
-        foreach ($aPartList as $iKey => $iPart)
+        foreach ($aPartList as &$iPart)
             bx_alert($this->_oConfig->getObject('alert'), 'got_jot', $iLotId, $this->_iUserId, array('recipient_id' => $iPart, 'subobject_id' => $iJotId));
+
+        if (!$this->_oDb->getIntervalJotsCount($iLotId, $iJotId))
+            $this->sendMessageNotification($iLotId, $iJotId);
     }
 
     public function sendNotifications($iLotId, $iJotId, $aOnlineUsers = array(), $aRecipients = array(), $sType = BX_MSG_NTFS_MESSAGE)
@@ -1593,13 +1626,6 @@ class BxMessengerModule extends BxBaseModTextModule
         $CNF = &$this->_oConfig->CNF;
         $aPartList = $this->_oDb->getParticipantsList($iLotId, true, $this->_iProfileId);
         if (empty($aPartList))
-            return false;
-
-        $iNumber = (int)$CNF['MAX_NTFS_NUMBER'];
-        $iCount = $this->_oDb->getSentNtfsNumber($this->_iProfileId, $iLotId);
-
-        $bIsMention = ($sType == BX_MSG_NTFS_MENTION);
-        if ($iCount > $iNumber && !$bIsMention)
             return false;
 
         if (!empty($aRecipients)){
@@ -1612,9 +1638,14 @@ class BxMessengerModule extends BxBaseModTextModule
                 $aPartList = $aRecipients;
         }
 
+        $bIsMention = ($sType == BX_MSG_NTFS_MENTION);
         foreach ($aPartList as &$iPart) {
             if (array_search($iPart, $aOnlineUsers) !== FALSE || $this->_oDb->isMuted($iLotId, $iPart))
                     continue;
+
+            $iCount = $this->_oDb->getSentNtfsNumber($iPart, $iLotId);
+            if ($iCount >= (int)$CNF['MAX_NTFS_NUMBER'] && !$bIsMention)
+                continue;
 
             bx_alert($this->_oConfig->getObject('alert'), !$bIsMention ? 'got_jot_ntfs' : 'got_mention_ntfs', $iLotId, $this->_iProfileId, array(
                 'object_author_id' => $iPart,
@@ -1628,8 +1659,10 @@ class BxMessengerModule extends BxBaseModTextModule
 
     public function onDeleteJot($iLotId, $iJotId, $iProfileId = 0)
     {
-        $iProfileId = $iProfileId ? $iProfileId : $this->_iUserId;
-        bx_alert($this->_oConfig->getObject('alert'), 'delete_jot', $iJotId, $this->_iUserId, array('author_id' => $iProfileId, 'lot_id' => $iLotId));
+        if (!$iProfileId)
+            $iProfileId = $this->_iProfileId;
+
+        bx_alert($this->_oConfig->getObject('alert'), 'delete_jot', $iJotId, $this->_iProfileId, array('author_id' => $iProfileId, 'lot_id' => $iLotId));
         bx_alert($this->_oConfig->getObject('alert'), 'delete_jot_ntfs', $iLotId, $iProfileId, array('subobject_id' => $iJotId));
         bx_alert($this->_oConfig->getObject('alert'), 'delete_mention_ntfs', $iLotId, $iProfileId, array('subobject_id' => $iJotId));
     }

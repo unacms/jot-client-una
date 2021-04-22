@@ -679,6 +679,16 @@ class BxMessengerDb extends BxBaseModTextDb
         return $this -> getRow(  $sQuery, array('lot_id' => (int)$iLotId, 'jot' => (int)$iStart));
     }
 
+    public function getIntervalJotsCount($iLotId, $iJotId){
+        $sQuery = "SELECT COUNT(*) 
+                        FROM `{$this->CNF['TABLE_MESSAGES']}`
+						WHERE `{$this->CNF['FIELD_MESSAGE_FK']}`=:lot_id 
+						        AND `{$this->CNF['FIELD_MESSAGE_ADDED']}` > (UNIX_TIMESTAMP() - :interval)
+						        AND `{$this->CNF['FIELD_MESSAGE_ID']}` < :jot";
+
+        return $this -> getOne($sQuery, array('lot_id' => (int)$iLotId, 'interval' => $this->CNF['PARAM_MESSAGES_INTERVAL'] * 60, 'jot' => (int)$iJotId));
+    }
+
 	function getLotJotsCount($iLotId){
         if (!$iLotId)
             return false;
@@ -1312,10 +1322,14 @@ class BxMessengerDb extends BxBaseModTextDb
 
     public function getSentNtfsNumber($iProfileId, $iLotId){
         $iInterval = (int)$this->CNF['PARAM_NTFS_INTERVAL'];
+
         return $this -> getOne("SELECT COUNT(*)
-                                        FROM `bx_notifications_events`                                        
-                                        WHERE `action`='got_jot_ntfs' AND `type`=:type AND `owner_id` = :profile AND `object_id`=:lot_id 
-                                              AND `date` > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL :interval HOUR))",
+                                                FROM `bx_notifications_events`
+                                                WHERE `action`='got_jot_ntfs' 
+                                                AND `type`=:type 
+                                                AND `object_owner_id`=:profile 
+                                                AND `object_id`=:lot_id 
+                                                AND `date` > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL :interval HOUR))",
                                 array(
                                         'type' => $this->_oConfig->getName(),
                                         'profile' => $iProfileId,

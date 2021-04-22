@@ -26,12 +26,13 @@
 				
 				if (!oOptions.server.length)
 					return;
-				
+
 				if (_oPrimus === null)
 						_oPrimus = new Primus(oOptions.server);
 
 				// on data received from the server
-				_oPrimus.on('data', function(oData) {					
+				_oPrimus.on('data', function(oData) {
+
 						if (typeof oData.action !== "undefined" && !_oPrimus.emit(oData.action, oData))
 							console.log('Unknown server response', oData);						
 								
@@ -126,12 +127,12 @@
 					return;
 				
 				if (!_oPrimus.writable)
-					_oPrimus.open();				
+					_oPrimus.open();
 			
 				_oPrimus.write($.extend(oData, {action:sParam, ip:this._sIP}));
 			}
 			/** END **/
-		}	
+		}
 })();
 
 /** @} */

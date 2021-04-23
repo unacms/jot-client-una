@@ -1743,16 +1743,6 @@
 				return fEmpty;
 			}
 		}
-        else
-        {
-			$(_this.sJotsBlock)
-				.find('.bx-db-header')
-				.html('')
-				.end()
-				.find(_this.sTalkList)
-				.html('');
-		}
-
 
 		$(_this.sDateNavigator).hide();
 		bx_loading($(this.sMainTalkBlock), true);

@@ -1,5 +1,4 @@
 .bx-messenger-border{
-	padding:0 1rem 0 1rem;
 	background-color:rgba(0, 0, 0, 0);
 	border-left: none;
 	border-top: none;
@@ -9,45 +8,11 @@
 	overflow:hidden;
 	display:flex;
 	align-items:center;
+	width: 100%;
 }
 
 .bx-messenger-border input{
 	border:0px;
-}
-
-.bx-messanger-tags {
-	position:relative;
-	overflow:hidden;
-	display:table-row;
-}
-
-.bx-messanger-tags div{
-	position:relative;
-	overflow:hidden;
-	display:table-cell;
-	vertical-align:middle;
-	text-align:center;
-}
-
-.bx-messanger-tags div:nth-child(2) i{
-	float: right;
-	font-size: 2rem;
-	margin-right: 1rem;
-	position: relative;
-}
-
-.bx-messanger-tags div:first-child{
-	width:80%;
-}
-
-.bx-messanger-tags-main-list .bx-def-color-bg-hl-even{
-	border-top:1px solid #d7e9fb;
-}
-
-.bx-messanger-tags-main{
-	display:table;
-	height:auto;
-	width:100%;
 }
 
 .bx-messenger-block{

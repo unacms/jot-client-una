@@ -68,7 +68,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 	-moz-user-select: none;
 	cursor: text;
 	pointer-events: none;
-	top:0px;
+	top:0f;
 }
 
 .bx-messenger-post-box-send-actions{
@@ -306,9 +306,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 .bx-messenger-block .bx-db-header
 {
 	position: relative;
-	/*min-height: 2.5rem;*/
 	vertical-align: middle;
-	/*padding: 0 1rem 0 1rem;*/
 	display: flex;
 	align-items: center;
 }

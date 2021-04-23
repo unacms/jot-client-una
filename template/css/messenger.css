@@ -55,10 +55,10 @@
 	overflow-y:auto;
 	overflow-x:hidden;
 	-webkit-overflow-scrolling: touch;
-}
-
-.bx-messenger-main-block{
-	/*min-height:100% !important;*/
+	border-right: 0;
+	border-left: 0;
+	border-bottom: 0;
+	border-radius: 0;
 }
 
 .bx-main{

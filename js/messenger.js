@@ -2239,6 +2239,7 @@
 		this.updateJots({
 			action: 'msg'
 		});
+		this.loadTalksList();
 	};
 	
 	oMessenger.prototype.onReconnectFailed = function(oData) {	
@@ -3087,34 +3088,39 @@
 				stopLoading = true;
 				clearTimeout(iTimerOut);
 				iTimerOut = setTimeout(() => {
-					fTalksLoad(() => setTimeout(() => {
+					_this.loadTalksList((bResult) => {
 						stopLoading = false;
-					}, 0));
+						bFinished = bResult;
+					}, false);
 				}, 1000);
 			}
 		});
-
-		fTalksLoad = (fCallback) => {
-			const oLastLot = $(_this.sLotSelector).last();
-			bx_loading(oLastLot, true);
-			$.post('modules/?r=messenger/get_talks_list', {
-					last_lot: oLastLot.data('lot'),
-					count: $(_this.sLotSelector).length
-				}, function ({ code, html }) {
-					bx_loading(oLastLot, false);
-
-					if (!+code)
-						oLastLot
-							.after($(html).bxMsgTime());
-					else
-						bFinished = true;
-
-					if (typeof fCallback === 'function')
-						fCallback();
-				},
-				'json');
-		};
 	}
+
+	oMessenger.prototype.loadTalksList = function(fCallback, bUpdate = true){
+		const oParams = Object.create(null),
+			  _this = this;
+
+		let oLotObject = $(_this.sLotsListBlock);
+
+		if (!bUpdate) {
+			oLotObject = $(_this.sLotSelector).last();
+			oParams.count = $(_this.sLotSelector).length;
+		}
+
+		bx_loading(oLotObject, true);
+		$.post('modules/?r=messenger/get_talks_list', oParams, function ({ code, html }) {
+				bx_loading(oLotObject, false);
+
+				if (!+code)
+					$(_this.sLotsListBlock)[bUpdate ? 'html' : 'append']($(html).bxMsgTime());
+
+				if (typeof fCallback === 'function')
+					fCallback(+code);
+			},
+			'json');
+	}
+
 	/**
 	 * Init settings, occurs when member opens the main messenger page
 	 * @param fCallback

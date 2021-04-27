@@ -317,6 +317,11 @@ div.bx-messenger-border.search .star a.active
 	text-overflow: ellipsis;
 }
 
+.bx-messenger-talk-header-usernames{
+	background-color: inherit;
+	border: 0;
+}
+
 .bx-messenger-talk-header-usernames > span{
 	display: flex;
 	align-items: center;

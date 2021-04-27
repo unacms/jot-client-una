@@ -309,6 +309,8 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 	vertical-align: middle;
 	display: flex;
 	align-items: center;
+	padding-top:0;
+	padding-bottom: 0;
 }
 
 #bx-menu-db-menu-settings

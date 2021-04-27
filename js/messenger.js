@@ -32,7 +32,6 @@
 		this.sLotsListBlock = '.bx-messenger-items-list';
 		this.sLotSelector = '.bx-messenger-jots-snip';
 		this.sLotsListSelector = this.sLotsListBlock + ' ' + this.sLotSelector;
-		this.sUserTopInfo = '.bx-messenger-top-user-info';
 		this.sUserSelectorBlock = '#bx-messenger-add-users';
 		this.sUserSelector = this.sUserSelectorBlock + ' input[name="users[]"]';
 		this.sUserSelectorInput = '#bx-messenger-add-users-input';
@@ -2008,11 +2007,6 @@
 			$(this.sUserSelector).each(function(){
 				list.push($(this).val());
 			});
-		} 
-		else if ($(this.sUserTopInfo).length){
-			const iUserId = parseInt($(this.sUserTopInfo).data('user-id'));
-			if (iUserId)
-					list.push(iUserId);
 		}
 		
 		return list;

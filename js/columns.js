@@ -19,7 +19,6 @@
 				sRightAreaName: '.bx-messenger-main-block', //left column of the body without header
 				sLeftTopBlockArea: '#bx-messenger-block-head',
 				sBothColumnsParent: '.bx-layout-row',
-				sInfoUsersArea: '.bx-messenger-top-user-info',
 				sBlockHeaderArea: '.bx-messenger-block > .bx-db-header',
 				sToolbar: '#bx-toolbar',
 				oLeftCol: null,
@@ -32,7 +31,6 @@
 				iRightAreaHeight:null, //right column header height
 				iResizeTimeout:null,
 				sDirection: 'LTR', // by default left to right;
-
 				isRTL: function(){
 					return this.sDirection === 'RTL';
 				},
@@ -43,7 +41,7 @@
 				},
 				
 				updateRightHeight: function(){
-						this.iRightAreaHeight = $(this.sInfoUsersArea).length ? $(this.sInfoUsersArea).outerHeight() : $(this.sBlockHeaderArea).outerHeight();
+						this.iRightAreaHeight = $(this.sBlockHeaderArea).last().outerHeight();
 						if (this.iRightAreaHeight == null)
 							return;
 
@@ -123,7 +121,7 @@
 						 else 
 							this.sActiveType = 'both';
 
-						this.iMainAreaHeight = $(window).height() - $(this.sToolbar).outerHeight();						
+						this.iMainAreaHeight = $(window).height() - $(this.sToolbar).height();
 						this.resizeColumns();
 				},
 

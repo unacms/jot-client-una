@@ -1,47 +1,47 @@
-.bx-messenger-post-box .filepond--root {
+.bx-messenger-block .filepond--root {
     max-height: 240px;
     font-family:inherit !important;
     overflow: hidden;
     margin-bottom:0 !important;
 }
 
-.bx-messenger-post-box .filepond--item {
+.bx-messenger-block .filepond--item {
     width: calc(50% - .5em);
     padding-left:0;
 }
 
-.bx-messenger-post-box .filepond--drop-label {
+.bx-messenger-block .filepond--drop-label {
     display: none !important;
 }
 
-.bx-messenger-post-box .filepond--list{
+.bx-messenger-block .filepond--list{
     left: 0;
 }
 
-.bx-messenger-post-box .filepond--panel-root {
+.bx-messenger-block .filepond--panel-root {
     background-color: rgba(0,0,0,0) !important;
     border-radius: 0 !important;
 }
 
-.bx-messenger-post-box .filepond--image-preview-overlay-success{
+.bx-messenger-block .filepond--image-preview-overlay-success{
     color: rgba(68, 136, 255, 0.7) !important;
 }
 
 @media (min-width: 30em) {
-    .bx-messenger-post-box .filepond--item {
+    .bx-messenger-block .filepond--item {
         width: calc(50% - .5em);
     }
-    .bx-messenger-post-box .filepond--root {
+    .bx-messenger-block .filepond--root {
         max-height: 120px;
     }
 }
 
 @media (min-width: 50em) {
-    .bx-messenger-post-box .filepond--item {
+    .bx-messenger-block .filepond--item {
         width: calc(33.33% - .5em);
     }
 
-    .bx-messenger-post-box .filepond--root {
+    .bx-messenger-block .filepond--root {
         max-height: 240px;
     }
 }

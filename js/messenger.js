@@ -1873,7 +1873,7 @@
 				oParams.participants.push(_this.iSelectedPersonToTalk);
 				_this.iSelectedPersonToTalk = 0;
 			}
-			oParams.type = this.iLotType;
+			oParams.type = _this.iLotType;
 		}
 
 		oParams.message = $.trim(sMessage);
@@ -3542,7 +3542,6 @@
 			return this;
 		},
 		onMessage: function (oData) {
-
 			const bSilent = _oMessenger.oSettings.user_id === oData.user_id || ( oData.type === 'vc' && oData.vc !== 'start' );
 			try
 			{

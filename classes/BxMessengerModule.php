@@ -489,7 +489,11 @@ class BxMessengerModule extends BxBaseModTextModule
      */
 	public function actionUpdate(){	   
         $CNF = &$this->_oConfig->CNF;
+
         $sUrl = bx_get('url');
+        if ($sUrl)
+            $sUrl = $this->getPreparedUrl($sUrl);
+
         $iJot = (int)bx_get('jot');
         $iLotId = (int)bx_get('lot');
         $sLoad = bx_get('load');
@@ -497,8 +501,6 @@ class BxMessengerModule extends BxBaseModTextModule
         $iRequestedJot = (int)bx_get('req_jot');
         $iLastViewedJot = (int)bx_get('last_viewed_jot');
         $bUpdateHistory = true;
-
-        $sUrl = $sUrl ? $this->getPreparedUrl($sUrl) : '';
         $sContent = '';
         $iUnreadJotsNumber = 0;
         $iLastUnreadJotId = 0;
@@ -674,14 +676,17 @@ class BxMessengerModule extends BxBaseModTextModule
         if (empty($aUsers))
             return echoJson(array('items' => $aUsers));
 
-        foreach ($aUsers as $iKey => $aValue) {
-            if ($aValue['value'] == $this->_iUserId  || !$this->onCheckContact($this->_iUserId, $aValue['value'])) continue;
+        foreach ($aUsers as &$aValue) {
+            if ($aValue['value'] == $this->_iUserId  || !$this->onCheckContact($this->_iUserId, $aValue['value']))
+                continue;
 
-            $oProfile = BxDolProfile::getInstance($aValue['value']);
+            if (!($oProfile = BxDolProfile::getInstance($aValue['value'])))
+                continue;
+
             $aProfileInfo = $oProfile->getInfo();
             $aProfileInfoDetails = BxDolService::call($aProfileInfo['type'], 'get_content_info_by_id', array($aProfileInfo['content_id']));
             $oAccountInfo = BxDolAccount::getInstance($aProfileInfo['account_id']);
-            if ($oProfile && !empty($aProfileInfoDetails) && !empty($oAccountInfo))
+            if (!empty($aProfileInfoDetails) && !empty($oAccountInfo))
                 $aResult[$aProfileInfo['type']]['results'][] = array(
                     'value' => $oProfile->getDisplayName(),
                     'icon' => $oProfile->getIcon(),
@@ -1695,14 +1700,25 @@ class BxMessengerModule extends BxBaseModTextModule
     public function onCheckContact($iSender, $iRecipient)
     {
         $CNF = &$this->_oConfig->CNF;
+
+        $oSenderProfile = BxDolProfile::getInstance($iSender);
+        $oRecipientProfile = BxDolProfile::getInstance($iRecipient);
+        if ($CNF['CONTACT-JOIN-ORGANIZATION'] && $oSenderProfile && $oRecipientProfile){
+            $aSenderProfileInfo = $oSenderProfile->getInfo();
+            $aRecipientProfileInfo = $oRecipientProfile->getInfo();
+
+            if ($aSenderProfileInfo['type'] === 'bx_organizations' && $aRecipientProfileInfo['type'] != 'bx_organizations')
+                return BxDolConnection::getObjectInstance("bx_organizations_fans")->isConnected($iRecipient, $iSender, true);
+        }
+
        if ($CNF['DISABLE-PROFILE-PRIVACY'])
             return true;
 
-        if(method_exists('BxDolProfile', 'checkAllowedProfileContact')) {
-            $mixedResult = BxDolProfile::getInstance($iSender)->checkAllowedProfileContact($iRecipient);
+       if(method_exists('BxDolProfile', 'checkAllowedProfileContact')) {
+        $mixedResult = BxDolProfile::getInstance($iSender)->checkAllowedProfileContact($iRecipient);
             if($mixedResult !== CHECK_ACTION_RESULT_ALLOWED)
                 return false;
-        }
+       }
 
         $bCanContact = true;
         bx_alert($this->_oConfig->getObject('alert'), 'check_contact', 0, false, array('can_contact' => &$bCanContact, 'sender' => $iSender, 'recipient' => $iRecipient, 'where' => $this->_oConfig->getName()));

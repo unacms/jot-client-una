@@ -259,4 +259,5 @@
 	<string name="_bx_messenger_clear_lot_menu"><![CDATA[Очистить историю]]></string>
 	<string name="_bx_messenger_clear_lot"><![CDATA[Вы уверено, что хотите безвозвратно удалить историю чата?]]></string>
 	<string name="_bx_messenger_lot_menu_settings"><![CDATA[Настройки]]></string>
+	<string name="_bx_messenger_enable_joined_organizations"><![CDATA[Разрешить организациям контактировать с пользователями только в случае, если пользователь является участником этой организации]]></string>
 </resources>

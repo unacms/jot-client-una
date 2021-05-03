@@ -271,4 +271,5 @@
 	<string name="_bx_messenger_lot_options_item_smiles"><![CDATA[smiles]]></string>
 	<string name="_bx_messenger_lot_options_title"><![CDATA[Allow to perform selected actions for the talk:]]></string>
 	<string name="_bx_messenger_max_max_lots_number"><![CDATA[Default number of talks in Talks' list block]]></string>
+	<string name="_bx_messenger_enable_joined_organizations"><![CDATA[Allow organization to communicate with profile only if user joined or followed the organization]]></string>
 </resources>

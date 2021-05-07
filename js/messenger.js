@@ -118,6 +118,7 @@
 		this.bActiveConnect = true;
 		this.iPanding = false; // don't update jots while previous update is not finished
 		this.aUsers = [];
+		this.iLastReadJotId = 0;
 
 		// files uploader
 		this.aUploaderQueue = Object.create(null);
@@ -143,7 +144,6 @@
 		this.sJitsiServerUrl = oOptions.jitsi_server;
 		this.aDatesItervals = [];
 		this.sDateIntervalsSelector = '.bx-messenger-date-time-hr';
-		this.sDateIntervalsItem = `${this.sDateIntervalsSelector} > .bx-messenger-date-time-value`;
 		this.iScrollbarWidth = 0;
 		this.sDateIntervalsTemplate = oOptions.date_intervals_template;
 		this.aLoadingRequestsPool = []; // contains requests to load the talks when member clicks many talks with small delay and there is not enough time to load each talk
@@ -220,6 +220,7 @@
 		this.iSelectedJot = jot || 0;
 		this.iLastUnreadJot = last_unread_jot || 0;
 		this.iUnreadJotsNumber = unread_jots || 0;
+		this.iLastReadJotId = 0;
 
 		_this.updateCounters(unread_jots, true);
 
@@ -254,14 +255,13 @@
 
 	oMessenger.prototype.initScrollArea = function() {
 		const _this = this;
-		let aReadJots = [];
 		let iBottomScreenPos = $(_this.sTalkBlock).scrollTop() + $(_this.sTalkBlock).innerHeight();
 		let bStartLoading = !(_this.iLastUnreadJot || _this.iSelectedJot);
 		let iCounterValue = +$(_this.sUnreadJotsCounter).text();
 		let iUpdateCounter = null;
 		let iDateIntervalTimer = null;
 
-		$(_this.sTalkBlock).scroll(function(){
+		$(_this.sTalkBlock).scroll(function({ type, which, code }){
 			const isScrollAvail = $(this).prop('scrollHeight') > $(this).prop('clientHeight'),
 				iScrollHeight = $(this).prop('scrollHeight') - $(this).prop('clientHeight'),
 				iScrollPosition = $(this).prop('scrollHeight') - $(this).prop('clientHeight') - $(this).scrollTop(),
@@ -284,7 +284,7 @@
 						return;
 
 					if (iId > _this.iLastUnreadJot && iJotBottomPos <= iBottomScreenPos) {
-						aReadJots.push(iId);
+						_this.iLastReadJotId = iId;
 						$(_this.sUnreadJotsCounter).text(--iCounterValue);
 						if (!iCounterValue)
 							$(_this.sUnreadJotsCounter).hide();
@@ -293,8 +293,8 @@
 					}
 				});
 
-				if (aReadJots.length && _this.iLastUnreadJot !== aReadJots[aReadJots.length - 1]) {
-					_this.iLastUnreadJot = aReadJots[aReadJots.length - 1];
+				if (_this.iLastReadJotId && _this.iLastUnreadJot !== _this.iLastReadJotId ) {
+					_this.iLastUnreadJot = _this.iLastReadJotId;
 					iUpdateCounter = setTimeout(() => {
 						if (document.hasFocus()) {
 							_this.broadcastView(_this.iLastUnreadJot);
@@ -1697,7 +1697,8 @@
 	}
 
     oMessenger.prototype.broadcastView = function(iJotId){
-		const iJot = iJotId ? iJotId : (this.iLastUnreadJot ? this.iLastUnreadJot : $(this.sTalkListJotSelector).last().data('id'));
+		const iLastJotId = $(this.sTalkListJotSelector).last().data('id');
+		const iJot = iLastJotId === this.iLastReadJotId ? iLastJotId : this.iLastUnreadJot;
 		const oJot = $(`[data-id="${iJot}"]`, this.sTalkList);
 
 		if (!+oJot.data('my') && +oJot.data('new')) {
@@ -2440,8 +2441,6 @@
 		const sPosition = position || (sAction === 'new' ? 'bottom' : 'position'),
 			oObjects = $(this.sTalkListJotSelector);
 
-		if ((sAction === 'new' || sAction === 'prev') && _this.iPanding)
-			return;
 
 		switch(sAction)
 		{
@@ -2468,13 +2467,13 @@
 				iRequestJot = (typeof addon === 'object' && typeof addon.jot_id !== 'undefined' ? addon.jot_id : 0);
 				if (!$(_this.sTalkListJotSelector).length)
 					sAction = 'all';
+
 			default:
 				iJotId = oObjects
 					.last()
 					.data('id');
 
 				_this.iPanding = true;
-				break;
 		}
 
 		const iLotId = _this.oSettings.lot; // additional check for case when ajax request is not finished yet but another talk is selected
@@ -2518,38 +2517,43 @@
 								if (!html.length)
 									return ;
 
-								$(oList)
-								.append(
-										$(html)
-										.filter(_this.sJot)
-										.each(
-												function(){
-															if ($('div[data-id="' + $(this).data('id') + '"]', oList).length)
-																$(this).remove();
+							    const oContent = $(html),
+									  aContent = [];
+							    oContent
+									.filter(_this.sJot)
+									.each(
+										function () {
+											if ($('div[data-id="' + $(this).data('id') + '"]', oList).length)
+												return;
 
-															$(`${_this.sJotMessageViews} img`, this)
-																.each(function(){
-																	$(`${_this.sJot} ${_this.sJotMessageViews} img[data-viewer-id="${$(this).data('viewer-id')}"]`).remove()
-																})
-																.end()
-																.closest(_this.sJotMessageViews)
-																.fadeIn();
+											$(`${_this.sJotMessageViews} img`, this)
+												.each(function () {
+													$(`${_this.sJot} ${_this.sJotMessageViews} img[data-viewer-id="${$(this).data('viewer-id')}"]`).remove()
 												})
-										.waitForImages(() => _this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'fast', oObjects.last()))
-									)
+												.end()
+												.closest(_this.sJotMessageViews)
+												.fadeIn();
+
+											aContent.push($(this));
+										});
+
+							if(aContent.length) {
+								$(oList)
+									.append(aContent)
+									.waitForImages(() => _this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'fast', oObjects.last()))
 									.addTimeIntervals();
 
 
 								if ((_this.isBlockVersion() || (_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive())) && !bSilentMode)  /* play sound for jots only on mobile devices when chat area is active */
 									$(_this).trigger(jQuery.Event('message'));
 
-								if ($(_this.sTalkListJotSelector).length > _this.iMaxHistory && iRequestJot)
-								{
+								if ($(_this.sTalkListJotSelector).length > _this.iMaxHistory && iRequestJot) {
 									let iCountToRemove = $(_this.sTalkListJotSelector).length - _this.iMaxHistory;
-									while(iCountToRemove-- > 0){
+									while (iCountToRemove-- > 0) {
 										$(_this.sTalkListJotSelector).first().remove();
 									}
 								}
+							}
 
 								break;
 						case 'prev':

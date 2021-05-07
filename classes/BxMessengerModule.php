@@ -512,9 +512,12 @@ class BxMessengerModule extends BxBaseModTextModule
                 if (!$iJot)
                 {
                     $iJot = $this->_oDb->getFirstUnreadJot($this->_iProfileId, $iLotId);
-                    if (!$iJot) {
-                        $aMyLatestJot = $this->_oDb->getLatestJot($iLotId, $this->_iProfileId);
-                        $iJot = !empty($aMyLatestJot) ? (int)$aMyLatestJot[$CNF['FIELD_MESSAGE_ID']] : 0;
+                    if ($iJot)
+                        $iJot = $this->_oDb->getPrevJot($iLotId, $iJot);
+                    else
+                    {
+                        $aLatestJot = $this->_oDb->getLatestJot($iLotId);
+                        $iJot = !empty($aLatestJot) ? (int)$aLatestJot[$CNF['FIELD_MESSAGE_ID']] : 0;
                     }
                 }
 

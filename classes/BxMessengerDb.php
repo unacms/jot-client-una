@@ -671,12 +671,19 @@ class BxMessengerDb extends BxBaseModTextDb
 	}
 
     public function getPrevJot($iLotId, $iStart){
-        $sQuery = "SELECT * FROM `{$this->CNF['TABLE_MESSAGES']}`
-									WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :lot_id AND `{$this->CNF['FIELD_MESSAGE_ID']}` < :jot
+        $sWhere = "WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :lot_id";
+        $aWhere = array('lot_id' => (int)$iLotId);
+	    if ($iStart){
+            $sWhere .= " AND `{$this->CNF['FIELD_MESSAGE_ID']}` < :jot";
+            $aWhere['jot'] = $iStart;
+        }
+
+	    $sQuery = "SELECT `{$this->CNF['FIELD_MESSAGE_ID']}` FROM `{$this->CNF['TABLE_MESSAGES']}`
+									{$sWhere}
 									ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}` DESC
 									LIMIT 1";
 
-        return $this -> getRow(  $sQuery, array('lot_id' => (int)$iLotId, 'jot' => (int)$iStart));
+        return $this -> getOne(  $sQuery, $aWhere);
     }
 
     public function getIntervalJotsCount($iLotId, $iJotId){
@@ -742,12 +749,12 @@ class BxMessengerDb extends BxBaseModTextDb
 		}
 		
 		if ($bNotTrash)
-			$sWhere .= " AND `{$this->CNF['FIELD_MESSAGE_TRASH']}` = 0"; 			
-		
+			$sWhere .= " AND `{$this->CNF['FIELD_MESSAGE_TRASH']}` = 0";
+
 		return $this -> getRow("SELECT *
 			FROM `{$this->CNF['TABLE_MESSAGES']}` 
 			WHERE  `{$this->CNF['FIELD_MESSAGE_FK']}` = :lot {$sWhere}
-			ORDER BY `{$this->CNF['FIELD_MESSAGE_ADDED']}` DESC
+			ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}` DESC
 			LIMIT 1", $aWhere);
 	}
 	

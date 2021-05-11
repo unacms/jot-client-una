@@ -179,10 +179,27 @@
 		this.quill = null;
 
 		$(window).on('popstate', function(){
-			const iLot = _this.oHistory.state && _this.oHistory.state.lot;
+			const { lot, jot, action } = _this.oHistory.state || {};
 
-			if (iLot)
-				_this.loadTalk(iLot);
+			if (_this.isMobile()) {
+				if (_this.oJotWindowBuilder.isHistoryColActive())
+					_this.oJotWindowBuilder.changeColumn();
+				else
+				if (lot)
+					_this.createLot();
+				return;
+			};
+
+			switch(action){
+				case 'init':
+				case 'load_talk':
+					if (lot)
+						_this.loadTalk(lot);
+					break;
+				case 'create_talk':
+					_this.createLot();
+					break;
+			}
 		});
 	}
 	
@@ -937,7 +954,6 @@
 
 				_this.initTextArea();
 				_this.blockSendMessages();
-
 		}, 'json');	
 	}
 	
@@ -3388,6 +3404,8 @@
 
 			if ((+oOptions.selected_profile || +oOptions.jot_id) && _oMessenger.oJotWindowBuilder && _oMessenger.isMobile())
 				_oMessenger.oJotWindowBuilder.changeColumn('right');
+
+			_oMessenger.oHistory.pushState({ action: 'init', lot : oOptions.lot, jot: oOptions.jot_id }, null);
 		},
 
 		/**
@@ -3418,9 +3436,8 @@
 						.loadTalk(lot, undefined, _oMessenger.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive())
 						.done(() =>
 						{
-							if (typeof _oMessenger.oHistory.pushState === 'function') {
-								_oMessenger.oHistory.pushState({ lot : iLotId }, null);
-							}
+							if (typeof _oMessenger.oHistory.pushState === 'function')
+								_oMessenger.oHistory.pushState({ action: 'load_talk', lot : iLotId }, null);
 
 							if (_oMessenger.aLoadingRequestsPool.length){
 								if (_oMessenger.aLoadingRequestsPool.length > 1)
@@ -3462,6 +3479,7 @@
 		},
 		createLot: function createLot(oObject) {
 			_oMessenger.createLot(oObject);
+			_oMessenger.oHistory.pushState({ action: 'create_talk' }, null);
 			return this;
 		},
 		onSaveParticipantsList: function (iLotId) {

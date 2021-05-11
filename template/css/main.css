@@ -439,13 +439,6 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 	margin: 0;
 }
 
-.bx-messenger-hide-mobile
-{
-	display:none;
-	text-align: center;
-	width:4.3rem;
-}
-
 .bx-messenger-conversations-typing
 {
 	display: inline-block;	
@@ -1031,11 +1024,10 @@ div.bx-messenger-attachment-file-images img
 
 #bx-messenger-add-users b
 {
-	line-height: 2rem;	
-	/*background-color:rgba(210, 230, 250, 0.5);*/
-	border-radius:15px !important;
+	line-height: 2rem;
+	border-radius: 15px !important;
 	margin: 0.1rem 0.5rem 0.1rem 0.1rem;
-	padding-right:0.5rem;
+	padding-right: 0.5rem;
 }
 
 #bx-messenger-add-users .ui.input > input

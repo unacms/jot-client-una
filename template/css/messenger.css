@@ -210,6 +210,7 @@ span.bubble.hidden
 {
 	width:100%;
 	float:left;
+	margin-left:1rem;
 }
 
 .bx-messenger-participants-usernames a
@@ -303,12 +304,12 @@ div.bx-messenger-border.search .star a.active
 
 #bx-messenger-add-users{
 	min-height:0;
-	padding: 0;
 	box-shadow: none;
 	display: flex;
 	align-items: center;
 	flex-flow: wrap;
 	width: 100%;
+	padding: 0 0 0 1rem;
 }
 
 #bx-messenger-add-users b span{

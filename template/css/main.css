@@ -334,6 +334,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 	max-width:100%;
 	flex:2 1;
 	line-height:1.5rem;
+	padding-left: 1rem;
 }
 
 #bx-menu-db-menu li{

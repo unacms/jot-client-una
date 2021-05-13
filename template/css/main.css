@@ -405,7 +405,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 .bx-messenger-jots-title div.view{
 	display:block;
 	overflow: hidden;
-	white-space: normal;
+	white-space: nowrap;
 }
 
 .bx-messenger-jots-title div.view img

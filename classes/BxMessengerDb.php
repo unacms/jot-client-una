@@ -919,7 +919,7 @@ class BxMessengerDb extends BxBaseModTextDb
         if ($iJotId) {
            $iLotId = $iLotId ? $iLotId : $this->getLotByJotId($iJotId);
            $aNewJotInfo = $this->getNewJots($iProfileId, $iLotId);
-           if (!empty($aNewJotInfo) && (int)$aNewJotInfo[$this->CNF['FIELD_NEW_JOT']] > (int)$iJotId)
+           if (empty($aNewJotInfo) || (!empty($aNewJotInfo) && (int)$aNewJotInfo[$this->CNF['FIELD_NEW_JOT']] > (int)$iJotId))
                 return false;
 
            $iCount = (int)$this->getOne("SELECT COUNT(*) FROM `{$this->CNF['TABLE_MESSAGES']}`

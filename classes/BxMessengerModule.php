@@ -113,7 +113,6 @@ class BxMessengerModule extends BxBaseModTextModule
             $sModule = $oProfile->getModule();
             if (BxDolRequest::serviceExists($sModule, 'is_group_profile') && BxDolService::call($sModule, 'is_group_profile')) {
                 $aOwnerInfo = BxDolService::call($sModule, 'get_info', array($oProfile->getContentId(), false));
-
                 if(!empty($aOwnerInfo) && is_array($aOwnerInfo) && BxDolService::call($sModule, 'check_allowed_view_for_profile', array($aOwnerInfo)) === CHECK_ACTION_RESULT_ALLOWED) {
                     $oModule = BxDolModule::getInstance($sModule);
                     if ($oModule->_oConfig) {
@@ -127,7 +126,6 @@ class BxMessengerModule extends BxBaseModTextModule
             }
             else
             {
-
                 $aExistedTalk = $this->_oDb->getLotByUrlAndParticipantsList(BX_IM_EMPTY_URL, array($iViewedProfileId, $this->_iProfileId));
                 if (!empty($aExistedTalk))
                     return $this->_oTemplate->getTalkBlock($this->_iProfileId, $aExistedTalk[$CNF['FIELD_ID']]);

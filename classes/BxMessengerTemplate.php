@@ -830,7 +830,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		$iLimit = isset($aParams['limit']) ? (int)$aParams['limit'] : BX_IM_EMPTY; 
 		$bDisplay = isset($aParams['display']) ? (bool)$aParams['display'] : false;
 		$bSelectJot = isset($aParams['select']) ? (bool)$aParams['select'] : false;
-		$bMarkAsRead = isset($aParams['read']) && $sLoad == 'new' && $aParams['read'] === true;
+		$bMarkAsRead = isset($aParams['read']) && $aParams['read'] === true;
         $bShowViews = isset($aParams['views']);
         $bDynamic = isset($aParams['dynamic']);
 

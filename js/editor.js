@@ -74,6 +74,11 @@
         this.oEditor.focus();
     }
 
+    blur(){
+        if (this.oEditor)
+            this.oEditor.blur();
+    }
+
     getContents(){
         return this.oEditor && this.oEditor.getContents();
     }

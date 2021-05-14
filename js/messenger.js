@@ -181,6 +181,9 @@
 		$(window).on('popstate', function(){
 			const { lot, jot, action } = _this.oHistory.state || {};
 
+			if (_this.oEditor)
+				_this.oEditor.blur();
+
 			if (_this.isMobile()) {
 				if (_this.oJotWindowBuilder.isHistoryColActive())
 					_this.oJotWindowBuilder.changeColumn();
@@ -278,7 +281,7 @@
 		let iUpdateCounter = null;
 		let iDateIntervalTimer = null;
 
-		$(_this.sTalkBlock).scroll(function({ type, which, code }){
+		$(_this.sTalkBlock).scroll(function(){
 			const isScrollAvail = $(this).prop('scrollHeight') > $(this).prop('clientHeight'),
 				iScrollHeight = $(this).prop('scrollHeight') - $(this).prop('clientHeight'),
 				iScrollPosition = $(this).prop('scrollHeight') - $(this).prop('clientHeight') - $(this).scrollTop(),
@@ -3377,14 +3380,18 @@
 				.bxMsgTime();
 
 			// attach on ESC button return from create talk area
-			$(document).on('keydown', function(e){
-				const { keyCode } = e;
-				if (keyCode === 27 && $(e.target).prop('id') === _oMessenger.sUserSelectorInput.substr(1)) {
+			$(document).on('keydown touchend click', function({type, keyCode, target }){
+				if (keyCode === 27 && $(target).prop('id') === _oMessenger.sUserSelectorInput.substr(1)) {
 					const oSelector = $(`${_oMessenger.sLotsListSelector}.active`);
 					if (oSelector.length)
 						oSelector.click();
 					else
 						$(_oMessenger.sLotsListSelector).first().click();
+				}
+
+				if ((type === 'touchend' || type === 'click') && !$(target).closest(_oMessenger.sMessengerBox).length) {
+					if (_oMessenger.oEditor)
+						_oMessenger.oEditor.blur();
 				}
 			});
 

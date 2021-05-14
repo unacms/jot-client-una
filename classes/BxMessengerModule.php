@@ -228,14 +228,18 @@ class BxMessengerModule extends BxBaseModTextModule
     /**
      * Create List of participants received from request (POST, GET)
      * @param mixed $mixedParticipants participants list
+     * @param bool $bExcludeLogged don't add logged profile to the participants list
      * @return array  participants list
      */
-    private function getParticipantsList($mixedParticipants)
+    private function getParticipantsList($mixedParticipants, $bExcludeLogged = false)
     {
         if (empty($mixedParticipants))
             return array();
         $aParticipants = is_array($mixedParticipants) ? $mixedParticipants : array(intval($mixedParticipants));
-        $aParticipants[] = $this->_iUserId;
+
+        if (!$bExcludeLogged)
+            $aParticipants[] = $this->_iUserId;
+
         return array_unique($aParticipants, SORT_NUMERIC);
     }
 
@@ -684,7 +688,7 @@ class BxMessengerModule extends BxBaseModTextModule
             return echoJson(array('items' => $aUsers));
 
         foreach ($aUsers as &$aValue) {
-            if ($aValue['value'] == $this->_iUserId  || !$this->onCheckContact($this->_iUserId, $aValue['value']))
+            if (!$this->onCheckContact($this->_iUserId, $aValue['value']))
                 continue;
 
             if (!($oProfile = BxDolProfile::getInstance($aValue['value'])))
@@ -770,40 +774,40 @@ class BxMessengerModule extends BxBaseModTextModule
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
 
         $iLotId = bx_get('lot');
-        $aParticipants = $this->getParticipantsList(bx_get('participants'));
-
+        $aParticipants = $this->getParticipantsList(bx_get('participants'), true);
         $aResult = array('message' => _t('_bx_messenger_save_part_failed'), 'code' => 1);
 
         $bCheckAction = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true;
         if (($iLotId && !($this->_oDb->isAuthor($iLotId, $this->_iProfileId) || $bCheckAction)) || empty($aParticipants))
             return echoJson($aResult);
 
-        $aLot = $this->_oDb->getLotByUrlAndParticipantsList(BX_IM_EMPTY_URL, $aParticipants, BX_IM_TYPE_PRIVATE);
-        if (!empty($aLot)){
-            if ($iLotId && $iLotId !== $aLot[$this->_oConfig->CNF['FIELD_ID']])
-                return echoJson(array('message' => _t('_bx_messenger_lot_parts_error'), 'code' => 1, 'lot' => $iLotId));
+        if (!$iLotId) {
+            $aLot = $this->_oDb->getLotByUrlAndParticipantsList(BX_IM_EMPTY_URL, $this->getParticipantsList(bx_get('participants')), BX_IM_TYPE_PRIVATE);
+            if (!empty($aLot)) {
+                if ($iLotId && $iLotId !== $aLot[$this->_oConfig->CNF['FIELD_ID']])
+                    return echoJson(array('message' => _t('_bx_messenger_lot_parts_error'), 'code' => 1, 'lot' => $iLotId));
 
-            $iLotId = $aLot[$this->_oConfig->CNF['FIELD_ID']];
+                $iLotId = $aLot[$this->_oConfig->CNF['FIELD_ID']];
+            }
         }
 
-        $oOriginalParts = $iLotId ? $this->_oDb->getParticipantsList($iLotId) : array();
-        $aNewParticipants = $aParticipants;
-        $aRemoveParticipants = array();
-
+        $oOriginalParts = array();
         $aResult = array('message' => _t('_bx_messenger_save_part_success'), 'code' => 0);
 		if (!$iLotId)
 		{
-            $iLotId = $this->_oDb->createNewLot($this->_iProfileId, BX_IM_EMPTY_URL, BX_IM_TYPE_PRIVATE, BX_IM_EMPTY_URL, $aParticipants);
+            $iLotId = $this->_oDb->createNewLot($this->_iProfileId, BX_IM_EMPTY_URL, BX_IM_TYPE_PRIVATE, BX_IM_EMPTY_URL, $this->getParticipantsList(bx_get('participants')));
             $aResult['lot'] = $iLotId;
             $this->onCreateLot($iLotId);
 		}
-		else {
+		else
+        {
+            $oOriginalParts = $this->_oDb->getParticipantsList($iLotId);
             if (!$this->_oDb->saveParticipantsList($iLotId, $aParticipants))
                 $aResult = array('code' => 2);
-
-            $aRemoveParticipants = array_diff($oOriginalParts, $aParticipants);
-            $aNewParticipants = array_diff($aParticipants, $oOriginalParts);
         }
+
+        $aRemoveParticipants = array_diff($oOriginalParts, $aParticipants);
+        $aNewParticipants = array_diff($aParticipants, $oOriginalParts);
 
         foreach ($aNewParticipants as &$iPartId)
             $this->onAddNewParticipant($iLotId, $iPartId);

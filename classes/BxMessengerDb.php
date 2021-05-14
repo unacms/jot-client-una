@@ -294,7 +294,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	*/
 	public function saveParticipantsList($iLotId, $aParticipants){
 		$sParticipants = '';
-		if (!empty($aParticipants))
+		if (!empty($aParticipants) && is_array($aParticipants))
 		{
 			$aParticipants = array_map('intval', $aParticipants);
 			$sParticipants = implode(',', $aParticipants);
@@ -491,7 +491,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@param array $aParticipants list of participants
 	*@return  int affected rows
 	*/
-	public function createNewLot($iProfileId, $sTitle, $iType, $sUrl = '', &$aParticipants = array())
+	public function createNewLot($iProfileId, $sTitle, $iType, $sUrl = '', $aParticipants = array())
 	{
 		$mixedParticipants = !empty($aParticipants) ? implode(',', $aParticipants) : $iProfileId;
 		$sQuery = $this->prepare("INSERT INTO `{$this->CNF['TABLE_ENTRIES']}` 

@@ -116,7 +116,6 @@
 		this.iFilterType = 0;
 		this.iStarredTalks = false;
 		this.bActiveConnect = true;
-		this.iPanding = false; // don't update jots while previous update is not finished
 		this.aUsers = [];
 		this.iLastReadJotId = 0;
 
@@ -2480,7 +2479,6 @@
 					.first()
 					.data('id');
 
-				_this.iPanding = true;
 				break;
 			case 'new':
 				iRequestJot = (typeof addon === 'object' && typeof addon.jot_id !== 'undefined' ? addon.jot_id : 0);
@@ -2491,8 +2489,6 @@
 				iJotId = oObjects
 					.last()
 					.data('id');
-
-				_this.iPanding = true;
 		}
 
 		const iLotId = _this.oSettings.lot; // additional check for case when ajax request is not finished yet but another talk is selected
@@ -2510,15 +2506,19 @@
 			focus: +((_this.isMobile() && !_oMessenger.oJotWindowBuilder.isHistoryColActive()) ? false : document.hasFocus()),
 			last_viewed_jot
 		},
-		function({ html, unread_jots, code, last_unread_jot, allow_attach, remove_separator })
+		function({ html, unread_jots, code, last_unread_jot, allow_attach, remove_separator, reload })
 		{
 			bx_loading($(`[data-id="${iJotId}"]${_this.sJot}`), false);
 			const oList = $(_this.sTalkList);
 
-			_this.iPanding = false;
 			if (iLotId !== _this.oSettings.lot)
 					return ;
 
+			if (+reload) {
+				window.location.reload();
+				return;
+			}
+			
 			if (!parseInt(code))
 			{
 				if (iJotId === undefined)
@@ -3116,8 +3116,13 @@
 		}
 
 		bx_loading(oLotObject, true);
-		$.post('modules/?r=messenger/get_talks_list', oParams, function ({ code, html }) {
+		$.post('modules/?r=messenger/get_talks_list', oParams, function ({ code, html, reload }) {
 				bx_loading(oLotObject, false);
+
+				if (+reload) {
+					window.location.reload();
+					return;
+				}
 
 				if (!+code)
 					$(_this.sLotsListBlock)[bUpdate ? 'html' : 'append']($(html).bxMsgTime());

@@ -255,7 +255,7 @@ class BxMessengerModule extends BxBaseModTextModule
         $CNF = &$this->_oConfig->CNF;
 
         if (!$this->isLogged())
-            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_only_for_logged')));
+            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
 
         $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_SEND_MESSAGE, $this->_iProfileId);
         if ($mixedResult !== true)
@@ -354,7 +354,7 @@ class BxMessengerModule extends BxBaseModTextModule
         $iJotId = (int)bx_get('jot_id');
 
         if (!$this->isLogged() || !$iLotId || !$this->_oDb->isParticipant($iLotId, $this->_iProfileId)) {
-            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
+            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged')), 'reload' => 1));
         };
 
         if ((int)bx_get('mark_as_read'))
@@ -384,7 +384,7 @@ class BxMessengerModule extends BxBaseModTextModule
     public function actionMarkJotsAsRead(){
         $iId = (int)bx_get('lot');
         if (!$this->isLogged() || !$this->_oDb->isParticipant($iId, $this->_iUserId)) {
-            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
+            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged')), 'reload' => 1));
         };
 
         $this->_oDb->readAllMessages($iId, $this->_iUserId);
@@ -434,7 +434,7 @@ class BxMessengerModule extends BxBaseModTextModule
      */
 	public function actionSearch(){	   
         if (!$this->isLogged())
-            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
+            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged')), 'reload' => 1));
 
         $sParam = bx_get('param');
         $iStarred = bx_get('starred');
@@ -454,10 +454,10 @@ class BxMessengerModule extends BxBaseModTextModule
      */
 	public function actionUpdateLotBrief(){
         if (!$this->isLogged())
-            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
+            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged')), 'reload' => 1));
 
         $iLotId = (int)bx_get('lot_id');
-        if (!$this->isLogged() || !$iLotId || !$this->_oDb->isParticipant($iLotId, $this->_iProfileId))
+        if (!$iLotId || !$this->_oDb->isParticipant($iLotId, $this->_iProfileId))
             return echoJson(array('code' => 1));
 
         if ($aLots = $this->_oDb->getLotInfoById($iLotId))
@@ -487,6 +487,9 @@ class BxMessengerModule extends BxBaseModTextModule
      */
 	public function actionUpdate(){	   
         $CNF = &$this->_oConfig->CNF;
+
+        if (!$this->isLogged())
+            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
 
         $sUrl = bx_get('url');
         if ($sUrl)
@@ -608,7 +611,7 @@ class BxMessengerModule extends BxBaseModTextModule
      */
 	public function actionCreateLot(){
         if (!$this->isLogged())
-            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged')));
+            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
 
         $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_TALKS, $this->_iProfileId);
         if ($mixedResult !== true)
@@ -1091,43 +1094,6 @@ class BxMessengerModule extends BxBaseModTextModule
        return sizeof($aLots);
     }
 
-    /**
-     * Sends push notifications for participants of specified lot
-     * @return boolean TRUE on success or FALSE on failure
-
-    public function actionSendNotification()
-    {
-        $iLotId = (int)bx_get('lot');
-        $iJotId = (int)bx_get('jot_id');
-        $aReceived = is_array(bx_get('sent')) ? bx_get('sent') : array();
-        if (!$this->isLogged() || !$iLotId)
-            return false;
-
-        $aLatestJot = $this->_oDb->getLatestJot($iLotId, $this->_iProfileId);
-        $CNF = &$this->_oConfig->CNF;
-        $sMessage = $aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE']];
-        if ($sMessage){
-            $sMessage = preg_replace('/<br\s?\/?>/i', "\r\n", $sMessage);
-            $sMessage = html2txt($sMessage);
-            $sMessage = get_mb_substr($sMessage, 0, (int)$CNF['PARAM_PUSH_NOTIFICATIONS_DEFAULT_SYMBOLS_NUM']);
-
-            // find mentions in the message and sent notifications
-            if ($CNF['USE_MENTIONS'] && preg_match_all('/<a[^>]*class="bx-mention[^"]*"[^>]*data-id="(\d+)".*?<\/a>/i', $aLatestJot[$CNF['FIELD_MESSAGE']],$aMatches)) {
-                list(, $aMentionedProfiles) = $aMatches;
-                if ($aMentionedProfiles) {
-                    $this->sendNotification($iLotId, $iJotId, $sMessage, $aReceived, $aMentionedProfiles, BX_MSG_NTFS_MENTION);
-                    $aReceived = array_diff($aReceived, $aMentionedProfiles);
-                }
-            }
-        }
-        else
-            if ($aLatestJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
-                $sMessage = _t('_bx_messenger_attached_files_message', $this->_oDb->getJotFiles($aLatestJot[$CNF['FIELD_MESSAGE_ID']], true));
-
-        return $this->sendNotification($iLotId, $iJotId, $sMessage, $aReceived);
-    }
-
-     * */
     private function sendMessageNotification($iLotId, $iJotId){
         $aReceived = array();
         if (!$iLotId || !$iJotId)
@@ -2286,7 +2252,10 @@ class BxMessengerModule extends BxBaseModTextModule
 
     function actionGetTalksList(){
         if (!$this->isLogged())
-            return '';
+            return echoJson(array(
+            'code' => 1,
+            'reload' => 1
+        ));
 
         $aParams = array('start' => (int)bx_get('count'));
         $aLotsList = $this->_oDb->getMyLots($this->_iProfileId, $aParams);
@@ -2554,7 +2523,7 @@ class BxMessengerModule extends BxBaseModTextModule
         $iJotId = bx_get('jot_id');
         $aFiles = bx_get('files');
         if (!$this->isLogged() || !$iJotId || empty($aFiles))
-            return echoJson(array('code' => 1, 'message' => MsgBox(_t('_bx_messenger_not_logged'))));
+            return echoJson(array('code' => 1, 'message' => MsgBox(_t('_bx_messenger_not_logged')), 'reload' => 1));
 
         $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_SEND_MESSAGE, $this->_iProfileId);
         if ($mixedResult !== true)

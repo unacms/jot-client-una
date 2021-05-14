@@ -292,7 +292,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@param array $aParticipants
 	*@return int affected rows
 	*/
-	public function savePariticipantsList($iLotId, $aParticipants){
+	public function saveParticipantsList($iLotId, $aParticipants){
 		$sParticipants = '';
 		if (!empty($aParticipants))
 		{
@@ -620,7 +620,7 @@ class BxMessengerDb extends BxBaseModTextDb
 		
 		if ($iKey !== FALSE){
 			unset($aParticipants[$iKey]);
-			return $this -> savePariticipantsList($iLotId, $aParticipants);
+			return $this -> saveParticipantsList($iLotId, $aParticipants);
 		}
 			
 		return false;

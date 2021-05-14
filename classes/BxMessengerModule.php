@@ -671,6 +671,9 @@ class BxMessengerModule extends BxBaseModTextModule
      * @return string with json code
      */
 	public function actionGetAutoComplete(){
+        if (!$this->isLogged())
+            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
+
         $aResult = $aExcept = array();
         $sExcept = bx_get('except');
 	    if ($sExcept)
@@ -745,6 +748,9 @@ class BxMessengerModule extends BxBaseModTextModule
      */
     public function actionFindLot()
     {
+        if (!$this->isLogged())
+            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
+
         $aParticipants = $this->getParticipantsList(bx_get('participants'));
 
         $aResult = array('lot' => 0);
@@ -760,6 +766,9 @@ class BxMessengerModule extends BxBaseModTextModule
      */
     public function actionSaveLotsParts()
     {
+        if (!$this->isLogged())
+            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
+
         $iLotId = bx_get('lot');
         $aParticipants = $this->getParticipantsList(bx_get('participants'));
 
@@ -789,7 +798,7 @@ class BxMessengerModule extends BxBaseModTextModule
             $this->onCreateLot($iLotId);
 		}
 		else {
-            if (!$this->_oDb->savePariticipantsList($iLotId, $aParticipants))
+            if (!$this->_oDb->saveParticipantsList($iLotId, $aParticipants))
                 $aResult = array('code' => 2);
 
             $aRemoveParticipants = array_diff($oOriginalParts, $aParticipants);

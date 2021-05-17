@@ -292,8 +292,8 @@
 				return;
 
 			iBottomScreenPos = $(_this.sTalkBlock).scrollTop() + $(_this.sTalkBlock).innerHeight();
+			iCounterValue = +$(_this.sUnreadJotsCounter).text();
 			if (_this.iLastUnreadJot) {
-				iCounterValue = +$(_this.sUnreadJotsCounter).text();
 				$(_this.sTalkListJotSelector).each(function () {
 					const iId = +$(this).data('id');
 					const { top } = $(this).position();
@@ -326,10 +326,10 @@
 			if (!isBottomPosition && !isTopPosition && bStartLoading)
 				bStartLoading = false;
 
-			if (iScrollPosition <= $(_this.sTalkListJotSelector).last().height() && !iCounterValue)
-				$(_this.sScrollArea).fadeOut();
-			else
+			if (iScrollPosition > $(_this.sTalkListJotSelector).last().height() || iCounterValue)
 				$(_this.sScrollArea).fadeIn();
+			else
+				$(_this.sScrollArea).fadeOut();
 
 			if ((isBottomPosition || isTopPosition)){
 				if (!bStartLoading) {
@@ -1706,6 +1706,13 @@
 			$(this.sUnreadJotsCounter).text(iCounter);
 			if (iCounter)
 				$(this.sUnreadJotsCounter).show();
+			else
+			{
+				const iScrollPosition = $(this.sTalkBlock).prop('scrollHeight') - $(this.sTalkBlock).prop('clientHeight') - $(this.sTalkBlock).scrollTop();
+				const iHeight = $(this.sTalkListJotSelector).last().height();
+				if (iScrollPosition <= iHeight)
+					$(this.sScrollArea).fadeOut();
+			}
 		}
 
 		if (!$(this.sUnreadJotsCounter).is(':visible'))
@@ -1814,6 +1821,7 @@
 							}
 						)
 						.waitForImages(() => _this.setPositionOnSelectedJot(fCallback));
+
 
 					if (typeof title !== 'undefined')
 						$(document).prop('title', title);

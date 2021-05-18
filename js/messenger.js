@@ -17,6 +17,7 @@
 		
 		//list of selectors
 		this.sJotsBlock = '.bx-messenger-block.jots';
+		this.sMessengerBlock = '.bx-messenger-block';
 		this.sMessangerParentBox = '.bx-messenger-post-box';
 		this.sMessengerBox = '#bx-messenger-message-box';
 		this.sSendButton = '.bx-messenger-post-box-send-button > a';
@@ -3393,7 +3394,8 @@
 				.bxMsgTime();
 
 			// attach on ESC button return from create talk area
-			$(document).on('keydown touchend click', function({type, keyCode, target }){
+			$(_oMessenger.sMessengerBlock).on('keydown touchend mousedown', function(e){
+				const { type, keyCode, target } = e;
 				if (keyCode === 27 && $(target).prop('id') === _oMessenger.sUserSelectorInput.substr(1)) {
 					const oSelector = $(`${_oMessenger.sLotsListSelector}.active`);
 					if (oSelector.length)
@@ -3402,8 +3404,9 @@
 						$(_oMessenger.sLotsListSelector).first().click();
 				}
 
-				if ((type === 'touchend' || type === 'click') && !$(target).closest(_oMessenger.sMessengerBox).length) {
-					if (_oMessenger.oEditor)
+				if ((type === 'touchend' || type === 'mousedown')
+					&& !$(target).closest(`${_oMessenger.sMessengerBox},${_oMessenger.sSendAreaActions}`).length) {
+					if (_oMessenger.oEditor && _oMessenger.isMobile())
 						_oMessenger.oEditor.blur();
 				}
 			});

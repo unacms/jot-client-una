@@ -62,7 +62,7 @@
 
     editor(){
         this.init();
-        return this;
+        return this.oEditor;
     }
 
     html(){
@@ -71,7 +71,7 @@
 
     focus(){
         if (this.oEditor)
-        this.oEditor.focus();
+            this.oEditor.focus();
     }
 
     blur(){
@@ -84,7 +84,7 @@
     }
 
     get length(){
-       return  this.oEditor && this.oEditor.getLength();
+       return this.oEditor && this.oEditor.getLength();
     }
 
     setContents(aValues){

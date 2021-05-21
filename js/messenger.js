@@ -89,6 +89,8 @@
 		this.sUnreadJotsCounter = '#unread-jots-counter';
 		this.sDateNavigator = '#date-time-navigator';
 		this.sUploaderAreaPrefix = 'bx-messenger-uploading-placeholder';
+		this.sJotMessageReply = '.bx-messenger-reply-area-message';
+		this.sJotMessageReplyArea = '.bx-messenger-reply-area';
 
 		//global class options
 		this.oUsersTemplate	= null;
@@ -102,6 +104,7 @@
 		this.iTimer = null;
 		this.sEmbedTemplate = (oOptions && oOptions.embed_template) || '<a href="__url__">__url__</a>';
 		this.iMaxLength = (oOptions && oOptions.max) || 0;
+		this.iMaxReplyLength = 500;
 		this.iMaxHistory = oOptions.max_history_number || 50;
 		this.iStatus = document.hasFocus() ? 1 : 2; // 1- online, 2-away
 		this.iActionsButtonWidth = '2.25';
@@ -119,6 +122,8 @@
 		this.bActiveConnect = true;
 		this.aUsers = [];
 		this.iLastReadJotId = 0;
+		this.iReplyId = 0;
+		this.iScrollDownPositionJotId = 0; // position of the scroll for down arrow on history page when user jum to reply
 
 		// files uploader
 		this.aUploaderQueue = Object.create(null);
@@ -545,8 +550,14 @@
 
 				_this.updateSendAreaHeight();
 
-				if (_this.oEditor.length > 1)
-					_this.oStorage.saveLot(_this.oSettings.lot, JSON.stringify(ops));
+				if (_this.oEditor.length > 1){
+					const oJotInfo = Object.create(null);
+					 oJotInfo.message = ops;
+					 if (_this.iReplyId)
+						oJotInfo.reply = _this.iReplyId;
+					
+					_this.oStorage.saveLot(_this.oSettings.lot, oJotInfo);
+				}
 				else
 					_this.oStorage.deleteLot(_this.oSettings.lot);
 
@@ -630,16 +641,28 @@
 					});
 
 		// check if the not finished message for the talk exists
-		const sStorageMessage = _this.oStorage.getLot(_this.oSettings.lot);
-		if (typeof sStorageMessage === 'string' && sStorageMessage.length) {
-			let mixedValue = JSON.parse(sStorageMessage);
-			if (Array.isArray(mixedValue)) {
-				_this.oEditor.setContents(mixedValue);
+		const mixedStorageMessage = _this.oStorage.getLot(_this.oSettings.lot);
+		if ( typeof mixedStorageMessage === 'object'){
+			const { message, reply } = mixedStorageMessage;
+			
+			if (Array.isArray(mixedStorageMessage) && mixedStorageMessage.length){
+				_this.oEditor.setContents(mixedStorageMessage);
 				$(_this.sSendButton).fadeIn();
-			} else
-				_this.oEditor.setText(mixedValue);
+			}
+			else if (Array.isArray(message) && message.length)
+			{	
+				_this.oEditor.setContents(message);
+				$(_this.sSendButton).fadeIn();
+			}
+			else if ( typeof mixedStorageMessage === 'string' && mixedStorageMessage.length)
+				_this.oEditor.setText(mixedStorageMessage);
+			
+			if (+reply){
+				_this.iReplyId = +reply;
+				_this.replyJot($(`${_this.sJot}[data-id="${_this.iReplyId}"]`), _this.iReplyId);
+			}
 		}
-
+		
 		_this.checkNotFinishedTalks();
     }
 
@@ -850,9 +873,9 @@
 		
 		if (_this.oUsersTemplate == null)
 			$.get('modules/?r=messenger/load_members_template', 
-				function(oData){
-					if (oData != undefined && oData.data.length){
-						_this.oUsersTemplate = $(oData.data);
+				function({ data }){
+					if (typeof data !== 'undefined' && data.length){
+						_this.oUsersTemplate = $(data);
 					}
 			}, 'json');	
 	}
@@ -1308,7 +1331,104 @@
 			
 		return false;
 	};
+
+	oMessenger.prototype.cleanReplayArea = function(){
+		this.iReplyId = 0;
+		
+		$(this.sJotMessageReply, this.sMessangerParentBox)
+			.empty()
+			.parent()
+			.hide();
+				
+		this.oStorage.deleteLotItem(this.oSettings.lot, 'reply');
+	}
 	
+	oMessenger.prototype.replyJot = function(oObject, iJotId){
+		const	oJot = $(oObject).closest(this.sJot),
+				iMaxLength = this.isMobile() ? this.iMaxReplyLength/2 : this.iMaxReplyLength,
+				_this = this,
+				fFunc = function(sText){							
+							if (!sText || !sText.length)
+								return ;
+										
+							if (sText.length > iMaxLength)
+								sText = sText.substr(0, iMaxLength) + '...';
+										
+							$(_this.sJotMessageReply, _this.sMessangerParentBox)
+								.html(sText)
+								.parent()
+								.css('display', 'flex');
+						};
+		
+		if (!oJot.length){
+			if (iJotId){
+				$.post('modules/?r=messenger/get_jot_text', { jot: iJotId }, function({ code, text, attachements })
+				{
+					if (!parseInt(code))
+						fFunc(text);
+					
+				}, 'json');
+			} 
+			 else 
+				return;
+		}	
+		else
+		{ 
+			let sMessage = oJot
+							.find(_this.sJotMessage)
+							.text();
+			
+			if (!sMessage.length){
+				const oFiles = $(_this.sAttachmentArea, oJot);
+
+				if (oFiles){
+					let oObject = null;					
+					if (oFiles.find(`${_this.sAttachmentImages},.bx-messenger-attachment-giphy`).length){
+						oObject = oFiles.find(`${_this.sAttachmentImages} img, .bx-messenger-attachment-giphy img`).first();
+					}
+					else if (oFiles.find('.bx-messenger-attachment-file-videos').length){
+						sUrl = oFiles.find('.bx-messenger-attachment-file-videos video').first().prop('poster');
+						if (sUrl)
+							oObject = $(`<img src="${sUrl}" />`);						
+					}
+					else if (oFiles.find('.bx-messenger-attachment-file-audio').length)
+						oObject = oFiles.find('.bx-messenger-attachment-file-audio .audio .title').first();					
+					else if (oFiles.find('.bx-messenger-attachment-file').length)
+						oObject = oFiles.find('.bx-messenger-attachment-file').first();
+					
+					
+					$(_this.sJotMessageReply, _this.sMessangerParentBox)
+							.html(oObject.clone())
+							.parent()
+							.css('display', 'flex');
+				}
+			}
+			 else 
+				fFunc(sMessage);				 
+			
+			this.iReplyId = oJot.data('id');
+			
+			_this.oStorage.saveLotItem(_this.oSettings.lot, _this.iReplyId, 'reply');
+
+			if (_this.oEditor)
+				_this.oEditor.focus();
+		}	
+		
+	}
+	
+	oMessenger.prototype.jumpToJot = function(iJumpJotId){
+		const iJotId = iJumpJotId ? iJumpJotId : this.iReplyId;
+		if (iJotId){
+			const oJot = $(`${this.sJot}[data-id="${iJotId}"]`);
+			if (oJot.length)
+				this.updateScrollPosition('center', undefined, oJot, () => oJot.addClass(this.sSelectedJot.substr(1)));
+			else 
+			{
+				this.iSelectedJot = iJotId;
+				this.loadTalk(this.oSettings.lot, this.iSelectedJot);
+			}
+		}
+	}
 	
 	oMessenger.prototype.editJot = function(oObject){
 		const oJot = $(oObject).closest(this.sJot),
@@ -1921,11 +2041,26 @@
 			if (_this.oFilesUploader && oParams.files.length && !_this.oFilesUploader.isReady())
 				sUploadingArea = `<div class="${_this.sUploaderAreaPrefix}" id="${_this.sUploaderAreaPrefix}-${oParams.tmp_id}"></div>`;
 
+			const oUserTemplate = _this.oUsersTemplate.clone();
+			if (_this.iReplyId){
+				const sText = $(_this.sJotMessageReply, _this.sMessangerParentBox).text();
+				
+				oUserTemplate.html(
+									oUserTemplate
+										.html()										
+										.replace(/{reply_message}/g, sText)
+										.replace(/{reply_parent_id}/g, _this.iReplyId)
+								  )
+							  .find(_this.sJotMessageReplyArea)					
+							  .css('display', 'flex');
+			
+			}
+			 else 
+				$(oUserTemplate).find(_this.sJotMessageReplyArea).remove();
+			
 			// append content of the message to the history page
 			$(_this.sTalkList)
-				.append(
-							_this.oUsersTemplate
-								.clone()
+				.append(oUserTemplate
 									.attr('data-tmp', oParams.tmp_id)
 									.find('time')
 									.html(_this.sJotSpinner)
@@ -1934,8 +2069,7 @@
 									.html(oParams.message)
 									.after(sUploadingArea)
 									.fadeIn('slow')
-								.end()
-						);
+								.end());
 
 			if (sUploadingArea) {
 				_this.oFilesUploader.move(`#${_this.sUploaderAreaPrefix}-${oParams.tmp_id}`);
@@ -1946,10 +2080,15 @@
 			_this.initJotIcons('[data-tmp="' + oParams.tmp_id + '"]');
 		}
 
+		if (_this.iReplyId && $(_this.sJotMessageReply).length){
+			oParams.reply = +_this.iReplyId;
+			_this.cleanReplayArea();
+		}
+
 		_this.updateScrollPosition('bottom');
 
 		// save message to database and broadcast to all participants
-		$.post('modules/?r=messenger/send', oParams, function({ jot_id, header, tmp_id, message, code, time, lot_id }){
+		$.post('modules/?r=messenger/send', oParams, function({ jot_id, header, tmp_id, message, code, time, lot_id }){				
 				switch(parseInt(code))
 				{
 					case 0:
@@ -3485,6 +3624,18 @@
 		},
 		onScrollDown: function () {
 			const { iUnreadJotsNumber, iMaxHistory, iSelectedJot, sUnreadJotsCounter, oSettings: { lot } } = _oMessenger;
+			
+			if (_oMessenger.iScrollDownPositionJotId){
+					const oPrevJot = $(`${_oMessenger.sJot}[data-id="${_oMessenger.iScrollDownPositionJotId}"]`);					
+					if (oPrevJot.length)
+						_oMessenger.updateScrollPosition('center', 'fast', oPrevJot);
+					else 
+						_oMessenger.loadTalk(lot, _oMessenger.iScrollDownPositionJotId);
+				
+				_oMessenger.iScrollDownPositionJotId = 0;
+				return;
+			}
+			
 			if (iMaxHistory >= iUnreadJotsNumber && !iSelectedJot)
 				_oMessenger.updateScrollPosition('bottom', 'fast');
 			else
@@ -3578,6 +3729,18 @@
 		},
 		onCopyJotLink: function (oObject) {
 			_oMessenger.copyJotLink(oObject);
+		},
+		onReplyJot: function (oObject) {
+			_oMessenger.replyJot(oObject);
+		},
+		onCleanReplayArea: function(){
+			_oMessenger.cleanReplayArea();
+		},
+		jumpToParentMessage: function(oElement, iJumpJotId){
+			if (iJumpJotId && oElement)
+				_oMessenger.iScrollDownPositionJotId = $(oElement).closest(_oMessenger.sJot).data('id');
+
+			_oMessenger.jumpToJot(iJumpJotId);
 		},
 		/**
 		 * Methods below occur when messenger gets data from the server

@@ -25,6 +25,7 @@ define('BX_ATT_TYPE_FILES', 'files');
 define('BX_ATT_TYPE_FILES_UPLOADING', 'uploading');
 define('BX_ATT_TYPE_GIPHY', 'giphy');
 define('BX_ATT_TYPE_REPOST', 'repost');
+define('BX_ATT_TYPE_REPLY', 'reply');
 define('BX_ATT_TYPE_VC', 'vc'); // video conference
 
 // Reactions actions
@@ -256,8 +257,9 @@ class BxMessengerModule extends BxBaseModTextModule
         $iTmpId = bx_get('tmp_id');
         $aFiles = bx_get(BX_ATT_TYPE_FILES);
         $aGiphy = bx_get(BX_ATT_TYPE_GIPHY);
-        $CNF = &$this->_oConfig->CNF;
-
+		$iReply = (int)bx_get('reply');
+        
+		$CNF = &$this->_oConfig->CNF;
         if (!$this->isLogged())
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
 
@@ -299,7 +301,8 @@ class BxMessengerModule extends BxBaseModTextModule
                     'member_id' => $this->_iProfileId,
                     'url' => $sUrl,
                     'title' => $sTitle,
-                    'lot' => $iLotId
+                    'lot' => $iLotId,
+					'reply' => $iReply
             ), $aParticipants)))
         {
             if (!$iLotId) {
@@ -334,6 +337,9 @@ class BxMessengerModule extends BxBaseModTextModule
 
 			if (is_array($aGiphy) && !empty($aGiphy))
                $this->_oDb->addAttachment($iId, current($aGiphy), BX_ATT_TYPE_GIPHY);
+		   
+		    if ($iReply)
+               $this->_oDb->addAttachment($iId, $iReply, BX_ATT_TYPE_REPLY);
 
             $aResult['jot_id'] = $iId;
 			$aJot = $this->_oDb->getJotById($iId);
@@ -955,7 +961,7 @@ class BxMessengerModule extends BxBaseModTextModule
         echoJson($aResult);
     }
 
-    /**
+  /**
      * Get body of the jot
      * @return string with json
      */
@@ -963,12 +969,28 @@ class BxMessengerModule extends BxBaseModTextModule
     {
         $iJotId = bx_get('jot');
         $aJotInfo = $this->_oDb->getJotById($iJotId);
-        if (empty($aJotInfo) || !(isAdmin() || $this->_oDb->isAuthor($aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE_FK']], $this->_iUserId)))
+        if (empty($aJotInfo) || !(isAdmin() || $this->_oDb->isAuthor($aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE_FK']], $this->_iProfileId)))
             return echoJson(array('code' => 1));
 
         $aResult = array('code' => 0, 'html' => $this->_oTemplate->getJotsBody($iJotId));
         echoJson($aResult);
     }
+
+  /**
+       * Get body of the jot
+      * @return string with json
+     */
+    public function actionGetJotText()
+    {
+        $iJotId = bx_get('jot');
+        $aJotInfo = $this->_oDb->getJotById($iJotId);
+        if (empty($aJotInfo) || !(isAdmin() || $this->_oDb->isAuthor($aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE_FK']], $this->_iProfileId)))
+            return echoJson(array('code' => 1));
+
+        $aResult = array('code' => 0, 'text' => html2txt($aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE']]));
+        echoJson($aResult);
+    }
+
 
     /**
      * Jot edit panel
@@ -1417,7 +1439,6 @@ class BxMessengerModule extends BxBaseModTextModule
     	if (!empty($aFile))
 		{
             $aInfo = getimagesize($sFileUrl);
-
             if ($aInfo[0] <= $iWidth && $aInfo[1] <= $iHeight) {
                 $iWidth = (int)$aInfo[0];
                 $iHeight = (int)$aInfo[1];

@@ -22,37 +22,71 @@
         return this._oData[this._sSubLot];
     }
 
-    getLot(iLotId){
-        return this.get(this._sSubLot, iLotId);
+    getLot(iLotId, sField){
+        const sObject = this.get(this._sSubLot, iLotId);
+		
+		if (typeof sObject === 'string'){
+			const oObject = JSON.parse(sObject);
+			return sField && oObject && typeof oObject[sField] !== undefined ? oObject[sField] : oObject;
+		}
+		
+		return;
     }
 
     saveLot(iLotId, mixedValue) {
         return this.set(this._sSubLot, iLotId, mixedValue);
     }
+	
+	saveLotItem(iLotId, mixedValue, sField) {
+        return this.set(this._sSubLot, iLotId, mixedValue, sField);
+    }
 
     deleteLot(iLotId){
         return this.delete(this._sSubLot, iLotId);
+    }
+	
+	 deleteLotItem(iLotId, sField){
+        return this.delete(this._sSubLot, iLotId, sField);
     }
 
     get(sCateg, sKey){
         return sCateg && this._oData[sCateg] && this._oData[sCateg][sKey];
     }
 
-    set(sCateg, sKey, mixedValue){
+    set(sCateg, sKey, mixedValue, sField){
         if (sCateg && sKey && typeof mixedValue !== 'undefined') {
             if (this._oData[sCateg] === undefined)
-                this._oData[sCateg] = Object.create({});
-
-            this._oData[sCateg][sKey] = mixedValue;
+                this._oData[sCateg] = Object.create(null);
+			
+			if (typeof sField !== 'undefined'){
+				const oObject = typeof this._oData[sCateg][sKey] !== 'undefined' ? JSON.parse(this._oData[sCateg][sKey]) : Object.create(null);
+				oObject[sField] = mixedValue;
+					
+				this._oData[sCateg][sKey] = JSON.stringify(oObject);
+			} else 
+				this._oData[sCateg][sKey] = JSON.stringify(mixedValue);
+	        
             this.save();
         }
 
         return this;
     };
 
-    delete(sCateg, sKey){
+    delete(sCateg, sKey, sField){
         if (sCateg && sKey && this._oData[sCateg][sKey]) {
-            delete this._oData[sCateg][sKey];
+ 			if (typeof sField !== 'undefined'){
+				const oObject = JSON.parse(this._oData[sCateg][sKey]);
+				if (typeof oObject[sField] !== 'undefined'){
+					delete oObject[sField];
+					if ($.isEmptyObject(oObject))
+						delete this._oData[sCateg][sKey];
+					else 
+						this._oData[sCateg][sKey] = JSON.stringify(oObject);
+				}
+			}			
+			else 
+				delete this._oData[sCateg][sKey];
+			
             this.save();
         }
 

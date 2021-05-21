@@ -248,7 +248,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             '_bx_messenger_uploading_file',
             '_bx_messenger_invalid_server_response',
             '_bx_messenger_uploading_remove_button',
-
+			'_bx_messenger_file_is_too_large_error',
+            '_bx_messenger_file_is_too_large_error_details',
+			'_bx_messenger_file_type_is_not_allowed',
         ));
     }
 
@@ -284,6 +286,16 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                 'title' => _t('_bx_messenger_remove_jot'),
                 'icon' => 'backspace'
             ),
+            array(
+                'click' => "{$CNF['JSMain']}.onReplyJot(this);",
+                'title' => _t('_bx_messenger_reply'),
+                'icon' => 'reply'
+            ),
+            /*array(
+                'click' => "{$CNF['JSMain']}.onUnread(this);",
+                'title' => _t('_bx_messenger_mark_as_unread'),
+                'icon' => 'eye-slash'
+            ),*/
         );
 
         $aVars = array('class' => '', 'position' => 'left center');
@@ -608,7 +620,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 		}			
 		
 		$aItems['bx_repeat:friends'] = array();
-		foreach($aFriends as $iKey => $iValue){
+		foreach($aFriends as &$iValue){
 			$oProfile = $this -> getObjectUser($iValue);
 			$aItems['bx_repeat:friends'][] = array(	
 							'title' => $oProfile -> getDisplayName(),
@@ -857,7 +869,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             $iJot = $aJot[$CNF['FIELD_MESSAGE_ID']];
 
             if ($oProfile) {
-                $sAttachment = $sMessage = '';
+                $sReply = $sAttachment = $sMessage = '';
                 $bIsTrash = (int)$aJot[$CNF['FIELD_MESSAGE_TRASH']];
                 $iIsVC = (int)$aJot[$CNF['FIELD_MESSAGE_VIDEOC']];
                 $bIsLotAuthor = $this->_oDb->isAuthor($iLotId, $iProfileId);
@@ -867,7 +879,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                     $sMessage = $this->getMessageIcons($aJot[$CNF['FIELD_MESSAGE_ID']], $bIsTrash ? 'delete' : 'vc', isAdmin() || $bIsLotAuthor);
                 else {
                     $sMessage = $this->_oConfig->bx_linkify($aJot[$CNF['FIELD_MESSAGE']]);
-                    $sAttachment = !empty($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']]) ? $this->getAttachment($aJot) : '';
+                    if (!empty($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']])){
+						if ($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']] !== BX_ATT_TYPE_REPLY)
+							$sAttachment = $this->getAttachment($aJot);
+						else 
+							$sReply = $this->getAttachment($aJot);						
+					}					
                 }
 
                 $sActionIcon = '';
@@ -904,6 +921,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                     'id' => $aJot[$CNF['FIELD_MESSAGE_ID']],
                     'message' => $sMessage,
                     'attachment' => $sAttachment,
+					'reply' => $sReply,
                     'my' => (int)$iProfileId === (int)$aJot[$CNF['FIELD_MESSAGE_AUTHOR']] ? 1 : 0,
                     'bx_if:jot_menu' => array(
                         'condition' => $iProfileId && !$bIsTrash,
@@ -1333,6 +1351,10 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				'my' => 1,
 				'message' => '',
 				'attachment' => '',
+				'reply' => $this -> parseHtmlByName('reply.html', array(
+							    'id' => '{reply_parent_id}',
+								'message' => '{reply_message}'
+							)),
                 'bx_if:jot_menu' => array(
                     'condition' => $iProfileId,
                     'content'	=> array(
@@ -1433,13 +1455,16 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             ) : $this->parseHtmlByName('tmp_video.html', array('img' => $sPoster));
     }
 
+	function getReplyPreview(){
+	
+	}
     /**
-     * Returns attachment according jot's attachment type
-     * @param array $aJot jot info
-     * @param bool $bMenu show menu in attached items
-     * @param bool $bIsDynamicallyLoad true when message is dynamically loaded to the history
-     * @return string html code
-     */
+		 * Returns attachment according jot's attachment type
+		 * @param array $aJot jot info
+		 * @param bool $bMenu show menu in attached items
+		 * @param bool $bIsDynamicallyLoad true when message is dynamically loaded to the history
+		 * @return string html code
+	 */
 	function getAttachment($aJot, $bMenu = true, $bIsDynamicallyLoad = false){
 		$sHTML = '';
 		$iViewer = bx_get_logged_profile_id();
@@ -1453,7 +1478,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 				case BX_ATT_TYPE_REPOST:
 						$sHTML = $this -> getJotAsAttachment($aJot[$CNF['FIELD_MESSAGE_AT']]);
 						break;
-
 				case BX_ATT_TYPE_GIPHY:
                         $sHTML = $this -> parseHtmlByName('giphy.html', array(
                             'gif' => $aJot[$CNF['FIELD_MESSAGE_AT']],
@@ -1462,7 +1486,15 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                             'dynamic' => $bIsDynamicallyLoad ? 'block' : 'none',
                         ));
                         break;
-
+				case BX_ATT_TYPE_REPLY:
+						 $iJotId = (int)$aJot[$CNF['FIELD_MESSAGE_AT']];
+						 if ($iJotId && ($aReplyJot = $this->_oDb->getJotById((int)$aJot[$CNF['FIELD_MESSAGE_AT']]))){							 
+							  $sHTML = $this -> parseHtmlByName('reply.html', array(
+									'id' => (int)$aJot[$CNF['FIELD_MESSAGE_AT']],
+									'message' => get_mb_substr(html2txt($aReplyJot[$CNF['FIELD_MESSAGE']]), 0, 500)
+								));
+						}
+						break;
                 case BX_ATT_TYPE_FILES_UPLOADING:
                 case BX_ATT_TYPE_FILES:
                         $aUploadingFilesList = $aJot[$CNF['FIELD_MESSAGE_AT']] ? explode(',', $aJot[$CNF['FIELD_MESSAGE_AT']]) : array();
@@ -1479,7 +1511,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						$oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);
 						$oTranscoderMp3 = BxDolTranscoderAudio::getObjectInstance($this -> _oConfig -> CNF['OBJECT_MP3_TRANSCODER']);
 
-						foreach($aFiles as $iKey => $aFile)
+						foreach($aFiles as &$aFile)
 						{
     						    if (($iKey = array_search($aFile[$CNF['FIELD_ST_NAME']], $aUploadingFilesList)) !== FALSE)
     						        unset($aUploadingFilesList[$iKey]);
@@ -1492,7 +1524,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 									if ($aFile[$CNF['FIELD_ST_TYPE']] != 'image/gif' && $oImagesTranscoder = BxDolTranscoderImage::getObjectInstance($CNF['OBJECT_IMAGES_TRANSCODER_PREVIEW']))
 										$sPhotoThumb = $oImagesTranscoder->getFileUrl((int)$aFile[$CNF['FIELD_ST_ID']]);
 									
-									$sFileUrl = BxDolStorage::getObjectInstance($this->_oConfig-> CNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$CNF['FIELD_ST_ID']]);
+									$sFileUrl = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$CNF['FIELD_ST_ID']]);
 									$aItems['bx_repeat:images'][] = array(
 										'url' => $sPhotoThumb ? $sPhotoThumb : $sFileUrl,
 										'id' => $aFile[$CNF['FIELD_ST_ID']],
@@ -1546,10 +1578,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						$sHTML = $this -> parseHtmlByName('files.html', $aItems);
 						break;
 			}
-			
-			
 		}
-		
+
 		return $sHTML;
 	}
 
@@ -1967,7 +1997,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         $aFiles = $this -> _oDb -> getLotFiles($iLotId, $iStart, $CNF['PARAM_DEFAULT_TALK_FILES_NUM']);
         if (!empty($aFiles)) {
             $aFilesItems = array();
-            foreach ($aFiles as $iKey => $aValue) {
+            foreach ($aFiles as &$aValue) {
                 $oOwner = $this -> getObjectUser($aValue[$CNF['FIELD_ST_AUTHOR']]);
                 $aFilesItems[] = array(
                     'time' => bx_time_js($aValue[$CNF['FIELD_ST_ADDED']]),

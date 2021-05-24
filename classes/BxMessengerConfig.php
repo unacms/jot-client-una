@@ -159,6 +159,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
             'PARAM_DEFAULT_TALK_FILES_NUM' => 20,
             'PARAM_MAX_JOT_NTFS_MESSAGE_LENGTH' => 50,
             'PARAM_PUSH_NOTIFICATIONS_DEFAULT_SYMBOLS_NUM' => 190,
+            'JOT-PREVIEW-TEXT-LENGTH' => 500,
             'PARAM_PRIVATE' => TRUE,
             'PARAM_PUBLIC' => FALSE,
             'PARAM_ICONS_NUMBER' => 3,

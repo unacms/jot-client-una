@@ -980,14 +980,14 @@ class BxMessengerModule extends BxBaseModTextModule
        * Get body of the jot
       * @return string with json
      */
-    public function actionGetJotText()
+    public function actionGetJotPreview()
     {
         $iJotId = bx_get('jot');
         $aJotInfo = $this->_oDb->getJotById($iJotId);
         if (empty($aJotInfo) || !(isAdmin() || $this->_oDb->isAuthor($aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE_FK']], $this->_iProfileId)))
             return echoJson(array('code' => 1));
 
-        $aResult = array('code' => 0, 'text' => html2txt($aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE']]));
+        $aResult = array('code' => 0, 'html' => $this->_oTemplate->getReplyPreview($iJotId));
         echoJson($aResult);
     }
 

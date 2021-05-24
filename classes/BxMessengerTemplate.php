@@ -1455,8 +1455,59 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             ) : $this->parseHtmlByName('tmp_video.html', array('img' => $sPoster));
     }
 
-	function getReplyPreview(){
-	
+	function getReplyPreview($iJotId){
+	    if (!$iJotId || !($aJot = $this->_oDb->getJotById($iJotId)))
+	        return '';
+
+        $CNF = &$this -> _oConfig -> CNF;
+        if (!empty($aJot))
+        {
+            switch($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']])
+            {               
+                case BX_ATT_TYPE_GIPHY:
+                    return '<img src="//media1.giphy.com/media/' . $aJot[$CNF['FIELD_MESSAGE_AT']] . '/giphy_s.gif" />';
+                case BX_ATT_TYPE_REPLY:
+                    return get_mb_substr(html2txt($aJot[$CNF['FIELD_MESSAGE']]), 0, $CNF['JOT-PREVIEW-TEXT-LENGTH']);
+                case BX_ATT_TYPE_FILES_UPLOADING:
+                case BX_ATT_TYPE_FILES:
+                    $aUploadingFilesList = $aJot[$CNF['FIELD_MESSAGE_AT']] ? explode(',', $aJot[$CNF['FIELD_MESSAGE_AT']]) : array();
+                    $aFiles = $this -> _oDb -> getJotFiles($aJot[$CNF['FIELD_MESSAGE_ID']]);
+                    $aItems = array(
+                        'bx_repeat:images' => array(),
+                        'bx_repeat:files' => array(),
+                        'bx_repeat:videos' => array(),
+                        'bx_repeat:audios' => array(),
+                        'bx_repeat:loading_placeholder' => array()
+                    );
+
+                    $aTranscodersVideo = $this -> getAttachmentsVideoTranscoders();
+                    $oStorage = new BxMessengerStorage($CNF['OBJECT_STORAGE']);
+                    $oTranscoderMp3 = BxDolTranscoderAudio::getObjectInstance($CNF['OBJECT_MP3_TRANSCODER']);
+                    $aFile = current($aFiles);
+                    $isVideo = $aTranscodersVideo && (0 == strncmp('video/', $aFile['mime_type'], 6)) && $aTranscodersVideo['poster']->isMimeTypeSupported($aFile['mime_type']);
+                    if ($oStorage -> isImageFile($aFile[$CNF['FIELD_ST_TYPE']])) {
+                        if ($oImagesTranscoder = BxDolTranscoderImage::getObjectInstance($CNF['OBJECT_IMAGES_TRANSCODER_PREVIEW']))
+                            $sPhotoThumb = $oImagesTranscoder->getFileUrl((int)$aFile[$CNF['FIELD_ST_ID']]);
+
+                        $sFileUrl = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$CNF['FIELD_ST_ID']]);
+                        return '<img src="' . ($sPhotoThumb ? $sPhotoThumb : $sFileUrl) . '" />';
+                    }
+
+                    if ($isVideo)
+                         return '<img src="' . $aTranscodersVideo['poster']->getFileUrl($aFile[$CNF['FIELD_ST_ID']]) . '" />';
+
+                    if ($oTranscoderMp3 -> isMimeTypeSupported($aFile[$CNF['FIELD_ST_TYPE']]))
+                        return $aFile[$CNF['FIELD_ST_NAME']];
+					
+					return $this -> parseHtmlByName('file.html', array(
+																	'type' => $oStorage -> getFontIconNameByFileName($aFile[$CNF['FIELD_ST_NAME']]),
+																	'name' => $aFile[$CNF['FIELD_ST_NAME']],
+																	'file_type' => $aFile[$CNF['FIELD_ST_TYPE']],								
+															   ));
+				 default:
+                    return html2txt($aJot[$CNF['FIELD_MESSAGE']]);											   
+            }
+        }
 	}
     /**
 		 * Returns attachment according jot's attachment type
@@ -1491,7 +1542,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 						 if ($iJotId && ($aReplyJot = $this->_oDb->getJotById((int)$aJot[$CNF['FIELD_MESSAGE_AT']]))){							 
 							  $sHTML = $this -> parseHtmlByName('reply.html', array(
 									'id' => (int)$aJot[$CNF['FIELD_MESSAGE_AT']],
-									'message' => get_mb_substr(html2txt($aReplyJot[$CNF['FIELD_MESSAGE']]), 0, 500)
+									'message' => $this->getReplyPreview($iJotId),
 								));
 						}
 						break;
@@ -1560,13 +1611,18 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 								}
 								else
 									$aItems['bx_repeat:files'][] = array(
-										'type' => $oStorage -> getFontIconNameByFileName($aFile[$CNF['FIELD_ST_NAME']]),
-										'name' => $aFile[$CNF['FIELD_ST_NAME']],
-										'file_type' => $aFile[$CNF['FIELD_ST_TYPE']],
-										'id' => $aFile[$CNF['FIELD_MESSAGE_ID']],
-										'delete_code' => $bMenu ? $this -> deleteFileCode($aFile[$CNF['FIELD_MESSAGE_ID']], $isAllowedDelete) : '',
-										'url' => BX_DOL_URL_ROOT
-									);
+																			'file' => $this -> parseHtmlByName('a_file.html', 
+																															  array(
+																																		'file' => $this -> parseHtmlByName('file.html', array(
+																																							'type' => $oStorage -> getFontIconNameByFileName($aFile[$CNF['FIELD_ST_NAME']]),
+																																							'name' => $aFile[$CNF['FIELD_ST_NAME']],
+																																							'file_type' => $aFile[$CNF['FIELD_ST_TYPE']],																		
+																																		)),
+																																		'id' => $aFile[$CNF['FIELD_MESSAGE_ID']],
+																																		'url' => BX_DOL_URL_ROOT																																	
+																																	)),
+																			'delete_code' => $bMenu ? $this -> deleteFileCode($aFile[$CNF['FIELD_MESSAGE_ID']], $isAllowedDelete) : ''
+																		);								
 						}
 
                         foreach($aUploadingFilesList as $sFileName)
@@ -1623,13 +1679,15 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         }
 
 
-         return $this -> parseHtmlByName('file.html', array(
-                    'type' => $oStorage -> getFontIconNameByFileName($aFile[$CNF['FIELD_ST_NAME']]),
-                    'name' => $aFile[$CNF['FIELD_ST_NAME']],
-                    'file_type' => $aFile[$CNF['FIELD_ST_TYPE']],
-                    'id' => $aFile[$CNF['FIELD_MESSAGE_ID']],
-                    'url' => BX_DOL_URL_ROOT
-                ));
+         return $this -> parseHtmlByName('a_file.html', array(
+																'file' => $this -> parseHtmlByName('file.html', array(
+																			'type' => $oStorage -> getFontIconNameByFileName($aFile[$CNF['FIELD_ST_NAME']]),
+																			'name' => $aFile[$CNF['FIELD_ST_NAME']],
+																			'file_type' => $aFile[$CNF['FIELD_ST_TYPE']],																		
+																		)),
+																'id' => $aFile[$CNF['FIELD_MESSAGE_ID']],
+																'url' => BX_DOL_URL_ROOT
+															));
     }
 
 	/**

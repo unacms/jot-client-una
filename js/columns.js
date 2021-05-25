@@ -115,14 +115,19 @@
 					},
 
 				onResizeWindow:function(){
-						this.init();
-						 if (this.isMobile())
+					this.init();
+						if (this.isMobile())
 							this.sActiveType = this.sActiveType === 'both' ? 'left' : this.sActiveType;
-						 else 
+						else
 							this.sActiveType = 'both';
 
-						this.iMainAreaHeight = $(window).height() - $(this.sToolbar).height();
-						this.resizeColumns();
+					let iHeight = 0;
+					$('.bx-content-wrapper').prevAll().each(function(){
+						iHeight += $(this).outerHeight(true);
+					});
+
+					this.iMainAreaHeight = $(window).height() - $(this.sToolbar).height() - iHeight;
+					this.resizeColumns();
 				},
 
 				resizeColumns:function(){

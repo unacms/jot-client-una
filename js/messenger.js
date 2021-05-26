@@ -127,6 +127,7 @@
 		this.iLastReadJotId = 0;
 		this.iReplyId = 0;
 		this.iScrollDownPositionJotId = 0; // position of the scroll for down arrow on history page when user jum to reply
+		this.oSendPool = new Map();
 
 		// files uploader
 		this.aUploaderQueue = Object.create(null);
@@ -478,7 +479,7 @@
 
 		let iTime = (new Date()).getTime();
 		const InputName = `${_this.sUploaderInputPrefix}${iTime}`;
-		const sInput = `<input type="file" name="${InputName}"  required  style="display:none;"/>`;
+		const sInput = `<input type="file" name="${InputName}" required style="display:none;"/>`;
 
 		$(_this.sSendAttachmentArea).before(sInput);
 		this.oFilesUploaderSettings['input_name'] = InputName;
@@ -494,30 +495,36 @@
 				onUploadingComplete: (sName, aFiles, fCallback) => {
 					const iTmpJotId = _this.aUploaderQueue[sName];
 					if (sName && iTmpJotId && aFiles.length) {
+						const fUpload = () => {
+												const iJotId = +$(`[data-tmp="${iTmpJotId}"]`).data('id');
+												return $.post('modules/?r=messenger/update_uploaded_files/', {
+													jot_id: iJotId,
+													files: aFiles
+												}, function ({code, message}) {
+													if (+code)
+														bx_alert(message);
 
-						const iJotId = +$(`[data-tmp="${iTmpJotId}"]`).data('id');
-						$.post('modules/?r=messenger/update_uploaded_files/', {
-							jot_id: iJotId,
-							files: aFiles
-						}, function ({code, message}) {
-							if (+code)
-								bx_alert(message);
+													_this.broadcastMessage({
+														jot_id: iJotId,
+														addon: 'update_attachment'
+													});
 
-							_this.broadcastMessage({
-								jot_id: iJotId,
-								addon: 'update_attachment'
-							});
+													_this.attacheFiles(iJotId, true, () => {
+														$(`#${_this.sUploaderAreaPrefix}-${iTmpJotId}`).fadeOut(function () {
+															$(this).remove();
+														});
+													});
 
-							_this.attacheFiles(iJotId, true, () => {
-								$(`#${_this.sUploaderAreaPrefix}-${iTmpJotId}`).fadeOut(function () {
-									$(this).remove();
-								});
-							});
+													if (typeof fCallback === 'function')
+														fCallback();
 
-							if (typeof fCallback === 'function')
-								fCallback();
+												}, 'json');
+											};
 
-						}, 'json');
+							if (_this.oSendPool.has(iTmpJotId))
+								_this.oSendPool.get(iTmpJotId).then(() => fUpload());
+							else
+								fUpload();
 
 						delete _this.aUploaderQueue[sName];
 					}
@@ -1397,58 +1404,21 @@
 					
 				}, 'json');
 			} 
-			 else 
+			 else
 				return;
-		}	
+		}
 		else
-		{ 
-			/*let sMessage = oJot
-							.find(_this.sJotMessage)
-							.text();
-			
-			if (!sMessage.length){
-				const oFiles = $(_this.sAttachmentArea, oJot);
-
-				if (oFiles){
-					let oObject = null;
-					if (oFiles.find(`${_this.sAttachmentImages},.bx-messenger-static-giphy`).length){
-						oObject = oFiles.find(`${_this.sAttachmentImages} img, .bx-messenger-static-giphy img`).first();
-					}
-					else if (oFiles.find('.bx-messenger-attachment-file-videos').length){
-						sUrl = oFiles.find('.bx-messenger-attachment-file-videos video').first().prop('poster');
-						if (sUrl)
-							oObject = $(`<img src="${sUrl}" />`);
-					}
-					else if (oFiles.find('.bx-messenger-attachment-file-audio').length)
-						oObject = oFiles.find('.bx-messenger-attachment-file-audio .audio .title').first();
-					else if (oFiles.find('.bx-messenger-attachment-file').length)
-						oObject = oFiles.find('.bx-messenger-attachment-file').first();
-					
-					
-					if (oObject)
-						$(_this.sJotMessageReply, _this.sMessangerParentBox)
-							.html(oObject.clone())
-							.parent()
-							.css('display', 'flex');
-				}
-			}
-			 else 
-				fFunc(sMessage);				 
-			*/
-						
+		{
 			_this.iReplyId = oJot.data('id');
-			
 			$(_this.sJotMessageReply, _this.sMessangerParentBox)
 								.html(_this.getReplyPreview(_this.iReplyId))
 								.parent()
 								.css('display', 'flex');
 			
 			_this.oStorage.saveLotItem(_this.oSettings.lot, _this.iReplyId, 'reply');
-
 			if (_this.oEditor)
 				_this.oEditor.focus();
 		}
-		
 	}
 	
 	oMessenger.prototype.jumpToJot = function(iJumpJotId){
@@ -1473,6 +1443,7 @@
 		if ($(this.sEditJotArea).length)
 			$(this.sEditJotArea).fadeOut().remove();
 		
+
 		if (iJotId)
 		{
 			bx_loading($(_this.sJotMessage, oJot).parent(), true);
@@ -2123,68 +2094,85 @@
 		_this.updateScrollPosition('bottom');
 
 		// save message to database and broadcast to all participants
-		$.post('modules/?r=messenger/send', oParams, function({ jot_id, header, tmp_id, message, code, time, lot_id }){				
-				switch(parseInt(code))
-				{
-					case 0:
-						const iJotId = parseInt(jot_id);
-						const sTime = time || msgTime.toISOString();
-						if (iJotId)
-						{
-							if (typeof lot_id !== 'undefined') {
-								if (typeof header !== 'undefined')
-									$(_this.sJotsBlock)
-										.find('.bx-db-header')
-										.replaceWith(header);
+		_this.oSendPool.set(oParams.tmp_id, new Promise((fResolve, fReject) => {
+					return $.post('modules/?r=messenger/send', oParams, function ({
+																			   jot_id,
+																			   header,
+																			   tmp_id,
+																			   message,
+																			   code,
+																			   time,
+																			   lot_id
+																		   }) {
+						switch (parseInt(code)) {
+							case 0:
+								const iJotId = parseInt(jot_id);
+								const sTime = time || msgTime.toISOString();
+								if (iJotId) {
+									if (typeof lot_id !== 'undefined') {
+										if (typeof header !== 'undefined')
+											$(_this.sJotsBlock)
+												.find('.bx-db-header')
+												.replaceWith(header);
 
-								_this.updateLotSettings({ lot: lot_id });
-								$(_this.sFriendsList).remove();
-							}
+										_this.updateLotSettings({lot: lot_id});
+										$(_this.sFriendsList).remove();
+									}
 
-							if (typeof tmp_id !== 'undefined') {
-								$('[data-tmp="' + tmp_id + '"]', _this.sTalkList)
-									.attr('data-id', jot_id)
-									.find('time')
-									.html('')
-									.attr('datetime', sTime)
-									.closest(_this.sJot)
-									.bxMsgTime()
-									.linkify();
+									if (typeof tmp_id !== 'undefined') {
+										$('[data-tmp="' + tmp_id + '"]', _this.sTalkList)
+											.attr('data-id', jot_id)
+											.find('time')
+											.html('')
+											.attr('datetime', sTime)
+											.closest(_this.sJot)
+											.bxMsgTime()
+											.linkify();
 
-								$(_this.sTalkList).addTimeIntervals();
-							}
-									
-							if ((_this.oFilesUploader && oParams.files && _this.oFilesUploader.isReady()) || typeof oParams.giphy !== 'undefined')
-								_this.attacheFiles(iJotId);
-							
-							if (!_this.isBlockVersion())
-								_this.upLotsPosition(_this.oSettings);
-						}
+										$(_this.sTalkList).addTimeIntervals();
+									}
 
-						if (!_this.iAttachmentUpdate)
-							_this.broadcastMessage({
-								addon: {
-									jot_id: jot_id
+									if ((_this.oFilesUploader && oParams.files && _this.oFilesUploader.isReady()) || typeof oParams.giphy !== 'undefined')
+										_this.attacheFiles(iJotId);
+
+									if (!_this.isBlockVersion())
+										_this.upLotsPosition(_this.oSettings);
 								}
-							});
-						break;
-					case 1:
-						if (message) {
-							bx_alert(message);
-							$(`[data-tmp="${oParams.tmp_id}"]`, _this.sTalkList).remove();
-						}
-						else
-							window.location.reload();
-						break;
-					default:						
-						bx_alert(message);
-						$(_this.sTalkList).find('[data-tmp="' + oParams.tmp_id + '"]').remove();
-				}			
-					if (typeof fCallBack == 'function')
-						fCallBack();
 
-			}, 'json');
-		
+								if (!_this.iAttachmentUpdate)
+									_this.broadcastMessage({
+										addon: {
+											jot_id: jot_id
+										}
+									});
+								break;
+
+							case 1:
+								if (message) {
+									bx_alert(message);
+									$(`[data-tmp="${oParams.tmp_id}"]`, _this.sTalkList).remove();
+								} else
+									window.location.reload();
+								break;
+							default:
+								bx_alert(message);
+								$(_this.sTalkList).find('[data-tmp="' + oParams.tmp_id + '"]').remove();
+						}
+
+						if (typeof fCallBack == 'function')
+							fCallBack();
+
+					}, 'json').
+					always(() => {
+						fResolve();
+						if (_this.oSendPool.has(oParams.tmp_id))
+							_this.oSendPool.delete(oParams.tmp_id);
+					}).
+					fail(() => {
+						fReject();
+					});
+			}));
+
 		return true;
 	};
 

@@ -1678,6 +1678,14 @@ input#bx-messenger-add-users-input::placeholder {
 	font-weight: 700;
 }
 
+.bx-messenger-send-retry i,
+.bx-messenger-send-retry i:hover,
+.bx-messenger-send-retry i:active
+{
+	color: inherit !important;
+	font-style:normal;
+}
+
 @media (max-width:480px)
 {
 	div.ui.sidebar.giphy {

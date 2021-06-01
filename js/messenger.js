@@ -94,6 +94,7 @@
 		this.sUploaderAreaPrefix = 'bx-messenger-uploading-placeholder';
 		this.sJotMessageReply = '.bx-messenger-reply-area-message';
 		this.sJotMessageReplyArea = '.bx-messenger-reply-area';
+		this.sJotMessageTitle = '.bx-messenger-jots-title';
 
 		//global class options
 		this.oUsersTemplate	= null;
@@ -988,6 +989,7 @@
                             bx_alert(message);
                     }
 
+				_this.oSendPool = new Map();
 				_this.initTextArea();
 				_this.blockSendMessages();
 		}, 'json');	
@@ -1214,67 +1216,65 @@
 		const _this = this,
 			oJot = $(oObject).closest(this.sJot),
 			iJotId = oJot.data('id') || 0,
-			checkScroll	= function()
-			{
+			checkScroll	= function() {
 				if ($(_this.sTalkBlock).prop('scrollHeight') <= $(_this.sTalkBlock).prop('clientHeight') && $(_this.sJot, _this.sTalkBlock).length === 1)
 						_this.updateJots({
 											action: 'prev',
 											position: 'bottom'
 										});
-			};
+			},
+			removeJot = function(oJot){
+				$(oJot)
+					.fadeOut('slow',
+						function () {
+							if (!$(this).next(_this.sJot).length)
+								$(this).prev(_this.sDateIntervalsSelector).remove();
 
-		if (iJotId)
-			$.post('modules/?r=messenger/delete_jot', {jot:iJotId, completely: +bCompletely || 0}, 
-			function(oData)
-			{
-				if (!parseInt(oData.code))
-				{
-					if (!bCompletely && oData.html.length)
-					{
-						$(_this.sJotMessage, oJot)
-							.fadeOut('slow',
-								function()
-								{
-									$(this)
-										.siblings(_this.sAttachmentArea)
-										.fadeOut(function()
-										{
-											$(this).remove();
-										})
-										.end()
-										.html(oData.html)
-										.fadeIn('slow');
+							$(this).remove();
+							checkScroll();
+						});
+			};
+		
+		if (iJotId) {
+			$.post('modules/?r=messenger/delete_jot', {jot: iJotId, completely: +bCompletely || 0},
+				function (oData) {
+					if (!parseInt(oData.code)) {
+						if (!bCompletely && oData.html.length) {
+							$(_this.sJotMessage, oJot)
+								.fadeOut('slow',
+									function () {
+										$(this)
+											.siblings(_this.sAttachmentArea)
+											.fadeOut(function () {
+												$(this).remove();
+											})
+											.end()
+											.html(oData.html)
+											.fadeIn('slow');
 										checkScroll();
 
-								})
-							.unbind();
+									})
+								.unbind();
+						} else
+							removeJot(oJot);
+
+						$(_this.sJotIcons, oJot)
+							.remove();
+
+						const oInfo = {
+							jot_id: iJotId,
+							addon: 'delete'
+						};
+
+						if (!_this.isBlockVersion())
+							_this.upLotsPosition($.extend(oInfo, _this.oSettings));
+
+						_this.broadcastMessage(oInfo);
 					}
-					 else 
-						$(oJot)
-							.fadeOut('slow',
-								function()
-								{
-									if (!$(this).next(_this.sJot).length)
-										$(this).prev(_this.sDateIntervalsSelector).remove();
-
-									$(this).remove();
-									checkScroll();
-								});
-
-					$(_this.sJotIcons, oJot)
-						.remove();
-
-					const oInfo = {
-									jot_id:iJotId,
-									addon:'delete'
-								};
-					
-					if (!_this.isBlockVersion())
-						_this.upLotsPosition($.extend(oInfo, _this.oSettings));
-
-					_this.broadcastMessage(oInfo);
-				}
-			}, 'json');
+				}, 'json');
+		}
+		else
+			removeJot(oJot);
 	};
 	
 	oMessenger.prototype.cancelEdit = function(oObject){
@@ -1313,21 +1313,21 @@
 		
 		if (iJotId)
 		{
-			$.post('modules/?r=messenger/edit_jot', { jot: iJotId, message: sMessage  }, function(oData)
+			$.post('modules/?r=messenger/edit_jot', { jot: iJotId, message: sMessage  }, function({ code, html })
 			{
-				if (!parseInt(oData.code))
+				if (!parseInt(code))
 				{
 					$(_this.sJotMessage, oJot)
 						.html(sMessage)
 						.parent()
 						.linkify(false, true) // update attachment for the message, but don't broadcast as new message 
 						.end()
-						.append(oData.html || '');
+						.append(html || '');
 
 					const oInfo = {
-									jot_id:iJotId,
-									addon:'edit'
-								};
+									jot_id: iJotId,
+									addon: 'edit'
+								  };
 
 					if (!_this.isBlockVersion())
 						_this.upLotsPosition($.extend(oInfo, _this.oSettings));
@@ -1442,18 +1442,17 @@
 		
 		if ($(this.sEditJotArea).length)
 			$(this.sEditJotArea).fadeOut().remove();
-		
 
 		if (iJotId)
 		{
 			bx_loading($(_this.sJotMessage, oJot).parent(), true);
-			$.post('modules/?r=messenger/edit_jot_form', { jot:iJotId }, function(oData)
-			{						
+			$.post('modules/?r=messenger/edit_jot_form', { jot:iJotId }, function({ code, html })
+			{
 				bx_loading($(_this.sJotMessage, oJot).parent(), false);	
-				if (!parseInt(oData.code))
-				{						
+				if (!parseInt(code))
+				{
 					const sTmpText = $(_this.sJotMessage, oJot).html();
-					_this.lastEditText = sTmpText.length ? sTmpText : $(_this.sEditJotAreaId, oData.html).html();
+					_this.lastEditText = sTmpText.length ? sTmpText : $(_this.sEditJotAreaId, html).html();
 					const updateScrollFunction = () => {
 						const fMaxHeight = parseInt($(_this.sEditJotAreaId).css('max-height'));
 						if (_this.oActiveEditQuill.root.clientHeight >= fMaxHeight)
@@ -1463,7 +1462,7 @@
 					};
 
 					$(_this.sJotMessage, oJot)
-						.html(oData.html)
+						.html(html)
 						.find(_this.sEditJotArea)
 						.fadeIn('slow', function()
 						{
@@ -1964,6 +1963,7 @@
 
 					// init text area
 					_this.initTextArea();
+					_this.oSendPool = new Map();
 
 				/* ----  End ---- */
 				}
@@ -2094,84 +2094,131 @@
 		_this.updateScrollPosition('bottom');
 
 		// save message to database and broadcast to all participants
-		_this.oSendPool.set(oParams.tmp_id, new Promise((fResolve, fReject) => {
-					return $.post('modules/?r=messenger/send', oParams, function ({
-																			   jot_id,
-																			   header,
-																			   tmp_id,
-																			   message,
-																			   code,
-																			   time,
-																			   lot_id
-																		   }) {
-						switch (parseInt(code)) {
-							case 0:
-								const iJotId = parseInt(jot_id);
-								const sTime = time || msgTime.toISOString();
-								if (iJotId) {
-									if (typeof lot_id !== 'undefined') {
-										if (typeof header !== 'undefined')
-											$(_this.sJotsBlock)
-												.find('.bx-db-header')
-												.replaceWith(header);
+		const fSendMessagePromsie = () => new Promise((fResolve, fReject) => $.post('modules/?r=messenger/send', oParams, function ({
+																						jot_id,
+																						header,
+																						tmp_id,
+																						message,
+																						code,
+																						time,
+																						lot_id
+																					}) {
+					switch (parseInt(code)) {
+						case 0:
+							const iJotId = parseInt(jot_id);
+							const sTime = time || msgTime.toISOString();
+							if (iJotId) {
+								if (typeof lot_id !== 'undefined') {
+									if (typeof header !== 'undefined')
+										$(_this.sJotsBlock)
+											.find('.bx-db-header')
+											.replaceWith(header);
 
-										_this.updateLotSettings({lot: lot_id});
-										$(_this.sFriendsList).remove();
-									}
-
-									if (typeof tmp_id !== 'undefined') {
-										$('[data-tmp="' + tmp_id + '"]', _this.sTalkList)
-											.attr('data-id', jot_id)
-											.find('time')
-											.html('')
-											.attr('datetime', sTime)
-											.closest(_this.sJot)
-											.bxMsgTime()
-											.linkify();
-
-										$(_this.sTalkList).addTimeIntervals();
-									}
-
-									if ((_this.oFilesUploader && oParams.files && _this.oFilesUploader.isReady()) || typeof oParams.giphy !== 'undefined')
-										_this.attacheFiles(iJotId);
-
-									if (!_this.isBlockVersion())
-										_this.upLotsPosition(_this.oSettings);
+									_this.updateLotSettings({lot: lot_id});
+									$(_this.sFriendsList).remove();
 								}
 
-								if (!_this.iAttachmentUpdate)
-									_this.broadcastMessage({
-										addon: {
-											jot_id: jot_id
-										}
-									});
-								break;
+								if (typeof tmp_id !== 'undefined') {
+									$('[data-tmp="' + tmp_id + '"]', _this.sTalkList)
+										.data('id', jot_id)
+										.attr('data-id', jot_id)
+										.find('time')
+										.html('')
+										.attr('datetime', sTime)
+										.closest(_this.sJot)
+										.bxMsgTime()
+										.linkify();
 
-							case 1:
-								if (message) {
-									bx_alert(message);
-									$(`[data-tmp="${oParams.tmp_id}"]`, _this.sTalkList).remove();
-								} else
-									window.location.reload();
-								break;
-							default:
+									$(_this.sTalkList).addTimeIntervals();
+								}
+
+								if ((_this.oFilesUploader && oParams.files && _this.oFilesUploader.isReady()) || typeof oParams.giphy !== 'undefined')
+									_this.attacheFiles(iJotId);
+
+								if (!_this.isBlockVersion())
+									_this.upLotsPosition(_this.oSettings);
+							}
+
+							if (!_this.iAttachmentUpdate)
+								_this.broadcastMessage({
+									addon: {
+										jot_id: jot_id
+									}
+								});
+							break;
+
+						case 1:
+							if (message) {
 								bx_alert(message);
-								$(_this.sTalkList).find('[data-tmp="' + oParams.tmp_id + '"]').remove();
-						}
+								$(`[data-tmp="${oParams.tmp_id}"]`, _this.sTalkList).remove();
+							} else
+								window.location.reload();
+							break;
+						default:
+							bx_alert(message);
+							$(_this.sTalkList).find('[data-tmp="' + oParams.tmp_id + '"]').remove();
+					}
 
-						if (typeof fCallBack == 'function')
-							fCallBack();
+					if (typeof fCallBack == 'function')
+						fCallBack();
 
-					}, 'json').
-					always(() => {
-						fResolve();
-						if (_this.oSendPool.has(oParams.tmp_id))
-							_this.oSendPool.delete(oParams.tmp_id);
-					}).
-					fail(() => {
-						fReject();
-					});
-			}));
+				}, 'json')
+				.done(() => {
+					if (_this.oSendPool.has(oParams.tmp_id)) {
+						_this.oSendPool.delete(oParams.tmp_id);
+						if (_this.oSendPool.size && !+$(`[data-tmp="${oParams.tmp_id}"]`).data('retry'))
+							for (let sTmp of _this.oSendPool.keys()) {
+								if (!$(`[data-tmp="${sTmp}"]`).data('retry')){
+									_this.oSendPool.get(sTmp)();
+									break;
+								}
+							}
+					}
+					fResolve();
+				})
+				.fail(() => {
+					for (let sTmp of _this.oSendPool.keys()) {
+						$(_this.sJotMessageTitle, $(`[data-tmp="${sTmp}"]`))
+							.find('time img')
+							.replaceWith(
+								$(`<a href="javascript:void(0);" class="bx-messenger-send-retry bx-form-warn">
+									<i class="sys-icon exclamation-circle"></i>
+							  		</a>`)
+									.on('click', function(){
+										if (_this.oSendPool.has(sTmp)) {
+											_this.oSendPool.get(sTmp)();
+
+											$(`[data-tmp="${sTmp}"]`)
+												.find('time')
+												.html(_this.sJotSpinner);
+										}
+									})
+							)
+							.end()
+							.closest(_this.sJot)
+							.data('retry', true);
+					}
+					fReject();
+				}));
+
+		_this.oSendPool.set( oParams.tmp_id, fSendMessagePromsie);
+
+		// in case if there are some not sent messages, find the first just sent
+		let bRetry = false, iNewCount = 0;
+		if  (_this.oSendPool.size > 1){
+			for (let sTmp of _this.oSendPool.keys()) {
+				if (+$(`[data-tmp="${sTmp}"]`).data('retry'))
+					bRetry = true;
+				else
+					iNewCount++;
+			}
+		}
+
+		if (_this.oSendPool.size === 1 || (bRetry && iNewCount === 1))
+		{
+			if (_this.oSendPool.has(oParams.tmp_id))
+				_this.oSendPool.get(oParams.tmp_id)();
+		}
 
 		return true;
 	};
@@ -2413,6 +2460,7 @@
 		this.updateJots({
 			action: 'msg'
 		});
+
 		this.loadTalksList();
 	};
 	
@@ -2780,9 +2828,9 @@
 						case 'vc':
 							if (!$('div[data-id="' + iJotId + '"]').length)
 								oList
-									.append(html);
+								.append(html);
 							else
-							$('div[data-id="' + iJotId + '"] ' + _this.sJotMessage, oList)
+								$('div[data-id="' + iJotId + '"] ' + _this.sJotMessage, oList)
 									.html(html)
 									.parent()
 									.bxMsgTime();// don't update attachment for message and don't broadcast as new message

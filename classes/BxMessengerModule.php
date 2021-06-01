@@ -338,7 +338,7 @@ class BxMessengerModule extends BxBaseModTextModule
 			if (is_array($aGiphy) && !empty($aGiphy))
                $this->_oDb->addAttachment($iId, current($aGiphy), BX_ATT_TYPE_GIPHY);
 		   
-		    if ($iReply)
+			if ($iReply)
                $this->_oDb->addAttachment($iId, $iReply, BX_ATT_TYPE_REPLY);
 
             $aResult['jot_id'] = $iId;
@@ -690,7 +690,7 @@ class BxMessengerModule extends BxBaseModTextModule
             $aExcept = explode(',', $sExcept);
 
 	    $aUsers = $this->searchProfiles(bx_get('term'), $aExcept,  $this->_oConfig->CNF['PARAM_SEARCH_DEFAULT_USERS']);
-        if (empty($aUsers))
+	    if (empty($aUsers))
             return echoJson(array('items' => $aUsers));
 
         foreach ($aUsers as &$aValue) {

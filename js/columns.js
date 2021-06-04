@@ -126,7 +126,7 @@
 						iHeight += $(this).outerHeight(true);
 					});
 
-					this.iMainAreaHeight = $(window).height() - $(this.sToolbar).height() - iHeight;
+					this.iMainAreaHeight = window.innerHeight - $(this.sToolbar).height() - iHeight;
 					this.resizeColumns();
 				},
 

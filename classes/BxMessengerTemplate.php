@@ -1025,7 +1025,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
      * @return string html code
      */
 	public function loadConfig($iProfileId, $bBlockVersion = true, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $iPersonToTalk = BX_IM_EMPTY, $iType = BX_IM_TYPE_PRIVATE){
-		$CNF = &$this->_oConfig-> CNF;
+		$CNF = &$this->_oConfig->CNF;
 	    $aUrlInfo = parse_url(BX_DOL_URL_ROOT);
 
 	    $oEmbed = BxDolEmbed::getObjectInstance();
@@ -1117,7 +1117,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             'jot_id' => $iStartJot,
 			'block_version' => +$bBlockVersion,
 			'server_url' => $this->_oConfig-> CNF['SERVER_URL'],
-			'message_length' => (int)$this->_oConfig->CNF['MAX_SEND_SYMBOLS'] ? (int)$CNF['MAX_SEND_SYMBOLS'] : 0,
+			'message_length' => (int)$CNF['MAX_SEND_SYMBOLS'] ? (int)$CNF['MAX_SEND_SYMBOLS'] : 0,
 			'ip' => gethostbyname($aUrlInfo['host']),
 			'embed_template' => $sEmbedTemplate,
 			'max_history' => (int)$CNF['MAX_JOTS_BY_DEFAULT'],
@@ -1125,6 +1125,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 			'last_unread_jot' => $iLastUnreadJot,
 			'unread_jots' => $iUnreadJotsNumber,
 			'allow_attach' => +$bAttach,
+			'muted' => ($iLotId && $iProfileId ? (int)$this->_oDb->isMuted($iLotId, $iProfileId) : 0),
 			'dates_intervals_template' => $this->parseHtmlByName('date-separator.html', array('date' => '__date__')),
 			'reaction_template' => $this->parseHtmlByName('reaction.html', array(
 			    'emoji_id' => '__emoji_id__',

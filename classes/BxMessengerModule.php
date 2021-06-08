@@ -384,7 +384,8 @@ class BxMessengerModule extends BxBaseModTextModule
             'history' => $sHistory,
             'text_area' => $sTextArea,
             'last_unread_jot' => $iLastUnreadJot,
-            'unread_jots' => $iUnreadLotsJots
+            'unread_jots' => $iUnreadLotsJots,
+            'muted' => (int)$this->_oDb->isMuted($iLotId, $this->_iProfileId)
         );
 
         BxDolSession::getInstance()->exists($this->_iProfileId);
@@ -471,7 +472,11 @@ class BxMessengerModule extends BxBaseModTextModule
             return echoJson(array('code' => 1));
 
         if ($aLots = $this->_oDb->getLotInfoById($iLotId))
-	        return echoJson(array('code' => 0, 'html' => $this->_oTemplate->getLotsPreview($this->_iProfileId, array($aLots))));
+	        return echoJson(array(
+									'code' => 0,
+									'html' => $this->_oTemplate->getLotsPreview($this->_iProfileId, array($aLots)),
+									'muted'=> (int)$this->_oDb->isMuted($iLotId, $this->_iProfileId)
+								));
 
         echoJson(array('code' => 1));
     }

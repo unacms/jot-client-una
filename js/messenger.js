@@ -175,6 +175,7 @@
 		this.iUnreadJotsNumber = oOptions.unread_jots || 0;
 		this.bAllowAttachMessages = oOptions.allow_attach || 0;
 		this.iLotType = oOptions.type || 0;
+		this.iMuted = +oOptions.muted;
 		this.iSelectedPersonToTalk = oOptions.selected_profile || 0;
 		this.isBlockMessenger = typeof oOptions.block_version !== 'undefined' ? oOptions.block_version : $(this.sLotsBlock).length === 0;
 		this.oFilesUploaderSettings = typeof oOptions['files_uploader'] !== 'undefined' ? oOptions['files_uploader'] : null;
@@ -1064,7 +1065,8 @@
 			$('i', oEl)
 				.removeClass('bell').addClass('bell-slash');
 
-		$(oEl).data('value', +!iVal);
+		this.iMuted = +!iVal;
+		$(oEl).data('value', this.iMuted);
 
 		$.post('modules/?r=messenger/mute', {lot:iLotId}, function(oData){
 				if (typeof oData.code !== 'undefined')
@@ -1416,8 +1418,11 @@
 								.css('display', 'flex');
 			
 			_this.oStorage.saveLotItem(_this.oSettings.lot, _this.iReplyId, 'reply');
-			if (_this.oEditor)
-				_this.oEditor.focus();
+
+			setTimeout(() => {
+				if (_this.oEditor)
+					_this.oEditor.focus()
+			}, 100);
 		}
 	}
 	
@@ -1903,7 +1908,7 @@
 		_this.blockSendMessages(true);
 
 		return $.post('modules/?r=messenger/load_talk', { lot_id: iLotId, jot_id: iJotId, mark_as_read: +bMarkAsRead },
-			function({ title, history, header, code, unread_jots, last_unread_jot, text_area })
+			function({ title, history, header, code, unread_jots, last_unread_jot, text_area, muted })
 		{
 
 			bx_loading($(_this.sMainTalkBlock), false);
@@ -1912,6 +1917,7 @@
 			else
 			if (~code)
 			{
+				_this.iMuted = +muted;
 				_this.blockSendMessages(false);
 				$(_this.sJotsBlock)
 						.find('.bx-db-header')
@@ -2344,7 +2350,7 @@
 			return;
 
 		$.get('modules/?r=messenger/update_lot_brief', { lot_id: lot },
-				function({ html, code })
+				function({ html, code, muted })
 				{
 					if (+code)
 						return ;
@@ -2386,9 +2392,9 @@
 						
 						if (typeof addon === 'undefined' || typeof addon === 'object') /* only for new messages */
 						{
-							if (!bSilentMode)
+							if (!bSilentMode && !muted)
 								$(_this).trigger(jQuery.Event('message'));
-
+							
 							if (_this.isActiveLot(lot) && !(_this.isMobile() && !_oMessenger.oJotWindowBuilder.isHistoryColActive()))
 								_this.selectLotEmit($(oNewLot));
 						}
@@ -2572,7 +2578,9 @@
 	oMessenger.prototype.beep = function(){
 		if (!document.hasFocus())
 		{
-			this.playSound('incomingMessage');
+			if (!this.iMuted)
+				this.playSound('incomingMessage');
+
 			this.updatePageIcon(true);
 		}
 	};

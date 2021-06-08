@@ -1630,15 +1630,17 @@ input#bx-messenger-add-users-input::placeholder {
 	display: none;
 }
 
-.bx-messenger-jots  .bx-messenger-reply-area {
+.bx-messenger-jots .bx-messenger-reply-area {
 	display: flex;
-	margin-left:0.5rem;
+	margin-left:0.25rem;
 	margin-bottom: 0.5rem;
+	background-color: rgba(0,0,0,0.04);
+	width: calc( 100% - 3rem);
 }
 
 .bx-messenger-reply-area a {
 	margin:0.2rem;
-	display: flex;	
+	display: flex;
 }
 
 .bx-messenger-reply-area-message {
@@ -1730,6 +1732,11 @@ input#bx-messenger-add-users-input::placeholder {
 	{
 		width:85%;
 	}
+
+	.bx-messenger-reply-area a {
+		font-size: 1.2rem;
+	}
+
 }
 
 @media (max-width:720px)

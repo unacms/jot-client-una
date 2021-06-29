@@ -29,26 +29,6 @@
 	display:none;
 }
 
-#bx-messenger-add-users .ui.category.search > .results .result:hover,
-#bx-messenger-add-users .ui.search > .results .result:hover{
-	background-color: rgba(0,0,0,0.08);
-}
-
-#bx-messenger-add-users .ui.category.search > .results > .category{
-	background-color: inherit;
-	border: inherit;
-}
-
-.ui.category.search>.results .category .results
-
-#bx-messenger-add-users .ui.input,
-#bx-messenger-add-users .ui.input > input{
-	color:inherit;
-	font-family: inherit;
-	font-size: inherit;
-	font-weight: inherit;
-}
-
 .bx-messenger-items-list
 {
 	height:100%;
@@ -210,7 +190,7 @@ span.bubble.hidden
 {
 	width:100%;
 	float:left;
-	margin-left:1rem;
+	/*margin-left:1rem;*/
 }
 
 .bx-messenger-participants-usernames a
@@ -302,22 +282,6 @@ div.bx-messenger-border.search .star a.active
 	to {background-color:transparent;}
 }
 
-#bx-messenger-add-users{
-	min-height:0;
-	box-shadow: none;
-	display: flex;
-	align-items: center;
-	flex-flow: wrap;
-	width: 100%;
-	padding: 0 0 0 1rem;
-}
-
-#bx-messenger-add-users b span{
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
 .bx-messenger-talk-header-usernames{
 	background-color: inherit;
 	border: 0;
@@ -335,27 +299,15 @@ div.bx-messenger-border.search .star a.active
 	margin-right: 0.5rem;
 }
 
-@media (max-width:720px)
+.bx-messenger-area-scroll {
+	right: 0.5rem;
+}
+
+div.bx-messenger-jots-actions-list
 {
-	
-	.bx-messenger-participants-usernames div.status
-	{
-		display:none;
-	}
+	padding-right: 0.8rem;
+}
 
-	/* show back icon only on main messenger page*/
-	.bx-messenger-hide-mobile{
-		display:block !important;
-	}
-	
-	.cd-main-content .cd-side-nav
-	{
-		display:block;
-	}
-	
-	#bx-messenger-add-users-input
-	{
-		max-width:calc(100% - 2rem);
-	}
-
+.bx-messenger-jots-avatars{
+	padding-left: 0.8rem;
 }

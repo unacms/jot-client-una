@@ -142,7 +142,6 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!empty($aLotsList))
             return $this->_oTemplate->getTalkBlock($this->_iProfileId, current($aLotsList)[$CNF['FIELD_ID']]);
 
-
         return $this->_oTemplate->getCreateTalkForm($this->_iProfileId);
     }
 
@@ -170,8 +169,22 @@ class BxMessengerModule extends BxBaseModTextModule
         }
 
         $sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, true, $iLotId, BX_IM_EMPTY, BX_IM_EMPTY, $this->_oConfig->getTalkType($sModule));
-        $sContent = $this->_oTemplate->getTalkBlock($this->_iProfileId, $iLotId, BX_IM_EMPTY, true);
-        return $sConfig . $sContent;
+
+        $oMenu = BxTemplMenu::getObjectInstance('bx_messenger_menu_view');
+        $oMenu->setLotId($iLotId);
+
+        $aHeader = $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId, true, true);
+
+        $sContent = $this->_oTemplate->parseHtmlByName('talk_body.html', array(
+            'history' => $this->_oTemplate->getHistory($this->_iProfileId, $iLotId, BX_IM_EMPTY),
+            'text_area' => $this->_oTemplate->getTextArea($this->_iProfileId, $iLotId)
+        ));
+
+        return array(
+            'title' => $aHeader['title'],
+            'content' => $sConfig . $sContent,
+            'menu' => $aHeader['buttons']
+        );
     }
 
     /**
@@ -482,7 +495,7 @@ class BxMessengerModule extends BxBaseModTextModule
     }
 
     /**
-     * Prepare url for Lot title if if was created on separated page
+     * Prepare url for Lot title if was created on separated page
      * @param string URL
      * @return string URL
      */
@@ -711,7 +724,7 @@ class BxMessengerModule extends BxBaseModTextModule
             if (!empty($aProfileInfoDetails) && !empty($oAccountInfo))
                 $aResult[$aProfileInfo['type']]['results'][] = array(
                     'value' => $oProfile->getDisplayName(),
-                    'icon' => $oProfile->getIcon(),
+                    'icon' => $oProfile->getThumb(),
                     'id' => $oProfile->id(),
                     'profile_url' => $oProfile->getUrl(),
                     'description' => _t('_bx_messenger_search_desc',
@@ -785,6 +798,7 @@ class BxMessengerModule extends BxBaseModTextModule
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
 
         $iLotId = bx_get('lot');
+        $bIsBlockVersion = +bx_get('is_block');
         $aParticipants = $this->getParticipantsList(bx_get('participants'), true);
         $aResult = array('message' => _t('_bx_messenger_save_part_failed'), 'code' => 1);
 
@@ -828,8 +842,10 @@ class BxMessengerModule extends BxBaseModTextModule
             $this->onRemoveParticipant($iLotId, $iPartId);
         }
 
-        if ($iLotId)
-            $aResult['header'] = $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId);
+        if ($iLotId) {
+            $aHeader = $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId, $bIsBlockVersion, true);
+            $aResult['header'] = $aHeader['title'];
+        }
 
         echoJson($aResult);
     }
@@ -2476,9 +2492,9 @@ class BxMessengerModule extends BxBaseModTextModule
             'popup' => array(
                 'html' => $mixedContent,
                 'options' => array(
-                    'closeElement' => true,
+                    'closeElement' => false,
 			        'closeOnOuterClick' => true,
-			        'removeOnClose' => true,
+			        'removeOnClose' => true
                 )
             )
         );

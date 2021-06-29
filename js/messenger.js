@@ -232,13 +232,6 @@
 		}
 	};
 
-	oMessenger.prototype.initHeaderButtons = function(){
-		$('span.info-menu > i').popup({
-			on: 'click',
-			hoverable: true,
-			boundary: $(this.sJotsBlock)
-		});
-	}
 	/**
 	* Init current chat/talk/lot settings
 	*/
@@ -253,7 +246,7 @@
 		this.iUnreadJotsNumber = unread_jots || 0;
 		this.iLastReadJotId = 0;
 
-		_this.updateCounters(unread_jots, true);
+		this.updateCounters(unread_jots, true);
 
 		/* runs periodic to find not processed videos in chat history and replace them with processed videos */
 		setInterval(
@@ -263,16 +256,12 @@
 			}, _this.iUpdateProcessedMedia
 		);
 
-		this.initJotIcons(this.sTalkList);
-
-		_this.initHeaderButtons();
-
-		if (!_this.oRTWSF.isInitialized() || (!lot && !_this.iSelectedPersonToTalk && _this.iLotType === 2))
-			_this.blockSendMessages(true);
-		else
-			_this.blockSendMessages(false);
+		$(document).ready(() => {
+			_this.initJotIcons(_this.sTalkList);
+		});
+		
+		this.blockSendMessages(!this.oRTWSF.isInitialized() || (!lot && !this.iSelectedPersonToTalk && this.iLotType === 2));
 	};
-
 
 	oMessenger.prototype.setScrollBarWidth = function() {
 		this.iScrollbarWidth = $(this.sTalkBlock).prop('offsetWidth') - $(this.sTalkBlock).prop('clientWidth');
@@ -810,19 +799,38 @@
 
 		$(_this.sJotIcons, oParent)
 			.each(function(){
-				$(this).popup({
-					popup: $(_this.sJotMenu),
-					on: !_this.isMobile() ? 'hover' : 'click',
-					boundary: _this.sTalkBlock,
-					hoverable: true
+				$(this).on(/*!_this.isMobile() ? 'hover' :*/ 'click', function(e){
+					const oMenu = $(this).next('div');
+					if (oMenu.is(':visible'))
+						return;
+
+					$('div[id^="jot-menu-"]', _this.sTalkBlock).hide();
+
+					oMenu
+						.dolPopup({
+							pointer: { el: $(this), align: 'right', offset: '-24 -3' },
+							moveToDocRoot: false,
+							closeOnOuterClick: true,
+							onShow: (oEl) => $(oEl).on('click', () => $(oEl).dolPopupHide()),
+							onBeforeShow: () => {
+								if (!_this.isMobile()) {
+									const iHeight = $(_this.sTalkBlock).height() + $(_this.sTalkBlock).offset().top;
+									if (iHeight - $(this).offset().top < oMenu.height())
+										oMenu.position({
+											of: $(this),
+											my: 'left bottom',
+											at: 'right bottom',
+											collision: 'flipfit none'
+										});
+								}
+							}
+						});
+
+					if (!_this.isMobile())
+						oMenu.on('mouseleave', function(){
+							$(this).hide();
+						});
 				});
-
-				if (_this.isMobile())
-					$(this)
-						.siblings(_this.sJotMenu)
-						.find('li')
-						.on('click', () => $(this).popup('hide'));
-
 			});
 	};
 		
@@ -953,21 +961,28 @@
 		$.post('modules/?r=messenger/create_lot', { profile: user || 0, lot: lot || 0 }, function({ header, code, history, title, message, text_area }){
 			bx_loading($(_this.sMainTalkBlock), false);
 					if (!code){
-						$(_this.sJotsBlock)
-							.find('.bx-db-header')
-							.replaceWith(header);
+						$(_this.sMainTalkBlock)
+							.closest('.bx-db-container')
+							.find('.bx-db-title')
+							.html(header)
+							.addClass('bx-messenger-users-edit')
+							.siblings('.bx-db-menu')
+							.hide();
+
 
 						if (!lot) {
-							$(_this.sJotsBlock)
+							$(_this.sMainTalkBlock)
 								.find(_this.sTalkBlock)
 								.html(history);
-						}
 
-						if (text_area) {
-							if ($('.text-area', _this.sJotsBlock).length)
-								$('.text-area', _this.sJotsBlock).replaceWith(text_area);
-							else
-								$(_this.sTalkAreaWrapper).append(text_area);
+							if (text_area) {
+								if ($('.text-area', _this.sMainTalkBlock).length)
+									$('.text-area', _this.sMainTalkBlock).replaceWith(text_area);
+								else
+									$(_this.sTalkAreaWrapper).append(text_area);
+
+								_this.initTextArea();
+							}
 						}
 
 						if (typeof title !== 'undefined')
@@ -976,7 +991,7 @@
 						_this.updateScrollPosition('bottom');
 
 						_this.initUsersSelector(+lot ? 'edit' : '');
-						if (_this.oJotWindowBuilder !== undefined)
+						if (_this.oJotWindowBuilder)
 							_this.oJotWindowBuilder.changeColumn('right');
 
 						if (user) {
@@ -991,7 +1006,6 @@
                     }
 
 				_this.oSendPool = new Map();
-				_this.initTextArea();
 				_this.blockSendMessages();
 		}, 'json');	
 	}
@@ -1003,7 +1017,8 @@
 		$.post('modules/?r=messenger/save_lots_parts', 
 		{
 			lot:_iLotId, 
-			participants:_this.getParticipantsList()
+			participants:_this.getParticipantsList(),
+			is_block: _this.isBlockVersion()
 		},
 		function(oData)
 		{
@@ -1017,14 +1032,17 @@
 								_iLotId = parseInt(oData.lot);
 
 							if (oData.header) {
-								$(_this.sJotsBlock)
-									.find('.bx-db-header')
-									.replaceWith(oData.header)
+								$(_this.sMainTalkBlock)
+									.closest('.bx-db-container')
+									.find('.bx-db-title')
+									.html(oData.header)
+									.removeClass('bx-messenger-users-edit')
+									.siblings('.bx-db-menu')
+									.fadeIn();
 
-								if (_this.oJotWindowBuilder !== undefined)
+								if (_this.oJotWindowBuilder)
 									_this.oJotWindowBuilder.updateColumnSize();
 
-								_this.initHeaderButtons();
 							}
 
 							if (oData.lot) {
@@ -1179,7 +1197,7 @@
 									if ($(_this.sLotsListSelector).length > 0)
 									{
 										$(_this.sLotsListSelector).first().click();
-										if (_this.oJotWindowBuilder !== undefined)
+										if (_this.oJotWindowBuilder)
 											_this.oJotWindowBuilder.changeColumn('right');
 									}
 									else
@@ -2122,6 +2140,7 @@
 
 									_this.updateLotSettings({lot: lot_id});
 									$(_this.sFriendsList).remove();
+									$(window).resize();
 								}
 
 								if (typeof tmp_id !== 'undefined') {
@@ -2133,7 +2152,10 @@
 										.attr('datetime', sTime)
 										.closest(_this.sJot)
 										.bxMsgTime()
-										.linkify();
+										.linkify()
+										.find('div[id^="jot-menu-"]')
+										.attr('id', `jot-menu-${jot_id}`);
+
 
 									$(_this.sTalkList).addTimeIntervals();
 								}
@@ -2328,16 +2350,17 @@
 	*/
 	oMessenger.prototype.upLotsPosition = function(oObject, bSilentMode = false){
 		const _this = this,
-			{ lot , addon, lot_id } = oObject,
-			oLot = $('div[data-lot=' + lot + ']');
-
+			{ lot , addon, lot_id } = oObject;
+			
+		let	oLot = $('div[data-lot=' + lot + ']');
+		
 		let	oNewLot = undefined;
 		if (addon === 'remove_lot' && oLot.length) {
 			oLot.fadeOut().remove();
 			if ($(_this.sLotsListSelector).length > 0)
 			{
 				$(_this.sLotsListSelector).first().click();
-				if (_this.oJotWindowBuilder !== undefined)
+				if (_this.oJotWindowBuilder)
 					_this.oJotWindowBuilder.changeColumn('right');
 			}
 			else
@@ -2352,6 +2375,7 @@
 		$.get('modules/?r=messenger/update_lot_brief', { lot_id: lot },
 				function({ html, code, muted })
 				{
+					let	oLot = $('div[data-lot=' + lot + ']');
 					if (+code)
 						return ;
 
@@ -2360,44 +2384,41 @@
 												
 					if (!oLot.is(':first-child'))
 					{
-							const sFunc = () =>	{
+						const sFunc = () =>	{
+												$(_this.sLotsListBlock)
+													.prepend($(oNewLot)
+													.bxMsgTime()
+													.fadeIn('slow'));
 
-													$(_this.sLotsListBlock)
-														.prepend($(oNewLot)
-														.bxMsgTime()
-														.fadeIn('slow'));
-
-													_this.updatePageIcon();
-												};
-										
-							if (oLot.length)
-								oLot.fadeOut('slow', function()
-													{
-														oLot.remove();
-														sFunc();
-													});
+												_this.updatePageIcon();
+											};
+						if (oLot.length)
+							oLot.fadeOut('slow', () => {
+														 oLot.remove();
+														 sFunc();
+													   });
 							else
 								sFunc();
-						}
-						else
-						{
-							oLot
-								.replaceWith($(oNewLot)
-								.fadeTo(150, 0.5)
-								.fadeTo(150, 1)
-								.bxMsgTime());
-						}
+					}
+					else
+					{
+						oLot
+							.replaceWith($(oNewLot)
+							.fadeTo(150, 0.5)
+							.fadeTo(150, 1)
+							.bxMsgTime());
+					}
 
-						_this.setUsersStatuses(oLot);
+					_this.setUsersStatuses(oLot);
+					
+					if (typeof addon === 'undefined' || typeof addon === 'object') /* only for new messages */
+					{
+						if (!bSilentMode && !muted)
+							$(_this).trigger(jQuery.Event('message'));
 						
-						if (typeof addon === 'undefined' || typeof addon === 'object') /* only for new messages */
-						{
-							if (!bSilentMode && !muted)
-								$(_this).trigger(jQuery.Event('message'));
-							
-							if (_this.isActiveLot(lot) && !(_this.isMobile() && !_oMessenger.oJotWindowBuilder.isHistoryColActive()))
-								_this.selectLotEmit($(oNewLot));
-						}
+						if (_this.isActiveLot(lot) && !(_this.isMobile() && !_oMessenger.oJotWindowBuilder.isHistoryColActive()))
+							_this.selectLotEmit($(oNewLot));
+					}
 
 				}, 'json');
 	};
@@ -2730,7 +2751,7 @@
 			lot: this.oSettings.lot,
 			load: sAction,
 			req_jot: iRequestJot,
-			focus: +((_this.isMobile() && !_oMessenger.oJotWindowBuilder.isHistoryColActive()) ? false : document.hasFocus()),
+			focus: +((_this.isMobile() && _oMessenger.oJotWindowBuilder && !_oMessenger.oJotWindowBuilder.isHistoryColActive()) ? false : document.hasFocus()),
 			last_viewed_jot
 		},
 		function({ html, unread_jots, code, last_unread_jot, allow_attach, remove_separator, reload })
@@ -2942,8 +2963,8 @@
 					if (bMode !== 'edit')
 						_this.findLotByParticipantsList(fCallback);
 
-					if (_this.oJotWindowBuilder !== undefined)
-							_this.oJotWindowBuilder.updateColumnSize();
+					if (_this.oJotWindowBuilder)
+						_this.oJotWindowBuilder.updateColumnSize();
 				};
 
 				$(_this.sUserSelectorBlock + ' .ui.search')
@@ -2952,7 +2973,7 @@
 									duration: 0,
 									searchDelay: 0,
 									type : 'category',
-									boundary: $(_this.sJotsBlock),
+									boundary: $('.bx-messenger-right-column'),
 									apiSettings:
 									{
 										url: 'modules/?r=messenger/get_auto_complete&term={query}&except={except}',
@@ -2998,7 +3019,7 @@
 									},
 									onSelect: function(result, response){
 										$(this)
-											.before(`<b class="bx-def-color-bg-hl bx-def-round-corners">
+											.before(`<b class="bx-def-color-bg-hl bx-def-round-corners bx-def-font-middle">
 														<img class="bx-def-thumb bx-def-thumb-size bx-def-margin-sec-right" src="${result.icon}" /><span>${result.value}</span>
 														<input type="hidden" name="users[]" value="${result.id}" /></b>`)
 											.find('input')
@@ -3518,8 +3539,9 @@
 			const _this = this;
 			if (_oMessenger != null)
 				return true;
-			
+
 			_oMessenger = new oMessenger(oOptions);
+
 			if (createjs) {
 				createjs.Sound.registerSound(_oMessenger.incomingMessage, 'incomingMessage');
 				createjs.Sound.registerSound(_oMessenger.reaction, 'reaction');
@@ -3598,7 +3620,10 @@
 			if (!_oMessenger.isBlockVersion())
 				_oMessenger.initMessengerPage();
 			else
+			{
 				_oMessenger.setPositionOnSelectedJot(() => _oMessenger.setScrollBarWidth());
+				$(window).on('resize', (e) => _oMessenger.setScrollBarWidth());
+			}
 
 			_oMessenger.updateLotSettings(oInitParams);
 			_oMessenger.initScrollArea();
@@ -3831,7 +3856,7 @@
 		onMessage: function (oData) {
 			const bSilent = _oMessenger.oSettings.user_id === oData.user_id || ( oData.type === 'vc' && oData.vc !== 'start' );
 			try
-			{
+			{	
 				if (!_oMessenger.isBlockVersion())
 					_oMessenger.upLotsPosition(oData, bSilent);
 
@@ -4223,7 +4248,15 @@
 		onHangUp: (oEl, iLotId) => {
 			_oMessenger.onCloseCallPopup(oEl, iLotId);
 		},
-		stopActiveSound: () => _oMessenger.stopActiveSound()
+		stopActiveSound: () => _oMessenger.stopActiveSound(),
+		showInfoMenu: (oMenu, sLotMenuId) => {
+			$(sLotMenuId).dolPopup({
+				pointer:{ el: $(oMenu).parent() },
+				moveToDocRoot: _oMessenger.isBlockVersion(),
+				onShow: function(oEl){
+					$(oEl).on('click', () => $(oEl).dolPopupHide());
+				}})
+		}
 	}
 })(jQuery);
 

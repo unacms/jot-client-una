@@ -14,7 +14,7 @@
 	let _oPrimus = null,
 		_oData = Object.create(null),
 		_sIP = '0.0.0.0';
-	
+
 	return {
 			/**
 			* Init Primus with provided settings and attaches listeners on event emitters from the server
@@ -28,11 +28,10 @@
 					return;
 
 				if (_oPrimus === null)
-						_oPrimus = new Primus(oOptions.server);
+					_oPrimus = new Primus(oOptions.server);
 
 				// on data received from the server
 				_oPrimus.on('data', function(oData) {
-
 						if (typeof oData.action !== "undefined" && !_oPrimus.emit(oData.action, oData))
 							console.log('Unknown server response', oData);						
 								
@@ -69,9 +68,7 @@
 						})
 				
 			},
-			isInitialized:function(){
-				return _oPrimus != undefined;
-			},
+			isInitialized:() => _oPrimus !== null && typeof _oPrimus !== 'undefined',
 			/* 
 			*Methods occur when received data from the server or on primus events 
 			*BEGIN 

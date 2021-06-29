@@ -1,18 +1,8 @@
-.bx-messenger-border{
-	background-color:rgba(0, 0, 0, 0);
-	border-left: none;
-	border-top: none;
-	border-right: none;
-	border-bottom:1px solid inherit;
-	border-radius: 0;
-	overflow:hidden;
-	display:flex;
-	align-items:center;
+#bx-messenger-block-head input{
+	border: 0px;
 	width: 100%;
-}
-
-.bx-messenger-border input{
-	border:0px;
+	outline: none;
+	background: rgba(0,0,0,0);
 }
 
 .bx-messenger-block{
@@ -247,24 +237,7 @@ div.bx-messenger-lots-menu ul li a.active{
 	padding-top:1rem;
 	padding-bottom:1rem;
 }
-
-/*.bx-messenger-jots-snip .unread-lot div
-{
-	font-size: 1rem;
-}*/
-
-/*.unread-lot .bx-messenger-jots-snip-title div.title,
-.unread-lot .bx-messenger-preview-lot
-{
-	font-weight: 700;
-}*/
-
 .bx-messenger-jots-snip .unread-lot span
 {
 	opacity:1;
-}
-
-.bx-db-menu i
-{
-	font-size:1.3rem;
 }

@@ -1,0 +1,158 @@
+
+/*.bx-messenger-block #bx-messenger-add-users .save a,
+.bx-messenger-lot-header-menu a,
+.bx-messenger-block .bx-db-menu a
+{
+	vertical-align: middle;
+	line-height: 2.5rem;
+	display: inline-flex;
+	align-items: center;
+	font-size: 1.3rem;
+}*/
+
+/*.bx-db-menu-popup .bx-messenger-lot-header-menu {
+	margin: 0.25rem;
+}*/
+
+/*.bx-messenger-lot-header-menu a
+{
+	line-height: inherit;
+}*/
+
+/*.bx-messenger-lot-header-menu a,
+.bx-messenger-lot-header-menu span,*/
+.bx-messenger-block .bx-db-menu a,
+.bx-messenger-block .bx-db-menu span
+{
+    margin-left: 0.4rem;
+    margin-right: 0.4rem;
+}
+
+.bx-messenger-block .bx-db-menu a:last-child{
+    margin-right: 0;
+}
+
+/*.bx-messenger-block .bx-db-menu a svg
+{
+	vertical-align:middle;
+}*/
+
+.bx-messenger-block .bx-db-menu .middle
+{
+    margin: auto;
+    position: absolute;
+}
+
+#bx-messenger-files-uploader
+{
+    max-width:80%;
+}
+
+#lot-settings .bx-popup-element-close{
+    display: none;
+}
+
+#bx-messenger-add-users-input
+{
+    width:auto;
+    float:left;
+    border:0px;
+    box-shadow:none;
+    background-color:rgba(0,0,0,0);
+    /*max-height:2rem;
+    font-size:1rem;*/
+    padding:0px;
+    border-radius:0;
+    align-self: center;
+}
+
+#bx-messenger-add-users b
+{
+    line-height: 2rem;
+    border-radius: 15px !important;
+    margin: 0.1rem 0.5rem 0.1rem 0.1rem;
+    padding-right: 0.5rem;
+    font-weight: normal;
+}
+
+#bx-messenger-add-users {
+    overflow: visible;
+}
+
+#bx-messenger-add-users{
+    min-height:0;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    flex-flow: wrap;
+    width: 100%;
+}
+
+#bx-messenger-add-users b span{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/*#bx-messenger-add-users .ui.input > input
+{
+	padding-left:0rem !important;
+	padding-right:0rem !important;
+}
+
+.bx-db-header{
+	min-height:2.5rem;
+	height:auto;
+}*/
+
+.bx-messenger-right-column{
+    text-align:left;
+}
+
+/*.bx-messenger-right-column div.bx-form-input-autotoken
+{
+	padding:0rem 1rem 0rem 1rem;
+}*/
+
+.bx-messenger-right-column.bx-form-input-autotoken svg
+{
+    vertical-align:middle;
+}
+
+.bx-messenger-right-column.bx-form-input-autotoken b
+{
+    padding-left:0;
+    margin-left:0;
+    display: grid;
+    align-items: center;
+    grid-template-columns: 1fr min-content 1rem;
+    grid-gap: 0.3rem;
+}
+
+.bx-messenger-right-column.bx-form-input-autotoken b:after
+{
+    font-family: 'sys-user', 'sys-user-fal';
+    content: "\f00d";
+    margin-left:0.1rem;
+    position:relative;
+}
+
+.bx-messenger-users-edit {
+    overflow: visible !important;
+}
+
+#bx-messenger-add-users img.bx-def-thumb-size
+{
+    width:2rem;
+    height:2rem;
+    line-height: 2rem;
+    margin: 0;
+}
+
+.bx-messenger-lot-header-menu {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}

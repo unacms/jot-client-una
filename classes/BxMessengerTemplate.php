@@ -27,9 +27,12 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         $CNF = $this->_oConfig->CNF;
 	    $aCss = array(
 						'semantic.min.css',
+						'semantic-messenger.css',
 						'main.css',
                         'video-conference.css',
                         'emoji.css',
+                        'messenger-phone.css',
+                        'talk-header.css',
                         'quill.bubble.css',
                         $CNF['EMOJI']['css']
 					 );
@@ -142,7 +145,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
           $bMSG = $mixedOptions === false || in_array(BX_MSG_SETTING_MSG, $mixedOptions);
           $bFiles = $mixedOptions === false || in_array(BX_MSG_SETTING_FILES, $mixedOptions);
           $bRecorder = $mixedOptions === false || in_array(BX_MSG_SETTING_VIDEO_RECORD, $mixedOptions);
-          $bGiphy = $mixedOptions === false || in_array(BX_MSG_SETTING_GIPHY, $mixedOptions);
+          $bGiphy = ($mixedOptions === false || in_array(BX_MSG_SETTING_GIPHY, $mixedOptions));
           $bSmiles = $mixedOptions === false || in_array(BX_MSG_SETTING_SMILES, $mixedOptions);
         }
 
@@ -306,7 +309,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                 $aVars['bx_repeat:menu'][] = $aItem;
         }
 
-	    return $this->parseHtmlByName('popup-menu-item.html', $aVars);
+		$sMenu = $this->parseHtmlByName('popup-menu-item.html', $aVars);
+		return BxTemplStudioFunctions::getInstance()->transBox("jot-menu-{$iJotId}", $sMenu, true);
     }
 
     /**
@@ -385,7 +389,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
      * @return false|string
      */
 
-	public function getTalkHeader($iLotId, $iProfileId, $bIsBlockVersion = false){
+	public function getTalkHeader($iLotId, $iProfileId, $bIsBlockVersion = false, $isArray = false){
         $CNF = &$this->_oConfig->CNF;
         $aLotInfo = array();
         if ($iLotId)
@@ -403,14 +407,15 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                 $sTitle = $this -> getParticipantsNames($iProfileId, $iLotId);
         }
 
-        return $this -> parseHtmlByName('talk_header.html', array(
+        $aVars = array(
             'buttons' => $this->getTalkHeaderButtons($iLotId, $iProfileId),
-            'back_title' => bx_js_string(_t('_bx_messenger_lots_menu_back_title')),
             'title' => $sTitle
-        ));
+        );
+
+        return $isArray ? $aVars : $this -> parseHtmlByName('talk_header.html', $aVars);
     }
 
-    private function getTalkHeaderButtons($iLotId, $iProfileId){
+    public function getTalkHeaderButtons($iLotId, $iProfileId){
         $CNF = &$this -> _oConfig -> CNF;
 
         if (!$iProfileId || !$iLotId)
@@ -434,11 +439,18 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         else
             $sRoom = $this->_oConfig->getRoomId();
 
+        $sPopupMenuName = time();
+        if ($iLotId)
+            $sPopupMenuName = "lot-info-menu-{$iLotId}";
+
+        $sPopupMenu = BxTemplStudioFunctions::getInstance()->transBox($sPopupMenuName, $this->getLotMenuCode($iLotId, $iProfileId), true);
+
         return $this -> parseHtmlByName('talk_header_menu.html', array(
             'bx_if:show_lot_menu' => array(
                 'condition' => $iProfileId,
                 'content' => array(
-                    'lot_menu' => $this -> getLotMenuCode($iLotId, $iProfileId),
+                    'lot_menu' => $sPopupMenu,
+                    'lot_menu_id' => "#{$sPopupMenuName}",
                     'id' => $iLotId,
                     'mute' => (int)$bIsMuted,
                     'mute_title' => bx_js_string( $bIsMuted ? _t('_bx_messenger_lots_menu_mute_info_on') : _t('_bx_messenger_lots_menu_mute_info_off')),
@@ -582,7 +594,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 
 	    $aVars = array(
                     'bx_repeat:participants_list' => $aParticipants,
-                    'back_title' => bx_js_string(_t('_bx_messenger_lots_menu_back_title')),
                     'bx_if:edit_mode' =>
                         array(
                             'condition' => $bAllowToSave,
@@ -1791,7 +1802,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             return '';
 
 	    return $this -> parseHtmlByName('file_menu.html', array(
-                    'file_menu' => $this -> getFileMenuCode($iFileId, $bIsDeleteAllowed)
+                    'file_menu' => BxTemplStudioFunctions::getInstance()->transBox("jot-menu-file-{$iFileId}", $this -> getFileMenuCode($iFileId, $bIsDeleteAllowed), true)
 				));
 	}
 
@@ -2159,7 +2170,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             $sContent = $oForm -> getCode();
         }
 
-        return BxTemplFunctions::getInstance()->popupBox(time(), _t('_bx_messenger_lot_options_title'), $sContent);
+        return BxTemplFunctions::getInstance()->popupBox('lot-settings', _t('_bx_messenger_lot_options_title'), $sContent);
     }
 }
 

@@ -799,13 +799,12 @@
 
 		$(_this.sJotIcons, oParent)
 			.each(function(){
-				$(this).on(/*!_this.isMobile() ? 'hover' :*/ 'click', function(e){
+				$(this).on('click', function(){
 					const oMenu = $(this).next('div');
 					if (oMenu.is(':visible'))
 						return;
 
 					$('div[id^="jot-menu-"]', _this.sTalkBlock).hide();
-
 					oMenu
 						.dolPopup({
 							pointer: { el: $(this), align: 'right', offset: '-24 -3' },
@@ -813,9 +812,23 @@
 							closeOnOuterClick: true,
 							onShow: (oEl) => $(oEl).on('click', () => $(oEl).dolPopupHide()),
 							onBeforeShow: () => {
+								const iHeight = $(_this.sTalkBlock).height() + $(_this.sTalkBlock).offset().top;
+								if (_this.isBlockVersion()) {
+									oMenu
+										.removeClass('bx-popup-responsive')
+										.addClass('bx-messenger-mobile-menu');
+
+									oMenu.position({
+											of: $(this),
+											my: 'right ' + ((iHeight - $(this).offset().top) < oMenu.height() ? 'bottom' : 'top'),
+											at: 'right bottom',
+											collision: 'fit fit'
+									});
+
+								}
+
 								if (!_this.isMobile()) {
-									const iHeight = $(_this.sTalkBlock).height() + $(_this.sTalkBlock).offset().top;
-									if (iHeight - $(this).offset().top < oMenu.height())
+									if ((iHeight - $(this).offset().top) < oMenu.height())
 										oMenu.position({
 											of: $(this),
 											my: 'left bottom',
@@ -889,7 +902,7 @@
 	* Load logged member's message template	
 	*/
 	oMessenger.prototype.loadMembersTemplate = function(){
-		var _this = this;
+		const _this = this;
 		
 		if (_this.oUsersTemplate == null)
 			$.get('modules/?r=messenger/load_members_template', 
@@ -1088,7 +1101,10 @@
 
 		$.post('modules/?r=messenger/mute', {lot:iLotId}, function(oData){
 				if (typeof oData.code !== 'undefined')
-					$(oEl).attr('title', oData.title);
+				    $(oEl)
+						.attr('title', oData.title)
+						.find('.title')
+						.text(oData.title)
 		}, 'json');
 	}
 	
@@ -1106,7 +1122,10 @@
 
 		$.post('modules/?r=messenger/star', {lot:iLotId}, function(oData){
 					if (typeof oData.code !== 'undefined')
-						$(oEl).attr('title', oData.title);
+						$(oEl)
+							.attr('title', oData.title)
+							.find('.title')
+							.text(oData.title)
 				}, 'json');
 	}
 	
@@ -3116,8 +3135,8 @@
 				 if (typeof oParams.callback !== 'undefined')
 					 delete oParams['callback'];
 
-				if (oEl)
-					bx_loading_btn($(oEl), true);
+				/*if (oEl)
+					bx_loading_btn($(oEl), true);*/
 
 				 $(window).dolPopupAjax({
 					 url: bx_append_url_params(`modules/?r=messenger/get_jitsi_conference_form/${iLotId}`, oParams),
@@ -4250,7 +4269,7 @@
 		},
 		stopActiveSound: () => _oMessenger.stopActiveSound(),
 		showInfoMenu: (oMenu, sLotMenuId) => {
-			$(sLotMenuId).dolPopup({
+			$(`#${sLotMenuId}`).dolPopup({
 				pointer:{ el: $(oMenu).parent() },
 				moveToDocRoot: _oMessenger.isBlockVersion(),
 				onShow: function(oEl){

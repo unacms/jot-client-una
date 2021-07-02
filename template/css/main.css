@@ -192,16 +192,6 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 	line-height: normal;
 }
 
-/*.bx-menu-object-bx_messenger_menu_view .bx-db-menu.right,
-.bx-messenger-block .bx-db-header .bx-db-menu.right {
-	position: relative;
-	min-width: 6rem;
-	display: flex;
-	justify-content: space-between;
-	align-items: baseline;
-}*/
-
-
 .bx-messenger-post-box .bx-messenger-post-box-send-area
 {
 	width:auto;

@@ -108,6 +108,7 @@ class BxMessengerDb extends BxBaseModTextDb
 
         $this -> query("DELETE FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = :id", array('id' => $iLotId));
         $this -> query("DELETE FROM `{$this->CNF['TABLE_LOT_SETTINGS']}` WHERE `{$this->CNF['FLS_ID']}` = :id", array('id' => $iLotId));
+        $this -> query("DELETE FROM `{$this->CNF['TABLE_USERS_INFO']}` WHERE `{$this->CNF['FIELD_INFO_LOT_ID']}` = :id", array('id' => $iLotId));
 		$this -> query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id", array('id' => $iLotId));
 
 		return true;
@@ -229,7 +230,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@return int affected rows
 	*/
 	private function setParams($iLotId, $iParticipant, $sName, $sValue, $bParams = false){
-		$aParams = $this -> getParams($iLotId, $iParticipant);
+		$aParams = $this->getParams($iLotId, $iParticipant);
 	
 		if (!$bParams)
 		{
@@ -252,10 +253,10 @@ class BxMessengerDb extends BxBaseModTextDb
 	*@return int set value
 	*/
 	public function muteLot($iLotId, $iParticipant){
-		$iCurrentNotification = (int)$this -> getParams($iLotId, $iParticipant, 'notification');
+		$iCurrentNotification = (int)$this->getParams($iLotId, $iParticipant, 'notification');
 		$iNotification = (int)!$iCurrentNotification;
 		
-		$this -> setParams($iLotId, $iParticipant, 'notification', $iNotification);		
+		$this->setParams($iLotId, $iParticipant, 'notification', $iNotification);
 		return $iNotification;
 	}
 	

@@ -210,6 +210,7 @@ class BxMessengerConfig extends BxBaseModTextConfig
             'OBJECT_FORM_ENTRY_DISPLAY_VIEW' => 'bx_messenger_lots',
             'OBJECT_MENU_ACTIONS_VIEW_ENTRY' => 'bx_messenger_view', // actions menu on view entry page
             'OBJECT_MENU_ACTIONS_MY_ENTRIES' => 'bx_messenger_my', // actions menu on my entries page
+            'OBJECT_MENU_ACTIONS_TALK_MENU' => 'bx_messenger_lot_menu',
             'OBJECT_MENU_SUBMENU' => '', // main module submenu
             'OBJECT_MENU_MANAGE_TOOLS' => 'bx_messenger_menu_manage_tools', //manage menu in content administration tools
             'OBJECT_GRID' => 'bx_messenger',

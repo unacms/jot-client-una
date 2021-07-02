@@ -408,70 +408,23 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         }
 
         $aVars = array(
-            'buttons' => $this->getTalkHeaderButtons($iLotId, $iProfileId),
+            'buttons' => $this->getTalkHeaderButtons($iLotId),
             'title' => $sTitle
         );
 
         return $isArray ? $aVars : $this -> parseHtmlByName('talk_header.html', $aVars);
     }
 
-    public function getTalkHeaderButtons($iLotId, $iProfileId){
-        $CNF = &$this -> _oConfig -> CNF;
+    public function getTalkHeaderButtons($iLotId){
+        $CNF = &$this->_oConfig->CNF;
+	    $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_ACTIONS_TALK_MENU']);
+        $oMenu->setTemplateById(BX_DB_MENU_TEMPLATE_TABS);
+        $oMenu->setContentId($iLotId);
 
-        if (!$iProfileId || !$iLotId)
-            return '';
-
-        $aLotInfo = $this -> _oDb -> getLotInfoById($iLotId);
-
-        $bIsMuted = $this -> _oDb -> isMuted($iLotId, $iProfileId);
-        $bIsStarred = $this -> _oDb -> isStarred($iLotId, $iProfileId);
-
-        $bIsVideoStarted = false;
-        if (!empty($aLotInfo)) {
-            $aJVC = $this->_oDb->getJVC($iLotId);
-            if (empty($aJVC))
-                $sRoom = $this->_oConfig->getRoomId($aLotInfo[$CNF['FIELD_ID']], $aLotInfo[$CNF['FIELD_AUTHOR']]);
-            else {
-                $sRoom = $aJVC[$CNF['FJVC_ROOM']];
-                $bIsVideoStarted = (int)$aJVC[$CNF['FJVC_ACTIVE']] !== 0;
-            }
-        }
-        else
-            $sRoom = $this->_oConfig->getRoomId();
-
-        $sPopupMenuName = time();
-        if ($iLotId)
-            $sPopupMenuName = "lot-info-menu-{$iLotId}";
-
-        $sPopupMenu = BxTemplStudioFunctions::getInstance()->transBox($sPopupMenuName, $this->getLotMenuCode($iLotId, $iProfileId), true);
-
-        return $this -> parseHtmlByName('talk_header_menu.html', array(
-            'bx_if:show_lot_menu' => array(
-                'condition' => $iProfileId,
-                'content' => array(
-                    'lot_menu' => $sPopupMenu,
-                    'lot_menu_id' => "#{$sPopupMenuName}",
-                    'id' => $iLotId,
-                    'mute' => (int)$bIsMuted,
-                    'mute_title' => bx_js_string( $bIsMuted ? _t('_bx_messenger_lots_menu_mute_info_on') : _t('_bx_messenger_lots_menu_mute_info_off')),
-                    'settings_title' => _t('_bx_messenger_lots_menu_settings_title'),
-                    'star_title' => bx_js_string( !$bIsStarred ? _t('_bx_messenger_lots_menu_star_on') : _t('_bx_messenger_lots_menu_star_off')),
-                    'star' => (int)$bIsStarred,
-                    'bell_icon' => $bIsMuted ? $CNF['BELL_ICON_OFF'] : $CNF['BELL_ICON_ON'],
-                    'star_icon' => $CNF['STAR_ICON'] . ((int)$bIsStarred ? ' fill' : ''),
-                    'bx_if:jitsi' => array(
-                        'condition' => $this->_oConfig->isJitsiAllowed($aLotInfo[$CNF['FIELD_TYPE']]),
-                        'content' => array(
-                            'id' => $iLotId,
-                            'room' => $sRoom,
-                            'video_title' => bx_js_string( !$bIsVideoStarted ? _t('_bx_messenger_lots_menu_video_conf_start') : _t('_bx_messenger_lots_menu_video_conf_join')),
-                        )
-                    ),
-                )
-            )));
+        return $oMenu->getCode();
 	}
 
-    private function getLotMenuCode($iLotId, $iProfileId){
+    public function getLotMenuCode($iLotId, $iProfileId){
         $CNF = &$this->_oConfig->CNF;
 
         $bAllowed = $this->_oDb->isAuthor($iLotId, $iProfileId) || ($this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $iProfileId) === true);

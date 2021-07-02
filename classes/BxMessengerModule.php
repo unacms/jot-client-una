@@ -169,10 +169,6 @@ class BxMessengerModule extends BxBaseModTextModule
         }
 
         $sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, true, $iLotId, BX_IM_EMPTY, BX_IM_EMPTY, $this->_oConfig->getTalkType($sModule));
-
-        $oMenu = BxTemplMenu::getObjectInstance('bx_messenger_menu_view');
-        $oMenu->setLotId($iLotId);
-
         $aHeader = $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId, true, true);
 
         $sContent = $this->_oTemplate->parseHtmlByName('talk_body.html', array(
@@ -180,10 +176,13 @@ class BxMessengerModule extends BxBaseModTextModule
             'text_area' => $this->_oTemplate->getTextArea($this->_iProfileId, $iLotId)
         ));
 
+        $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_ACTIONS_TALK_MENU']);
+        $oMenu->setContentId($iLotId);
+
         return array(
             'title' => $aHeader['title'],
             'content' => $sConfig . $sContent,
-            'menu' => $aHeader['buttons']
+            'menu' => $oMenu
         );
     }
 
@@ -1266,12 +1265,13 @@ class BxMessengerModule extends BxBaseModTextModule
      */
     public function actionLoadMembersTemplate()
     {
-        if (!$this->isLogged())
-            return '';
+        $sTemplate =  '';
+        if ($this->isLogged())
+            $sTemplate = $this->_oTemplate->getMembersJotTemplate($this->_iProfileId);
 
         echoJson(
             array(
-                'data' => $this->_oTemplate->getMembersJotTemplate($this->_iProfileId)
+                'data' => $sTemplate
             ));
     }
 

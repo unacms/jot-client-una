@@ -156,3 +156,11 @@
     justify-content: space-between;
     align-items: baseline;
 }
+
+.bx-messenger-lot-header-menu a {
+    margin-right: 0.4rem;
+}
+
+.bx-messenger-lot-header-menu a:last-child {
+    margin-right: 0;
+}

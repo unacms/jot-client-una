@@ -816,26 +816,22 @@
 								if (_this.isBlockVersion()) {
 									oMenu
 										.removeClass('bx-popup-responsive')
-										.addClass('bx-messenger-mobile-menu');
-
-									oMenu.position({
+										.addClass('bx-messenger-mobile-menu')
+										.position({
 											of: $(this),
-											my: 'right ' + ((iHeight - $(this).offset().top) < oMenu.height() ? 'bottom' : 'top'),
+											my: 'right-24 ' + ((iHeight - $(this).offset().top) < oMenu.height() ? 'bottom' : 'top'),
 											at: 'right bottom',
 											collision: 'fit fit'
-									});
-
-								}
-
-								if (!_this.isMobile()) {
-									if ((iHeight - $(this).offset().top) < oMenu.height())
-										oMenu.position({
-											of: $(this),
-											my: 'left bottom',
-											at: 'right bottom',
-											collision: 'flipfit none'
 										});
 								}
+
+								if ((iHeight - $(this).offset().top) < oMenu.height())
+									oMenu.position({
+										of: $(this),
+										my: 'right-24 bottom',
+										at: 'right top',
+										collision: 'fit fit'
+									});
 							}
 						});
 

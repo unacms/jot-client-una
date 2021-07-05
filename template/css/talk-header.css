@@ -1,26 +1,3 @@
-
-/*.bx-messenger-block #bx-messenger-add-users .save a,
-.bx-messenger-lot-header-menu a,
-.bx-messenger-block .bx-db-menu a
-{
-	vertical-align: middle;
-	line-height: 2.5rem;
-	display: inline-flex;
-	align-items: center;
-	font-size: 1.3rem;
-}*/
-
-/*.bx-db-menu-popup .bx-messenger-lot-header-menu {
-	margin: 0.25rem;
-}*/
-
-/*.bx-messenger-lot-header-menu a
-{
-	line-height: inherit;
-}*/
-
-/*.bx-messenger-lot-header-menu a,
-.bx-messenger-lot-header-menu span,*/
 .bx-messenger-block .bx-db-menu a,
 .bx-messenger-block .bx-db-menu span
 {
@@ -32,10 +9,14 @@
     margin-right: 0;
 }
 
-/*.bx-messenger-block .bx-db-menu a svg
+.bx-messenger-block .bx-db-menu
 {
-	vertical-align:middle;
-}*/
+	text-align: right;
+}
+
+.bx-messenger-block-menu-align-right{
+    text-align: right;
+}
 
 .bx-messenger-block .bx-db-menu .middle
 {

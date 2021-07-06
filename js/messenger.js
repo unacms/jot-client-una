@@ -806,33 +806,33 @@
 
 					$('div[id^="jot-menu-"]', _this.sTalkBlock).hide();
 					oMenu
-						.dolPopup({
-							pointer: { el: $(this), align: 'right', offset: '-24 -3' },
-							moveToDocRoot: false,
-							closeOnOuterClick: true,
-							onShow: (oEl) => $(oEl).on('click', () => $(oEl).dolPopupHide()),
-							onBeforeShow: () => {
-								const iHeight = $(_this.sTalkBlock).height() + $(_this.sTalkBlock).offset().top;
-								if (_this.isBlockVersion()) {
-									oMenu
-										.removeClass('bx-popup-responsive')
-										.addClass('bx-messenger-mobile-menu')
-										.position({
+							.dolPopup({
+								pointer: { el: $(this), align: 'right', offset: '-24 -3' },
+								moveToDocRoot: false,
+								closeOnOuterClick: true,
+								onShow: (oEl) => $(oEl).on('click', () => $(oEl).dolPopupHide()),
+								onBeforeShow: () => {
+									const iHeight = $(_this.sTalkBlock).height() + $(_this.sTalkBlock).offset().top;
+									if (_this.isBlockVersion()) {
+										oMenu
+											.removeClass('bx-popup-responsive')
+											.addClass('bx-messenger-mobile-menu')
+											.position({
+												of: $(this),
+												my: 'right-24 ' + ((iHeight - $(this).offset().top) < oMenu.height() ? 'bottom' : 'top'),
+												at: 'right bottom',
+												collision: 'fit fit'
+											});
+									}
+
+									if ((iHeight - $(this).offset().top) < oMenu.height())
+										oMenu.position({
 											of: $(this),
-											my: 'right-24 ' + ((iHeight - $(this).offset().top) < oMenu.height() ? 'bottom' : 'top'),
-											at: 'right bottom',
+											my: 'right-24 bottom',
+											at: 'right top',
 											collision: 'fit fit'
 										});
 								}
-
-								if ((iHeight - $(this).offset().top) < oMenu.height())
-									oMenu.position({
-										of: $(this),
-										my: 'right-24 bottom',
-										at: 'right top',
-										collision: 'fit fit'
-									});
-							}
 						});
 
 					if (!_this.isMobile())

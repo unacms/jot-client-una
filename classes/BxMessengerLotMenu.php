@@ -88,6 +88,7 @@ class BxMessengerLotMenu extends BxBaseModTextMenuView
 
             case 'mute':
             case 'star':
+                $this->addMarkers(array('id' => $this->_iContentId));
                 return true;
 
             case 'video_call':

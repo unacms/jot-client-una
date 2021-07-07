@@ -138,14 +138,13 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
 	    $bGiphy = $iProfileId && $CNF['GIPHY']['api_key'];
 	    $bRecorder = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_VIDEO_RECORDER, $iProfileId) === true;
         $bMSG = $bSmiles = $bFiles = true;
-
 	    if ($iLotId) {
           $mixedOptions = $this->_oDb->getLotSettings($iLotId);
 
           $bMSG = $mixedOptions === false || in_array(BX_MSG_SETTING_MSG, $mixedOptions);
           $bFiles = $mixedOptions === false || in_array(BX_MSG_SETTING_FILES, $mixedOptions);
-          $bRecorder = $mixedOptions === false || in_array(BX_MSG_SETTING_VIDEO_RECORD, $mixedOptions);
-          $bGiphy = ($mixedOptions === false || in_array(BX_MSG_SETTING_GIPHY, $mixedOptions));
+          $bRecorder = $bRecorder && ($mixedOptions === false || in_array(BX_MSG_SETTING_VIDEO_RECORD, $mixedOptions));
+          $bGiphy = $bGiphy && ($mixedOptions === false || in_array(BX_MSG_SETTING_GIPHY, $mixedOptions));
           $bSmiles = $mixedOptions === false || in_array(BX_MSG_SETTING_SMILES, $mixedOptions);
         }
 

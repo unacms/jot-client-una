@@ -765,6 +765,8 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         $aUnreadProfiles = $this->_oDb->getForWhomJotIsNew($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iJotId);
         if (!empty($aUnreadProfiles))
             $aResult = array_diff($aParticipants, $aUnreadProfiles);
+        else
+            return '';
 
         $aIcons = array();
         foreach($aResult as &$iProfileId) {

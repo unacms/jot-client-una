@@ -288,6 +288,7 @@ class BxMessengerDb extends BxBaseModTextDb
 	}
 
 	/**
+	/**
 	* Save participants list for the lot
 	*@param int $iLotId lot id
 	*@param array $aParticipants
@@ -875,7 +876,7 @@ class BxMessengerDb extends BxBaseModTextDb
 
         return $this->getColumn("SELECT `{$this->CNF['FIELD_NEW_PROFILE']}` 
                                             FROM `{$this->CNF['TABLE_NEW_MESSAGES']}` 
-                                            WHERE `{$this->CNF['FIELD_NEW_JOT']}` <= :jot AND `{$this->CNF['FIELD_NEW_LOT']}`=:lot
+                                            WHERE `{$this->CNF['FIELD_NEW_JOT']}` <=:jot AND `{$this->CNF['FIELD_NEW_LOT']}`=:lot
                                          ", array('jot' => $iJotId, 'lot' => $iLotId));
     }
 

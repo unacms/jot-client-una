@@ -813,7 +813,7 @@
 								onShow: (oEl) => $(oEl).on('click', () => $(oEl).dolPopupHide()),
 								onBeforeShow: () => {
 									const iHeight = $(_this.sTalkBlock).height() + $(_this.sTalkBlock).offset().top;
-									if (_this.isBlockVersion()) {
+									if (_this.isBlockVersion() || _this.isMobile()) {
 										oMenu
 											.removeClass('bx-popup-responsive')
 											.addClass('bx-messenger-mobile-menu')

@@ -34,7 +34,7 @@ class BxMessengerLotMenu extends BxBaseModTextMenuView
         switch($aMenu['name']){
             case 'mute':
                     $bIsMuted = $oModule->_oDb->isMuted($this->_iContentId, $this->_iProfileId);
-                    $aMenu['title'] = !$bIsMuted ? _t('_bx_messenger_lots_menu_mute_info_on') : _t('_bx_messenger_lots_menu_mute_info_off');
+                    $aMenu['title'] = $bIsMuted ? _t('_bx_messenger_lots_menu_mute_info_on') : _t('_bx_messenger_lots_menu_mute_info_off');
                     $aMenu['icon'] = $bIsMuted ? $CNF['BELL_ICON_OFF'] : $CNF['BELL_ICON_ON'];
                     $aMenu['value'] = +$bIsMuted;
                 break;

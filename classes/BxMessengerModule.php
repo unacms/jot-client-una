@@ -49,6 +49,8 @@ define('BX_MSG_ACTION_SEND_MESSAGE', 'send_messages');
 define('BX_MSG_ACTION_CREATE_VC', 'create_vc');
 define('BX_MSG_ACTION_CREATE_IM_VC', 'video_conference');
 define('BX_MSG_ACTION_VIDEO_RECORDER', 'video_recorder');
+define('BX_MSG_ACTION_JOIN_IM_VC', 'join_personal_vc');
+define('BX_MSG_ACTION_JOIN_TALK_VC', 'join_vc');
 
 // Lot settings
 define('BX_MSG_SETTING_MSG', 'msg'); // allow to send messages
@@ -1770,8 +1772,18 @@ class BxMessengerModule extends BxBaseModTextModule
        if (!$this->_iProfileId || !$this->onCheckContact($this->_iProfileId, (int)$mixedObject))
             return false;
 
-        if ($this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_IM_VC, $this->_iProfileId) !== true)
-            return false;
+       $CNF = &$this->_oConfig->CNF;
+       if (isset($_SERVER['REQUEST_URI'])) {
+            $sRoom = $this->_oConfig->getRoomId($_SERVER['REQUEST_URI']);
+            $aRoom = $this->_oDb->getPublicVideoRoom($sRoom);
+            $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_IM_VC, $this->_iProfileId);
+            if ((empty($aRoom) || !(int)$aRoom[$CNF['FPJVC_STATUS']]) && $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_IM_VC, $this->_iProfileId) !== true)
+                return false;
+
+            if (!empty($aRoom) && (int)$aRoom[$CNF['FPJVC_STATUS']] && (int)$mixedObject !== $this->_iProfileId && $this->_oConfig->isAllowedAction(BX_MSG_ACTION_JOIN_IM_VC, $this->_iProfileId) !== true)
+                return false;
+       } else
+           return false;
 
         $this->_oTemplate->addCss(array('video-conference.css'));
         $this->_oTemplate->addJs('messenger-public-lib.js');
@@ -1800,7 +1812,7 @@ class BxMessengerModule extends BxBaseModTextModule
           'en' => $sMessage,
         );
 
-        if (!$aContent[$sLanguage])
+        if (!isset($aContent[$sLanguage]))
             $aContent[$sLanguage] = $sMessage;
 
         $aHeadings = array( $sLanguage => _t("_bx_messenger_push_vc_{$sType}_message_title"));
@@ -1821,6 +1833,9 @@ class BxMessengerModule extends BxBaseModTextModule
     public function actionGetVideoConferenceForm($iProfileId)
     {
         $oProfile = BxDolProfile::getInstance($iProfileId);
+        header('Content-type: text/html; charset=utf-8');
+
+        $sContent = '';
         if (!$oProfile)
             $sContent =  MsgBox(_t('_bx_messenger_profile_not_found'));
         else
@@ -1833,14 +1848,25 @@ class BxMessengerModule extends BxBaseModTextModule
                         $this->sendProfilePush($iProfileId, $this->_iProfileId, $iPart, $aInfo['type']);
                 }
             } else if ($this->_iProfileId != $iProfileId)
-               $this->sendProfilePush($iProfileId, $this->_iProfileId, $iProfileId, $aInfo['type']);
+                $this->sendProfilePush($iProfileId, $this->_iProfileId, $iProfileId, $aInfo['type']);
 
-            $aParams['audio_only'] = bx_get('startAudioOnly') ? 1 : 0;
-            $sContent = $this->_oTemplate->getPublicJitsi($this->_iProfileId, $this->getPageIdent(), $oProfile->getDisplayName(), 'bx-messenger-vc-call');
+            $CNF = &$this->_oConfig->CNF;
+            $sIdent = $this->getPageIdent();
+            $sRoom = $this->_oConfig->getRoomId($sIdent);
+            $aRoom = $this->_oDb->getPublicVideoRoom($sRoom);
+            if (empty($aRoom) || !(int)$aRoom[$CNF['FPJVC_STATUS']]){
+                $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_IM_VC, $this->_iProfileId);
+                if ($mixedResult !== true)
+                    $sContent = $mixedResult;
+            } else
+                if (!empty($aRoom) && (int)$aRoom[$CNF['FPJVC_STATUS']] && (int)$iProfileId !== $this->_iProfileId) {
+                    $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_JOIN_IM_VC, $this->_iProfileId);
+                    if ($mixedResult !== true)
+                        $sContent = $mixedResult;
+                }
         }
 
-        header('Content-type: text/html; charset=utf-8');
-        echo $sContent;
+        echo $sContent ? $sContent : $this->_oTemplate->getPublicJitsi($this->_iProfileId, $sIdent, $oProfile->getDisplayName(), 'bx-messenger-vc-call');
         exit;
     }
 
@@ -2375,7 +2401,24 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$this->_oDb->isParticipant($iLotId, $this->_iProfileId) && !empty($aLotInfo) && $aLotInfo[$CNF['FIELD_TYPE']] !== BX_IM_TYPE_PRIVATE)
             $this->_oDb->addMemberToParticipantsList($iLotId, $this->_iProfileId);
 
-        echo $this->_oTemplate->getJitsi($iLotId, $this->_iProfileId, $aParams);
+        $mixedAuthor = $this->_oDb->getActiveJVCItem($iLotId, $CNF['FJVCT_AUTHOR_ID']);
+        if ($mixedAuthor === false && $this->_oConfig->isJitsiAllowed($aLotInfo[$CNF['FIELD_TYPE']])) {
+            echo $this->_oTemplate->getJitsi($iLotId, $this->_iProfileId, $aParams);
+            exit;
+        }
+
+        $sMessage = _t('_bx_messenger_jitsi_err_cant_type_use');
+        if ($mixedAuthor !== false && ((int)$mixedAuthor != $this->_iProfileId) && ($mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_JOIN_TALK_VC))) {
+           if ($mixedResult !== true)
+             $sMessage = $mixedResult;
+           else
+           {
+             echo $this->_oTemplate->getJitsi($iLotId, $this->_iProfileId, $aParams);
+             exit;
+           }
+        }
+
+        echo MsgBox($sMessage, 2.5);
         exit;
     }
 
@@ -2400,11 +2443,17 @@ class BxMessengerModule extends BxBaseModTextModule
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_jitsi_err_can_join_conference')));
 
         $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
+        if (empty($aLotInfo))
+            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_found')));
+
         if (!$this->_oDb->isParticipant($iLotId, $this->_iProfileId) && !empty($aLotInfo) && $aLotInfo[$CNF['FIELD_TYPE']] !== BX_IM_TYPE_PRIVATE)
             $this->_oDb->addMemberToParticipantsList($iLotId, $this->_iProfileId);
 
-        if ($aLotInfo[$CNF['FIELD_TYPE']] && !$this->_oConfig->isJitsiAllowed($aLotInfo[$CNF['FIELD_TYPE']]))
-            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_jitsi_err_cant_type_use')));
+        $mixedAuthor = $this->_oDb->getActiveJVCItem($iLotId, $CNF['FJVCT_AUTHOR_ID']);
+        if ($mixedAuthor != $this->_iProfileId && ($mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_JOIN_TALK_VC))) {
+            if  ($mixedResult !== true)
+                    return echoJson(array('code' => 1, 'message' => $mixedResult));
+        }
 
         $aJVC = $this->_oDb->getJVC($iLotId);
         $iParticipants = count($this->_oDb->getParticipantsList($iLotId));
@@ -2470,8 +2519,14 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$iLotId || !isLogged())
             return echoJson($aResult);
 
-        $mixedContent = $this->_oTemplate->getCallPopup($iLotId, $this->_iProfileId);
-        $aResult = array('code' => +($mixedContent === false), 'popup' => $mixedContent);
+        if ($this->_oConfig->isAllowedAction(BX_MSG_ACTION_JOIN_TALK_VC) !== true)
+            $aResult = array('code' => 1);
+        else
+        {
+            $mixedContent = $this->_oTemplate->getCallPopup($iLotId, $this->_iProfileId);
+            $aResult = array('code' => +($mixedContent === false), 'popup' => $mixedContent);
+        }
+
         return echoJson($aResult);
     }
 

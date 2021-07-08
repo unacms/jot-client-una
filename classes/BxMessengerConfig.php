@@ -449,9 +449,6 @@ class BxMessengerConfig extends BxBaseModTextConfig
     }
 
     public function isAllowedAction($sAction = BX_MSG_ACTION_SEND_MESSAGE, $iProfileId = 0){
-        if (!isLogged())
-            return false;
-
         if (!$iProfileId)
             $iProfileId = bx_get_logged_profile_id();
 

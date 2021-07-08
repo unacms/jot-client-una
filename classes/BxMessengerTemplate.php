@@ -1264,11 +1264,11 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
                         $aJVC = $this->_oDb->getJVC($aLotInfo[$CNF['FIELD_ID']]);
                         $sRoom = empty($aJVC) && !empty($aLotInfo) ? $this->_oConfig->getRoomId($aLotInfo[$CNF['FIELD_ID']], $aLotInfo[$CNF['FIELD_AUTHOR']]) : $aJVC[$CNF['FJVC_ROOM']];
 
-                    $sContent = $this -> parseHtmlByName('vc_message.html',
+                        $sContent = $this -> parseHtmlByName('vc_message.html',
                             array(
                                 'info' => $sInfo,
                                 'bx_if:join' => array(
-                                    'condition' => !$aJVCItem[$CNF['FJVCT_END']],
+                                    'condition' => !$aJVCItem[$CNF['FJVCT_END']] && ($isAdmin || $this->_oConfig->isAllowedAction(BX_MSG_ACTION_JOIN_TALK_VC) === true),
                                     'content' => array(
                                         'id' => $aLotInfo[$CNF['FIELD_ID']],
                                         'room' => $sRoom
@@ -1887,10 +1887,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         if (!$this->_oDb->isParticipant($iLotId, $iProfileId))
             $sError = MsgBox(_t('_bx_messenger_jitsi_err_can_join_conference'));
 
-        $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
-        if (!empty($aLotInfo) && $aLotInfo[$CNF['FIELD_TYPE']] && !$this->_oConfig->isJitsiAllowed($aLotInfo[$CNF['FIELD_TYPE']]))
-            $sError = MsgBox(_t('_bx_messenger_jitsi_err_cant_type_use'));
-
         if ($sError)
             return BxBaseFunctions::getInstance()->msgBox($sError, 2.5);
 
@@ -1946,10 +1942,9 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
         $oLanguage = BxDolStudioLanguagesUtils::getInstance();
         $sLanguage = $oLanguage->getCurrentLangName(false);
 
-        $sRoom = $this->_oConfig->getRoomId($sIdent ? $sIdent : $iProfileId);
-        
+        $sRoom = $this->_oConfig->getRoomId($sIdent ? $sIdent : $iProfileId);        
         $mixedJWT = $this->getJWTToken($sRoom, $iProfileId);
-        $sCode = $this -> parseHtmlByName('jitsi_public_video_form.html', array(
+        return $this -> parseHtmlByName('jitsi_public_video_form.html', array(
             'domain' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER']),
             'lang' => $sLanguage,
             'site_title' => getParam('site_title'),
@@ -1957,7 +1952,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             'info_enabled' => +$CNF['JITSI-HIDDEN-INFO'],
             'chat_enabled' => +$CNF['JITSI-CHAT'],
             'chat_sync' => +$CNF['JITSI-CHAT-SYNC'],
-            'audio_only' => +isset($aOptions['audio_only']),
+            'audio_only' => 0,
             'show_watermark' => +$CNF['JITSI-ENABLE-WATERMARK'],
             'watermark_url' => $CNF['JITSI-WATERMARK-URL'],
             'support_link' => $CNF['JITSI-SUPPORT-LINK'],
@@ -1971,8 +1966,6 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             'interface_config' => json_encode($aInterfaceConfig),
             'jwt_token' => $mixedJWT !== false ? $mixedJWT : ''
         ));
-
-        return $sCode;
     }
 
     function getJWTToken($sRoom, $iProfileId){

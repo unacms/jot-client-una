@@ -27,7 +27,7 @@ window.oMessengerPublicLib = (function($) {
                     onHide: () => $(document).trigger($.Event('hideConferenceWindow')),
                     onShow: () => $(document).trigger($.Event('showConferenceWindow')),
                     closeElement: true,
-                    closeOnOuterClick: false,
+                    closeOnOuterClick: true,
                     removeOnClose: true,
                 }, oOptions);
 

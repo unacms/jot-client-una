@@ -276,4 +276,6 @@
 	<string name="_bx_messenger_menu_item_title_star"><![CDATA[Mark talks as important]]></string>
 	<string name="_bx_messenger_menu_item_title_mute"><![CDATA[Mute talk]]></string>
 	<string name="_bx_messenger_menu_set_title_talk_menu"><![CDATA[Talk menu]]></string>
+	<string name="_bx_messenger_acl_action_join_vc"><![CDATA[Join to video conference]]></string>
+	<string name="_bx_messenger_acl_action_join_personal_vc"><![CDATA[Join to personal video conference]]></string>
 </resources>

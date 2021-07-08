@@ -259,5 +259,13 @@
 	<string name="_bx_messenger_clear_lot_menu"><![CDATA[Очистить историю]]></string>
 	<string name="_bx_messenger_clear_lot"><![CDATA[Вы уверено, что хотите безвозвратно удалить историю чата?]]></string>
 	<string name="_bx_messenger_lot_menu_settings"><![CDATA[Настройки]]></string>
-	<string name="_bx_messenger_enable_joined_organizations"><![CDATA[Разрешить организациям контактировать с пользователями только в случае, если пользователь является участником этой организации]]></string>
+	<string name="_bx_messenger_enable_joined_organizations"><![CDATA[Разрешить организациям контактировать с пользователями тлько в случае, если пользователь является участником этой организации]]></string>
+	<string name="_bx_messenger_reply"><![CDATA[Ответить]]></string>
+	<string name="_bx_messenger_mark_as_unread"><![CDATA[Пометить как прочитанное]]></string>
+	<string name="_bx_messenger_menu_item_title_video_call"><![CDATA[Видео звонок]]></string>
+	<string name="_bx_messenger_menu_item_title_star"><![CDATA[Отметить чат как важный]]></string>
+	<string name="_bx_messenger_menu_item_title_mute"><![CDATA[Выключить звук]]></string>
+	<string name="_bx_messenger_menu_set_title_talk_menu"><![CDATA[Меню разговора]]></string>
+	<string name="_bx_messenger_acl_action_join_vc"><![CDATA[Присоединиться к видео конференции]]></string>
+	<string name="_bx_messenger_acl_action_join_personal_vc"><![CDATA[Присоединиться к персональной видео конференции]]></string>
 </resources>

@@ -133,6 +133,14 @@ INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`,
 (@sName, 'video recorder', NULL, '_bx_messenger_acl_action_video_recorder', '', 1, 0);
 SET @iIdActionVRecorder = LAST_INSERT_ID();
 
+INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`, `Desc`, `Countable`, `DisabledForLevels`) VALUES
+(@sName, 'join vc', NULL, '_bx_messenger_acl_action_join_vc', '', 1, 0);
+SET @iIdActionVCJoin = LAST_INSERT_ID();
+
+INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`, `Desc`, `Countable`, `DisabledForLevels`) VALUES
+(@sName, 'join personal vc', NULL, '_bx_messenger_acl_action_join_personal_vc', '', 1, 0);
+SET @iIdActionVCPJoin = LAST_INSERT_ID();
+
 SET @iUnauthenticated = 1;
 SET @iAccount = 2;
 SET @iStandard = 3;
@@ -149,6 +157,16 @@ INSERT INTO `sys_acl_matrix` (`IDLevel`, `IDAction`) VALUES
 (@iModerator, @iIdActionEntryIMCreate),
 (@iAdministrator, @iIdActionEntryIMCreate),
 (@iPremium, @iIdActionEntryIMCreate),
+-- JOIN talks' video conference
+(@iStandard, @iIdActionVCJoin),
+(@iModerator, @iIdActionVCJoin),
+(@iAdministrator, @iIdActionVCJoin),
+(@iPremium, @iIdActionVCJoin),
+-- JOIN personal video conference
+(@iStandard, @iIdActionVCPJoin),
+(@iModerator, @iIdActionVCPJoin),
+(@iAdministrator, @iIdActionVCPJoin),
+(@iPremium, @iIdActionVCPJoin),
 -- video conference
 (@iStandard, @iIdActionVCCreate),
 (@iModerator, @iIdActionVCCreate),

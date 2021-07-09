@@ -3416,7 +3416,7 @@
 
 		if (_this.oJotWindowBuilder !== undefined) {
 			_this.oJotWindowBuilder.setDirection(_this.direction);
-			$(window).on('load resize', function (e) {
+			$(window).on('load resize touchmove', function (e) {
 				if (e.type !== 'load')
 					_this.updateSendAreaButtons();
 

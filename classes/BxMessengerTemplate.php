@@ -1885,7 +1885,7 @@ class BxMessengerTemplate extends BxBaseModNotificationsTemplate
             $sError = MsgBox(_t('_bx_messenger_not_found'));
 
         if (!$this->_oDb->isParticipant($iLotId, $iProfileId))
-            $sError = MsgBox(_t('_bx_messenger_jitsi_err_can_join_conference'));
+            $sError = MsgBox(_t('_bx_messenger_not_participant'));
 
         if ($sError)
             return BxBaseFunctions::getInstance()->msgBox($sError, 2.5);

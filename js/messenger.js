@@ -3148,8 +3148,8 @@
 				 if (typeof oParams.callback !== 'undefined')
 					 delete oParams['callback'];
 
-				/*if (oEl)
-					bx_loading_btn($(oEl), true);*/
+				if (oEl)
+					bx_loading_btn($(oEl), true);
 
 				 $(window).dolPopupAjax({
 					 url: bx_append_url_params(`modules/?r=messenger/get_jitsi_conference_form/${iLotId}`, oParams),
@@ -3247,7 +3247,7 @@
 			return false;
 		};
 
-		if (_this.isMobileDevice() && $(_this.sJitsiButton).length){
+		if (_this.isMobileDevice()){
 			if (!_this.isUnaMobileApp())
 				bx_confirm(_t('_bx_messenger_jitsi_mobile_warning'), fDesktopCall, fMobileCall);
 			else

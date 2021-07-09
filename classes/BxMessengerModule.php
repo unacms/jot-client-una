@@ -2388,7 +2388,6 @@ class BxMessengerModule extends BxBaseModTextModule
 
         header('Content-type: text/html; charset=utf-8');
 
-        $aParams['audio_only'] = bx_get('startAudioOnly') ? 1 : 0;
         if (!$iLotId) {
             $sUrl = bx_get('url');
             $sTitle = bx_get('title');
@@ -2401,8 +2400,9 @@ class BxMessengerModule extends BxBaseModTextModule
         if (!$this->_oDb->isParticipant($iLotId, $this->_iProfileId) && !empty($aLotInfo) && $aLotInfo[$CNF['FIELD_TYPE']] !== BX_IM_TYPE_PRIVATE)
             $this->_oDb->addMemberToParticipantsList($iLotId, $this->_iProfileId);
 
+        $aParams['audio_only'] = bx_get('startAudioOnly') ? 1 : 0;
         $mixedAuthor = $this->_oDb->getActiveJVCItem($iLotId, $CNF['FJVCT_AUTHOR_ID']);
-        if ($mixedAuthor === false && $this->_oConfig->isJitsiAllowed($aLotInfo[$CNF['FIELD_TYPE']])) {
+        if (($mixedAuthor === false || ((int)$mixedAuthor == $this->_iProfileId)) && $this->_oConfig->isJitsiAllowed($aLotInfo[$CNF['FIELD_TYPE']])) {
             echo $this->_oTemplate->getJitsi($iLotId, $this->_iProfileId, $aParams);
             exit;
         }

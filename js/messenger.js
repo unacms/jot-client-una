@@ -804,6 +804,7 @@
 					if (oMenu.is(':visible'))
 						return;
 
+
 					$('div[id^="jot-menu-"]', _this.sTalkBlock).hide();
 					oMenu
 							.dolPopup({
@@ -812,26 +813,42 @@
 								closeOnOuterClick: true,
 								onShow: (oEl) => $(oEl).on('click', () => $(oEl).dolPopupHide()),
 								onBeforeShow: () => {
-									const iHeight = $(_this.sTalkBlock).height() + $(_this.sTalkBlock).offset().top;
-									if (_this.isBlockVersion() || _this.isMobile()) {
+									if (_this.isMobile())
+										oMenu.removeClass('bx-popup-responsive');
+
+									const iHeight = $(_this.sTalkBlock).height() + $(_this.sTalkBlock).offset().top,
+										  bPlaceAbove = (iHeight - $(this).offset().top - $(this).height()) < oMenu.height(),
+										  bPlaceBottom = ($(_this.sTalkBlock).offset().top + oMenu.height()) >  $(this).offset().top;
+
+									if (_this.isBlockVersion() || _this.isMobile())
 										oMenu
-											.removeClass('bx-popup-responsive')
-											.addClass('bx-messenger-mobile-menu')
+											.addClass('bx-messenger-mobile-menu');
+
+									if (bPlaceAbove && bPlaceBottom)
+										oMenu
 											.position({
 												of: $(this),
-												my: 'right-24 ' + ((iHeight - $(this).offset().top) < oMenu.height() ? 'bottom' : 'top'),
+												my: 'right-24 center',
 												at: 'right bottom',
 												collision: 'fit fit'
 											});
-									}
-
-									if ((iHeight - $(this).offset().top) < oMenu.height())
-										oMenu.position({
-											of: $(this),
-											my: 'right-24 bottom',
-											at: 'right top',
-											collision: 'fit fit'
-										});
+									 else
+										if (bPlaceBottom)
+											oMenu
+												.position({
+													of: $(this),
+													my: 'right-24 ' + (bPlaceAbove ? 'bottom' : 'top'),
+													at: 'right bottom',
+													collision: 'fit fit'
+											});
+									 else
+										if (bPlaceAbove)
+												oMenu.position({
+													of: $(this),
+													my: 'right-24 bottom',
+													at: 'right top',
+													collision: 'fit fit'
+												});
 								}
 						});
 
@@ -3441,29 +3458,6 @@
 		_this.updatePageIcon();
 	};
 
-	/**
-	 * Loads form to popup
-	 *@param string sUrl link, if not specify default one will be used
-	 *@param function fCallback callback function,  executes on window show
-	 */
-
-	/*oMessenger.prototype.showPopForm = function (sMethod, fCallback) {
-		const sUrl = `modules/?r=messenger/${sMethod}`;
-
-		$(window).dolPopupAjax({
-			url: sUrl,
-			id: { force: true, value: 'bx-messenger-popup'},
-			onShow: function () {
-				setTimeout(() => typeof fCallback === 'function' && fCallback(), 100);
-			},
-			closeElement: true,
-			closeOnOuterClick: true,
-			removeOnClose: true,
-			onHide: function () {
-				_oMessenger.updateScrollPosition('bottom');
-			}
-		});
-	}*/
 	oMessenger.prototype.initGiphy = function() {
 		let iTotal = 0;
 		let iScrollPosition = 0;

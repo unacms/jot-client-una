@@ -484,24 +484,23 @@
 				},
 				onUpdateAttachments: (bUpdate) => this.updateSendArea(bUpdate),
 				onUploadingComplete: (sName, aFiles, fCallback) => {
-					const iTmpJotId = _this.aUploaderQueue[sName];
-					if (sName && iTmpJotId && aFiles.length) {
+					const { id, uploading_jot_id } = _this.aUploaderQueue[sName] || {};
+					if (sName && uploading_jot_id && aFiles.length) {
 						const fUpload = () => {
-												const iJotId = +$(`[data-tmp="${iTmpJotId}"]`).data('id');
 												return $.post('modules/?r=messenger/update_uploaded_files/', {
-													jot_id: iJotId,
+													jot_id: uploading_jot_id,
 													files: aFiles
 												}, function ({code, message}) {
 													if (+code)
 														bx_alert(message);
 
 													_this.broadcastMessage({
-														jot_id: iJotId,
+														jot_id: uploading_jot_id,
 														addon: 'update_attachment'
 													});
 
-													_this.attacheFiles(iJotId, true, () => {
-														$(`#${_this.sUploaderAreaPrefix}-${iTmpJotId}`).fadeOut(function () {
+													_this.attacheFiles(uploading_jot_id, true, () => {
+														$(`#${_this.sUploaderAreaPrefix}-${id}`).fadeOut(function () {
 															$(this).remove();
 														});
 													});
@@ -512,13 +511,13 @@
 												}, 'json');
 											};
 
-							if (_this.oSendPool.has(iTmpJotId))
-								_this.oSendPool.get(iTmpJotId).then(() => fUpload());
+							if (_this.oSendPool.has(id))
+								_this.oSendPool.get(id).then(() => fUpload());
 							else
 								fUpload();
-
-						delete _this.aUploaderQueue[sName];
 					}
+					if (typeof _this.aUploaderQueue[sName] !== 'undefined')
+						delete _this.aUploaderQueue[sName];
 				}
 			}))).getUploader();
 
@@ -2049,11 +2048,6 @@
 			}
 		}, 'json');	
 	}
-		
-	oMessenger.prototype.sendPushNotification = function(oData){
-			const { sent, addon: { jot_id }, lot } = oData;
-			//$.post('modules/?r=messenger/send_push_notification', { sent, jot_id, lot });
-	}
 
 	/**
 	 * Main send message function, occurs when member send message
@@ -2071,7 +2065,7 @@
 		if (_this.oFilesUploader) {
 			oParams.files = _this.oFilesUploader.getAllFiles();
 			if (oParams.files.length && !_this.oFilesUploader.isReady())
-				_this.aUploaderQueue[_this.oFilesUploader.name()] = oParams.tmp_id;			
+				_this.aUploaderQueue[_this.oFilesUploader.name()] = { id: oParams.tmp_id };
 		}
 
 		if (typeof mixedObjects !== 'undefined' && Array.isArray(mixedObjects.files))
@@ -2190,6 +2184,11 @@
 
 
 									$(_this.sTalkList).addTimeIntervals();
+
+									Object.keys(_this.aUploaderQueue).map((sKey) => {
+										if (+_this.aUploaderQueue[sKey].id === +tmp_id)
+											_this.aUploaderQueue[sKey].uploading_jot_id = jot_id;
+									});
 								}
 
 								if ((_this.oFilesUploader && oParams.files && _this.oFilesUploader.isReady()) || typeof oParams.giphy !== 'undefined')
@@ -3892,10 +3891,6 @@
 		},
 		onServerResponse: function (oData) {
 			const { addon } = oData;
-
-			if ( addon && typeof addon.jot_id !== 'undefined')
-				_oMessenger.sendPushNotification(oData);
-
 			return this;
 		},
 

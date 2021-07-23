@@ -1,0 +1,74 @@
+.ui.category.search>.results .result .image,
+.ui.search>.results .result .image
+{
+	width:3rem !important;
+	height:3rem !important;
+	border-radius:3rem !important;	
+}
+
+.ui.category.search>.results .category .image+.content,
+.ui.search>.results .result .image+.content
+{
+	margin:0 !important;
+}
+.ui.search>.results .result,
+.ui.search>.results .result .title,
+.ui.search>.results .result .description
+{
+	color: inherit;
+	font-family: inherit;
+}
+
+.ui.search>.results{
+   border-radius: inherit;
+}
+
+.ui.category.search > .results .category:last-child{
+	border-bottom: inherit;
+}
+
+.ui.category.search>.results .category,
+.ui.category.search>.results .result,
+.ui.category.search>.results .result .title,
+.ui.category.search>.results .result .description,
+.ui.category.search>.results .category .results
+{
+	color: inherit;
+	font-family: inherit;
+	background-color: inherit;
+	border-color: inherit;
+}
+
+.ui.category.search>.results .category>.name
+{
+	color: inherit;
+	font-family: inherit;
+	background-color: rgba(0,0,0,0.04);
+	border-color: inherit;
+}
+
+.ui.search > .results > .message .description {
+	color: inherit;
+}
+
+.ui.input.focus > input::placeholder,
+.ui.input > input:focus::placeholder {
+	color: inherit;
+}
+
+#bx-messenger-add-users .ui.category.search > .results .result:hover,
+#bx-messenger-add-users .ui.search > .results .result:hover{
+	background-color: rgba(0,0,0,0.08);
+}
+
+#bx-messenger-add-users .ui.category.search > .results > .category{
+	background-color: inherit;
+	border: inherit;
+}
+
+/*#bx-messenger-add-users .ui.input,
+#bx-messenger-add-users .ui.input > input{
+	color:inherit;
+	font-family: inherit;
+	font-size: initial;
+}*/

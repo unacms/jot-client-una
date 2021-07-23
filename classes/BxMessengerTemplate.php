@@ -12,7 +12,7 @@
 /**
  * Module  representation
  */
-class BxMessengerTemplate extends BxBaseModNotificationsTemplate
+class BxMessengerTemplate extends BxBaseModGeneralTemplate
 {
 	function __construct(&$oConfig, &$oDb)
 	{

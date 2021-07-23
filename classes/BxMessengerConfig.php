@@ -11,7 +11,7 @@
 
 bx_import('BxDolPrivacy');
 
-class BxMessengerConfig extends BxBaseModTextConfig
+class BxMessengerConfig extends BxBaseModGeneralConfig
 {
     function __construct($aModule)
 	{

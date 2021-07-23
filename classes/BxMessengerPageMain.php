@@ -12,7 +12,7 @@
 /**
  * Preview's messenger page.
  */
-class BxMessengerPageMain extends BxBaseModTextPageBrowse
+class BxMessengerPageMain extends BxBaseModGeneralPageBrowse
 {
 	public function __construct($aObject, $oTemplate = false)
 	{

@@ -12,7 +12,7 @@
 /**
  * Database queries
  */ 
-class BxMessengerDb extends BxBaseModTextDb
+class BxMessengerDb extends BxBaseModGeneralDb
 {
    private $CNF;
    function __construct(&$oConfig)

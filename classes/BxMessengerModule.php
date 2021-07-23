@@ -62,7 +62,7 @@ define('BX_MSG_SETTING_SMILES', 'smiles'); // allow to record videos
 /**
  * Messenger module
  */
-class BxMessengerModule extends BxBaseModTextModule
+class BxMessengerModule extends BxBaseModGeneralModule
 {
     private $_iUserId = 0;
     private $_iJotId = 0;

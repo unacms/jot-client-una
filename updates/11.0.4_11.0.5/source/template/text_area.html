@@ -1,0 +1,50 @@
+    <div class="bx-messenger-table-wrapper-rows">
+        <div class="cell">
+            <div class="bx-messenger-post-box bx-def-border-block">
+                <div class="bx-messenger-post-box-set">
+                    <div class="bx-messenger-post-box-send-area bx-def-font-default bx-def-font-middle">
+                        <div id="bx-messenger-message-box" class="bx-form-input-text bx-messenger-text-box bx-def-font"></div>
+                    </div>
+                </div>
+                <div class="bx-messenger-attachment-group">
+                    <input type="file" name="__files_uploader__"  required  style="display:none;"/>
+                    <div class="bx-messenger-send-area-attachments"></div>
+                </div>
+                <div class="bx-messenger-post-box-send-actions">
+                    <div class="bx-messenger-post-box-send-actions-items">
+                        <ul>
+                            <li>
+                                <a class="smiles" title="<bx_text:_bx_messenger_post_emoji />">
+                                    <i class="sys-icon smile"></i>
+                                </a>
+                            </li>
+                            <li class="video">
+                                <a title="<bx_text:_bx_messenger_send_recorded_video />" onclick="oMessenger.showPopForm('get_record_video_form');">
+                                    <i class="sys-icon file-video"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a title="<bx_text:_bx_messenger_post_attache_files />" class="attachefile">
+                                    <i class="sys-icon paperclip"></i>
+                                </a>
+                            </li>
+                            <bx_if:giphy>
+                                <li>
+                                    <a title="<bx_text:_bx_messenger_giphy_gifs_button />" id="bx-messenger-send-area-giphy">
+                                        <i class="sys-icon file-image"></i>
+                                    </a>
+                                </li>
+                            </bx_if:giphy>
+                        </ul>
+                        <div class="bx-messenger-post-box-send-button">
+                            <a id="send-button" title="<bx_text:_bx_messenger_post_button_title />">
+                                <i class="sys-icon arrow-circle-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+__giphy__
+__emoji_picker__

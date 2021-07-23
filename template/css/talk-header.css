@@ -16,6 +16,7 @@
 
 .bx-messenger-block-menu-align-right{
     text-align: right;
+    white-space: nowrap;
 }
 
 .bx-messenger-block .bx-db-menu .middle

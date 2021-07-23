@@ -688,7 +688,7 @@ div.bx-messenger-attachment,
 
 div.bx-messenger-attachment-area
 {
-	width:100%;
+	max-width:100%;
 	display: flex;
 	flex-direction: column;
 }

@@ -1130,7 +1130,7 @@ class BxMessengerModule extends BxBaseModTextModule
     public function actionStar()
     {
         $iLotId = bx_get('lot');
-        if ($iLotId && $this->_oDb->isParticipant($iLotId, $this->_iProfileId)) {
+        if ($iLotId) {
             $bStar = $this->_oDb->starLot($iLotId, $this->_iProfileId);
             return echoJson(array('code' => $bStar, 'title' => !$bStar ? _t('_bx_messenger_lots_menu_star_on') : _t('_bx_messenger_lots_menu_star_off')));
         }

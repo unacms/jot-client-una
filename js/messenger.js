@@ -3625,16 +3625,16 @@
 									allow_attach: oOptions.allow_attach
 								};
 
+			_oMessenger.updateLotSettings(oInitParams);
+			_oMessenger.initScrollArea();
+
 			if (!_oMessenger.isBlockVersion())
 				_oMessenger.initMessengerPage();
 			else
 			{
-				_oMessenger.setPositionOnSelectedJot(() => _oMessenger.setScrollBarWidth());
+				$(document).ready(() => _oMessenger.setPositionOnSelectedJot(() => _oMessenger.setScrollBarWidth()));
 				$(window).on('resize', (e) => _oMessenger.setScrollBarWidth());
 			}
-
-			_oMessenger.updateLotSettings(oInitParams);
-			_oMessenger.initScrollArea();
 
 			// find the all intervals in history
 			$(_oMessenger.sTalkBlock)

@@ -135,7 +135,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	    if (!$iProfileId || $mixedResult !== true)
 	        return '';
 
-	    $bGiphy = $iProfileId && $CNF['GIPHY']['api_key'];
+	    $bIsGiphySet = $CNF['GIPHY']['api_key'] !== '';
 	    $bRecorder = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_VIDEO_RECORDER, $iProfileId) === true;
         $bMSG = $bSmiles = $bFiles = true;
 	    if ($iLotId) {
@@ -144,7 +144,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
           $bMSG = $mixedOptions === false || in_array(BX_MSG_SETTING_MSG, $mixedOptions);
           $bFiles = $mixedOptions === false || in_array(BX_MSG_SETTING_FILES, $mixedOptions);
           $bRecorder = $bRecorder && ($mixedOptions === false || in_array(BX_MSG_SETTING_VIDEO_RECORD, $mixedOptions));
-          $bGiphy = $bGiphy && ($mixedOptions === false || in_array(BX_MSG_SETTING_GIPHY, $mixedOptions));
+          $bGiphy = $bIsGiphySet && ($mixedOptions === false || in_array(BX_MSG_SETTING_GIPHY, $mixedOptions));
           $bSmiles = $mixedOptions === false || in_array(BX_MSG_SETTING_SMILES, $mixedOptions);
         }
 
@@ -155,7 +155,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	    if ($bMSG || $bFiles || $bRecorder || $bGiphy || $bSmiles || $bIsAuthor) {
             $aVars = array(
                 'bx_if:giphy' => array(
-                    'condition' => $bGiphy || $bIsAuthor,
+                    'condition' => $bGiphy || ($bIsGiphySet && $bIsAuthor),
                     'content' => array()
                 ),
                 'bx_if:recording' => array(
@@ -174,7 +174,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                     'condition' => $bMSG || $bIsAuthor,
                     'content' => array()
                 ),
-                'giphy' => $bGiphy ? $this->getGiphyPanel() : ''
+                'giphy' => $bGiphy || ($bIsGiphySet && $bIsAuthor) ? $this->getGiphyPanel() : ''
             );
 
             $sContent = $this -> parseHtmlByName('text_area.html', $aVars);

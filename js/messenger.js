@@ -3432,13 +3432,16 @@
 
 		if (_this.oJotWindowBuilder !== undefined) {
 			_this.oJotWindowBuilder.setDirection(_this.direction);
-			$(window).on('load resize touchmove', function (e) {
-				if (e.type !== 'load')
+			$(window).on('load resize touchmove', function ({ type }) {
+				if (type !== 'load')
 					_this.updateSendAreaButtons();
 
 				_this.oJotWindowBuilder.resizeWindow(() => {
 					_this.selectLotEmit($(`[data-lot="${_this.oSettings.lot}"]${_this.sLotSelector}`));
-					$(_this.sTalkList).waitForImages(() => _this.setPositionOnSelectedJot(fCallback));
+					$(_this.sTalkList).waitForImages(() => {
+						if (type === 'load')
+							_this.setPositionOnSelectedJot(fCallback)
+					});
 					_this.setScrollBarWidth();
 				});
 			});

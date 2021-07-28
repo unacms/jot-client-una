@@ -43,6 +43,10 @@
         max-height: 120px;
     }
 }
+.bx-messenger-uploading-placeholder .filepond--file-wrapper,
+.bx-messenger-attachment-group .filepond--file-wrapper {
+    overflow: hidden;
+}
 
 @media (min-width: 50em) {
     .bx-messenger-uploading-placeholder .filepond--item,

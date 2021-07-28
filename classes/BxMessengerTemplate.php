@@ -135,7 +135,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	    if (!$iProfileId || $mixedResult !== true)
 	        return '';
 
-	    $bIsGiphySet = $CNF['GIPHY']['api_key'] !== '';
+        $bGiphy = $bIsGiphySet = $CNF['GIPHY']['api_key'] !== '';
 	    $bRecorder = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_VIDEO_RECORDER, $iProfileId) === true;
         $bMSG = $bSmiles = $bFiles = true;
 	    if ($iLotId) {

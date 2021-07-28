@@ -17,7 +17,7 @@ $aConfig = array(
 	'name' => 'bx_messenger',
 	'title' => 'Messenger',
 	'note' => 'Messenger module.',
-	'version' => '12.0.1.DEV',
+	'version' => '12.0.1',
 	'vendor' => 'BoonEx',
 	'help_url' => 'http://feed.una.io/?section={module_name}',
 

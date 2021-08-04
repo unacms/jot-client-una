@@ -20,7 +20,7 @@
 				sLeftTopBlockArea: '#bx-messenger-block-head',
 				sBothColumnsParent: '.bx-layout-row',
 				sBlockHeaderArea: '.bx-messenger-block > .bx-db-header',
-				sToolbar: '#bx-toolbar',
+				sPrevBlocks: '#bx-content-wrapper',
 				oLeftCol: null,
 				oRightCol: null,
 				iLeftSize: '30%',
@@ -39,7 +39,6 @@
 					this.iLeftAreaHeight = $(this.sLeftTopBlockArea).outerHeight();
 					$(this.sLeftAreaName).height(this.iMainAreaHeight - this.iLeftAreaHeight);
 				},
-				
 				updateRightHeight: function(){
 						this.iRightAreaHeight = $(this.sBlockHeaderArea).last().outerHeight();
 						if (this.iRightAreaHeight == null)
@@ -60,7 +59,6 @@
 							this.oLeftCol = $(this.sBothColumnsParent + ' > div').first();
 							this.oRightCol = $(this.sBothColumnsParent + ' > div').last();
 						}
-
 						const iLeftW = (this.oLeftCol.outerWidth()*100/iParent).toFixed(2);
 						if (!iLeftW)
 							return;
@@ -69,7 +67,7 @@
 						this.iLeftSize = iLeftW + '%';
 				},
 				isMobile:function(){
-						return $(window).width() <= 720;						
+					return $(window).width() <= 720;
 				},
 				changeColumn:function(sSide){
 					this.init();
@@ -89,15 +87,14 @@
 						this.oRightCol.hide().width('0%');
 						this.iRightSize = '0%';
 						this.oLeftCol.width('100%').fadeIn();
-						this.updateLeftHeight();						
-					},
+						this.updateLeftHeight();
+				},
 				activateRight:function(){
 						this.oLeftCol.hide().width('0%');
 						this.iLeftSize = '0%';
-						this.oRightCol.width('100%').fadeIn();						
-						this.updateRightHeight();											
-					},
-					
+						this.oRightCol.width('100%').fadeIn();
+						this.updateRightHeight();
+				},
 				activateBoth:function(){
 						if (parseInt(this.iRightSize) === 0 || parseInt(this.iRightSize) === 100)
 						{
@@ -112,8 +109,7 @@
 											
 						this.updateLeftHeight();
 						this.updateRightHeight();
-					},
-
+				},
 				onResizeWindow:function(){
 					this.init();
 						if (this.isMobile())
@@ -121,12 +117,10 @@
 						else
 							this.sActiveType = 'both';
 
-					let iHeight = 0;
-					$('.bx-content-wrapper').prevAll().each(function(){
-						iHeight += $(this).outerHeight(true);
-					});
+					this.iMainAreaHeight = window.innerHeight;
+					if ($(this.sPrevBlocks).length)
+						this.iMainAreaHeight -= $(this.sPrevBlocks).offset().top;
 
-					this.iMainAreaHeight = window.innerHeight - $(this.sToolbar).height() - iHeight;
 					this.resizeColumns();
 				},
 

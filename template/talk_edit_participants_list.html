@@ -1,7 +1,12 @@
 <div class="bx-messenger-right-column bx-form-input-autotoken bx-def-font-middle" id="bx-messenger-add-users">
     <bx_repeat:participants_list>
         <b class="bx-def-color-bg-hl bx-def-round-corners bx-def-font-middle">
-            <img class="bx-def-thumb bx-def-thumb-size bx-def-margin-sec-right" src="__thumb__">
+            <bx_if:avatars>
+                <img class="bx-def-thumb bx-def-thumb-size bx-def-margin-sec-right" src="__thumb__">
+            </bx_if:avatars>
+            <bx_if:letters>
+                 <p class="bx-def-thumb bx-def-thumb-size bx-base-pofile-unit-thumb bx-def-ava bx-def-box-sizing" style="background-color:rgba(__color__)">__letter__</p>
+            </bx_if:letters>
             <span>__name__</span>
             <input type="hidden" name="users[]" value="__id__">
         </b>

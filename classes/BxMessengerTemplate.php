@@ -521,30 +521,36 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	}
 
 	function getEditTalkArea($iProfileId, $iLotId = BX_IM_EMPTY, $aProfiles = array(), $bAllowToSave = true){
-        $aParticipants = array();
-	    if ($iLotId && ($aParticipantsList = $this->_oDb->getParticipantsList($iLotId))) {
-            foreach ($aParticipantsList as $iParticipant) {
-                if ($iProfileId == $iParticipant)
-                    continue;
+       $aParticipants = array();
+       $aParticipantsList = $iLotId ? $this->_oDb->getParticipantsList($iLotId, true, $iProfileId) : $aProfiles;
+       foreach ($aParticipantsList as $iParticipant)
+            if ($oProfile = $this->getObjectUser($iParticipant)) {
+                $sThumb = $oProfile->getThumb();
+                $bThumb = stripos($sThumb, 'no-picture') === FALSE;
+                $sDisplayName = $oProfile->getDisplayName();
 
-                if ($oProfile = $this->getObjectUser($iParticipant))
-                    $aParticipants[] = array(
-                        'thumb' => $oProfile->getThumb(),
-                        'name' => $oProfile->getDisplayName(),
-                        'id' => $oProfile->id()
-                    );
-            }
-        } else if (!empty($aProfiles)){
-            foreach ($aProfiles as $iParticipant)
-                if ($oProfile = $this->getObjectUser($iParticipant))
-                    $aParticipants[] = array(
-                        'thumb' => $oProfile->getThumb(),
-                        'name' => $oProfile->getDisplayName(),
-                        'id' => $oProfile->id()
-                    );
-        }
+                $aParticipants[] = array(
+                    'thumb' => $oProfile->getThumb(),
+                    'name' => $oProfile->getDisplayName(),
+                    'id' => $oProfile->id(),
+                    'bx_if:avatars' => array(
+                        'condition' => $bThumb,
+                        'content' => array(
+                            'name' => $sDisplayName,
+                            'thumb' => $sThumb,
+                        )
+                    ),
+                    'bx_if:letters' => array(
+                        'condition' => !$bThumb,
+                        'content' => array(
+                            'color' => implode(', ', BxDolTemplate::getColorCode($iParticipant, 1.0)),
+                            'letter' => mb_substr($sDisplayName, 0, 1)
+                        )
+                    )
+                );
+       }
 
-	    $aVars = array(
+	   $aVars = array(
                     'bx_repeat:participants_list' => $aParticipants,
                     'bx_if:edit_mode' =>
                         array(
@@ -553,10 +559,9 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                                 'lot' => $iLotId,
                             )
                         ),
-        );
+       );
 
-
-	    return $this->parseHtmlByName('talk_edit_participants_list.html', $aVars);
+	   return $this->parseHtmlByName('talk_edit_participants_list.html', $aVars);
     }
 	/**
 	* Search friends function which shows fiends only if member have no any talks yet
@@ -578,7 +583,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			$aUsers = BxDolService::call('system', 'profiles_search', array($sParam, $iLimit), 'TemplServiceProfiles');
 			if (empty($aUsers)) return array();
 			
-			foreach($aUsers as $iKey => $aValue)
+			foreach($aUsers as &$aValue)
 					$aFriends[] = $aValue['value'];
 		}			
 		
@@ -586,11 +591,11 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 		foreach($aFriends as &$iValue){
 			$oProfile = $this -> getObjectUser($iValue);
 			$aItems['bx_repeat:friends'][] = array(	
-							'title' => $oProfile -> getDisplayName(),
-							'name' => $oProfile -> getDisplayName(),
-							'thumb' => $oProfile -> getThumb(),
-							'id' => $oProfile -> id(),
-					);
+				'title' => $oProfile -> getDisplayName(),
+				'name' => $oProfile -> getDisplayName(),
+				'thumb' => $oProfile -> getThumb(),
+				'id' => $oProfile -> id(),
+			);
 		}
  
 		return $this -> parseHtmlByName('friends_list.html', $aItems);
@@ -618,15 +623,30 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			$aNickNames = array();
 			foreach($aParticipantsList as $iParticipant){
 				$oProfile = $this -> getObjectUser($iParticipant);
-				if ($oProfile) {
+                if ($oProfile) {
+                    $sThumb = $oProfile->getThumb();
+                    $bThumb = stripos($sThumb, 'no-picture') === FALSE;
+                    $sDisplayName = $oProfile->getDisplayName();
 					$aVars['bx_repeat:avatars'][] = array(
-						'title' => $oProfile->getDisplayName(),
-						'thumb' => $oProfile->getThumb(),
+                        'bx_if:avatars' => array(
+                            'condition' => $bThumb,
+                            'content' => array(
+                                'title' => $sDisplayName,
+                                'thumb' => $sThumb,
+                            )
+                        ),
+                        'bx_if:letters' => array(
+                            'condition' => !$bThumb,
+                            'content' => array(
+                                'color' => implode(', ', BxDolTemplate::getColorCode($iParticipant, 1.0)),
+                                'letter' => mb_substr($sDisplayName, 0, 1)
+                            )
+                        ),
                         'status' => ''
  					);
 				 
-					$aNickNames[] = $oProfile-> getDisplayName();
-			      }
+					$aNickNames[] = $sDisplayName;
+			    }
 			}
 			
 			if (!empty($aLot[$CNF['FIELD_TITLE']]))
@@ -853,6 +873,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 }
 
                 $sActionIcon = '';
+                $sDisplayName = $oProfile->getDisplayName();
                 if (!$bIsTrash) {
                     if ($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']])
                         $sActionIcon = $this->parseHtmlByName('edit_icon.html',
@@ -867,22 +888,38 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                             $aJVCItem = $this->_oDb->getJVCItem($iIsVC);
                             $sActionIcon = $this->parseHtmlByName('vc_icon.html',
                                 array(
-                                    'info' => _t('_bx_messenger_jitsi_vc_into_title', $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_AUTHOR']])->getDisplayName(), bx_process_output($aJVCItem[$CNF['FJVCT_START']], BX_DATA_DATETIME_TS))
+                                    'info' => _t('_bx_messenger_jitsi_vc_into_title', $sDisplayName->getDisplayName(), bx_process_output($aJVCItem[$CNF['FJVCT_START']], BX_DATA_DATETIME_TS))
                                 )
                             );
                         }
 
                 }
 
+                $sThumb = $oProfile->getThumb();
+                $bThumb = stripos($sThumb, 'no-picture') === FALSE;
+
                 $sReactions = $this->getJotReactions($iJot);
                 $aVars['bx_repeat:jots'][] = array(
-                    'title' => $oProfile->getDisplayName(),
+                    'title' => $sDisplayName,
                     'time' => bx_time_js($aJot[$CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_TIME, true),
                     'views' => $bShowViews && ($iJotCount - 1 == $iKey) ? $this->getViewedJotProfiles($iJot, $iProfileId) : '',
                     'new' => (int)($iFirstUnreadJot && $iJot >= $iFirstUnreadJot),
                     'url' => $oProfile->getUrl(),
                     'immediately' => +$this->_oConfig->CNF['REMOVE_MESSAGE_IMMEDIATELY'],
-                    'thumb' => $oProfile->getThumb(),
+                    'bx_if:avatars' => array(
+                        'condition' => $bThumb,
+                        'content' => array(
+                            'title' => $sDisplayName,
+                            'thumb' => $sThumb,
+                        )
+                    ),
+                    'bx_if:letters' => array(
+                        'condition' => !$bThumb,
+                        'content' => array(
+                            'color' => implode(', ', BxDolTemplate::getColorCode($aJot[$CNF['FIELD_MESSAGE_AUTHOR']], 1.0)),
+                            'letter' => mb_substr($sDisplayName, 0, 1)
+                        )
+                    ),
                     'id' => $aJot[$CNF['FIELD_MESSAGE_ID']],
                     'message' => $sMessage,
                     'attachment' => $sAttachment,

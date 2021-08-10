@@ -722,16 +722,24 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $aProfileInfo = $oProfile->getInfo();
             $aProfileInfoDetails = BxDolService::call($aProfileInfo['type'], 'get_content_info_by_id', array($aProfileInfo['content_id']));
             $oAccountInfo = BxDolAccount::getInstance($aProfileInfo['account_id']);
-            if (!empty($aProfileInfoDetails) && !empty($oAccountInfo))
+
+            $sThumb = $oProfile->getThumb();
+            $bThumb = stripos($sThumb, 'no-picture') === FALSE;
+            $sDisplayName = $oProfile->getDisplayName();
+
+            if (!empty($aProfileInfoDetails) && !empty($oAccountInfo)) {
                 $aResult[$aProfileInfo['type']]['results'][] = array(
-                    'value' => $oProfile->getDisplayName(),
-                    'icon' => $oProfile->getThumb(),
+                    'value' => $sDisplayName,
+                    'icon' => $bThumb ? $sThumb : '',
+                    'color' => implode(', ', BxDolTemplate::getColorCode($aValue['value'], 1.0)),
+                    'letter' => mb_substr($sDisplayName, 0, 1),
                     'id' => $oProfile->id(),
                     'profile_url' => $oProfile->getUrl(),
                     'description' => _t('_bx_messenger_search_desc',
                         bx_process_output($oAccountInfo->getInfo()['logged'], BX_DATA_DATE_TS),
                         bx_process_output($aProfileInfoDetails['added'], BX_DATA_DATE_TS))
                 );
+            }
         }
 
         foreach($aResult as $sKey => $aValues){
@@ -2062,7 +2070,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             return array();
 
         $aLotsList = array();
-        foreach ($aLots as $iKey => $aLot) {
+        foreach ($aLots as &$aLot) {
             $aParticipantsList = $this->_oDb->getParticipantsList($aLot[$this->_oConfig->CNF['FIELD_ID']], true, $iProfileId);
 
             $iParticipantsCount = count($aParticipantsList);

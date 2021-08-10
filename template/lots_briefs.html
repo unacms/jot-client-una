@@ -2,9 +2,16 @@
 		<div class="bx-messenger-jots-snip-avatars bx-messenger-padding-lots-lefttopbottom">
 			<div class="bx-messenger-jots-snip-avatars-list bx-def-thumb bx-def-thumb-size" >
 				<bx_repeat:avatars>
-					<div>	
-						<img title="__title__" src="__thumb__" class="bx-def-thumb-size" />
-					</div>
+					<bx_if:avatars>
+						<div>
+							<img title="__title__" src="__thumb__" class="bx-def-thumb-size" />
+						</div>
+					</bx_if:avatars>
+					<bx_if:letters>
+						<div>
+							<p class="bx-def-thumb-size bx-base-pofile-unit-thumb bx-def-ava bx-def-box-sizing" style="background-color:rgba(__color__)">__letter__</p>
+						</div>
+					</bx_if:letters>
 				</bx_repeat:avatars>
 			</div>
 			__status__
@@ -18,7 +25,7 @@
 				</div>
 				<bx_if:show_time>
 					<div class="time bx-def-font-light bx-def-font-small bx-def-font-grayed">__time__</div>
-				</bx_if:show_time>				
+				</bx_if:show_time>
 			</div>
 			<div class="bx-messenger-preview-lot __message_class__ bx-def-font-grayed">
 				<div>
@@ -26,6 +33,6 @@
 					<span calss="bx-def-font-middle">__message__</span>
 				</div>
 				<span class="bubble bx-def-label __bubble_class__">__count__</span>
-			</div>			
+			</div>
 		</div>
 </div>

@@ -66,9 +66,8 @@
 	border: inherit;
 }
 
-/*#bx-messenger-add-users .ui.input,
-#bx-messenger-add-users .ui.input > input{
-	color:inherit;
-	font-family: inherit;
-	font-size: initial;
-}*/
+#bx-messenger-add-users .ui.category.search > .results .result .image p.bx-def-thumb-size{
+	width: inherit;
+	height: inherit;
+	line-height: inherit;
+}

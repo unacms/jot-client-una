@@ -3004,7 +3004,7 @@
 									duration: 0,
 									searchDelay: 0,
 									type : 'category',
-									boundary: $('.bx-messenger-right-column'),
+									boundary: $('.bx-db-header'),
 									apiSettings:
 									{
 										url: 'modules/?r=messenger/get_auto_complete&term={query}&except={except}',
@@ -3025,7 +3025,74 @@
 									{
 										message:function(message, type){
 											return type && message ? `<div class="message empty"><div class="description">${message}</div></div>` : '';
-										}
+										},
+										category: function(response, fields, preserveHTML) {
+											var
+												html = '',
+												escape = $.fn.search.settings.templates.escape
+											;
+
+											if(response[fields.categoryResults] !== undefined) {
+
+												// each category
+												$.each(response[fields.categoryResults], function(index, category) {
+													if(category[fields.results] !== undefined && category.results.length > 0) {
+
+														html  += '<div class="category">';
+
+														if(category[fields.categoryName] !== undefined) {
+															html += '<div class="name">' + escape(category[fields.categoryName], preserveHTML) + '</div>';
+														}
+
+														// each item inside category
+														html += '<div class="results">';
+														$.each(category.results, function(index, result) {
+															if(result[fields.url]) {
+																html  += '<a class="result" href="' + result[fields.url].replace(/"/g,"") + '">';
+															}
+															else {
+																html  += '<a class="result">';
+															}
+
+															if(result[fields.image] !== undefined && result[fields.image].length) {
+																html += ''
+																	+ '<div class="image">'
+																	+ ' <img src="' + result[fields.image].replace(/"/g,"") + '">'
+																	+ '</div>'
+																;
+															} else if (result[fields.letter] !== undefined){
+																html += `<div class="image">
+																			<p class="bx-def-thumb bx-def-thumb-size bx-base-pofile-unit-thumb bx-def-ava bx-def-box-sizing" style="background-color:rgba(${result[fields.color]})">${result[fields.letter]}</p>
+																		 </div>`;
+															}
+
+															html += '<div class="content">';
+															if(result[fields.price] !== undefined) {
+																html += '<div class="price">' + escape(result[fields.price], preserveHTML) + '</div>';
+															}
+															if(result[fields.title] !== undefined) {
+																html += '<div class="title">' + escape(result[fields.title], preserveHTML) + '</div>';
+															}
+															if(result[fields.description] !== undefined) {
+																html += '<div class="description">' + result[fields.description] + '</div>';
+															}
+
+															html  += ''
+																+ '</div>'
+															;
+															html += '</a>';
+														});
+														html += '</div>';
+														html  += ''
+															+ '</div>'
+														;
+													}
+												});
+
+												return html;
+											}
+											return false;
+										},
 									},
 									error:
 									{
@@ -3040,7 +3107,9 @@
 									  results : 'results',
 									  title   : 'value',
 									  image	  : 'icon',
-									  name	  : 'name'
+									  name	  : 'name',
+									  letter  : 'letter',
+									  color	  : 'color'
 									},
 									maxResults: 20,
 									onResults: function(){
@@ -3049,10 +3118,13 @@
 											.css({'background-color': $('.bx-def-color-bg-page').css('background-color')});
 									},
 									onSelect: function(result, response){
+										const { icon, id, value, letter, color } = result;
+										const sTemplate = icon.length ?
+														   	  `<img class="bx-def-thumb bx-def-thumb-size bx-def-margin-sec-right" src="${icon}" />`
+															: `<p class="bx-def-thumb bx-def-thumb-size bx-base-pofile-unit-thumb bx-def-ava bx-def-box-sizing" style="background-color:rgba(${color})">${letter}</p>`;
+
 										$(this)
-											.before(`<b class="bx-def-color-bg-hl bx-def-round-corners bx-def-font-middle">
-														<img class="bx-def-thumb bx-def-thumb-size bx-def-margin-sec-right" src="${result.icon}" /><span>${result.value}</span>
-														<input type="hidden" name="users[]" value="${result.id}" /></b>`)
+											.before(`<b class="bx-def-color-bg-hl bx-def-round-corners bx-def-font-middle">${sTemplate}<span>${value}</span><input type="hidden" name="users[]" value="${id}" /></b>`)
 											.find('input')
 											.val('')
 											.end()

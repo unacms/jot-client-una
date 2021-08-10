@@ -12,6 +12,7 @@
 .bx-messenger-block .bx-db-menu
 {
 	text-align: right;
+    white-space: nowrap;
 }
 
 .bx-messenger-block-menu-align-right{
@@ -76,26 +77,9 @@
     text-overflow: ellipsis;
 }
 
-
-/*#bx-messenger-add-users .ui.input > input
-{
-	padding-left:0rem !important;
-	padding-right:0rem !important;
-}
-
-.bx-db-header{
-	min-height:2.5rem;
-	height:auto;
-}*/
-
 .bx-messenger-right-column{
     text-align:left;
 }
-
-/*.bx-messenger-right-column div.bx-form-input-autotoken
-{
-	padding:0rem 1rem 0rem 1rem;
-}*/
 
 .bx-messenger-right-column.bx-form-input-autotoken svg
 {
@@ -131,6 +115,15 @@
     line-height: 2rem;
     margin: 0;
 }
+
+#bx-messenger-add-users .bx-def-thumb-size
+{
+    width:2rem;
+    height:2rem;
+    line-height: 2rem;
+    margin: 0;
+}
+
 
 .bx-messenger-lot-header-menu {
     position: relative;

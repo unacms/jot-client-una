@@ -2,7 +2,12 @@
 	<div class="bx-messenger-jots<bx_if:blink-jot> bx-messenger-blink-jot</bx_if:blink-jot>" data-id="__id__" __display__ data-new="__new__" data-my="__my__">
 		<div class="bx-messenger-jots-avatars bx-def-padding-thd-right">
 			<a href="__url__" target="_blank">
-				<img class="bx-def-thumb bx-def-thumb-size" title="__title__" src="__thumb__" />
+				<bx_if:avatars>
+					<img class="bx-def-thumb bx-def-thumb-size" title="__title__" src="__thumb__" />
+				</bx_if:avatars>
+				<bx_if:letters>
+					<p class="bx-def-thumb bx-def-thumb-size bx-base-pofile-unit-thumb bx-def-ava bx-def-box-sizing" style="background-color:rgba(__color__)">__letter__</p>
+				</bx_if:letters>
 			</a>
 		</div>
 		<div class="bx-messenger-jots-info bx-def-font-middle">

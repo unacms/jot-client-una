@@ -338,7 +338,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
     public function getCreateTalkForm($iProfileId, $iLotId = 0){
         return $this -> parseHtmlByName('talk.html', array(
-            'header' => $this->getEditTalkArea($iProfileId, $iLotId),
+            'header' => $this -> parseHtmlByName('header_wrapper.html', array('header' => $this->getEditTalkArea($iProfileId, $iLotId))),
             'history' => $this-> getHistory($iProfileId, $iLotId),
             'text_area' => $this->getTextArea($iProfileId, $iLotId)
         ));

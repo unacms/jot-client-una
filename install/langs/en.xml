@@ -130,7 +130,6 @@
 	<string name="_bx_messenger_video_rec"><![CDATA[Rec]]></string>
 	<string name="_bx_messenger_send_message_no_video"><![CDATA[There is no video file to send!]]></string>
 	<string name="_bx_messenger_close_video_confirm"><![CDATA[If you close the window video file will be lost. Are you sure?]]></string>
-	<string name="_bx_messenger_video_record_is_not_supported"><![CDATA[Video recording is not supported: {0}]]></string>
 	<string name="_bx_messenger_max_video_file_size"><![CDATA[Max length of video-recording in minutes]]></string>
 	<string name="_bx_messenger_max_video_file_exceeds"><![CDATA[Sorry, you have exceeded max video-recording length limit in {0} minutes!]]></string>
 	<string name="_bx_messenger_video_not_supported"><![CDATA[I'm sorry, your browser doesn't support HTML5 video in WebM with VP8/VP9 or MP4 with H.264.]]></string>
@@ -278,4 +277,6 @@
 	<string name="_bx_messenger_menu_set_title_talk_menu"><![CDATA[Talk menu]]></string>
 	<string name="_bx_messenger_acl_action_join_vc"><![CDATA[Join to video conference]]></string>
 	<string name="_bx_messenger_acl_action_join_personal_vc"><![CDATA[Join to personal video conference]]></string>
+	<string name="_bx_messenger_video_recorder_is_not_available"><![CDATA[Video Recorder is not available in your browser]]></string>
+	<string name="_bx_messenger_video_recorder_is_blocked"><![CDATA[In order to use this function, please allow {0} access to your camera. Thanks and enjoy!]]></string>
 </resources>

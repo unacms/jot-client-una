@@ -1041,6 +1041,8 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             '_bx_messenger_away',
             '_bx_messenger_repost_message',
             '_bx_messenger_close_video_confirm',
+            '_bx_messenger_video_recorder_is_not_available',
+            '_bx_messenger_video_recorder_is_blocked',
             '_bx_messenger_max_video_file_exceeds',
             '_bx_messenger_video_record_is_not_supported',
             '_bx_messenger_search_no_results',

@@ -54,7 +54,7 @@
 				},
 				send: function(oFile, fCallback)
 				{
-					var _this = this;			
+					const _this = this;
 					oMessenger.sendVideoRecord(oFile, function()
 					{
 						_this.close();
@@ -64,7 +64,7 @@
 				},
 				close: function()
 				{
-					var _this = this;
+					const _this = this;
 					if (this.oRecorder && (this.oRecorder.state == 'recording' || this.oRecorder.state == 'paused'))
 					{
 						_this.stop(function(){
@@ -76,7 +76,7 @@
 					else
 						_this.stopRecording();
 						
-					var oVideo = $(_this.video)[0];
+					const oVideo = $(_this.video)[0];
 					if (oVideo.currentTime > 0 && !oVideo.paused && !oVideo.ended && oVideo.readyState > 2) /* check if the video playing, then to stop it before to close */
 						oVideo.pause();
 				}

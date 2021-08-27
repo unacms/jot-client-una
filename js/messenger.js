@@ -3693,20 +3693,19 @@
 			_oMessenger.initTextArea();
 			// init default talks params
 			const oInitParams = {
-									lot: oOptions.lot,
-									jot: oOptions.jot_id,
-									last_unread_jot: oOptions.last_unread_jot,
-									unread_jots: oOptions.unread_jots,
-									allow_attach: oOptions.allow_attach
-								};
+				lot: oOptions.lot,
+				jot: oOptions.jot_id,
+				last_unread_jot: oOptions.last_unread_jot,
+				unread_jots: oOptions.unread_jots,
+				allow_attach: oOptions.allow_attach
+			};
 
 			_oMessenger.updateLotSettings(oInitParams);
 			_oMessenger.initScrollArea();
 
 			if (!_oMessenger.isBlockVersion())
 				_oMessenger.initMessengerPage();
-			else
-			{
+			else {
 				$(document).ready(() => _oMessenger.setPositionOnSelectedJot(() => _oMessenger.setScrollBarWidth()));
 				$(window).on('resize', (e) => _oMessenger.setScrollBarWidth());
 			}
@@ -3720,8 +3719,8 @@
 				.bxMsgTime();
 
 			// attach on ESC button return from create talk area
-			$(_oMessenger.sMessengerBlock).on('keydown touchend mousedown', function(e){
-				const { type, keyCode, target } = e;
+			$(_oMessenger.sMessengerBlock).on('keydown touchend mousedown', function (e) {
+				const {type, keyCode, target} = e;
 				if (keyCode === 27 && $(target).prop('id') === _oMessenger.sUserSelectorInput.substr(1)) {
 					const oSelector = $(`${_oMessenger.sLotsListSelector}.active`);
 					if (oSelector.length)
@@ -3731,7 +3730,7 @@
 				}
 
 				if ((type === 'touchend' || type === 'mousedown')
-					&& !$(target).closest(`${_oMessenger.sMessengerBox},${_oMessenger.sSendAreaActions}`).length) {
+					&& !$(target).closest(`${_oMessenger.sMessengerBox}, ${_oMessenger.sSendAreaActions}`).length) {
 					if (_oMessenger.oEditor && _oMessenger.isMobile())
 						_oMessenger.oEditor.blur();
 				}
@@ -3746,15 +3745,15 @@
 			});
 
 			//remove all edit jot areas on their lost focus
-			$(document).on('mouseup', function(oEvent){
+			$(document).on('mouseup', function (oEvent) {
 				_oMessenger.removeEditArea(oEvent);
 			})
-			.on('click touchstart', (oEvent) => _oMessenger.onOuterClick(oEvent));
+				.on('click touchstart', (oEvent) => _oMessenger.onOuterClick(oEvent));
 
 			if ((+oOptions.selected_profile || +oOptions.jot_id) && _oMessenger.oJotWindowBuilder && _oMessenger.isMobile())
 				_oMessenger.oJotWindowBuilder.changeColumn('right');
 
-			_oMessenger.oHistory.pushState({ action: 'init', lot : oOptions.lot, jot: oOptions.jot_id }, null);
+			_oMessenger.oHistory.pushState({action: 'init', lot: oOptions.lot, jot: oOptions.jot_id}, null);
 		},
 
 		/**
@@ -3777,18 +3776,17 @@
 				return;
 
 			const iLength = _oMessenger.aLoadingRequestsPool.length;
-			const fLoading = () => 	{
+			const fLoading = () => {
 				const lot = _oMessenger.aLoadingRequestsPool[0];
 
 				if (+lot)
 					_oMessenger
 						.loadTalk(lot, undefined, _oMessenger.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive())
-						.done(() =>
-						{
+						.done(() => {
 							if (typeof _oMessenger.oHistory.pushState === 'function')
-								_oMessenger.oHistory.pushState({ action: 'load_talk', lot : iLotId }, null);
+								_oMessenger.oHistory.pushState({action: 'load_talk', lot: iLotId}, null);
 
-							if (_oMessenger.aLoadingRequestsPool.length){
+							if (_oMessenger.aLoadingRequestsPool.length) {
 								if (_oMessenger.aLoadingRequestsPool.length > 1)
 									_oMessenger.aLoadingRequestsPool = _oMessenger.aLoadingRequestsPool.slice(-1);
 								else
@@ -3798,10 +3796,10 @@
 							}
 
 							_oMessenger.setScrollBarWidth();
-					    });
+						});
 			}
 
-			_oMessenger.selectLotEmit($(`[data-lot="${iLotId}"]${_oMessenger.sLotSelector}`));
+			_oMessenger.selectLotEmit($(`[data-lot="${iLotId}"] ${_oMessenger.sLotSelector}`));
 			_oMessenger.aLoadingRequestsPool.push(iLotId);
 
 			if (!iLength)
@@ -3810,23 +3808,22 @@
 			return this;
 		},
 		onScrollDown: function () {
-			const { iUnreadJotsNumber, iMaxHistory, iSelectedJot, sUnreadJotsCounter, oSettings: { lot } } = _oMessenger;
-			
-			if (_oMessenger.iScrollDownPositionJotId){
-					const oPrevJot = $(`${_oMessenger.sJot}[data-id="${_oMessenger.iScrollDownPositionJotId}"]`);					
-					if (oPrevJot.length)
-						_oMessenger.updateScrollPosition('center', 'fast', oPrevJot);
-					else 
-						_oMessenger.loadTalk(lot, _oMessenger.iScrollDownPositionJotId);
-				
+			const {iUnreadJotsNumber, iMaxHistory, iSelectedJot, sUnreadJotsCounter, oSettings: {lot}} = _oMessenger;
+
+			if (_oMessenger.iScrollDownPositionJotId) {
+				const oPrevJot = $(`${_oMessenger.sJot}[data-id="${_oMessenger.iScrollDownPositionJotId}"]`);
+				if (oPrevJot.length)
+					_oMessenger.updateScrollPosition('center', 'fast', oPrevJot);
+				else
+					_oMessenger.loadTalk(lot, _oMessenger.iScrollDownPositionJotId);
+
 				_oMessenger.iScrollDownPositionJotId = 0;
 				return;
 			}
-			
+
 			if (iMaxHistory >= iUnreadJotsNumber && !iSelectedJot)
 				_oMessenger.updateScrollPosition('bottom', 'fast');
-			else
-			{
+			else {
 				_oMessenger.loadTalk(lot, undefined, undefined, undefined, true);
 				$(sUnreadJotsCounter)
 					.text('')
@@ -3840,7 +3837,7 @@
 		},
 		createLot: function createLot(oObject) {
 			_oMessenger.createLot(oObject);
-			_oMessenger.oHistory.pushState({ action: 'create_talk' }, null);
+			_oMessenger.oHistory.pushState({action: 'create_talk'}, null);
 			return this;
 		},
 		onSaveParticipantsList: function (iLotId) {
@@ -3852,22 +3849,25 @@
 			return this;
 		},
 		onLotSettings: function () {
-			$.post('modules/?r=messenger/get_lot_settings', { lot: _oMessenger.oSettings.lot }, (oData) =>{
+			$.post('modules/?r=messenger/get_lot_settings', {lot: _oMessenger.oSettings.lot}, (oData) => {
 				processJsonData(oData);
 			}, 'json');
 
 			return this;
 		},
-		onSaveLotSettings: function(oEl){
+		onSaveLotSettings: function (oEl) {
 			const aOptions = [];
 			$(oEl)
 				.closest('form')
 				.find('input[type="checkbox"]:checked')
-				.each(function(){
+				.each(function () {
 					aOptions.push($(this).prop('name'));
 				})
 
-			$.post('modules/?r=messenger/save_lot_settings', { lot: _oMessenger.oSettings.lot, options: aOptions }, ({ code, msg }) =>{
+			$.post('modules/?r=messenger/save_lot_settings', {
+				lot: _oMessenger.oSettings.lot,
+				options: aOptions
+			}, ({code, msg}) => {
 				$(oEl)
 					.closest('.bx-popup-applied:visible')
 					.dolPopupHide();
@@ -3920,10 +3920,10 @@
 		onReplyJot: function (oObject) {
 			_oMessenger.replyJot(oObject);
 		},
-		onCleanReplayArea: function(){
+		onCleanReplayArea: function () {
 			_oMessenger.cleanReplayArea();
 		},
-		jumpToParentMessage: function(oElement, iJumpJotId){
+		jumpToParentMessage: function (oElement, iJumpJotId) {
 			if (iJumpJotId && oElement)
 				_oMessenger.iScrollDownPositionJotId = $(oElement).closest(_oMessenger.sJot).data('id');
 
@@ -3937,9 +3937,8 @@
 			return this;
 		},
 		onMessage: function (oData) {
-			const bSilent = _oMessenger.oSettings.user_id === oData.user_id || ( oData.type === 'vc' && oData.vc !== 'start' );
-			try
-			{	
+			const bSilent = _oMessenger.oSettings.user_id === oData.user_id || (oData.type === 'vc' && oData.vc !== 'start');
+			try {
 				if (!_oMessenger.isBlockVersion())
 					_oMessenger.upLotsPosition(oData, bSilent);
 
@@ -3965,38 +3964,8 @@
 			return this;
 		},
 		onServerResponse: function (oData) {
-			const { addon } = oData;
+			const {addon} = oData;
 			return this;
-		},
-
-		/**
-		 *Loads popup form by service name
-		 *@param string sUrl link, if not specify default one will be used
-		 *@param function fCallback callback function,  executes on window show
-		 */
-		showPopForm: function (sMethod, fCallback) {
-			const sUrl = 'modules/?r=messenger/' + sMethod,
-				sText = _oMessenger.oEditor.getText();
-
-			$(window).dolPopupAjax({
-				url: sUrl,
-				id: { force: true, value: _oMessenger.sAddFilesForm.substr(1) },
-				onShow: function () {
-					if (typeof fCallback == 'function')
-						fCallback();
-
-					if (sText && sText.length)
-						$(_oMessenger.sAddFilesFormComments).text(sText);
-
-					setTimeout(() => _oMessenger.updateCommentsAreaWidth(), 100);
-				},
-				closeElement: true,
-				closeOnOuterClick: false,
-				removeOnClose: true,
-				onHide: function () {
-					_oMessenger.updateScrollPosition('bottom');
-				}
-			});
 		},
 
 		/**
@@ -4042,40 +4011,39 @@
 
 			if (oUploader && (oUploader.getFiles().length || oUploader.isLoadingStarted())) {
 				$(_oMessenger.sGiphMain).fadeOut();
-				return; 
-			}
-			else
+				return;
+			} else
 				$(_oMessenger.sGiphMain)
 					.fadeOut(() => {
 						const oObject = $(oElement)
-										.clone()
-										.wrap('<div class="giphy-item"></div>')
-										.parent();
+							.clone()
+							.wrap('<div class="giphy-item"></div>')
+							.parent();
 
 						_oMessenger.updateSendArea(false);
 						$(_oMessenger.sSendAttachmentArea)
 							.html(
 								oObject
 									.append(
-											$(`<i class="sys-icon times"></i>`)
-												.on('click', function(){
-													$(this)
-														.closest('.giphy-item')
-														.fadeOut()
-														.remove();
+										$(`<i class="sys-icon times"></i>`)
+											.on('click', function () {
+												$(this)
+													.closest('.giphy-item')
+													.fadeOut()
+													.remove();
 
-													_oMessenger.updateSendArea(true);
-												})
-										)
-						);
-				});
+												_oMessenger.updateSendArea(true);
+											})
+									)
+							);
+					});
 
 		},
-		initJitsi: function(oJitsi, bNew = false, bChatSync = false){
+		initJitsi: function (oJitsi, bNew = false, bChatSync = false) {
 			_oMessenger.oJitsi = oJitsi;
 
 			if (oJitsi._lotId) {
-				const oInfo = { type: 'vc', vc: 'start' };
+				const oInfo = {type: 'vc', vc: 'start'};
 
 				if (oJitsi._jotId && !bNew) {
 					oInfo.jot_id = oJitsi._jotId;
@@ -4093,7 +4061,7 @@
 				$(window)
 					.on('beforeunload', () => _t('_bx_messenger_are_you_sure_close_jisti'))
 					.on('unload', () => {
-						$.get('modules/?r=messenger/stop_jvc/', { lot_id: oJitsi._lotId }, (oData) => {
+						$.get('modules/?r=messenger/stop_jvc/', {lot_id: oJitsi._lotId}, (oData) => {
 							const oInfo = {
 								jot_id: oJitsi._jotId,
 								addon: 'vc',
@@ -4103,16 +4071,16 @@
 							_oMessenger.broadcastMessage(oInfo);
 							_oMessenger.updateJots(oInfo);
 							_oMessenger.stopActiveSound();
-							
+
 						}, 'json');
 						oJitsi.dispose();
 					});
 
 				if (bChatSync)
-					oJitsi.on('outgoingMessage', ({ message }) => {
-					_oMessenger.sendMessage(message, { vc: oJitsi._lotId});
-					_oMessenger.updateJots({
-						action: 'msg'
+					oJitsi.on('outgoingMessage', ({message}) => {
+						_oMessenger.sendMessage(message, {vc: oJitsi._lotId});
+						_oMessenger.updateJots({
+							action: 'msg'
 						});
 					});
 
@@ -4122,33 +4090,33 @@
 			}
 		},
 
-		onJitsiClose:(oElement, iLotId) => {
+		onJitsiClose: (oElement, iLotId) => {
 			_oMessenger.closeJitsi(oElement, iLotId);
 		},
 
 		/**
 		 * Run Jitsi video chat
 		 *@param string sId of the image
-		*/
+		 */
 
-		onStartVideoCall: function(oEl, iLotId, sRoom){
-            _oMessenger.startVideoCall(oEl, iLotId, sRoom);
+		onStartVideoCall: function (oEl, iLotId, sRoom) {
+			_oMessenger.startVideoCall(oEl, iLotId, sRoom);
 		},
 
-        getCall: function (oEl, iLotId, sRoom, bAudioOnly = false){
+		getCall: function (oEl, iLotId, sRoom, bAudioOnly = false) {
 			if (!iLotId)
-				return ;
+				return;
 
 			if (!_oMessenger.isActiveLot(iLotId))
 				_oMessenger.loadTalk(iLotId);
 
-			_oMessenger.startVideoCall(undefined, iLotId, sRoom,{
+			_oMessenger.startVideoCall(undefined, iLotId, sRoom, {
 				startAudioOnly: +bAudioOnly,
-				callback : () => {
+				callback: () => {
 					_oMessenger.onCloseCallPopup(oEl, iLotId, 'get_call', false);
 				}
 			});
-        },
+		},
 		/**
 		 * Show only marked as important lot
 		 *@param object oEl
@@ -4205,7 +4173,8 @@
 			if (oFile.type !== undefined) {
 				let sExt = (~oFile.type.indexOf(';') ? oFile.type.substring(0, oFile.type.lastIndexOf(';')) : oFile.type).replace('video/', '.');
 				fileName += sExt;
-			};
+			}
+			;
 
 			formData.append('name', fileName);
 			formData.append('file', oFile);
@@ -4224,7 +4193,7 @@
 						bx_loading($(_oMessenger.sFilesUploadAreaOnForm), false);
 						if (!parseInt(oData.code)) {
 							const sMessage = $(_oMessenger.sAddFilesFormComments).text();
-							_oMessenger.sendMessage(sMessage, { files: [fileName] }, function () {
+							_oMessenger.sendMessage(sMessage, {files: [fileName]}, function () {
 								if (typeof oCallback == 'function')
 									oCallback();
 							});
@@ -4260,9 +4229,9 @@
 
 			let iCount = +$(oEmoji).data('count'),
 				aParts = $(oEmoji)
-							.data('part')
-							.toString()
-							.split(',');
+					.data('part')
+					.toString()
+					.split(',');
 
 			if (~aParts.indexOf(_oMessenger.oSettings.user_id + '')) {
 				if (iCount === 1)
@@ -4310,16 +4279,15 @@
 		onEmojiInsert: (oEmoji) => {
 			if (_oMessenger.oActiveEmojiObject['type'] === 'reaction' && +_oMessenger.oActiveEmojiObject['param'])
 				_oMessenger.onJotAddReaction(oEmoji, +_oMessenger.oActiveEmojiObject['param']);
-			else
-			if (_oMessenger.oActiveEmojiObject['type'] === 'textarea')
+			else if (_oMessenger.oActiveEmojiObject['type'] === 'textarea')
 				_oMessenger.onTextAreaAddEmoji(oEmoji);
 
 			setTimeout(() => $(`${_oMessenger.sEmojiId}`)
 				.hide(), 0); // if to close in the same time, emoji categories will not work in the next open
 		},
-		updateJots(oJots, sType){
+		updateJots(oJots, sType) {
 			if (Array.isArray(oJots))
-				oJots.map( iJot => _oMessenger.updateJots({
+				oJots.map(iJot => _oMessenger.updateJots({
 					action: sType || 'edit',
 					jot_id: iJot
 				}));
@@ -4330,11 +4298,54 @@
 		stopActiveSound: () => _oMessenger.stopActiveSound(),
 		showInfoMenu: (oMenu, sLotMenuId) => {
 			$(`#${sLotMenuId}`).dolPopup({
-				pointer:{ el: $(oMenu).parent() },
+				pointer: {el: $(oMenu).parent()},
 				moveToDocRoot: _oMessenger.isBlockVersion(),
-				onShow: function(oEl){
+				onShow: function (oEl) {
 					$(oEl).on('click', () => $(oEl).dolPopupHide());
-				}})
+				}
+			})
+		},
+		getVideoRecording: async () => {
+			const sText = _oMessenger.oEditor ? _oMessenger.oEditor.getText() : '';
+
+			if (navigator.mediaDevices === undefined){
+				bx_alert(_t('_bx_messenger_video_recorder_is_not_available'));
+				return;
+			}
+
+			try
+			{
+				await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+
+				$(window).dolPopupAjax({
+					url: 'modules/?r=messenger/get_record_video_form',
+					id: { force: true, value: _oMessenger.sAddFilesForm.substr(1) },
+					onShow: function () {
+						if (typeof fCallback == 'function')
+							fCallback();
+
+						if (sText && sText.length)
+							$(_oMessenger.sAddFilesFormComments).text(sText);
+
+						setTimeout(() => _oMessenger.updateCommentsAreaWidth(), 100);
+					},
+					closeElement: true,
+					closeOnOuterClick: false,
+					removeOnClose: true,
+					onHide: function () {
+						_oMessenger.updateScrollPosition('bottom');
+					}
+				});
+			}
+			catch({ name }) {
+				switch(name){
+					case 'NotAllowedError' :
+						bx_alert(_t('_bx_messenger_video_recorder_is_blocked', sUrlRoot));
+						break
+					default:
+						bx_alert(_t('_bx_messenger_video_recorder_is_not_available'));
+				}
+			}
 		}
 	}
 })(jQuery);

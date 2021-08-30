@@ -396,6 +396,9 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
     }
 
     public function getPageLink($sUrl){
+        if ($sUrl === 'index.php')
+            return BX_DOL_URL_ROOT;
+
 	    return BxDolPermalinks::getInstance()->permalink(str_replace('{link}', $sUrl, $this->CNF['URL_TEMPLATE']));
     }
 

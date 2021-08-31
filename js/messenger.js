@@ -178,7 +178,7 @@
 		this.iMuted = +oOptions.muted;
 		this.iSelectedPersonToTalk = oOptions.selected_profile || 0;
 		this.isBlockMessenger = typeof oOptions.block_version !== 'undefined' ? oOptions.block_version : $(this.sLotsBlock).length === 0;
-		this.oFilesUploaderSettings = typeof oOptions['files_uploader'] !== 'undefined' ? oOptions['files_uploader'] : null;
+		this.oFilesUploaderSettings = typeof oOptions['files_uploader'] !== 'undefined' ? $.extend(oOptions['files_uploader'], { main_object_name: this.sMainTalkBlock }) : null;
 
 		// Real-time WebSockets framework class
 		this.oRTWSF = (oOptions && oOptions.oRTWSF) || window.oRTWSF || null;

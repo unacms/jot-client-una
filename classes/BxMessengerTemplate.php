@@ -1168,6 +1168,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                             'remove_temp_file_url' => $sBaseUrl . 'upload_temp_file',
                             'file_size' => (int)$oStorage->getMaxUploadFileSize($iProfileId)/(1024*1024),// in bytes
                             'number_of_files' => (int)$this->_oConfig->CNF['MAX_FILES_TO_UPLOAD'],
+                            'is_block_version' => +$bBlockVersion
                         ));
         }
 

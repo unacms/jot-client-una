@@ -19,6 +19,9 @@
         this.oUploader = null;
         this.oOptions = oOptions;
         this.isReady = false;
+        this.isBlockVersion = +this.setOption('is_block_version');
+        this.sMainObject = this.setOption('main_object_name');
+        this.oTarget = null;
 
         this.sInputName = this.setOption('input_name', 'filepond');
         this.sFileUrl = this.setOption('uploader_url');
@@ -47,14 +50,20 @@
 
     init(){
         const _this = this;
+
+        $(document).on('drop paste', (e) => {
+            const { target } = e;
+            _this.oTarget = target;
+        });
+
         this.oUploader = FilePond.create($(`[name="${_this.sInputName}"]`).get(0),
-            {
+        {
                 server: {
                     url: `${_this.sFileUrl}`,
                     revert: null,
                 },
                 fileRenameFunction: file => (0 | Math.random() * 9e6).toString(36) + file.extension,
-                beforeDropFile: (oFile) => {
+                beforeDropFile: function(oFile){
                     const sPreg = /\.(jpeg|jpg|gif|png)$/;
 
                     if (typeof oFile === 'string')
@@ -62,7 +71,7 @@
 
                     return oFile instanceof File && oFile.type !== 'text/html';
                 },
-                beforeAddFile: function({ file }){
+                beforeAddFile: ({ file }) => {
                     const { type } = file;
                     if (type){
                         const aTypes = type.split('/');
@@ -71,6 +80,9 @@
                             return false;
                         }
                     }
+
+                    if (_this.isBlockVersion && !$(_this.oTarget).closest(_this.sMainObject).length)
+                        return false;
 
                     return !(file instanceof Blob && !(file instanceof File) && type === 'text/html');
                 },
@@ -142,7 +154,7 @@
                     if (typeof _this.onAddFilesCallback === 'function' && !_this.bClean)
                         _this.onAddFilesCallback();
                 }
-            });
+        });
     }
 
     getUploader(){

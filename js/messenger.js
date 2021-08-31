@@ -1039,39 +1039,36 @@
 		const _this = this;
 		let _iLotId = iLotId;
 
-		$.post('modules/?r=messenger/save_lots_parts', 
+		$.post('modules/?r=messenger/save_lots_parts',
 		{
 			lot:_iLotId, 
 			participants:_this.getParticipantsList(),
 			is_block: _this.isBlockVersion()
 		},
-		function(oData)
-		{
-						const iResult = parseInt(oData.code);
-					
-						if (iResult === 1)
-							bx_alert(oData.message);
+		function({ code, message, lot, header, buttons }){
+						if (+code === 1)
+							bx_alert(message);
 						else
 						{
 							if (!_iLotId)
-								_iLotId = parseInt(oData.lot);
+								_iLotId = parseInt(lot);
 
-							if (oData.header) {
+							if (typeof header !== 'undefined') {
 								$(_this.sMainTalkBlock)
 									.closest('.bx-db-container')
 									.find('.bx-db-title')
-									.html(oData.header)
+									.html(header)
 									.removeClass('bx-messenger-users-edit')
 									.siblings('.bx-db-menu')
+									.html(buttons)
 									.fadeIn();
 
 								if (_this.oJotWindowBuilder)
 									_this.oJotWindowBuilder.updateColumnSize();
-
 							}
 
-							if (oData.lot) {
-								_this.oSettings.lot = oData.lot;
+							if (lot) {
+								_this.oSettings.lot = lot;
 								_this.blockSendMessages(false);
 								if (!_this.isBlockVersion())
 									_this.upLotsPosition(_this.oSettings);
@@ -1213,11 +1210,11 @@
 	oMessenger.prototype.deleteLot = function(iLotId){
 		const _this = this;
 		if (iLotId)
-				$.post('modules/?r=messenger/delete', { lot: iLotId }, function(oData){
-					if (parseInt(oData.code) === 1)
-							window.location.reload();
-		
-						if (!parseInt(oData.code))
+				$.post('modules/?r=messenger/delete', { lot: iLotId }, function({ code }){
+					if (+code === 1)
+						window.location.reload();
+					else
+						if (!code)
 						{
 							if (_this.isBlockVersion())
                                 window.location.reload();
@@ -1231,8 +1228,14 @@
 										if (_this.oJotWindowBuilder)
 											_this.oJotWindowBuilder.changeColumn('right');
 									}
-									else
+									else {
+										$(_this.sMainTalkBlock)
+											.closest('.bx-db-container')
+											.find('.bx-db-menu')
+											.html('');
+
 										_this.createLot();
+									}
 								}
 							);
 

@@ -485,12 +485,12 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	public function getParticipantsNames($iProfileId, $iLotId){
 		$aNickNames = array();
 
-		$aParticipantsList = $this -> _oDb -> getParticipantsList($iLotId, true, $iProfileId);
+		$aParticipantsList = $this->_oDb->getParticipantsList($iLotId, true, $iProfileId);
 		if (empty($aParticipantsList))
 			return '';
 		
 		$iCount = count($aParticipantsList);
-		$aParticipantsList = array_slice($aParticipantsList, 0, $this -> _oConfig -> CNF['PARAM_ICONS_NUMBER']); 
+		$aParticipantsList = array_slice($aParticipantsList, 0, $this->_oConfig->CNF['PARAM_ICONS_NUMBER']);
 	
 		if (count($aParticipantsList) == 1)
 		{
@@ -1336,13 +1336,19 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	public function getMembersJotTemplate($iProfileId){
 		if (!$iProfileId)
 		    return '';
-		
+
+		$CNF = &$this->_oConfig->CNF;
 		$oProfile = $this -> getObjectUser($iProfileId);
 
-        $isAllowedDelete = $this -> _oConfig -> CNF['ALLOW_TO_REMOVE_MESSAGE'] || isAdmin();
+        $isAllowedDelete = $CNF['ALLOW_TO_REMOVE_MESSAGE'] || isAdmin();
 		if ($oProfile)
 		{
 			$aJot = array();
+
+            $sDisplayName = $oProfile->getDisplayName();
+            $sThumb = $oProfile->getThumb();
+            $bThumb = stripos($sThumb, 'no-picture') === FALSE;
+
 		    $aVars['bx_repeat:jots'][] = array
 			(
 				'title' => $oProfile->getDisplayName(),
@@ -1361,6 +1367,20 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 							    'id' => '{reply_parent_id}',
 								'message' => '{reply_message}'
 							)),
+                'bx_if:avatars' => array(
+                    'condition' => $bThumb,
+                    'content' => array(
+                        'title' => $sDisplayName,
+                        'thumb' => $sThumb,
+                    )
+                ),
+                'bx_if:letters' => array(
+                    'condition' => !$bThumb,
+                    'content' => array(
+                        'color' => implode(', ', BxDolTemplate::getColorCode($iProfileId, 1.0)),
+                        'letter' => mb_substr($sDisplayName, 0, 1)
+                    )
+                ),
                 'bx_if:jot_menu' => array(
                     'condition' => $iProfileId,
                     'content'	=> array(

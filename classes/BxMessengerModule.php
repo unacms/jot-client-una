@@ -250,10 +250,10 @@ class BxMessengerModule extends BxBaseModGeneralModule
     {
         if (empty($mixedParticipants))
             return array();
-        $aParticipants = is_array($mixedParticipants) ? $mixedParticipants : array(intval($mixedParticipants));
 
-        if (!$bExcludeLogged)
-            $aParticipants[] = $this->_iUserId;
+        $aParticipants = is_array($mixedParticipants) ? $mixedParticipants : array(intval($mixedParticipants));
+        if (!$bExcludeLogged && !in_array($this->_iProfileId, $aParticipants))
+            $aParticipants[] = $this->_iProfileId;
 
         return array_unique($aParticipants, SORT_NUMERIC);
     }
@@ -815,14 +815,10 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (($iLotId && !($this->_oDb->isAuthor($iLotId, $this->_iProfileId) || $bCheckAction)) || empty($aParticipants))
             return echoJson($aResult);
 
-        if (!$iLotId) {
+        if (!$iLotId){
             $aLot = $this->_oDb->getLotByUrlAndParticipantsList(BX_IM_EMPTY_URL, $this->getParticipantsList(bx_get('participants')), BX_IM_TYPE_PRIVATE);
-            if (!empty($aLot)) {
-                if ($iLotId && $iLotId !== $aLot[$this->_oConfig->CNF['FIELD_ID']])
-                    return echoJson(array('message' => _t('_bx_messenger_lot_parts_error'), 'code' => 1, 'lot' => $iLotId));
-
+            if (!empty($aLot))
                 $iLotId = $aLot[$this->_oConfig->CNF['FIELD_ID']];
-            }
         }
 
         $oOriginalParts = array();
@@ -854,6 +850,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if ($iLotId) {
             $aHeader = $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId, $bIsBlockVersion, true);
             $aResult['header'] = $aHeader['title'];
+            $aResult['buttons'] = $aHeader['buttons'];
         }
 
         echoJson($aResult);

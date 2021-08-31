@@ -46,7 +46,7 @@
 						}).on('reconnect failed', function (oOptions) {
 							_this.onReconnectFailed(oOptions);
 						}).on('open', function () {
-							var oSettings = _this.getSettings();				
+							const oSettings = _this.getSettings();
 							if (typeof oSettings !== 'undefined' && typeof oSettings.user_id !== 'undefined' && typeof oSettings.status !== 'undefined'){
 								this.write({
 									 action:'init', 

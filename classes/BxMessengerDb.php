@@ -495,7 +495,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	*/
 	public function createNewLot($iProfileId, $sTitle, $iType, $sUrl = '', $aParticipants = array())
 	{
-		$mixedParticipants = !empty($aParticipants) ? implode(',', $aParticipants) : $iProfileId;
+		$mixedParticipants = !empty($aParticipants) ? implode(',', $aParticipants) : '';
 		$sQuery = $this->prepare("INSERT INTO `{$this->CNF['TABLE_ENTRIES']}` 
 												SET  `{$this->CNF['FIELD_TITLE']}` = ?, 
 													 `{$this->CNF['FIELD_TYPE']}` = ?, 

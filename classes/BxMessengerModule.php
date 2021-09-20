@@ -167,7 +167,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (!$iLotId) {
             $sTalkUrl = $this->getPreparedUrl($sUrl);
             $sTalkTitle = BxDolTemplate::getInstance()->getPageHeader();
-            $iLotId = $this->_oDb->createLot($this->_iProfileId, $sTalkUrl, $sTalkTitle, $iType, array($this->_iProfileId));
+            $iLotId = $this->_oDb->createLot($this->_iProfileId, $sTalkUrl, $sTalkTitle, $iType);
         }
 
         $sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, true, $iLotId, BX_IM_EMPTY, BX_IM_EMPTY, $this->_oConfig->getTalkType($sModule));

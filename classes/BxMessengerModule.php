@@ -1043,7 +1043,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $aJotInfo = $this->_oDb->getJotById($iJotId);
         $aResult = array('code' => 1);
 
-        $sMessage = preg_replace(array('/\<p>/i', '/\<\/p>/i'), array("", "<br/>"), bx_get('message'));
+        $sMessage = preg_replace(array('/\<p>\<br[^>]*>\<\/p>/i', '/\<p>/i', '/\<\/p>/i'), array("<br/>", "", "<br/>"), bx_get('message'));
         $mixedResult = $this->_oDb->isAllowedToDeleteJot($iJotId, $this->_iProfileId);
         if (empty($aJotInfo) || $mixedResult !== true)
             return echoJson($aResult);
@@ -2322,7 +2322,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
     private function prepareMessageToDb($sMessage)
     {
-        return $sMessage ? preg_replace(array('/\<p>/i', '/\<\/p>/i', '/\<pre.*>/i'), array(/*'', '',*/ '', '<br/>', '<pre>'), $sMessage) : '';
+        return $sMessage ? preg_replace(array('/\<p>\<br[^>]*>\<\/p>/i', '/\<p>/i', '/\<\/p>/i', '/\<pre.*>/i'), array('<br/>', '', '<br/>', '<pre>'), $sMessage) : '';
     }
 
     function actionGetGiphy(){

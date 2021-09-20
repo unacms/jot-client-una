@@ -82,7 +82,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             return '';
 
         $iProfileId = (int)bx_get('profile_id');
-        if (!((int)$iProfileId && (int)$iProfileId != (int)$this->_iProfileId && $this->onCheckContact($this->_iProfileId, $iProfileId)))
+        if (!($iProfileId && $iProfileId != (int)$this->_iProfileId && $this->onCheckContact($this->_iProfileId, $iProfileId)))
             $iProfileId = 0;
 
         $iLotId = BX_IM_EMPTY;
@@ -114,13 +114,13 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if ($iViewedProfileId = (int)bx_get('profile_id')) {
             $oProfile = BxDolProfile::getInstance($iViewedProfileId);
             $sModule = $oProfile->getModule();
-            if (BxDolRequest::serviceExists($sModule, 'is_group_profile') && BxDolService::call($sModule, 'is_group_profile')) {
+            $bIsProfile = BxDolRequest::serviceExists($sModule, 'act_as_profile') && BxDolService::call($sModule, 'act_as_profile');
+            if (BxDolRequest::serviceExists($sModule, 'is_group_profile') && BxDolService::call($sModule, 'is_group_profile') && !$bIsProfile) {
                 $aOwnerInfo = BxDolService::call($sModule, 'get_info', array($oProfile->getContentId(), false));
                 if(!empty($aOwnerInfo) && is_array($aOwnerInfo) && BxDolService::call($sModule, 'check_allowed_view_for_profile', array($aOwnerInfo)) === CHECK_ACTION_RESULT_ALLOWED) {
                     $oModule = BxDolModule::getInstance($sModule);
                     if ($oModule->_oConfig) {
                         $oMCNF = $oModule->_oConfig->CNF;
-
                         $sUrl = "i={$oMCNF['URI_VIEW_ENTRY']}&id=" . $oProfile->getContentId();
                         if ($sUrl && $aTalk = $this->_oDb->getLotByUrl($sUrl))
                             return $this->_oTemplate->getTalkBlock($this->_iProfileId, $aTalk[$CNF['FIELD_ID']]);

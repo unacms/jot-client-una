@@ -372,10 +372,28 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
            if (!$oProfile)
                 continue;
 
-            $aVars['bx_repeat:usernames'][] = array(
-                'username' =>  $oProfile -> getDisplayName(),
-                'img' => $oProfile -> getIcon()
-            );
+           $sThumb = $oProfile->getThumb();
+           $bThumb = stripos($sThumb, 'no-picture') === FALSE;
+           $sDisplayName = $oProfile->getDisplayName();
+
+           $aVars['bx_repeat:usernames'][] = array(
+                'username' => $sDisplayName,
+                'title' => $sDisplayName,
+                'bx_if:avatars' => array(
+                    'condition' => $bThumb,
+                    'content' => array(
+                        'name' => $sDisplayName,
+                        'thumb' => $sThumb,
+                    )
+                ),
+                'bx_if:letters' => array(
+                    'condition' => !$bThumb,
+                    'content' => array(
+                        'color' => implode(', ', BxDolTemplate::getColorCode($iProfileId, 1.0)),
+                        'letter' => mb_substr($sDisplayName, 0, 1)
+                    )
+                )
+           );
         }
 
         return $this -> parseHtmlByName('thumb_usernames.html', $aVars);
@@ -496,11 +514,11 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 		{
 			$oProfile = $this -> getObjectUser($aParticipantsList[0]);
 			if ($oProfile)
-			{				
+			{
 				$aNickNames['bx_repeat:users'][] = array(
-										'profile_username' => $oProfile -> getUrl(),
-										'username' =>  $oProfile -> getDisplayName(),
-									  );
+				    'profile_username' => $oProfile -> getUrl(),
+					'username' =>  $oProfile -> getDisplayName(),
+				);
 			}
 			$sCode = $this -> parseHtmlByName('status_usernames.html', $aNickNames);
 		}
@@ -1067,7 +1085,8 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         $sUrl = $this->_oConfig->getPageIdent();
         if ($iPersonToTalk && ($oModuleProfile = BxDolProfile::getInstance($iPersonToTalk))) {
             $sModule = $oModuleProfile->getModule();
-            if (BxDolRequest::serviceExists($sModule, 'is_group_profile') && BxDolService::call($sModule, 'is_group_profile')) {
+            $bIsProfile = BxDolRequest::serviceExists($sModule, 'act_as_profile') && BxDolService::call($sModule, 'act_as_profile');
+            if (BxDolRequest::serviceExists($sModule, 'is_group_profile') && BxDolService::call($sModule, 'is_group_profile') && !$bIsProfile) {
                 $aOwnerInfo = BxDolService::call($sModule, 'get_info', array($oModuleProfile->getContentId(), false));
                 if (!empty($aOwnerInfo) && is_array($aOwnerInfo) && BxDolService::call($sModule, 'check_allowed_view_for_profile', array($aOwnerInfo)) === CHECK_ACTION_RESULT_ALLOWED) {
                     $oModule = BxDolModule::getInstance($sModule);

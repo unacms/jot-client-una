@@ -652,7 +652,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         {
             $aLotInfo = $this->_oDb->getLotByUrlAndParticipantsList(BX_IM_EMPTY_URL, array($this->_iProfileId, $iProfileId));
             $iLotId = empty($aLotInfo) ? BX_IM_EMPTY : $aLotInfo[$this -> _oConfig -> CNF['FIELD_ID']];
-            $sHeader = $this->_oTemplate->getTalkHeaderForUsername($this->_iProfileId, $iProfileId);
+            $sHeader = $this->_oTemplate->getTalkHeaderForUsername($this->_iProfileId, $iProfileId, false);
         } else
             $iLotId = (int)bx_get('lot');
 

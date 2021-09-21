@@ -75,10 +75,6 @@
 
 .bx-messenger-jots-snip-title div.status
 {
-	/*background-color: #9b9b9b;
-	color:#eee;
-	font-weight:400 !important;
-	font-size:0.7rem !important;*/
 	margin-right: 0.2rem;
 	text-align: center !important;
 	font-family: inherit;
@@ -111,11 +107,6 @@
 span.bubble
 {
 	position:relative;
-	/*background-color: #d7e9fb;
-    color: #4a90e2;*\
-    margin-right: 0.2rem;
-	/*width:1rem;
-	float:left;*/
 	border-radius: 1rem;
 	line-height: 1rem;
 	padding-left: 0.3rem;
@@ -149,7 +140,6 @@ span.bubble.hidden
 	text-overflow:ellipsis;
 	overflow:hidden;
 	width:calc(100% - 2rem);
-	/*font-weight:400;*/
 }
 
 .bx-messenger-preview-lot div:first-child span:first-child
@@ -281,6 +271,9 @@ div.bx-messenger-border.search .star a.active
 .bx-messenger-talk-header-usernames{
 	background-color: inherit;
 	border: 0;
+	padding:0;
+	height:auto;
+	line-height: normal;
 }
 
 .bx-messenger-talk-header-usernames > span{

@@ -84,9 +84,16 @@ div.bx-messenger-lots-menu ul li a.active{
 	vertical-align:middle;
 	overflow:hidden;
 }
-.bx-messenger-friends-list div
+
+.bx-messenger-friends-list > div
 {
 	width:100%;
+}
+
+.bx-messenger-friends-list a
+{
+	display: flex;
+	align-items: center;
 }
 
 .bx-messenger-main-block

@@ -53,7 +53,6 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_jwt_app_id', '', @iCategId, '_bx_messenger_jwt_app_id', 'digit', '', '', '', 40),
 ('bx_messenger_jwt_app_secret', '', @iCategId, '_bx_messenger_jwt_app_secret', 'digit', '', '', '', 41);
 
-
 -- MENU: notifications
 SET @iMIOrder = (SELECT IFNULL(MAX(`order`), 0) FROM `sys_menu_items` WHERE `set_name` = 'sys_toolbar_member' AND `order` < 9999);
 INSERT INTO `sys_menu_items` (`set_name`, `module`, `name`, `title_system`, `title`, `link`, `onclick`, `target`, `icon`, `addon`, `submenu_object`, `visible_for_levels`, `active`, `copyable`, `order`, `visibility_custom`) VALUES
@@ -141,6 +140,10 @@ INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`,
 (@sName, 'join personal vc', NULL, '_bx_messenger_acl_action_join_personal_vc', '', 1, 0);
 SET @iIdActionVCPJoin = LAST_INSERT_ID();
 
+INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`, `Desc`, `Countable`, `DisabledForLevels`) VALUES
+(@sName, 'send files', NULL, '_bx_messenger_acl_action_send_files', '', 1, 0);
+SET @iIdActionSendFiles = LAST_INSERT_ID();
+
 SET @iUnauthenticated = 1;
 SET @iAccount = 2;
 SET @iStandard = 3;
@@ -192,8 +195,12 @@ INSERT INTO `sys_acl_matrix` (`IDLevel`, `IDAction`) VALUES
 (@iAdministrator, @iIdActionAdminMessages),
 -- administration messages
 (@iModerator, @iIdActionAdminTalks),
-(@iAdministrator, @iIdActionAdminTalks);
-
+(@iAdministrator, @iIdActionAdminTalks),
+-- send files
+(@iStandard, @iIdActionSendFiles),
+(@iModerator, @iIdActionSendFiles),
+(@iAdministrator, @iIdActionSendFiles),
+(@iPremium, @iIdActionSendFiles);
 
 -- MENU: Talk Menu
 INSERT INTO `sys_objects_menu`(`object`, `title`, `set_name`, `module`, `template_id`, `deletable`, `active`, `override_class_name`, `override_class_file`) VALUES

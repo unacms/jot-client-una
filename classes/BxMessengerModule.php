@@ -46,6 +46,7 @@ define('BX_MSG_ACTION_ADMINISTRATE_MESSAGES', 'administrate_messages');
 define('BX_MSG_ACTION_CREATE_TALKS', 'create_talks');
 define('BX_MSG_ACTION_ADMINISTRATE_TALKS', 'administrate_talks');
 define('BX_MSG_ACTION_SEND_MESSAGE', 'send_messages');
+define('BX_MSG_ACTION_SEND_FIELS', 'send_files');
 define('BX_MSG_ACTION_CREATE_VC', 'create_vc');
 define('BX_MSG_ACTION_CREATE_IM_VC', 'video_conference');
 define('BX_MSG_ACTION_VIDEO_RECORDER', 'video_recorder');

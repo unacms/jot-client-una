@@ -2383,6 +2383,23 @@ class BxMessengerModule extends BxBaseModGeneralModule
               'total' => array_sum($aMessages)
           ))
         );
+    }	 
+		
+	public function serviceGetUreadLots($iProfileId){
+        if (!$iProfileId || !($oProfile = BxDolProfile::getInstance($iProfileId)))
+			return array();		
+				
+		$aLots = $this->_oDb->getLotsWithUnreadMessages($iProfileId);
+		$aLotsInfo = array();
+		foreach($aLots as $iLotId => $iCount){
+			$aLotsInfo[$iLotId] = array(
+				'count' => $iCount,
+				'participants' => $this->_oDb->getParticipantsList($iLotId),
+				'new_messages' => $this->_oDb->getUnreadMessages($iProfileId, $iLotId)
+			);
+		}	
+		
+        return $aLotsInfo;
     }
 
     public function actionGetJitsiConferenceForm($iLotId = 0)

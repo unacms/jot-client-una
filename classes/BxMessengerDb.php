@@ -672,7 +672,30 @@ class BxMessengerDb extends BxBaseModGeneralDb
 		return $this -> getAll( $iStart && $sMode == 'new' ? $sQuery : "({$sQuery}) ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}`", $aBindings);					
 	}
 
-    public function getPrevJot($iLotId, $iStart){
+    public function getUnreadMessages($iProfileId, $iLotId, $mixedLimit = 10){
+        $sWhere = "WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :lot_id";
+        $aWhere = array('lot_id' => (int)$iLotId);
+	    
+		$aLotInfo = $this->getNewJots($iProfileId, $iLotId);
+		if (empty($aLotInfo))
+			return false;
+		
+		$sWhere .= " AND `{$this->CNF['FIELD_MESSAGE_ID']}` > :jot";
+        $aWhere['jot'] = $aLotInfo[$this->CNF['FIELD_NEW_JOT']];
+		
+		$sLimit = '';
+		if ($mixedLimit)
+			$sLimit = "LIMIT " . (int)$mixedLimit;
+        
+	    $sQuery = "SELECT * FROM `{$this->CNF['TABLE_MESSAGES']}`
+									{$sWhere}
+									ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}`
+									{$sLimit}";
+
+        return $this->getAll($sQuery, $aWhere);
+    }
+	
+	public function getPrevJot($iLotId, $iStart){
         $sWhere = "WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :lot_id";
         $aWhere = array('lot_id' => (int)$iLotId);
 	    if ($iStart){

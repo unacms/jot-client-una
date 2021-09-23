@@ -1157,6 +1157,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             'direction' => BxDolLanguages::getInstance()->getLangDirection(),
             'selected_profile' => (int)$iPersonToTalk,
             'jot_id' => $iStartJot,
+            'by_url' => (int)($iJotId != BX_IM_EMPTY),
 			'block_version' => +$bBlockVersion,
 			'server_url' => $this->_oConfig-> CNF['SERVER_URL'],
 			'message_length' => (int)$CNF['MAX_SEND_SYMBOLS'] ? (int)$CNF['MAX_SEND_SYMBOLS'] : 0,
@@ -1200,14 +1201,14 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         if ($oStorage) {
             $sBaseUrl = $this->_oConfig->getBaseUri();
             $aVars['files_uploader'] = json_encode(array(
-                            'input_name' => $CNF['FILES_UPLOADER'],
-                            'restricted_extensions' => json_encode($oStorage->getRestrictedExt()),
-                            'uploader_url' => $sBaseUrl . 'upload_temp_file',
-                            'remove_temp_file_url' => $sBaseUrl . 'upload_temp_file',
-                            'file_size' => (int)$oStorage->getMaxUploadFileSize($iProfileId)/(1024*1024),// in bytes
-                            'number_of_files' => (int)$this->_oConfig->CNF['MAX_FILES_TO_UPLOAD'],
-                            'is_block_version' => +$bBlockVersion
-                        ));
+              'input_name' => $CNF['FILES_UPLOADER'],
+              'restricted_extensions' => json_encode($oStorage->getRestrictedExt()),
+              'uploader_url' => $sBaseUrl . 'upload_temp_file',
+              'remove_temp_file_url' => $sBaseUrl . 'upload_temp_file',
+              'file_size' => (int)$oStorage->getMaxUploadFileSize($iProfileId)/(1024*1024),// in bytes
+              'number_of_files' => (int)$this->_oConfig->CNF['MAX_FILES_TO_UPLOAD'],
+              'is_block_version' => +$bBlockVersion
+            ));
         }
 
 

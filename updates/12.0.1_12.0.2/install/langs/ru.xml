@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="ru" flag="ru" title="Russian">
+	<string_del name="_bx_messenger_notification_subject"><![CDATA[Сообщение от {0}]]></string_del>
+	<string_del name="_bx_messenger_txt_subobject_added"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> отправил(а) {subentry_sample} <b class="bx-ntfs-content-entry">{entry_caption}</b>]]></string_del>	
+	<string_upd name="_bx_messenger_allow_to_remove_messages"><![CDATA[Разрешать пользователям модерировать собственные сообщения]]></string_upd>
+
+	<string_add name="_bx_messenger_lot_menu_settings"><![CDATA[Настройки]]></string_add>
+	<string_add name="_bx_messenger_enable_joined_organizations"><![CDATA[Разрешить организациям контактировать с пользователями тлько в случае, если пользователь является участником этой организации]]></string_add>
+	<string_add name="_bx_messenger_reply"><![CDATA[Ответить]]></string_add>
+	<string_add name="_bx_messenger_mark_as_unread"><![CDATA[Пометить как прочитанное]]></string_add>
+	<string_add name="_bx_messenger_menu_item_title_video_call"><![CDATA[Видео звонок]]></string_add>
+	<string_add name="_bx_messenger_menu_item_title_star"><![CDATA[Отметить чат как важный]]></string_add>
+	<string_add name="_bx_messenger_menu_item_title_mute"><![CDATA[Выключить звук]]></string_add>
+	<string_add name="_bx_messenger_menu_set_title_talk_menu"><![CDATA[Меню разговора]]></string_add>
+	<string_add name="_bx_messenger_acl_action_join_vc"><![CDATA[Присоединиться к видео конференции]]></string_add>
+	<string_add name="_bx_messenger_acl_action_join_personal_vc"><![CDATA[Присоединиться к персональной видео конференции]]></string_add>
+</resources>

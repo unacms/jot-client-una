@@ -1,31 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources name="en" flag="gb" title="English">
-	<string_del name="_bx_messenger_send_message_only_for_logged"><![CDATA[Sorry, but only logged members can send messages!]]></string_del>
-	<string_upd name="_bx_messenger_lots_menu_mute_info_off"><![CDATA[Turn off notifications]]></string_upd>
-	<string_upd name="_bx_messenger_lots_menu_mute_info_on"><![CDATA[Turn on notifications]]></string_upd>
-	<string_upd name="_bx_messenger_lots_menu_star_on"><![CDATA[Mark as important]]></string_upd>
-	<string_upd name="_bx_messenger_lots_menu_settings_title"><![CDATA[Settings]]></string_upd>
-	<string_del name="_bx_messenger_lots_menu_back_title"><![CDATA[Back to the talks list]]></string_del>
-	<string_add name="_bx_messenger_acl_action_video_recorder"><![CDATA[Use video recording]]></string_add>
-	<string_add name="_bx_messenger_jwt_app_id"><![CDATA[JWT token App id]]></string_add>
-	<string_add name="_bx_messenger_jwt_app_secret"><![CDATA[JWT token App secret]]></string_add>
-	<string_add name="_bx_messenger_lot_menu_settings"><![CDATA[Settings]]></string_add>
-	<string_add name="_bx_messenger_lot_action_not_allowed"><![CDATA[{0} action is not allowed for this talk]]></string_add>
-	<string_add name="_bx_messenger_lot_can_change_settings"><![CDATA[You can not change settings of the talk]]></string_add>
-	<string_add name="_bx_messenger_lot_options_item_msg"><![CDATA[messages]]></string_add>
-	<string_add name="_bx_messenger_lot_options_item_giphy"><![CDATA[animation]]></string_add>
-	<string_add name="_bx_messenger_lot_options_item_files"><![CDATA[files]]></string_add>
-	<string_add name="_bx_messenger_lot_options_item_video_rec"><![CDATA[video recordings]]></string_add>
-	<string_add name="_bx_messenger_lot_options_item_smiles"><![CDATA[smiles]]></string_add>
-	<string_add name="_bx_messenger_lot_options_title"><![CDATA[Allow to perform selected actions for the talk:]]></string_add>
-	<string_add name="_bx_messenger_max_max_lots_number"><![CDATA[Default number of talks in Talks' list block]]></string_add>
-	<string_add name="_bx_messenger_enable_joined_organizations"><![CDATA[Allow organization to communicate with profile only if user joined or followed the organization]]></string_add>
-	<string_add name="_bx_messenger_reply"><![CDATA[Reply]]></string_add>
-	<string_add name="_bx_messenger_mark_as_unread"><![CDATA[Mark as unread]]></string_add>
-	<string_add name="_bx_messenger_menu_item_title_video_call"><![CDATA[Video Call]]></string_add>
-	<string_add name="_bx_messenger_menu_item_title_star"><![CDATA[Mark talks as important]]></string_add>
-	<string_add name="_bx_messenger_menu_item_title_mute"><![CDATA[Mute talk]]></string_add>
-	<string_add name="_bx_messenger_menu_set_title_talk_menu"><![CDATA[Talk menu]]></string_add>
-	<string_add name="_bx_messenger_acl_action_join_vc"><![CDATA[Join to video conference]]></string_add>
-	<string_add name="_bx_messenger_acl_action_join_personal_vc"><![CDATA[Join to personal video conference]]></string_add>
+	<string_del name="_bx_messenger_video_record_is_not_supported"><![CDATA[Video recording is not supported: {0}]]></string_del>
+	<string_add name="_bx_messenger_video_recorder_is_not_available"><![CDATA[Video Recorder is not available in your browser]]></string_add>
+	<string_add name="_bx_messenger_video_recorder_is_blocked"><![CDATA[In order to use this function, please allow {0} access to your camera. Thanks and enjoy!]]></string_add>
+	<string_add name="_bx_messenger_acl_action_send_files"><![CDATA[Send files]]></string_add>
 </resources>

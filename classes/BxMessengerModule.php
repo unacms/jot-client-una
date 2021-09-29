@@ -467,7 +467,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $aParams = array('term' => $sParam, 'star' => (bool)$iStarred);
         $aMyLots = $this->_oDb->getMyLots($this->_iUserId, $aParams);
         if (empty($aMyLots))
-            $sContent = MsgBox(_t('_bx_messenger_txt_msg_no_results'));
+            $sContent = $sParam ? MsgBox(_t('_bx_messenger_txt_msg_no_results')) : $this->_oTemplate->getFriendsList();
         else
             $sContent = $this->_oTemplate->getLotsPreview($this->_iUserId, $aMyLots);
 

@@ -591,8 +591,11 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	function getFriendsList($sParam = ''){
 		$iLimit = (int)$this->_oConfig->CNF['PARAM_FRIENDS_NUM_BY_DEFAULT'] ? (int)$this->_oConfig->CNF['PARAM_FRIENDS_NUM_BY_DEFAULT'] : 5;
 
+		$sContent = MsgBox(_t('_Empty'));
+		if (!$this->_oConfig->CNF['SHOW-FRIENDS'])
+			return $sContent;
+		
         $aFriends = array();
-        $sContent = MsgBox(_t('_Empty'));
     	if (!$sParam){
             bx_import('BxDolConnection');
 			$oConnection = BxDolConnection::getObjectInstance('sys_profiles_friends');
@@ -1032,7 +1035,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 		$aMyLots = $this->_oDb->getMyLots($iProfileId);
 		if (!empty($aMyLots))
 			$sContent = $this->getLotsPreview($iProfileId, $aMyLots, $iTalkPerson ? FALSE : $iLotId);
-		else 
+		else
 			$sContent = $this->getFriendsList();
 		
 		$aVars = array(

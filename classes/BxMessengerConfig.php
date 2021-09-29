@@ -260,6 +260,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'JITSI-SUPPORT-LINK' => getParam($aModule['db_prefix'] . 'jitsi_support_url'),
             'DISABLE-PROFILE-PRIVACY' => getParam($aModule['db_prefix'] . 'disable_contact_privacy') == 'on',
             'CONTACT-JOIN-ORGANIZATION' => getParam($aModule['db_prefix'] . 'enable_joined_organizations') == 'on',
+            'SHOW-FRIENDS' => getParam($aModule['db_prefix'] . 'show_friends') == 'on',
             'JWT' => array(
               'app_id' => getParam($aModule['db_prefix'] . 'jwt_app_id'),
               'secret' => getParam($aModule['db_prefix'] . 'jwt_app_secret'),

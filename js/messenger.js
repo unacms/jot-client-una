@@ -1023,6 +1023,9 @@
 						if (user) {
 							_this.iSelectedPersonToTalk = user;
 							_this.blockSendMessages(false);
+							
+							if (_this.oEditor)
+								setTimeout(() => _this.oEditor.focus(), 1000);
 						}
 
 					} else
@@ -1051,9 +1054,6 @@
 							bx_alert(message);
 						else
 						{
-							if (!_iLotId)
-								_iLotId = parseInt(lot);
-
 							if (typeof header !== 'undefined') {
 								$(_this.sMainTalkBlock)
 									.closest('.bx-db-container')
@@ -1071,13 +1071,30 @@
 							if (lot) {
 								_this.oSettings.lot = lot;
 								_this.blockSendMessages(false);
+									
 								if (!_this.isBlockVersion())
 									_this.upLotsPosition(_this.oSettings);
+								
+								if (!_iLotId)
+									_this.updateTalksListArea();
 							}
+							
+							if (_this.oEditor)
+								setTimeout(() => _this.oEditor.focus(), 1000);
 						}
 						
 		}, 'json');
 	};
+	
+	oMessenger.prototype.updateTalksListArea = function(fWidth){
+			if ($(this.sFriendsList).length)
+				$(this.sFriendsList).fadeOut(function(){
+					$(this).remove();
+				});
+		
+			if ($('.bx-msg-box-container', this.sLotsListBlock).length)
+				$('.bx-msg-box-container', this.sLotsListBlock).remove();
+	}
 	
 	oMessenger.prototype.updateCommentsAreaWidth = function(fWidth){
 			$(this.sAddFilesFormComments)
@@ -1472,10 +1489,8 @@
 			
 			_this.oStorage.saveLotItem(_this.oSettings.lot, _this.iReplyId, 'reply');
 
-			setTimeout(() => {
-				if (_this.oEditor)
-					_this.oEditor.focus()
-			}, 100);
+			if (_this.oEditor)
+				setTimeout(() => _this.oEditor.focus(), 100);
 		}
 	}
 	
@@ -2027,6 +2042,8 @@
 					_this.initTextArea();
 					_this.oSendPool = new Map();
 
+					if (_this.oEditor)
+						setTimeout(() => _this.oEditor.focus(), 1000);
 				/* ----  End ---- */
 				}
 		}, 'json');
@@ -2172,7 +2189,7 @@
 											.replaceWith(header);
 
 									_this.updateLotSettings({lot: lot_id});
-									$(_this.sFriendsList).remove();
+									_this.updateTalksListArea();
 									$(window).resize();
 								}
 
@@ -3522,7 +3539,14 @@
 						if (type === 'load')
 							_this.setPositionOnSelectedJot(fCallback)
 					});
+					
 					_this.setScrollBarWidth();
+					
+					if ($(_this.sUserSelectorInput).length)
+						$(_this.sUserSelectorInput).focus();
+					else 
+						if (_this.oEditor)
+							_this.oEditor.focus();
 				});
 			});
 

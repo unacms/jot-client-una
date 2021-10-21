@@ -101,7 +101,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         }
 
 		$sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, false, $iLotId, $this->_iJotId, $iProfileId);
-        return	$sConfig . $this->_oTemplate->getLotsList($iLotId, $this->_iProfileId, $iProfileId);
+        return	$sConfig . $this->_oTemplate->getLotsList($this->_iProfileId, $iLotId, $iProfileId);
     }
     /**
      * Returns right side block for messenger page

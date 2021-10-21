@@ -1031,7 +1031,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	*@param int $iTalkPerson id of profile to talk with 
 	*@return string html code
 	*/
-	public function getLotsList($iLotId = BX_IM_EMPTY, $iProfileId, $iTalkPerson = BX_IM_EMPTY){
+	public function getLotsList($iProfileId, $iLotId = BX_IM_EMPTY, $iTalkPerson = BX_IM_EMPTY){
 		$aMyLots = $this->_oDb->getMyLots($iProfileId);
 		if (!empty($aMyLots))
 			$sContent = $this->getLotsPreview($iProfileId, $aMyLots, $iTalkPerson ? FALSE : $iLotId);
@@ -1168,6 +1168,8 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			'message_length' => (int)$CNF['MAX_SEND_SYMBOLS'] ? (int)$CNF['MAX_SEND_SYMBOLS'] : 0,
 			'ip' => gethostbyname($aUrlInfo['host']),
 			'embed_template' => $sEmbedTemplate,
+			'thumb_icon' => $this->parseHtmlByName('thumb_icon.html', array()),
+			'thumb_letter' => $this->parseHtmlByName('thumb_letter.html', array()),
 			'max_history' => (int)$CNF['MAX_JOTS_BY_DEFAULT'],
 			'jitsi_server' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER'], 'url'),
 			'last_unread_jot' => $iLastUnreadJot,

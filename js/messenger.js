@@ -98,7 +98,7 @@
 
 		//global class options
 		this.oUsersTemplate	= null;
-		this.sReactionTemplate = oOptions && oOptions.reaction_template;
+		this.sReactionTemplate = oOptions.templates && oOptions.templates['reaction_template'];
 		this.oActiveEditQuill = null;
 		this.sJotUrl = (oOptions && oOptions.jot_url) || sUrlRoot + 'm/messenger/archive/';
 		this.sInfoFavIcon = 'modules/boonex/messenger/template/images/icons/favicon-red-32x32.png';
@@ -106,7 +106,9 @@
 		this.sDefaultFavIcon = $('link[rel="shortcut icon"]').attr('href');
 		this.iAttachmentUpdate = false;
 		this.iTimer = null;
-		this.sEmbedTemplate = (oOptions && oOptions.embed_template) || '<a href="__url__">__url__</a>';
+		this.sEmbedTemplate = (oOptions.templates && oOptions.templates['embed_template']) || '<a href="__url__">__url__</a>';
+		this.sThumbIcon = (oOptions.templates && oOptions.templates['thumb_icon']) || '';
+		this.sThumbLetter = (oOptions.templates && oOptions.templates['thumb_letter']) || '';
 		this.iMaxLength = (oOptions && oOptions.max) || 0;
 		this.iMaxReplyLength = 500;
 		this.iMaxHistory = oOptions.max_history_number || 50;
@@ -155,7 +157,7 @@
 		this.aDatesItervals = [];
 		this.sDateIntervalsSelector = '.bx-messenger-date-time-hr';
 		this.iScrollbarWidth = 0;
-		this.sDateIntervalsTemplate = oOptions.date_intervals_template;
+		this.sDateIntervalsTemplate = oOptions.templates && oOptions.templates['date_intervals_template'];
 		this.aLoadingRequestsPool = []; // contains requests to load the talks when member clicks many talks with small delay and there is not enough time to load each talk
 
 		const _this = this;
@@ -3086,9 +3088,8 @@
 																	+ '</div>'
 																;
 															} else if (result[fields.letter] !== undefined){
-																html += `<div class="image">
-																			<p class="bx-def-thumb bx-def-thumb-size bx-base-pofile-unit-thumb bx-def-ava bx-def-box-sizing" style="background-color:rgba(${result[fields.color]})">${result[fields.letter]}</p>
-																		 </div>`;
+																let sThumb = _this.sThumbLetter.replace('{color}', result[fields.color]).replace('{letter}', result[fields.letter]);
+																html += `<div class="image">${sThumb}</div>`;
 															}
 
 															html += '<div class="content">';
@@ -3144,9 +3145,13 @@
 									},
 									onSelect: function(result, response){
 										const { icon, id, value, letter, color } = result;
-										const sTemplate = icon.length ?
-														   	  `<img class="bx-def-thumb bx-def-thumb-size bx-def-margin-sec-right" src="${icon}" />`
-															: `<p class="bx-def-thumb bx-def-thumb-size bx-base-pofile-unit-thumb bx-def-ava bx-def-box-sizing" style="background-color:rgba(${color})">${letter}</p>`;
+										
+										let sTemplate = '';
+										if (!icon.length)
+											sTemplate = _this.sThumbLetter.replace('{color}', color).replace('{letter}', letter);
+										else
+											sTemplate = _this.sThumbIcon.replace('{icon}', icon);
+
 
 										$(this)
 											.before(`<b class="bx-def-color-bg-hl bx-def-round-corners bx-def-font-middle">${sTemplate}<span>${value}</span><input type="hidden" name="users[]" value="${id}" /></b>`)

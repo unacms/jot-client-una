@@ -81,9 +81,9 @@
                         }
                     }
 
-                    if (_this.isBlockVersion && !$(_this.oTarget).closest(_this.sMainObject).length)
+                    if (_this.isBlockVersion && _this.oTarget !== null && !$(_this.oTarget).closest(_this.sMainObject).length)
                         return false;
-
+                    
                     return !(file instanceof Blob && !(file instanceof File) && type === 'text/html');
                 },
                 allowFileRename: true,

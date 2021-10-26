@@ -2087,7 +2087,6 @@
 			msgTime = new Date();
 
 		oParams.tmp_id = msgTime.getTime();
-
 		if (_this.oFilesUploader) {
 			oParams.files = _this.oFilesUploader.getAllFiles();
 			if (oParams.files.length && !_this.oFilesUploader.isReady())
@@ -2245,7 +2244,7 @@
 					}
 
 					if (typeof fCallBack == 'function')
-						fCallBack();
+						fCallBack(jot_id);
 
 				}, 'json')
 				.done(() => {
@@ -4234,9 +4233,11 @@
 						bx_loading($(_oMessenger.sFilesUploadAreaOnForm), false);
 						if (!parseInt(oData.code)) {
 							const sMessage = $(_oMessenger.sAddFilesFormComments).text();
-							_oMessenger.sendMessage(sMessage, {files: [fileName]}, function () {
+							_oMessenger.sendMessage(sMessage, {files: [{ complete: 1, realname: fileName, name: fileName }]}, function (iJotId) {
 								if (typeof oCallback == 'function')
 									oCallback();
+
+								_oMessenger.attacheFiles(iJotId);
 							});
 						} else
 							bx_alert(oData.message);

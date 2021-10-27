@@ -259,56 +259,95 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return array_unique($aParticipants, SORT_NUMERIC);
     }
 
-    /**
-     * Send function occurs when member posts a message
-     * @return array json result
-     */
-    public function actionSend()
+    public function serviceSendMessage($iRecipient, $mixedData, $iSender = 0)
     {
-        $sUrl = $sTitle = '';
-        $sMessage = trim(bx_get('message'));
-        $iLotId = (int)bx_get('lot');
-        $iType = (int)bx_get('type');
-        $iTmpId = bx_get('tmp_id');
-        $aFiles = bx_get(BX_ATT_TYPE_FILES);
-        $aGiphy = bx_get(BX_ATT_TYPE_GIPHY);
-		$iReply = (int)bx_get('reply');
+        if (!$iSender)
+			$iSender = $this->_iProfileId;
+
+        if (!($oRecipient = BxDolProfile::getInstance($iRecipient)))
+            return _t('_bx_messenger_profile_not_found');
+
+		$aData = array();
+		if (is_array($mixedData))
+			$aData = $mixedData;
+		elseif (is_string($mixedData))
+			$aData['message'] = $mixedData;
+			
+		if (empty($aData))
+			return _t('_bx_messenger_send_message_no_data');
+		
+		$aData['participants'] = array($iRecipient);
+		if ($iSender)
+			$aData['participants'][] = $iSender;
+		
+		$mixedResult = $this->sendMessage($mixedData, $iRecipient, $iSender);
+		if (is_array($mixedResult) && isset($mixedResult['jot_id']))
+			return true;
+		
+		return is_string($mixedResult) ? $mixedResult : false;
+    }
+	
+	/**
+	 * Main function to send Messages
+     * @param $aData params for a message, files, text, participants...
+     * @param int $iRecipient recipient's profile id
+     * @param int $iSender sender's profile id
+	 * @return array/string
+	*/
+	private function sendMessage(&$aData, $iRecipient = 0, $iSender = 0){
+        $sMessage = isset($aData['message']) ? trim($aData['message']) : '';
+        $iLotId = isset($aData['lot']) ? (int)$aData['lot'] : 0;
+        $iType = (isset($aData['type']) && $aData['type'] && $this->_oDb->isLotType($aData['type'])) ? (int)$aData['type'] : BX_IM_TYPE_PRIVATE;        
+        $aFiles = isset($aData[BX_ATT_TYPE_FILES]) ? $aData[BX_ATT_TYPE_FILES] : array();
+        $aGiphy = isset($aData[BX_ATT_TYPE_GIPHY]) ? $aData[BX_ATT_TYPE_GIPHY] : array();
+		$iReply = isset($aData['reply']) ? (int)$aData['reply'] : '';
+		$aParticipants = isset($aData['participants']) ? $aData['participants'] : array();
+		$sUrl = $sTitle = '';
         
 		$CNF = &$this->_oConfig->CNF;
-        if (!$this->isLogged())
-            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
+		if ($iRecipient && !($oRecipient = BxDolProfile::getInstance($iRecipient)))
+            return _t('_bx_messenger_profile_not_found');
 
-        $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_SEND_MESSAGE, $this->_iProfileId);
+		if (!$iSender)
+			$iSender = $this->_iProfileId;
+
+        $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_SEND_MESSAGE, $iSender);
         if ($mixedResult !== true)
-            return echoJson(array('code' => 1, 'message' => $mixedResult));
-
+			return $mixedResult;
+			
         if (!$sMessage && empty($aFiles) && empty($aGiphy))
-            return echoJson(array('code' => 2, 'message' => _t('_bx_messenger_send_message_no_data')));
+            return _t('_bx_messenger_send_message_no_data');
 
+		$aLotInfo = array();
         if ($iLotId) {
             $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
             $iType = $aLotInfo[$CNF['FIELD_TYPE']];
-        } else
-            $iType = ($iType && $this->_oDb->isLotType($iType)) ? $iType : BX_IM_TYPE_PRIVATE;
-
+			if ($iType == BX_IM_TYPE_PRIVATE && !$iRecipient){
+				$aPartList = $this->_oDb->getParticipantsList($iLotId, true, $iSender);
+				if (count($aPartList) == 1){
+					$iRecipient = current($aPartList);
+				}
+			}
+		}
+		
+		if ($iRecipient && !$this->onCheckContact($iSender, $iRecipient))
+			return _t('_bx_messenger_contact_privacy_not_allowed');
+		
         if ($iType !== BX_IM_TYPE_PRIVATE) {
-            $sUrl = bx_get('url');
-            $sTitle = bx_get('title');
+            $sUrl = isset($aData['url']) ? $aData['url'] : '';
+            $sTitle = isset($aData['title']) ? $aData['title'] : '';
         }
-
+		
         // prepare participants list
-        $aParticipants = $this->getParticipantsList(bx_get('participants'));
+        $aParticipants = $this->getParticipantsList($aParticipants, $iSender !== $this->_iProfileId);
         if (!$iLotId && empty($aParticipants) && $iType === BX_IM_TYPE_PRIVATE)
-            return echoJson(array('code' => 2, 'message' => _t('_bx_messenger_send_message_no_data')));
+            return _t('_bx_messenger_send_message_no_data');
 
-		if ($sMessage)
-		{
-            $sMessage = $this -> prepareMessageToDb($sMessage);
-            if ($iType != BX_IM_TYPE_PRIVATE && $sUrl)
+		$sMessage = $this -> prepareMessageToDb($sMessage);
+		if ($sMessage && $iType != BX_IM_TYPE_PRIVATE && $sUrl)
                 $sUrl = $this->getPreparedUrl($sUrl);
-        }
-
-        $aResult = array('code' => 0, 'tmp_id' => $iTmpId);
+       
+        $aResult = array();
         if (($sMessage || !empty($aFiles) || !empty($aGiphy)) && ($iId = $this->_oDb->saveMessage(
             array(
                     'message' => $sMessage,
@@ -320,10 +359,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
 					'reply' => $iReply
             ), $aParticipants)))
         {
-            if (!$iLotId) {
+            if (!$iLotId)
                 $aResult['lot_id'] = $this->_oDb->getLotByJotId($iId);
-                $aResult['header'] = $this->_oTemplate->getTalkHeader($aResult['lot_id'], $this->_iProfileId);
-            }
 
 		    if (!empty($aFiles)) {
                 $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
@@ -342,8 +379,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                             $CNF['FIELD_ST_NAME'] => $aFile['realname']
                         ));
                         $aCompleteFilesNames[] = $aFile['realname'];
-                    } else
-                        $aResult = array('code' => 2, 'message' => $oStorage->getErrorString());
+                    }
                 }
 
                 if (!empty($aCompleteFilesNames) || !empty($aUploadingFilesNames))
@@ -364,11 +400,31 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $this->onSendJot($iId);
         }
 		else
-            $aResult = array('code' => 2, 'message' => _t('_bx_messenger_send_message_save_error'));
+            return _t('_bx_messenger_send_message_save_error');
 
-        BxDolSession::getInstance()->exists($this->_iProfileId);
-        echoJson($aResult);
-    }
+        BxDolSession::getInstance()->exists($iSender);
+		return $aResult;
+	}
+
+	public function actionSend(){
+		$aData = &$_POST;
+		 if (!$this->isLogged())
+            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
+		
+		$mixedResult = $this->sendMessage($aData);
+		if (is_array($mixedResult)){
+			if (isset($mixedResult['lot_id']))
+				$mixedResult['header'] = $this->_oTemplate->getTalkHeader($aResult['lot_id'], $this->_iProfileId);
+		} else 
+			return echoJson(array('code' => 1, 'message' => $mixedResult));
+		
+		$mixedResult['code'] = 0;
+		if ($iTmpId = bx_get('tmp_id'))
+			$mixedResult['tmp_id'] = $iTmpId;
+		
+		echoJson($mixedResult);
+	}
+    
 
     /**
      * Loads talk to the right side block when member choose conversation or when open messenger page
@@ -2308,17 +2364,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
         }
 
         return array('lot_id' => $iLotId, 'jots' => $aJots);
-    }
-
-    public function serviceSendMessage($iProfileId, $iLotId, $sMessage)
-    {
-        if ($iProfileId !== $this->_iUserId || !$this->_oDb->isParticipant($iLotId, $this->_iUserId))
-            return array('code' => 1, _t('_bx_messenger_not_participant'));
-
-        if ($sMessage = $this->prepareMessageToDb($sMessage))
-            return array('code' => 0, 'id' => $this->_oDb->addJot($iLotId, $sMessage, $this->_iUserId));
-
-        return array('code' => 1, 'message' => _t('_bx_messenger_send_message_no_data'));
     }
 
     private function prepareMessageToDb($sMessage)

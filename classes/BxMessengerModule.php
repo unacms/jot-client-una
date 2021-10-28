@@ -259,28 +259,26 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return array_unique($aParticipants, SORT_NUMERIC);
     }
 
+
     public function serviceSendMessage($iRecipient, $mixedData, $iSender = 0)
     {
         if (!$iSender)
 			$iSender = $this->_iProfileId;
-
-        if (!($oRecipient = BxDolProfile::getInstance($iRecipient)))
-            return _t('_bx_messenger_profile_not_found');
-
+        
 		$aData = array();
 		if (is_array($mixedData))
-			$aData = $mixedData;
+		    $aData = $mixedData;
 		elseif (is_string($mixedData))
-			$aData['message'] = $mixedData;
-			
+            $aData['message'] = $mixedData;
+
 		if (empty($aData))
 			return _t('_bx_messenger_send_message_no_data');
 		
 		$aData['participants'] = array($iRecipient);
 		if ($iSender)
 			$aData['participants'][] = $iSender;
-		
-		$mixedResult = $this->sendMessage($mixedData, $iRecipient, $iSender);
+
+		$mixedResult = $this->sendMessage($aData, $iRecipient, $iSender);
 		if (is_array($mixedResult) && isset($mixedResult['jot_id']))
 			return true;
 		
@@ -289,10 +287,10 @@ class BxMessengerModule extends BxBaseModGeneralModule
 	
 	/**
 	 * Main function to send Messages
-     * @param $aData params for a message, files, text, participants...
-     * @param int $iRecipient recipient's profile id
-     * @param int $iSender sender's profile id
-	 * @return array/string
+	* @param array $aData params for a message, files, text, participants...
+	* @param int $iRecipient recipient's profile id
+	* @param int $iSender sender's profile id
+	* @return array/string
 	*/
 	private function sendMessage(&$aData, $iRecipient = 0, $iSender = 0){
         $sMessage = isset($aData['message']) ? trim($aData['message']) : '';
@@ -318,7 +316,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (!$sMessage && empty($aFiles) && empty($aGiphy))
             return _t('_bx_messenger_send_message_no_data');
 
-		$aLotInfo = array();
         if ($iLotId) {
             $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
             $iType = $aLotInfo[$CNF['FIELD_TYPE']];
@@ -414,7 +411,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 		$mixedResult = $this->sendMessage($aData);
 		if (is_array($mixedResult)){
 			if (isset($mixedResult['lot_id']))
-				$mixedResult['header'] = $this->_oTemplate->getTalkHeader($aResult['lot_id'], $this->_iProfileId);
+				$mixedResult['header'] = $this->_oTemplate->getTalkHeader($mixedResult['lot_id'], $this->_iProfileId);
 		} else 
 			return echoJson(array('code' => 1, 'message' => $mixedResult));
 		

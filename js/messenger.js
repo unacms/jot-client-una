@@ -95,6 +95,7 @@
 		this.sJotMessageReply = '.bx-messenger-reply-area-message';
 		this.sJotMessageReplyArea = '.bx-messenger-reply-area';
 		this.sJotMessageTitle = '.bx-messenger-jots-title';
+		this.sTextArea = '.text-area';
 
 		//global class options
 		this.oUsersTemplate	= null;
@@ -552,13 +553,12 @@
 				const { ops } = _this.oEditor.getContents();
 
 				_this.updateSendAreaHeight();
-
 				if (_this.oEditor.length > 1){
 					const oJotInfo = Object.create(null);
 					 oJotInfo.message = ops;
 					 if (_this.iReplyId)
 						oJotInfo.reply = _this.iReplyId;
-					
+
 					_this.oStorage.saveLot(_this.oSettings.lot, oJotInfo);
 				}
 				else
@@ -806,7 +806,6 @@
 					if (oMenu.is(':visible'))
 						return;
 
-
 					$('div[id^="jot-menu-"]', _this.sTalkBlock).hide();
 					oMenu
 							.dolPopup({
@@ -1004,8 +1003,8 @@
 								.html(history);
 
 							if (text_area) {
-								if ($('.text-area', _this.sMainTalkBlock).length)
-									$('.text-area', _this.sMainTalkBlock).replaceWith(text_area);
+								if ($(_this.sTextArea, _this.sMainTalkBlock).length)
+									$(_this.sTextArea, _this.sMainTalkBlock).replaceWith(text_area);
 								else
 									$(_this.sTalkAreaWrapper).append(text_area);
 
@@ -1999,7 +1998,7 @@
 						.find(_this.sTalkBlock)
 						.html(history)
 						.end()
-						.find('.text-area')
+						.find(_this.sTextArea)
 						.replaceWith(text_area)
 						.end()
 						.bxMsgTime()
@@ -2189,7 +2188,7 @@
 											.find('.bx-db-header')
 											.replaceWith(header);
 
-									_this.updateLotSettings({lot: lot_id});
+									_this.updateLotSettings({ lot: lot_id });
 									_this.updateTalksListArea();
 									$(window).resize();
 								}
@@ -2206,7 +2205,6 @@
 										.linkify()
 										.find('div[id^="jot-menu-"]')
 										.attr('id', `jot-menu-${jot_id}`);
-
 
 									$(_this.sTalkList).addTimeIntervals();
 
@@ -2719,7 +2717,7 @@
 		if (!moment().isSame(sTime, 'year'))
 			sFormat += 'YYYY';
 
-		return this.sDateIntervalsTemplate.replace(/__date__/g, moment(sTime).lang(glBxTimeLang).format(sFormat));
+		return this.sDateIntervalsTemplate && this.sDateIntervalsTemplate.replace(/__date__/g, moment(sTime).lang(glBxTimeLang).format(sFormat));
 	}
 
 	$.fn.addTimeIntervals = function(){

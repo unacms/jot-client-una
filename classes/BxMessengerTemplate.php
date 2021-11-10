@@ -185,11 +185,11 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         return $sContent;
     }
 
-	public function getEmojiCode($bTextArea = true){
+	public function getEmojiCode(){
         $CNF = $this->_oConfig->CNF;
 
 	    return $this->parseHtmlByName('emoji-picker.html', array(
-            'title' => $bTextArea ? _t('_bx_messenger_emoji_text_title') : _t('_bx_messenger_emoji_reaction_title'),
+            'title' => _t('_bx_messenger_emoji_text_title'),
             'function' => "{$CNF['JSMain']}.onEmojiInsert",
             'set' => $CNF['EMOJI_SET'],
             'native' => $CNF['EMOJI_SET'] === 'native' ? 'true' : 'false',

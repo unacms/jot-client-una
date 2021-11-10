@@ -236,19 +236,6 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 	position:relative;
 }
 
-.bx-messenger-conversation-block-wrapper .ui.feed.segment{
-	border: 0;
-	border-radius:0;
-}
-
-.bx-messenger-conversation-block-wrapper .ui.feed > .event{
-	margin-top: 0.5rem;
-}
-
-.bx-messenger-conversation-block-wrapper .ui.feed > .event:last-child{
-	border-bottom: 0;
-}
-
 .bx-messenger-conversation-block-wrapper
 {
 	position:absolute;
@@ -496,33 +483,30 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 
 .bx-messenger-table-wrapper
 {
-	display:table;
-	height:100%;
-	table-layout:fixed;
-	width:100%;
+	display: flex;
+	height: 100%;
+	width: 100%;
 	position: relative;
+	flex-direction: column;
+	background-color: inherit;
 }
 
-.bx-messenger-table-wrapper  .bx-messenger-table-wrapper-rows
-{
-	display:table-row;	
-	width:100%;	
-	height:auto;
-	background-color:inherit;
+.bx-messenger-table-wrapper > div {
+	display: flex;
+	width: 100%;
 }
 
-.bx-messenger-table-wrapper  .bx-messenger-table-wrapper-rows .cell
-{
-	display:table-cell;
-	position:relative;
-	width:100%;
-	height:100%;
+.bx-messenger-table-wrapper-rows.history {
+	flex: 1 1 100%;
+	flex-direction: column;
+	overflow: hidden;
+	position: relative;
+	min-height:400px;
 }
-	
-.bx-messenger-table-wrapper div.bx-messenger-table-wrapper-rows:first-child .cell
-{
-	height:400px;
-	overflow:auto;
+
+.bx-messenger-table-wrapper-rows.text-area {
+	flex: 1 0 auto;
+	flex-direction: column;
 }
 
 .bx-messenger-block div.bx-messenger-date-time-hr:first-child {
@@ -1388,10 +1372,6 @@ div.bx-messenger-giphy-items img{
 
 .bx-messenger-date-time-navigator .bx-messenger-date-time-value {
 	top:0;
-}
-
-div.ui.sidebar{
-	background-color: #fff;
 }
 
 /*.ui.input.focus > input::placeholder,

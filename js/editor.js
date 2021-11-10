@@ -13,7 +13,7 @@
 
 ;window.oMessengerEditor = class {
     constructor(oOptions) {
-        const aEditorFunctions = ['onEnter', 'onChange', 'onESC', 'onUp', 'showToolbar', 'onInit'];
+        const aEditorFunctions = ['onEnter', 'onChange', 'onESC', 'onUp', 'showToolbar', 'onInit', 'onFocus', 'onBlur'];
 
         this.oHtmlEditorObject = oOptions['selector'] ? oOptions['selector'] : '.editor';
         this.oHtmlSendButton = oOptions['button'] ? oOptions['button'] : '.send-button';
@@ -208,7 +208,12 @@
            this.oEditor.on('text-change', function(delta, oldDelta, source) {
                   if (source === 'user')
                         _this.onChange();
-           });
+           }).on('selection-change', function(range, oldRange, source) {
+               if (range && !range.length)
+                   _this.onFocus();
+                else
+                   _this.onBlur();
+           })
 
           this.onInit();
     }

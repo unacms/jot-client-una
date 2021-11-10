@@ -300,3 +300,7 @@ div.bx-messenger-jots-actions-list
 .bx-messenger-jots-avatars{
 	padding-left: 0.8rem;
 }
+
+.bx-messenger-table-wrapper-rows.history {
+	min-height:auto !important;
+}

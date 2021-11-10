@@ -1,3 +1,27 @@
+.bx-messenger-conversation-block-wrapper .ui.feed.segment{
+	border: 0;
+	border-radius:0;
+}
+
+.bx-messenger-conversation-block-wrapper .ui.feed > .event{
+	margin-top: 0.5rem;
+	color: inherit;
+}
+.ui.feed div {
+	color: inherit;
+}
+
+.ui.feed > .event > .content,
+.ui.feed > .event > .content .extra,
+.ui.feed > .event > .content .summary,
+.ui.feed > .event > .content .summary > .date {
+	color: inherit;
+}
+
+.bx-messenger-conversation-block-wrapper .ui.feed > .event:last-child{
+	border-bottom: 0;
+}
+
 .ui.category.search>.results .result .image,
 .ui.search>.results .result .image
 {
@@ -70,4 +94,8 @@
 	width: inherit;
 	height: inherit;
 	line-height: inherit;
+}
+
+.bx-messenger-main-block .ui.segment {
+	background-color: inherit;
 }

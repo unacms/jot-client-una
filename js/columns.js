@@ -21,6 +21,7 @@
 				sBothColumnsParent: '.bx-layout-row',
 				sBlockHeaderArea: '.bx-messenger-block > .bx-db-header',
 				sPrevBlocks: '#bx-content-wrapper',
+				sTextArea: '.text-area',
 				oLeftCol: null,
 				oRightCol: null,
 				iLeftSize: '30%',
@@ -118,8 +119,13 @@
 							this.sActiveType = 'both';
 
 					this.iMainAreaHeight = window.innerHeight;
-					if ($(this.sPrevBlocks).length)
-						this.iMainAreaHeight -= $(this.sPrevBlocks).offset().top;
+					if ($(this.sPrevBlocks).length) {
+						const iOffset = $(this.sPrevBlocks).offset().top;
+						if (iOffset >= 0)
+							this.iMainAreaHeight -= iOffset;
+						else
+							this.iMainAreaHeight -= $(this.sPrevBlocks).position().top;
+					}
 
 					this.resizeColumns();
 				},
@@ -147,7 +153,7 @@
 														_oPrivate.onResizeWindow();
 														if (typeof fCallback === 'function')
 															fCallback();
-													 }, 300);
+													 }, 200);
 			},
 			updateColumnSize:function()
 			{

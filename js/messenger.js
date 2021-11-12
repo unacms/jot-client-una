@@ -2043,7 +2043,7 @@
 					_this.initTextArea();
 					_this.oSendPool = new Map();
 
-					if (_this.oEditor)
+					if (_this.oEditor && !_this.isMobile())
 						setTimeout(() => _this.oEditor.focus(), 1000);
 				/* ----  End ---- */
 				}
@@ -3547,7 +3547,7 @@
 					if ($(_this.sUserSelectorInput).length)
 						$(_this.sUserSelectorInput).focus();
 					else 
-						if (_this.oEditor)
+						if (_this.oEditor && !_this.isMobile())
 							_this.oEditor.focus();
 				});
 			});
@@ -3768,7 +3768,7 @@
 					&& !$(target).closest(`${_oMessenger.sMessengerBox}, ${_oMessenger.sSendAreaActions}`).length) {
 					if (_oMessenger.oEditor && _oMessenger.isMobile())
 						_oMessenger.oEditor.blur();
-				}
+					}
 			});
 
 			if (!oOptions.lot && !_this.iSelectedPersonToTalk)

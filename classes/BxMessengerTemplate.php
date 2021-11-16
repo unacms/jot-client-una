@@ -594,53 +594,53 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 		$sContent = MsgBox(_t('_Empty'));
 		if (!$this->_oConfig->CNF['SHOW-FRIENDS'])
 			return $sContent;
-		
-        $aFriends = array();
-    	if (!$sParam){
-            bx_import('BxDolConnection');
-			$oConnection = BxDolConnection::getObjectInstance('sys_profiles_friends');
-			if (!$oConnection || !($aFriends = $oConnection -> getConnectionsAsArray ('content', bx_get_logged_profile_id(), 0, false, 0, $iLimit + 1, BX_CONNECTIONS_ORDER_ADDED_DESC)))
-                return $sContent;
-		}
-        else
-        {
-			$aUsers = BxDolService::call('system', 'profiles_search', array($sParam, $iLimit), 'TemplServiceProfiles');
-			if (empty($aUsers))
-                return $sContent;
 
-			foreach($aUsers as &$aValue)
-			    $aFriends[] = $aValue['value'];
-		}
-		
-		$aItems['bx_repeat:friends'] = array();
-		foreach($aFriends as &$iValue){
-			$oProfile = $this -> getObjectUser($iValue);
-            $sThumb = $oProfile->getThumb();
-            $bThumb = stripos($sThumb, 'no-picture') === FALSE;
-            $sDisplayName = $oProfile->getDisplayName();
-            
-            $aItems['bx_repeat:friends'][] = array(
-                'name' => $sDisplayName,
-                'id' => $oProfile -> id(),
-                'bx_if:avatars' => array(
-                    'condition' => $bThumb,
-                    'content' => array(
-                        'thumb' => $sThumb,
-                        'title' => $sDisplayName,
-                    )
-                ),
-                'bx_if:letters' => array(
-                    'condition' => !$bThumb,
-                    'content' => array(
-                        'color' => implode(', ', BxDolTemplate::getColorCode($iValue, 1.0)),
-                        'title' => $sDisplayName,
-                        'letter' => mb_substr($sDisplayName, 0, 1)
-                    )
-                )
-            );
-		}
- 
-		return $this -> parseHtmlByName('friends_list.html', $aItems);
+        $aFriends = array();
+         if (!$sParam){
+             bx_import('BxDolConnection');
+            $oConnection = BxDolConnection::getObjectInstance('sys_profiles_friends');
+            if (!$oConnection || !($aFriends = $oConnection -> getConnectionsAsArray ('content', bx_get_logged_profile_id(), 0, false, 0, $iLimit + 1, BX_CONNECTIONS_ORDER_ADDED_DESC)))
+                 return $sContent;
+        }
+         else
+         {
+            $aUsers = BxDolService::call('system', 'profiles_search', array($sParam, $iLimit), 'TemplServiceProfiles');
+            if (empty($aUsers))
+                 return $sContent;
+
+            foreach($aUsers as &$aValue)
+                $aFriends[] = $aValue['value'];
+        }
+
+        $aItems['bx_repeat:friends'] = array();
+        foreach($aFriends as &$iValue){
+            $oProfile = $this -> getObjectUser($iValue);
+             $sThumb = $oProfile->getThumb();
+             $bThumb = stripos($sThumb, 'no-picture') === FALSE;
+             $sDisplayName = $oProfile->getDisplayName();
+
+             $aItems['bx_repeat:friends'][] = array(
+                 'name' => $sDisplayName,
+                 'id' => $oProfile -> id(),
+                 'bx_if:avatars' => array(
+                     'condition' => $bThumb,
+                     'content' => array(
+                         'thumb' => $sThumb,
+                         'title' => $sDisplayName,
+                     )
+                 ),
+                 'bx_if:letters' => array(
+                     'condition' => !$bThumb,
+                     'content' => array(
+                         'color' => implode(', ', BxDolTemplate::getColorCode($iValue, 1.0)),
+                         'title' => $sDisplayName,
+                         'letter' => mb_substr($sDisplayName, 0, 1)
+                     )
+                 )
+             );
+        }
+
+        return $this -> parseHtmlByName('friends_list.html', $aItems);
 	}
 	
 	/**

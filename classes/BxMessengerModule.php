@@ -304,7 +304,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         
 		$CNF = &$this->_oConfig->CNF;
 		if ($iRecipient && !($oRecipient = BxDolProfile::getInstance($iRecipient)))
-            return _t('_bx_messenger_profile_not_found');
+                return _t('_bx_messenger_profile_not_found');
 
 		if (!$iSender)
 			$iSender = $this->_iProfileId;
@@ -1000,9 +1000,15 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (empty($aJotInfo))
             return echoJson($aResult);
 
+        $bIsParticipant = $this->_oDb->isParticipant($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iProfileId);
         $aLotInfo = $this->_oDb->getLotInfoById($aJotInfo[$CNF['FIELD_MESSAGE_FK']]);
-        if (!$this->_oDb->isParticipant($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iProfileId) && $aLotInfo[$CNF['FIELD_TYPE']] !== BX_IM_TYPE_PRIVATE)
-            $this->_oDb->addMemberToParticipantsList($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iProfileId);
+        if (!$bIsParticipant) {
+            if ($aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
+               return echoJson(array('code' => 1, 'msg' => _t('_bx_messenger_jitsi_err_can_join_conference')));
+
+            if (!empty($aLotInfo))
+                $this->_oDb->addMemberToParticipantsList($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iProfileId);
+        }
 
         if ($sAction == BX_JOT_REACTION_ADD && $this->_oDb->addJotReaction($iJotId, $this->_iProfileId, $aEmoji)) {
             $this->onReactJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iJotId, $aLotInfo[$CNF['FIELD_AUTHOR']], $sAction);
@@ -2462,8 +2468,17 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         $CNF = &$this->_oConfig->CNF;
         $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
-        if (!$this->_oDb->isParticipant($iLotId, $this->_iProfileId) && !empty($aLotInfo) && $aLotInfo[$CNF['FIELD_TYPE']] !== BX_IM_TYPE_PRIVATE)
-            $this->_oDb->addMemberToParticipantsList($iLotId, $this->_iProfileId);
+
+        $bIsParticipant = $this->_oDb->isParticipant($iLotId, $this->_iProfileId);
+        if (!$bIsParticipant) {
+            if ($aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE) {
+                echo MsgBox(_t('_bx_messenger_jitsi_err_can_join_conference'));
+                exit;
+            }
+
+            if (!empty($aLotInfo))
+                $this->_oDb->addMemberToParticipantsList($iLotId, $this->_iProfileId);
+        }
 
         $aParams['audio_only'] = bx_get('startAudioOnly') ? 1 : 0;
         $mixedAuthor = $this->_oDb->getActiveJVCItem($iLotId, $CNF['FJVCT_AUTHOR_ID']);
@@ -2511,8 +2526,13 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (empty($aLotInfo))
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_found')));
 
-        if (!$this->_oDb->isParticipant($iLotId, $this->_iProfileId) && !empty($aLotInfo) && $aLotInfo[$CNF['FIELD_TYPE']] !== BX_IM_TYPE_PRIVATE)
+        $bIsParticipant = $this->_oDb->isParticipant($iLotId, $this->_iProfileId);
+        if (!$bIsParticipant){
+            if ($aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
+                return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_jitsi_err_can_join_conference')));
+
             $this->_oDb->addMemberToParticipantsList($iLotId, $this->_iProfileId);
+        }
 
         $mixedAuthor = $this->_oDb->getActiveJVCItem($iLotId, $CNF['FJVCT_AUTHOR_ID']);
         if ($mixedAuthor != $this->_iProfileId && ($mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_JOIN_TALK_VC))) {

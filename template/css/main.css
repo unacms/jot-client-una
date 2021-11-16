@@ -1374,21 +1374,6 @@ div.bx-messenger-giphy-items img{
 	top:0;
 }
 
-/*.ui.input.focus > input::placeholder,
-.ui.input > input:focus::placeholder,
-.ui.input > input::placeholder {
-	font-size: 1rem;
-	color: unset;
-}
-
-.ui.input>input::placeholder,
-input#items::placeholder,
-.ql-editor.ql-blank,
-input#bx-messenger-add-users-input::placeholder {
-	color: dimgrey;
-}
-*/
-
 .bx-messenger-options-buttons {
 	display: flex;
 	justify-content: space-between;

@@ -282,4 +282,5 @@
 	<string name="_bx_messenger_acl_action_send_files"><![CDATA[Send files]]></string>
 	<string name="_bx_messenger_show_friends"><![CDATA[Show member's friends list in talks' area if there are no talks yet]]></string>
 	<string name="_bx_messenger_contact_privacy_not_allowed"><![CDATA[Participant of the talk doesn't allow to contact]]></string>
+	<string name="_bx_messenger_empty_history"><![CDATA[Empty]]></string>
 </resources>

@@ -1,0 +1,15 @@
+<div class="bx-messenger-friends-list bx-def-color-bg-hl-even">
+	<bx_repeat:friends>
+			<div class="bx-base-pofile-unit bx-def-unit bx-messenger-padding-lots-lefttopbottom bx-def-color-bg-hl-even">
+				 <a href="javascript:void(0);" onclick="oMessenger.createLot({user:__id__});">
+					<bx_if:avatars>
+						<img class="bx-def-thumb bx-def-thumb-size bx-def-margin-sec-leftright" title="__title__" src="__thumb__" />
+					</bx_if:avatars>
+					<bx_if:letters>
+						<p class="bx-base-pofile-unit-thumb bx-def-thumb bx-def-thumb-size bx-def-margin-sec-leftright" style="background-color:rgba(__color__)">__letter__</p>
+					 </bx_if:letters>
+					<span class="bx-def-unit-info bx-def-padding-left">__name__</span>
+				 </a>
+			</div>
+	</bx_repeat:friends>
+</div>

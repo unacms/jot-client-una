@@ -272,5 +272,4 @@
 	<string name="_bx_messenger_acl_action_send_files"><![CDATA[Отправлять файлы]]></string>
 	<string name="_bx_messenger_show_friends"><![CDATA[Показывать по умолчанию список друзей, если участник не имеет созданных разговоров]]></string>
 	<string name="_bx_messenger_contact_privacy_not_allowed"><![CDATA[Участник разговора не разрешает посылать сообщения]]></string>
-	<string name="_bx_messenger_empty_history"><![CDATA[Пусто]]></string>
 </resources>

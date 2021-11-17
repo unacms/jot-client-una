@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="en" flag="gb" title="English">	
+	<string_add name="_bx_messenger_show_friends"><![CDATA[Show member's friends list in talks' area if there are no talks yet]]></string_add>
+	<string_add name="_bx_messenger_contact_privacy_not_allowed"><![CDATA[Participant of the talk doesn't allow to contact]]></string_add>
+	<string_add name="_bx_messenger_empty_history"><![CDATA[Empty]]></string_add>
+</resources>

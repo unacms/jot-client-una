@@ -497,13 +497,14 @@ class BxMessengerModule extends BxBaseModGeneralModule
      */
 	public function actionLoadJots(){
         $iId = (int)bx_get('id');
+        $iJotId = (int)bx_get('jot_id');
 	    if (!$this->isLogged() || !$iId)
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
 
 	    if (!$this->_oDb->isParticipant($iId, $this->_iProfileId))
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_participant'))));
 
-        $sContent = $this->_oTemplate->getHistoryArea($this->_iProfileId, (int)$iId ? $iId : BX_IM_EMPTY);
+        $sContent = $this->_oTemplate->getHistoryArea($this->_iProfileId, $iId, $iJotId);
         echoJson(array('code' => 0, 'history' => $sContent));
     }
 

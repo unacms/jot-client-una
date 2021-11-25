@@ -1504,7 +1504,7 @@
 			else 
 			{
 				this.iSelectedJot = iJotId;
-				this.loadTalk(this.oSettings.lot, this.iSelectedJot);
+				this.loadJotsForLot(this.oSettings.lot, iJotId);
 			}
 		}
 	}
@@ -2050,23 +2050,23 @@
 		}, 'json');
 	};
 
-	oMessenger.prototype.loadJotsForLot = function(iLotId, fCallback){
+	oMessenger.prototype.loadJotsForLot = function(iLotId, iJotId, fCallback){
 		const _this = this;
 		
-		bx_loading($(this.sJotsBlock), true);
-		$.post('modules/?r=messenger/load_jots', { id: iLotId }, function({ code, history }){
-			bx_loading($(_this.sJotsBlock), false);
+		bx_loading($(_this.sMainTalkBlock), true);
+		$.post('modules/?r=messenger/load_jots', { id: iLotId, jot_id: iJotId }, function({ code, history }){
+			bx_loading($(_this.sMainTalkBlock), false);
 			if (code === 1)
 					window.location.reload();
 						
 			if (!parseInt(code))
 			{
-				$(_this.sJotsBlock)
+				$(_this.sMainTalkBlock)
 					.find(_this.sTalkBlock)
 					.html(history)
 					.end()
 					.bxMsgTime()
-					.waitForImages(() => _this.updateScrollPosition('bottom'));
+					.waitForImages(() => _this.updateScrollPosition(iJotId ? 'position' : 'bottom', 'fast', $(`[data-id="${iJotId}"]`)));
 
 					if (typeof fCallback == 'function')
 						fCallback();
@@ -2571,7 +2571,7 @@
 			function(oData){
 				if (oData.lot) {
 					_this.oJotWindowBuilder.resizeWindow();
-					_this.loadJotsForLot(parseInt(oData.lot), fCallback);
+					_this.loadJotsForLot(parseInt(oData.lot), 0, fCallback);
 					_this.updateLotSettings({
 						lot: oData.lot
 					});

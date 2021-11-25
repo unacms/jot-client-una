@@ -3843,15 +3843,14 @@
 			return this;
 		},
 		onScrollDown: function () {
-			const { iUnreadJotsNumber, iMaxHistory, iSelectedJot, sUnreadJotsCounter, oSettings: { lot }, iScrollDownPositionJotId } = _oMessenger,
-				bMobileTalksList = _oMessenger.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive();
+			const { iUnreadJotsNumber, iMaxHistory, iSelectedJot, sUnreadJotsCounter, oSettings: { lot }, iScrollDownPositionJotId } = _oMessenger;
 
 			if (iScrollDownPositionJotId) {
 				const oPrevJot = $(`${_oMessenger.sJot}[data-id="${iScrollDownPositionJotId}"]`);
 				if (oPrevJot.length)
 					_oMessenger.updateScrollPosition('center', 'fast', oPrevJot);
 				else
-					_oMessenger.loadTalk(lot, iScrollDownPositionJotId, bMobileTalksList);
+					_oMessenger.jumpToJot(iScrollDownPositionJotId);
 
 				_oMessenger.iScrollDownPositionJotId = 0;
 				return;
@@ -3861,7 +3860,7 @@
 				_oMessenger.updateScrollPosition('bottom', 'fast');
 			else
 			{
-				_oMessenger.loadTalk(lot, undefined, undefined, _oMessenger.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive(), true);
+				_oMessenger.loadJotsForLot(lot, iSelectedJot);
 				$(sUnreadJotsCounter)
 					.text('')
 					.hide();

@@ -178,15 +178,17 @@ div.bx-messenger-lots-menu ul li a.active{
 	z-index:2;
 }
 
+.bx-messenger-jots-snip-avatars-list img{
+	max-width: fit-content;
+}
+
 .bx-messenger-jots-snip-avatars-list div
 {
 	position:relative;
 	z-index:1;
 	box-sizing: border-box;
 	float: left;
-	overflow: hidden;
-	/*line-height: 3rem;
-	height: 3rem;*/
+	overflow: hidden;	
 }
 
 .bx-messenger-jots-snip-avatars-list div:first-child

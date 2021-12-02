@@ -97,16 +97,6 @@
   position: relative;
 }
 
-/*.emoji-mart-search input {
-  font-size: 16px;
-  display: block;
-  width: 100%;
-  padding: 5px 25px 6px 10px;
-  border-radius: 5px;
-  border: 1px solid #d9d9d9;
-  outline: 0;
-}*/
-
 .emoji-mart-search input{
   font-size: 1rem;
   width: 100%;
@@ -124,8 +114,6 @@
 .emoji-mart-search input::-webkit-search-cancel-button,
 .emoji-mart-search input::-webkit-search-results-button,
 .emoji-mart-search input::-webkit-search-results-decoration {
-  /* remove webkit/blink styles for <input type="search">
-   * via https://stackoverflow.com/a/9422689 */
   -webkit-appearance: none;
 }
 
@@ -152,10 +140,10 @@
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background-color: rgba(0,0,0,0.09);
   border-radius: 100%;
   display: flex;
   align-items: center;
+  justify-items: center;
 }
 
 .emoji-mart-category-label {
@@ -171,8 +159,6 @@
   width: 100%;
   font-weight: 500;
   padding: 5px 6px;
- /* background-color: #fff;
-  background-color: rgba(255, 255, 255, .95);*/
 }
 
 .emoji-mart-category-list {
@@ -419,7 +405,6 @@
 .emoji-mart-skin-tone-5 { background-color: #9b643d }
 .emoji-mart-skin-tone-6 { background-color: #594539 }
 
-/* For screenreaders only, via https://stackoverflow.com/a/19758620 */
 .emoji-mart-sr-only {
   position: absolute;
   width: 1px;
@@ -436,9 +421,9 @@
  */
 
 .emoji-mart-dark {
-  color: #fff;
-  border-color: #555453;
-  background-color: #222;
+  color: inherit;
+  border-color: inherit;
+  background-color: inherit;
 }
 
 .emoji-mart-dark .emoji-mart-bar {
@@ -446,22 +431,17 @@
 }
 
 .emoji-mart-dark .emoji-mart-search input {
-  color: #fff;
-  border-color: #555453;
-  background-color: #2f2f2f;
+  color: inherit;
 }
 
 .emoji-mart-dark .emoji-mart-search-icon svg {
   fill: #fff;
 }
 
-.emoji-mart-dark .emoji-mart-category .emoji-mart-emoji:hover:before {
-  background-color: #444;
-}
 
 .emoji-mart-dark .emoji-mart-category-label span {
-  background-color: #222;
-  color: #fff;
+  background-color: inherit;
+  color: inherit;
 }
 
 .emoji-mart-dark .emoji-mart-skin-swatches {

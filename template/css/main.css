@@ -49,7 +49,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box
 	border: 0;
 	background-color: rgba(0,0,0,0);
 	max-height: 10rem;
-	padding: 0;
+	padding: 0 !important;
 	height: auto;
 	display: block;
 	-webkit-touch-callout: none;
@@ -104,6 +104,8 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 	align-items: center;
 	justify-content: flex-start;
 	line-height: normal;
+	margin-top:1rem;
+	margin-bottom:1rem;
 }
 
 .bx-messenger-post-box-send-actions ul li
@@ -171,6 +173,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 	box-shadow: 0 0 0 .125em hsla(0,0%,100%,.9);
 }
 
+.bx-messenger-reaction.bx-def-label,
 .bx-messenger-reaction {
 	border-radius: 1rem;
 	cursor: pointer;
@@ -357,6 +360,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 	max-width: 1rem;
 	max-height: 1rem;
 	vertical-align: middle;
+	display: inline-block;
 }
 
 .bx-messenger-jots-title div.time
@@ -491,7 +495,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 	background-color: inherit;
 }
 
-.bx-messenger-table-wrapper > div {
+.bx-messenger-table-wrapper > div.bx-messenger-table-wrapper-rows {
 	display: flex;
 	width: 100%;
 }
@@ -1223,7 +1227,9 @@ div.bx-messenger-video-block div:first-child
 	animation: blinker 2s linear infinite;
 }
 
-.bx-messenger-block  .bx-db-header i{
+.bx-messenger-block .bx-db-header i,
+.bx-messenger-block-menu-align-right i
+{
 	font-size: 1.25rem;
 }
 
@@ -1438,4 +1444,30 @@ div.bx-messenger-giphy-items img{
 {
 	color: inherit !important;
 	font-style:normal;
+}
+
+.bx-messenger-main-block.bx-def-border-block {
+	border-bottom-width: 0;
+	border-left-width: 0;
+	border-right-width: 0;
+}
+
+#bx-messenger-message-box .ql-container{
+	font-size: inherit;
+	font-family: inherit;
+}
+
+#bx-messenger-message-box .ql-editor::before,
+#bx-messenger-message-box .ql-editor{
+	color: inherit;
+	font-family: inherit;
+	font-style: inherit;
+	padding:0;
+	background: inherit;
+}
+#bx-messenger-message-box .ql-editor.ql-blank::before{
+	left: 0;
+	color: inherit;
+	font-style: inherit;
+	font-style: inherit;
 }

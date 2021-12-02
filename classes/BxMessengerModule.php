@@ -725,30 +725,53 @@ class BxMessengerModule extends BxBaseModGeneralModule
     }
 
     public function searchProfiles($sTerm, $aExcept = array(), $iLimit = 10){
-        $aResult = array();
         $aModules = BxDolService::call('system', 'get_profiles_modules', array(), 'TemplServiceProfiles');
         if (empty($aModules))
-            return $aResult;
+            return array();
 
-        // search in each module
-        $a = array();
-        foreach ($aModules as $aModule) {
-            if (!BxDolService::call($aModule['name'], 'act_as_profile'))
-                continue;
-            $a = array_merge($a, BxDolService::call($aModule['name'], 'profiles_search', array('%' . $sTerm, $iLimit + count($aExcept))));
+        $aModules = array_map(function($aModule){
+            return $aModule['name'];
+        }, $aModules);
+
+        $o = new BxDolSearch($aModules);
+        $o->setDataProcessing(true);
+        $o->setCustomSearchCondition(array('keyword' => $sTerm));
+        $o->setCustomCurrentCondition(array(
+            'paginate' => array(
+                'perPage' => $iLimit/count($aModules) + 0.5
+            )
+        ));
+
+        $aSearchResult = $o->response();
+        if (empty($aSearchResult))
+            return array();
+
+        $aUsers = array();
+        foreach($aSearchResult as $sModule => $aItems){
+            $aCNF = BxDolModule::getInstance($sModule)->_oConfig->CNF;
+            $sTitleField = $aCNF['FIELD_TITLE'];
+            $sIdField = $aCNF['FIELD_ID'];
+            foreach($aItems as &$aItem){
+                $sLabel = isset($aItem[$sTitleField]) ? $aItem[$sTitleField] : false;
+                if ($sLabel)
+                    $aUsers[] = array(
+                        'value' => BxDolProfile::getInstanceByContentAndType($aItem[$sIdField], $sModule)->id(),
+                        'label' => $sLabel,
+                    );
+            }
         }
 
         // sort result
-        usort($a, function($r1, $r2) {
+        usort($aUsers, function($r1, $r2) {
             return strcmp($r1['label'], $r2['label']);
         });
 
         if (!empty($aExcept))
-            $a = array_filter($a, function($a) use ($aExcept) {
-               return !in_array($a['value'], $aExcept);
+            $aUsers = array_filter($aUsers, function($aUsers) use ($aExcept) {
+               return !in_array($aUsers['value'], $aExcept);
             });
 
-        return array_slice($a, 0, $iLimit);
+        return array_slice($aUsers, 0, $iLimit);
     }
     /**
      * Occurs when member adds or edit participants list for new of specified lot
@@ -781,7 +804,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $sThumb = $oProfile->getThumb();
             $bThumb = stripos($sThumb, 'no-picture') === FALSE;
             $sDisplayName = $oProfile->getDisplayName();
-
             if (!empty($aProfileInfoDetails) && !empty($oAccountInfo)) {
                 $aResult[$aProfileInfo['type']]['results'][] = array(
                     'value' => $sDisplayName,

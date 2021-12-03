@@ -22,6 +22,7 @@
 				sBlockHeaderArea: '.bx-messenger-block > .bx-db-header',
 				sPrevBlocks: '#bx-content-wrapper',
 				sTextArea: '.text-area',
+				sMainArea: '.bx-main',
 				oLeftCol: null,
 				oRightCol: null,
 				iLeftSize: '30%',
@@ -41,9 +42,9 @@
 					$(this.sLeftAreaName).height(this.iMainAreaHeight - this.iLeftAreaHeight);
 				},
 				updateRightHeight: function(){
-						this.iRightAreaHeight = $(this.sBlockHeaderArea).last().outerHeight();
-						if (this.iRightAreaHeight == null)
-							return;
+					this.iRightAreaHeight = $(this.sBlockHeaderArea).last().outerHeight();
+					if (this.iRightAreaHeight == null)
+						return;
 
 						$(this.sRightAreaName).height(this.iMainAreaHeight - this.iRightAreaHeight);
 				},
@@ -127,6 +128,16 @@
 							this.iMainAreaHeight -= $(this.sPrevBlocks).position().top;
 					}
 
+					let iHeight = 0;
+					const _this = this;
+					$(this.sMainArea).children().each(function(){
+						if (!$(this).find(_this.sRightAreaName).length)
+							iHeight += $(this).height();
+						else
+							return false;
+					});
+
+					this.iMainAreaHeight = window.innerHeight - iHeight;
 					this.resizeColumns();
 				},
 

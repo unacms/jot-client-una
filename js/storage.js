@@ -73,7 +73,7 @@
     };
 
     delete(sCateg, sKey, sField){
-        if (sCateg && sKey && this._oData[sCateg][sKey]) {
+        if (sCateg && sKey && typeof this._oData[sCateg] !== 'undefined') {
  			if (typeof sField !== 'undefined'){
 				const oObject = JSON.parse(this._oData[sCateg][sKey]);
 				if (typeof oObject[sField] !== 'undefined'){

@@ -32,6 +32,8 @@
 				iLeftAreaHeight:null, //left column header height
 				iRightAreaHeight:null, //right column header height
 				iResizeTimeout:null,
+				fOffsetTop: null,
+				bIsSсreenStateMobile: false,
 				sDirection: 'LTR', // by default left to right;
 				isRTL: function(){
 					return this.sDirection === 'RTL';
@@ -70,6 +72,9 @@
 				},
 				isMobile:function(){
 					return $(window).width() <= 720;
+				},
+				isModeChanged:function(){
+					return this.bIsSсreenStateMobile !== this.isMobile();
 				},
 				changeColumn:function(sSide){
 					this.init();
@@ -119,28 +124,14 @@
 						else
 							this.sActiveType = 'both';
 
-					this.iMainAreaHeight = window.innerHeight;
-					if ($(this.sPrevBlocks).length) {
-						const iOffset = $(this.sPrevBlocks).offset().top;
-						if (iOffset >= 0)
-							this.iMainAreaHeight -= iOffset;
-						else
-							this.iMainAreaHeight -= $(this.sPrevBlocks).position().top;
+					if (this.fOffsetTop === null || this.isModeChanged()) {
+						this.fOffsetTop = $(this.sPrevBlocks).offset().top;
+						this.bIsSсreenStateMobile = this.isMobile();
 					}
 
-					let iHeight = 0;
-					const _this = this;
-					$(this.sMainArea).children().each(function(){
-						if (!$(this).find(_this.sRightAreaName).length)
-							iHeight += $(this).height();
-						else
-							return false;
-					});
-
-					this.iMainAreaHeight = window.innerHeight - iHeight;
+					this.iMainAreaHeight = window.innerHeight - this.fOffsetTop;
 					this.resizeColumns();
 				},
-
 				resizeColumns:function(){
 
 						switch(this.sActiveType){

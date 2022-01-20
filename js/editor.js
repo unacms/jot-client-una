@@ -139,6 +139,7 @@
         MessengerMentionBlot.blotName = "MessengerMentionBlot";
         Quill.register(MessengerMentionBlot);
 
+        const sTailWindClasses = $('body').hasClass('bx-artificer') ? ' rounded-md shadow  ring-1 ring-gray-200 dark:ring-gray-700 bg-white dark:bg-gray-800' : '';
         return {
             allowedChars: /^[\w]*$/,
             mentionDenotationChars: ["@"],
@@ -147,7 +148,7 @@
             blotName: 'MessengerMentionBlot',
             minChars: 1,
             listItemClass: 'ql-mention-list-item',
-            mentionContainerClass: 'ql-mention-list-container bx-popup bx-popup-color-bg bx-popup-border',
+            mentionContainerClass: 'ql-mention-list-container bx-popup bx-popup-color-bg bx-popup-border' + sTailWindClasses,
             linkTarget: '_blank',
             renderItem: data => `<span class="bx-def-font-small bx-def-padding-right">${data.value}</span><img src="${data.thumb}" />`,
             renderLoading: () => _t('_bx_messenger_loading'),
@@ -208,6 +209,7 @@
            this.oEditor.on('text-change', function(delta, oldDelta, source) {
                   if (source === 'user')
                         _this.onChange();
+
            }).on('selection-change', function(range, oldRange, source) {
                if (range && !range.length)
                    _this.onFocus();

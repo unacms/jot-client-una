@@ -270,30 +270,35 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             array(
                 'click' => "{$CNF['JSMain']}.onAddReaction(this);",
                 'title' => _t('_bx_messenger_reaction_jot'),
-                'icon' => 'smile'
+                'icon' => 'smile',
+                'class' => 'smile'
             ),
             array(
                 'visibility' => $bAllowToDelete && !$bVC,
                 'click' => "{$CNF['JSMain']}.onEditJot(this);",
                 'title' => _t('_bx_messenger_edit_jot'),
-                'icon' => 'edit'
+                'icon' => 'edit',
+                'class' => ''
             ),
             array(
                 'click' => "{$CNF['JSMain']}.onCopyJotLink(this);",
                 'title' => _t('_bx_messenger_share_jot'),
-                'icon' => 'link'
+                'icon' => 'link',
+                'class' => ''
             ),
             array(
                 'visibility' => $bAllowToDelete,
                 'click' => "if (confirm('" . bx_js_string(_t('_bx_messenger_remove_jot_confirm')) . "')) 
                                                 {$CNF['JSMain']}.onDeleteJot(this);",
                 'title' => _t('_bx_messenger_remove_jot'),
-                'icon' => 'backspace'
+                'icon' => 'backspace',
+                'class' => ''
             ),
             array(
                 'click' => "{$CNF['JSMain']}.onReplyJot(this);",
                 'title' => _t('_bx_messenger_reply'),
-                'icon' => 'reply'
+                'icon' => 'reply',
+                'class' => ''
             ),
             /*array(
                 'click' => "{$CNF['JSMain']}.onUnread(this);",
@@ -302,7 +307,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             ),*/
         );
 
-        $aVars = array('class' => '', 'position' => 'left center');
+        $aVars = array();
         foreach ($aMenuItems as &$aItem) {
                 if (isset($aItem['visibility']) && $aItem['visibility'] !== TRUE)
                     continue;
@@ -452,40 +457,46 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 'permissions' => $bAllowed,
                 'click' => "{$CNF['JSMain']}.createLot({lot:{$iLotId}});",
                 'title' => _t("_bx_messenger_lots_menu_add_part"),
-                'icon' => 'plus-circle'
+                'icon' => 'plus-circle',
+                'class' => ''
             ),
             array(
                 'permissions' => $bAllowed,
                 'click' => "if (confirm('" . bx_js_string(_t('_bx_messenger_delete_lot'), BX_ESCAPE_STR_APOS) . "')) 
                                                 {$CNF['JSMain']}.onDeleteLot($iLotId);",
                 'title' => _t('_bx_messenger_lots_menu_delete'),
-                'icon' => 'backspace'
+                'icon' => 'backspace',
+                'class' => ''
             ),
             array(
                 'title' => _t("_bx_messenger_lots_menu_leave"),
                 'click' => "if (confirm('" . bx_js_string(_t('_bx_messenger_leave_chat_confirm'), BX_ESCAPE_STR_APOS) . "')) oMessenger.onLeaveLot($iLotId);",
-                'icon' => 'sign-out-alt'
+                'icon' => 'sign-out-alt',
+                'class' => ''
             ),
             array(
                 'title' => _t("_bx_messenger_lots_menu_media"),
                 'click' => "$('.bx-messenger-conversation-block-wrapper .ui.sidebar').sidebar('toggle')",
-                'icon' => 'photo-video'
+                'icon' => 'photo-video',
+                'class' => ''
             ),
             array(
                 'permissions' => $bAllowed,
                 'click' => "if (confirm('" . bx_js_string(_t('_bx_messenger_clear_lot'), BX_ESCAPE_STR_APOS) . "')) {$CNF['JSMain']}.onClearLot($iLotId);",
                 'title' => _t('_bx_messenger_clear_lot_menu'),
-                'icon' => 'trash'
+                'icon' => 'trash',
+                'class' => ''
             ),
             array(
                 'permissions' => $bAllowed,
                 'click' => "{$CNF['JSMain']}.onLotSettings();",
                 'title' => _t('_bx_messenger_lot_menu_settings'),
-                'icon' => 'cogs'
+                'icon' => 'cogs',
+                'class' => ''
             )
         );
 
-        $aVars = array('class' => '', 'position' => 'bottom');
+        $aVars = array();
         foreach ($aMenuItems as &$aItem) {
             if (isset($aItem['permissions']) && $aItem['permissions'] !== true)
                 continue;

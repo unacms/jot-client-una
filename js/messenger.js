@@ -713,10 +713,11 @@
 	};
 
 	oMessenger.prototype.onOuterClick = function(oEvent){
-		if (!($(oEvent.target).is('[class*=smile]') || $(oEvent.target).closest(this.sEmojiId).length || $(oEvent.target).siblings('[class*=smile]').length))
+		if (!($(oEvent.target).is('[class*=smile]') || $(oEvent.target).closest(this.sEmojiId).length || $(oEvent.target).siblings('[class*=smile]').length || $(oEvent.target).closest('.smile').length)){
 			$(`${this.sEmojiId}`)
 				.hide()
 				.css('visibility', 'hidden');
+		}
 
 		if ($(oEvent.target).closest(this.sMessengerBox).length)
 			return;

@@ -1291,6 +1291,8 @@ div.bx-messenger-giphy-items{
 	position:relative;
 	width:100%;
 	min-height: 8rem;
+	display: flex;
+	align-items: center;
 }
 
 div.bx-messenger-giphy-items > div.giphy-loading{
@@ -1323,9 +1325,10 @@ div.bx-messenger-uploading-form-buttons{
 }
 
 div.bx-messenger-giphy-items img{
-	max-width: 200px;
+	max-width: 250px;
 	cursor: pointer;
 	margin-bottom: 0.5rem;
+	margin-right: 0.1rem;
 }
 
 .bx-messenger-attachment-giphy picture,

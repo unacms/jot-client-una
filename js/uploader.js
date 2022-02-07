@@ -50,7 +50,6 @@
 
     init(){
         const _this = this;
-
         $(document).on('drop paste', (e) => {
             const { target } = e;
             _this.oTarget = target;
@@ -62,7 +61,15 @@
                     url: `${_this.sFileUrl}`,
                     revert: null,
                 },
-                fileRenameFunction: file => (0 | Math.random() * 9e6).toString(36) + file.extension,
+                fileRenameFunction: file => {
+                    const { extension } = file;
+                    const sChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                    let sNewName = '';
+                    for (let  i = 0; i < 12; i++ )
+                        sNewName += sChars.charAt(Math.floor(Math.random() * sChars.length));
+
+                    return ( sNewName && (sNewName.toLowerCase() + extension) ) || '';
+                },
                 beforeDropFile: function(oFile){
                     const sPreg = /\.(jpeg|jpg|gif|png)$/;
 
@@ -83,8 +90,8 @@
 
                     if (_this.isBlockVersion && _this.oTarget !== null && !$(_this.oTarget).closest(_this.sMainObject).length)
                         return false;
-                    
-                    return !(file instanceof Blob && !(file instanceof File) && type === 'text/html');
+
+                    return !(file instanceof Blob && !(file instanceof File) && ~type.toLowerCase().indexOf('text/html'));
                 },
                 allowFileRename: true,
                 imagePreviewMaxHeight: 96,

@@ -1408,7 +1408,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			(
 				'title' => $oProfile->getDisplayName(),
                 'views' => '',
-				'time' => bx_time_js(time(), BX_FORMAT_TIME),
+				'time' => bx_time_js(time(), BX_FORMAT_TIME, true),
 				'url' => $oProfile->getUrl(),
 				'thumb' => $oProfile->getThumb(),
 				'display' => 'style="display:flex;"',

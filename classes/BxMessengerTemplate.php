@@ -661,7 +661,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	*@param boolean $bShowTime display time(last message) in the right side of the lot
 	*@return string html code
 	*/
-	function getLotsPreview($iProfileId, $aLots, $iSelectLotId = 0, $bShowTime = true){
+	function getLotsPreview($iProfileId, $aLots, $bShowTime = true){
 		$CNF = &$this->_oConfig->CNF;
 		$sContent = '';
 
@@ -1037,15 +1037,13 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
 	/**
 	* Builds left column with content 
-	*@param int $iLotId  id of the lot to select by default
 	*@param int $iProfileId logged member id
-	*@param int $iTalkPerson id of profile to talk with 
 	*@return string html code
 	*/
-	public function getLotsList($iProfileId, $iLotId = BX_IM_EMPTY, $iTalkPerson = BX_IM_EMPTY){
+	public function getLotsList($iProfileId){
 		$aMyLots = $this->_oDb->getMyLots($iProfileId);
 		if (!empty($aMyLots))
-			$sContent = $this->getLotsPreview($iProfileId, $aMyLots, $iTalkPerson ? FALSE : $iLotId);
+			$sContent = $this->getLotsPreview($iProfileId, $aMyLots);
 		else
 			$sContent = $this->getFriendsList();
 		

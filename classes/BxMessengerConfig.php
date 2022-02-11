@@ -261,6 +261,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'DISABLE-PROFILE-PRIVACY' => getParam($aModule['db_prefix'] . 'disable_contact_privacy') == 'on',
             'CONTACT-JOIN-ORGANIZATION' => getParam($aModule['db_prefix'] . 'enable_joined_organizations') == 'on',
             'SHOW-FRIENDS' => getParam($aModule['db_prefix'] . 'show_friends') == 'on',
+			'CHECK-CONTENT-FOR-TOXIC' => getParam($aModule['db_prefix'] . 'check_toxic') == 'on',
             'JWT' => array(
               'app_id' => getParam($aModule['db_prefix'] . 'jwt_app_id'),
               'secret' => getParam($aModule['db_prefix'] . 'jwt_app_secret'),
@@ -467,6 +468,20 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
         }
 
         return true;
+    }
+
+    public function isValidToUpload($sFileName){
+        if (!$sFileName)
+            return false;
+
+        $sBaseName = basename($sFileName);
+        if (strcmp($sBaseName, $sFileName) !== 0)
+            return false;
+
+        $sRequestPath = realpath(BX_DIRECTORY_PATH_TMP . $sFileName);
+	    $sValidRootPath = realpath(BX_DIRECTORY_PATH_TMP);
+
+	    return $sRequestPath !== false && strcmp(substr($sRequestPath, 0, strlen($sValidRootPath)), $sValidRootPath) === 0;
     }
 }
 

@@ -273,4 +273,7 @@
 	<string name="_bx_messenger_show_friends"><![CDATA[Показывать по умолчанию список друзей, если участник не имеет созданных разговоров]]></string>
 	<string name="_bx_messenger_contact_privacy_not_allowed"><![CDATA[Участник разговора не разрешает посылать сообщения]]></string>
 	<string name="_bx_messenger_empty_history"><![CDATA[Пусто]]></string>
+	<string name="_bx_messenger_bad_request"><![CDATA[Неверный запрос]]></string>
+	<string name="_bx_messenger_check_toxic"><![CDATA[Блокировать сообщения с плохими словами. Опция работает только с установленным Antispam модулем.]]></string>
+	<string name="_bx_messenger_toxic_message"><![CDATA[Сообщение не может быть отправлено, так как противоречит стандартам нашего сообщества. Пожалуйста, используйте нормативную лексику!]]></string>	
 </resources>

@@ -76,7 +76,7 @@
                     if (typeof oFile === 'string')
                         return sPreg.test(oFile);
 
-                    return oFile instanceof File && oFile.type !== 'text/html';
+                    return oFile instanceof File && !~oFile.type.toLowerCase().indexOf('text/html');
                 },
                 beforeAddFile: ({ file }) => {
                     const { type } = file;

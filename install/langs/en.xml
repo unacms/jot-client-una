@@ -283,4 +283,7 @@
 	<string name="_bx_messenger_show_friends"><![CDATA[Show member's friends list in talks' area if there are no talks yet]]></string>
 	<string name="_bx_messenger_contact_privacy_not_allowed"><![CDATA[Participant of the talk doesn't allow to contact]]></string>
 	<string name="_bx_messenger_empty_history"><![CDATA[Empty]]></string>
+	<string name="_bx_messenger_bad_request"><![CDATA[Bad request attempt]]></string>
+	<string name="_bx_messenger_check_toxic"><![CDATA[Block messages with toxic content. This option can not work without Antispam module.]]></string>
+	<string name="_bx_messenger_toxic_message"><![CDATA[This message can not be PUBLISHED because doesn't meet our community standards. Please use kinder, gentler words if you want to try again.]]></string>
 </resources>

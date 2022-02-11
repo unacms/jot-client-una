@@ -301,8 +301,15 @@ class BxMessengerModule extends BxBaseModGeneralModule
 		$iReply = isset($aData['reply']) ? (int)$aData['reply'] : '';
 		$aParticipants = isset($aData['participants']) ? $aData['participants'] : array();
 		$sUrl = $sTitle = '';
-        
+
 		$CNF = &$this->_oConfig->CNF;
+		
+		// check if message contains toxic
+		if ($sMessage && $CNF['CHECK-CONTENT-FOR-TOXIC'] && BxDolRequest::serviceExists('bx_antispam', 'is_toxic')){
+            if (bx_srv('bx_antispam', 'is_toxic', [$sMessage]))
+                return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_check_toxic')));
+        }
+		
 		if ($iRecipient && !($oRecipient = BxDolProfile::getInstance($iRecipient)))
                 return _t('_bx_messenger_profile_not_found');
 
@@ -368,14 +375,21 @@ class BxMessengerModule extends BxBaseModGeneralModule
                         continue;
                     }
 
-                    $iFile = $oStorage->storeFileFromPath(BX_DIRECTORY_PATH_TMP . $aFile['name'], $iType == BX_IM_TYPE_PRIVATE, $this->_iProfileId, (int)$iId);
+                    if (!$this->_oConfig->isValidToUpload($aFile['name'])){
+                        $this->_oDb->deleteJot($iId, $this->_iProfileId, true);
+                        return _t('_bx_messenger_bad_request');
+                    }
+
+                    $sFile = BX_DIRECTORY_PATH_TMP . basename($aFile['name']);
+                    $iFile = $oStorage->storeFileFromPath($sFile, $iType == BX_IM_TYPE_PRIVATE, $this->_iProfileId, (int)$iId);
                     if ($iFile) {
-                        $oStorage->afterUploadCleanup($iFile, $this->_iUserId);
+                        $oStorage->afterUploadCleanup($iFile, $this->_iProfileId);
                         $this->_oDb->updateFiles($iFile, array(
                             $CNF['FIELD_ST_JOT'] => $iId,
                             $CNF['FIELD_ST_NAME'] => $aFile['realname']
                         ));
                         $aCompleteFilesNames[] = $aFile['realname'];
+                        @unlink($sFile);
                     }
                 }
 
@@ -1140,7 +1154,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
     }
 
     /**
-     * Removes specified jot
+     * Removes specified file by id
      * @return string with json
      */
     public function actionDeleteFile()
@@ -1177,21 +1191,21 @@ class BxMessengerModule extends BxBaseModGeneralModule
     }
 
     /**
-     * Remove member from participants list
+     * Leave talk with defined id
      * @return string with json
      */
 	public function actionLeave(){
         $iLotId = bx_get('lot');
 
-        if (!$iLotId || !$this->_oDb->isParticipant($iLotId, $this->_iUserId)) {
+        if (!$iLotId || !$this->_oDb->isParticipant($iLotId, $this->_iProfileId)) {
             return echoJson(array('message' => _t('_bx_messenger_not_participant'), 'code' => 1));
         }
 
-        if ($this->_oDb->isAuthor($iLotId, $this->_iUserId))
+        if ($this->_oDb->isAuthor($iLotId, $this->_iProfileId))
             return echoJson(array('message' => _t('_bx_messenger_cant_leave'), 'code' => 1));
 
 
-        if ($this->_oDb->leaveLot($iLotId, $this->_iUserId))
+        if ($this->_oDb->leaveLot($iLotId, $this->_iProfileId))
             return echoJson(array('message' => _t('_bx_messenger_successfully_left'), 'code' => 0));
     }
 
@@ -1212,7 +1226,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
     }
 
     /**
-     * Mark lot with star
+     * Mark lot as favorite
      * @return string with json
      */
     public function actionStar()
@@ -1238,6 +1252,13 @@ class BxMessengerModule extends BxBaseModGeneralModule
        $aLots = $this->_oDb->getLotsWithUnreadMessages($iProfileId ? $iProfileId : $this->_iProfileId);
        return sizeof($aLots);
     }
+
+    /**
+     * Common function to send notifications to the Talk's participants
+     * @param $iLotId integer Talk's id
+     * @param $iJotId integer message id
+     * @return bool|string
+     */
 
     private function sendMessageNotification($iLotId, $iJotId){
         $aReceived = array();
@@ -1268,6 +1289,18 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return $this->sendNotification($iLotId, $iJotId, $sMessage, $aReceived);
     }
 
+    /**
+     * Sends push notification to the Talk's participants through the Notifications module or
+     * using Messenger's push notifications settings.
+     *
+     * @param $iLotId
+     * @param $iJotId
+     * @param $sMessage
+     * @param array $aReceived
+     * @param array $aRecipients
+     * @param string $sType
+     * @return bool|string
+     */
     private function sendNotification($iLotId, $iJotId, $sMessage, $aReceived = array(), $aRecipients = array(), $sType = BX_MSG_NTFS_MESSAGE){
         if (!$sMessage)
             return false;
@@ -1349,6 +1382,53 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         return $sResult;
     }
+
+    /**
+     * Proper the list of the participants whom to send notifications
+     * @param $iLotId
+     * @param $iJotId
+     * @param array $aOnlineUsers
+     * @param array $aRecipients
+     * @param string $sType
+     * @return bool
+     */
+
+    public function sendNotifications($iLotId, $iJotId, $aOnlineUsers = array(), $aRecipients = array(), $sType = BX_MSG_NTFS_MESSAGE)
+    {
+        $CNF = &$this->_oConfig->CNF;
+        $aPartList = $this->_oDb->getParticipantsList($iLotId, true, $this->_iProfileId);
+        if (empty($aPartList))
+            return false;
+
+        if (!empty($aRecipients)){
+            $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
+            $aDiff = array_diff($aRecipients, $aPartList);
+
+            if (!empty($aDiff) && (int)$aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_PRIVATE) // in case if the mentioned profiles are not in the participants list
+                $aPartList = array_diff($aRecipients, $aDiff);
+            else
+                $aPartList = $aRecipients;
+        }
+
+        $bIsMention = ($sType == BX_MSG_NTFS_MENTION);
+        foreach ($aPartList as &$iPart) {
+            if (array_search($iPart, $aOnlineUsers) !== FALSE || $this->_oDb->isMuted($iLotId, $iPart))
+                continue;
+
+            $iCount = $this->_oDb->getSentNtfsNumber($iPart, $iLotId);
+            if ($iCount >= (int)$CNF['MAX_NTFS_NUMBER'] && !$bIsMention)
+                continue;
+
+            bx_alert($this->_oConfig->getObject('alert'), !$bIsMention ? 'got_jot_ntfs' : 'got_mention_ntfs', $iLotId, $this->_iProfileId, array(
+                'object_author_id' => $iPart,
+                'recipient_id' => $iPart,
+                'subobject_id' => $iJotId
+            ));
+        }
+
+        return true;
+    }
+
     /**
      * Creates template with member's avatar, name and etc... It is used when member posts a message to add message to member history immediately
      * @return string json
@@ -1426,6 +1506,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         echoJson(array('code' => 1));
     }
 
+    /**
+     * Returns HTML popup form for video recording
+     */
     public function actionGetRecordVideoForm()
     {
         header('Content-type: text/html; charset=utf-8');
@@ -1433,16 +1516,24 @@ class BxMessengerModule extends BxBaseModGeneralModule
         exit;
     }
 
+    /**
+     * Allows to delete/upload files in messages
+     * @return string
+     */
     public function actionUploadTempFile()
     {
-        $CNF = &$this->_oConfig->CNF;
+        if (!$this->isLogged()) {
+            echo _t('_bx_messenger_not_logged');
+            exit;
+        }
 
+        $CNF = &$this->_oConfig->CNF;
         switch($_SERVER['REQUEST_METHOD']){
             case 'DELETE':
                 if ($sName = @file_get_contents("php://input"))
                     parse_str($sName, $aName);
 
-                if (!empty($aName) && @unlink(BX_DIRECTORY_PATH_TMP . $aName['name']))
+                if (!empty($aName) && @unlink(BX_DIRECTORY_PATH_TMP . basename($aName['name'])))
                     echo 'OK';
 
                 break;
@@ -1453,14 +1544,14 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     exit;
                 }
 
-                $aFiles = array_filter($_FILES, function(&$aFile, $sName) use ($CNF) {
+                $aFiles = array_filter($_FILES, function($aFile, $sName) use ($CNF) {
                     return stripos($sName, $CNF['FILES_UPLOADER']) !== FALSE;
                 }, ARRAY_FILTER_USE_BOTH);
 
                 $aUploader = current($aFiles);
                 if (!empty($aUploader) && $oStorage->isValidFileExt($aUploader['name'])) {
                     $sTempFile = $aUploader['tmp_name'];
-                    $sTargetFile = BX_DIRECTORY_PATH_TMP . $aUploader['name'];
+                    $sTargetFile = BX_DIRECTORY_PATH_TMP . basename($aUploader['name']);
                     move_uploaded_file($sTempFile, $sTargetFile);
                     echo 'OK';
                 }
@@ -1469,6 +1560,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return '';
     }
 
+    /**
+     * Uploads recorded video file
+     */
     public function actionUploadVideoFile()
     {
         $oStorage = new BxMessengerStorage($this->_oConfig->CNF['OBJECT_STORAGE']);
@@ -1478,7 +1572,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         if ($_FILES['file'] && $oStorage->isValidFileExt($_FILES['file']['name'])) {
             $sTempFile = $_FILES['file']['tmp_name'];
-            $sTargetFile = BX_DIRECTORY_PATH_TMP . $_POST['name'];
+            $sTargetFile = BX_DIRECTORY_PATH_TMP . basename($_POST['name']);
 
             if (move_uploaded_file($sTempFile, $sTargetFile))
                 return echoJson(array('code' => 0));
@@ -1487,6 +1581,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         echoJson(array('code' => 1, 'message' => _t('_bx_messenger_send_message_no_video')));
     }
 
+    /**
+     * Checks is the file has valid extension to upload.
+     */
     public function actionIsValidFile()
     {
         $oStorage = new BxMessengerStorage($this->_oConfig->CNF['OBJECT_STORAGE']);
@@ -1502,6 +1599,11 @@ class BxMessengerModule extends BxBaseModGeneralModule
         echoJson(array('code' => 1));
     }
 
+    /**
+     * Allows to download files from the talk
+     * @param $iFileId
+     * @return string
+     */
 
     public function actionDownloadFile($iFileId)
     {
@@ -1529,9 +1631,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
     }
 
     /**
-     * Returns big image for popup whem member click on small icon in talk history
+     * Allow to zoom image from talk's history
      * @param int $iStorageId file id
-     * @param int $iWidth widht of the window
+     * @param int $iWidth width of the window
      * @param int $iHeight height of the window
      * @return string html content
      */
@@ -1574,6 +1676,10 @@ class BxMessengerModule extends BxBaseModGeneralModule
         exit;
     }
 
+    /**
+     * Allows to register Messenger's actions in Notifications module through the Alerts
+     * @return array
+     */
     public function serviceGetNotificationsData()
     {
         $sModule = $this->_aModule['name'];
@@ -1714,6 +1820,11 @@ class BxMessengerModule extends BxBaseModGeneralModule
         || $aDataEntry[$CNF['FIELD_TYPE']] == BX_IM_TYPE_SETS ? CHECK_ACTION_RESULT_ALLOWED : CHECK_ACTION_RESULT_NOT_ALLOWED;
     }
 
+    /**
+     * Execute the list of actions which are required when message is sent
+     * @param $iJotId
+     * @return false
+     */
     public function onSendJot($iJotId)
     {
         bx_alert($this->_oConfig->getObject('alert'), 'send_jot', $iJotId, $this->_iUserId);
@@ -1733,43 +1844,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $this->sendMessageNotification($iLotId, $iJotId);
     }
 
-    public function sendNotifications($iLotId, $iJotId, $aOnlineUsers = array(), $aRecipients = array(), $sType = BX_MSG_NTFS_MESSAGE)
-    {
-        $CNF = &$this->_oConfig->CNF;
-        $aPartList = $this->_oDb->getParticipantsList($iLotId, true, $this->_iProfileId);
-        if (empty($aPartList))
-            return false;
-
-        if (!empty($aRecipients)){
-            $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
-            $aDiff = array_diff($aRecipients, $aPartList);
-
-            if (!empty($aDiff) && (int)$aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_PRIVATE) // in case if the mentioned profiles are not in the participants list
-                $aPartList = array_diff($aRecipients, $aDiff);
-            else
-                $aPartList = $aRecipients;
-        }
-
-        $bIsMention = ($sType == BX_MSG_NTFS_MENTION);
-        foreach ($aPartList as &$iPart) {
-            if (array_search($iPart, $aOnlineUsers) !== FALSE || $this->_oDb->isMuted($iLotId, $iPart))
-                    continue;
-
-            $iCount = $this->_oDb->getSentNtfsNumber($iPart, $iLotId);
-            if ($iCount >= (int)$CNF['MAX_NTFS_NUMBER'] && !$bIsMention)
-                continue;
-
-            bx_alert($this->_oConfig->getObject('alert'), !$bIsMention ? 'got_jot_ntfs' : 'got_mention_ntfs', $iLotId, $this->_iProfileId, array(
-                'object_author_id' => $iPart,
-                'recipient_id' => $iPart,
-                'subobject_id' => $iJotId
-            ));
-        }
-
-        return true;
-    }
-
-    public function onDeleteJot($iLotId, $iJotId, $iProfileId = 0)
+   public function onDeleteJot($iLotId, $iJotId, $iProfileId = 0)
     {
         if (!$iProfileId)
             $iProfileId = $this->_iProfileId;
@@ -1809,6 +1884,12 @@ class BxMessengerModule extends BxBaseModGeneralModule
         bx_alert($this->_oConfig->getObject('alert'), 'remove_part', $iParticipant, $this->_iUserId, array('lot_id' => $iLotId, 'author_id' => $iProfileId));
     }
 
+    /**
+     * Checks if logged member can contact with the person
+     * @param $iSender
+     * @param $iRecipient
+     * @return bool|mixed|true
+     */
     public function onCheckContact($iSender, $iRecipient)
     {
         $CNF = &$this->_oConfig->CNF;
@@ -1837,6 +1918,11 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return $bCanContact;
     }
 
+    /**
+     * Check if the selected profile or any groups module's item is available to send messages for logged member
+     * @param $mixedObject integer Profile id
+     * @return bool|int|mixed|true
+     */
     public function serviceIsContactAllowed($mixedObject)
     {
         if (!$this->_iProfileId)
@@ -1855,6 +1941,11 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return $this->onCheckContact($this->_iProfileId, (int)$mixedObject);
     }
 
+    /**
+     * Checks if video conference is available for member
+     * @param $mixedObject integer profile id
+     * @return bool
+     */
     public function serviceIsVideoConferenceAllowed($mixedObject)
     {
        if (!$this->_iProfileId || !$this->onCheckContact($this->_iProfileId, (int)$mixedObject))
@@ -1878,6 +1969,14 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return true;
     }
 
+    /**
+     * Sends immediate push notifications when Profile conference has been started
+     * @param $iObjectId
+     * @param $iSenderId
+     * @param $iReceiverId
+     * @param string $sType
+     * @return false
+     */
     private function sendProfilePush($iObjectId, $iSenderId, $iReceiverId, $sType = 'bx_persons'){
         $oLanguage = BxDolStudioLanguagesUtils::getInstance();
         $sLanguage = $oLanguage->getCurrentLangName(false);
@@ -2763,7 +2862,13 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 }))
                 continue;
 
-            $iFileId = $oStorage->storeFileFromPath(BX_DIRECTORY_PATH_TMP . $aFile['name'], $aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE, $this->_iProfileId, (int)$iJotId);
+            if (!$this->_oConfig->isValidToUpload($aFile['name'])){
+                $this->_oDb->deleteJot($iJotId, $this->_iProfileId, true);
+                return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_bad_request')));
+            }
+
+            $sFile = BX_DIRECTORY_PATH_TMP . basename($aFile['name']);
+            $iFileId = $oStorage->storeFileFromPath($sFile, $aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE, $this->_iProfileId, (int)$iJotId);
             if ($iFileId) {
                 $oStorage->afterUploadCleanup($iFileId, $this->_iProfileId);
                 $this->_oDb->updateFiles($iFileId, array(
@@ -2771,6 +2876,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     $CNF['FIELD_ST_NAME'] => $sRealName
                 ));
                 $this->_oDb->updateJot($iJotId, $CNF['FIELD_MESSAGE_AT_TYPE'], BX_ATT_TYPE_FILES);
+                @unlink($sFile);
             }
         }
 

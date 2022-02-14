@@ -307,7 +307,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 		// check if message contains toxic
 		if ($sMessage && $CNF['CHECK-CONTENT-FOR-TOXIC'] && BxDolRequest::serviceExists('bx_antispam', 'is_toxic')){
             if (bx_srv('bx_antispam', 'is_toxic', [$sMessage]))
-                return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_check_toxic')));
+                return _t('_bx_messenger_toxic_message');
         }
 		
 		if ($iRecipient && !($oRecipient = BxDolProfile::getInstance($iRecipient)))
@@ -2066,7 +2066,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
             if (isset($aPath['query']))
                 $sPath .= '?' . $aPath['query'];
-
         }
 
         return $sPath;

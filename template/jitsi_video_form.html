@@ -109,17 +109,17 @@
 
         bx_loading('bx-messenger-jitsi', true);
         const oApi = new JitsiMeetExternalAPI('__domain__', oOptions);
-        oApi.executeCommand('subject', '__title__');
-        oApi.executeCommand('displayName', '__user_name__');
-        oApi.executeCommand('avatarUrl', '__avatar__');
-
-        if (__audio_only__)
-            oApi.executeCommand('toggleVideo');
-
         oApi._lotId = '__id__';
         oApi
             .on('videoConferenceJoined', () => {
-                  $.get('modules/?r=messenger/create_jitsi_video_conference/', { lot_id: '__id__' }, function(oData){
+                oApi.executeCommand('subject', '__title__');
+                oApi.executeCommand('displayName', '__user_name__');
+                oApi.executeCommand('avatarUrl', '__avatar__');
+
+                if (__audio_only__)
+                    oApi.executeCommand('toggleVideo');
+                
+                $.get('modules/?r=messenger/create_jitsi_video_conference/', { lot_id: '__id__' }, function(oData){
                      const { jot_id, parts, opened, code, message } = oData;
 
                      if (+code === 1) {

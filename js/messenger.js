@@ -264,7 +264,7 @@
 			_this.initJotIcons(_this.sTalkList);
 		});
 		
-		this.blockSendMessages(!this.oRTWSF.isInitialized() || (!lot && !this.iSelectedPersonToTalk && this.iLotType === 2));
+		this.blockSendMessages(!this.oRTWSF || !this.oRTWSF.isInitialized() || (!lot && !this.iSelectedPersonToTalk && this.iLotType === 2));
 	};
 
 	oMessenger.prototype.setScrollBarWidth = function() {
@@ -565,6 +565,7 @@
 					_this.oStorage.deleteLot(_this.oSettings.lot);
 
 				// show typing area when member post the message
+				if (_this.oRTWSF)
 				_this.oRTWSF.typing({
 					lot: _this.oSettings.lot,
 					name: _this.oSettings.name,
@@ -1658,7 +1659,7 @@
 
 		const oJot = $(_oMessenger.sJotMessage, this).first();
 		if (!$(oJot).length)
-			return ;
+			return this;
 
 		let sUrl = '',
 			sText = $(oJot)
@@ -3710,6 +3711,14 @@
 
 				_oMessenger.oRTWSF.getSettings = function () {
 					return $.extend({status: _oMessenger.iStatus}, _oMessenger.oSettings);
+				};
+
+				_oMessenger.oRTWSF.onDestroy = function (oData) {
+					$(_oMessenger.sInfoArea).fadeIn();
+					$(_oMessenger.sTypingArea).parent().hide();
+					$(_oMessenger.sConnectionFailedArea).fadeIn();
+					_oMessenger.oRTWSF.end();
+					_oMessenger.oRTWSF = undefined;
 				};
 
 			} else {

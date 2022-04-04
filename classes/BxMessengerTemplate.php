@@ -1161,7 +1161,8 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         $bAttach = true;
         if ($iStartJot)
             $bAttach = $this->_oDb->getJotsNumber($iLotId, $iStartJot) < (int)$CNF['MAX_JOTS_BY_DEFAULT']/2;
-
+        
+        $sJotJWT = $CNF['JOT-JWT'];
         $aVars = array(
 			'profile_id' => (int)$iProfileId,
             'username' => $sUsername,
@@ -1175,6 +1176,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			'block_version' => +$bBlockVersion,
 			'server_url' => $this->_oConfig-> CNF['SERVER_URL'],
 			'message_length' => (int)$CNF['MAX_SEND_SYMBOLS'] ? (int)$CNF['MAX_SEND_SYMBOLS'] : 0,
+			'jot_jwt' => $sJotJWT ? $this->_oConfig->generateJWTToken($iProfileId, array('profile' => $iProfileId)) : '',
 			'ip' => gethostbyname($aUrlInfo['host']),
 			'embed_template' => $sEmbedTemplate,
 			'thumb_icon' => $this->parseHtmlByName('thumb_icon.html', array()),

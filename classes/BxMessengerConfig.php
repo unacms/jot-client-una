@@ -266,6 +266,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
               'app_id' => getParam($aModule['db_prefix'] . 'jwt_app_id'),
               'secret' => getParam($aModule['db_prefix'] . 'jwt_app_secret'),
             ),
+            'JOT-JWT' =>  getParam($aModule['db_prefix'] . 'jot_server_jwt'),
             'JSMain' => 'oMessenger'
         );
 
@@ -468,6 +469,26 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
         }
 
         return true;
+    }
+
+    function generateJWTToken($iProfileId, $aUserParams = array(), $aTokenParams = array()){
+        $oProfileInfo = BxDolProfile::getInstance( $iProfileId );
+        if (!$iProfileId || (empty($aUserParams) && empty($aTokenParams)))
+            return false;
+
+        // Encode Header to Base64Url String
+        $sHeader = json_encode(['alg' => 'HS256', 'typ' => 'JWT']);
+        $sHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($sHeader));
+
+        // Create token payload as a JSON string
+        $sPayload = json_encode( array_merge(array('context' => $aUserParams), $aTokenParams));
+        $sPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($sPayload));
+
+        // Create Signature Hash
+        $sSignature = hash_hmac('sha256', $sHeader . "." . $sPayload, $this->CNF['JOT-JWT'], true);
+        $sSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($sSignature));
+
+        return "{$sHeader}.{$sPayload}.{$sSignature}";
     }
 
     public function isValidToUpload($sFileName){

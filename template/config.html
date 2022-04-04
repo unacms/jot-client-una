@@ -53,10 +53,11 @@
         });
     }
 
-    if (typeof oRTWSF !== 'undefined') {
-			oRTWSF.init({
+    if (typeof window.oRTWSF !== 'undefined') {
+        window.oRTWSF.init({
 				server:'__server_url__',
-				ip:'__ip__'
+				ip:'__ip__',
+				jwt: '__jot_jwt__'
 			});
 	}
 		

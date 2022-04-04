@@ -13,7 +13,8 @@
 ;window.oRTWSF = (function(){
 	let _oPrimus = null,
 		_oData = Object.create(null),
-		_sIP = '0.0.0.0';
+		_sIP = '0.0.0.0',
+		sJWT;
 
 	return {
 			/**
@@ -21,22 +22,22 @@
 			*@param object oOptions options
 			*/
 			init:function(oOptions){
-				const _this = this;
-					_this._sIP = oOptions.ip || _this._sIP;
-				
-				if (!oOptions.server.length)
+				const _this = this,
+					{ server, ip, jwt } = oOptions;
+
+				_this._sIP = ip || _this._sIP;
+				if (!server.length)
 					return;
 
 				if (_oPrimus === null)
-					_oPrimus = new Primus(oOptions.server);
+					_oPrimus = new Primus(server);
 
 				// on data received from the server
 				_oPrimus.on('data', function(oData) {
 						if (typeof oData.action !== "undefined" && !_oPrimus.emit(oData.action, oData))
-							console.log('Unknown server response', oData);						
-								
+							console.log('Unknown server response', oData);
 						}).on('error', function error(oError) {
-							console.log('Primus Error', oError);					
+							console.log('Primus Error', oError);
 						}).on('reconnect scheduled', function (oOptions) {
 							console.log('Reconnecting in %d ms', oOptions.scheduled);
 							console.log('This is attempt %d out of %d', oOptions.attempt, oOptions.retries);
@@ -49,7 +50,8 @@
 							const oSettings = _this.getSettings();
 							if (typeof oSettings !== 'undefined' && typeof oSettings.user_id !== 'undefined' && typeof oSettings.status !== 'undefined'){
 								this.write({
-									 action:'init', 
+									 action:'init',
+									 jwt: jwt,
 									 ip:_this._sIP,
 									 user_id: oSettings.user_id,
 									 status: oSettings.status 
@@ -65,7 +67,14 @@
 							_this.onServerResponse(oData);
 						}).on('denied', function (oData) {
 							console.log('Access Denied for your IP');
-						})
+							_this.onReconnecting(oOptions);
+						}).on('jwt-error', function (oData) {
+							console.log('JWT token is not verified!');
+							_this.onDestroy(oData);
+						}).on('token-init', function (oData) {
+							const { token } = oData;
+							sJWT = token;
+						});
 				
 			},
 			isInitialized:() => _oPrimus !== null && typeof _oPrimus !== 'undefined',
@@ -97,6 +106,9 @@
 			onReconnectFailed:function(){
 				console.log('overwrite it in the main messenger class');
 			},
+			onDestroy:function(){
+				console.log('overwrite it in the main messenger class');
+			},
 			/** End **/
 
 		 	/*
@@ -125,8 +137,9 @@
 				
 				if (!_oPrimus.writable)
 					_oPrimus.open();
-			
-				_oPrimus.write($.extend(oData, {action:sParam, ip:this._sIP}));
+
+				const oObject = { action:sParam, ip:this._sIP };
+				_oPrimus.write($.extend(oData, oObject));
 			}
 			/** END **/
 		}

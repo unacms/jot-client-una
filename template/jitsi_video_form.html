@@ -109,6 +109,7 @@
 
         bx_loading('bx-messenger-jitsi', true);
         const oApi = new JitsiMeetExternalAPI('__domain__', oOptions);
+
         oApi._lotId = '__id__';
         oApi
             .on('videoConferenceJoined', () => {
@@ -118,7 +119,7 @@
 
                 if (__audio_only__)
                     oApi.executeCommand('toggleVideo');
-                
+
                 $.get('modules/?r=messenger/create_jitsi_video_conference/', { lot_id: '__id__' }, function(oData){
                      const { jot_id, parts, opened, code, message } = oData;
 

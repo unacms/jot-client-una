@@ -939,16 +939,17 @@
 			iFilterType	= typeof mixedOption == 'function' || mixedOption === undefined ? this.iFilterType : mixedOption,
 			searchFunction = function()
 							{
-								bx_loading($(_this.sLotsListBlock), true);
-									$.get('modules/?r=messenger/search', {param:sText || '', type:iFilterType, starred: +_this.iStarredTalks}, 
+								_this.iTimer = setTimeout(() => bx_loading($(_this.sLotsListBlock), true), 1000);
+								$.get('modules/?r=messenger/search', { param:sText || '', type:iFilterType, starred: +_this.iStarredTalks },
 										function(oData)
 										{
+											clearTimeout(_this.iTimer);
+
 											if (parseInt(oData.code) === 1)
 												window.location.reload();
 											else
 											{
 												const fCallback = () =>  typeof mixedOption === 'function' && mixedOption();
-												
 												if (!parseInt(oData.code))
 												{			
 													$(_this.sLotsListBlock)
@@ -961,7 +962,7 @@
 												else
 													fCallback();
 											}
-										}, 'json');	
+										}, 'json');
 							};
 
 		if ((typeof mixedOption !== 'function' && mixedOption) || typeof sText !== 'undefined'){

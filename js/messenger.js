@@ -72,6 +72,7 @@
 		this.sFileAttachment = '.bx-messenger-attachment-file';
 		this.sFilesUploadAreaOnForm = '.bx-messenger-upload-area';
 		this.sScrollArea = '.bx-messenger-area-scroll';
+		this.sSearchScrollArea = '.bx-messenger-area-scroll-search';
 		this.sSelectedJot = '.bx-messenger-blink-jot';
 		this.sTmpVideoFile = '.bx-messenger-attachment-temp-video';
 		this.sJotMessageViews = '.view';
@@ -96,6 +97,7 @@
 		this.sJotMessageReplyArea = '.bx-messenger-reply-area';
 		this.sJotMessageTitle = '.bx-messenger-jots-title';
 		this.sTextArea = '.text-area';
+		this.sSearchCriteria = '#bx-search-criteria';
 
 		//global class options
 		this.oUsersTemplate	= null;
@@ -156,6 +158,7 @@
 		this.oActiveEmojiObject = Object.create(null);
 		this.sJitsiServerUrl = oOptions.jitsi_server;
 		this.aDatesItervals = [];
+		this.aSearchJotsList = null;
 		this.sDateIntervalsSelector = '.bx-messenger-date-time-hr';
 		this.iScrollbarWidth = 0;
 		this.sDateIntervalsTemplate = oOptions.templates && oOptions.templates['date_intervals_template'];
@@ -170,7 +173,7 @@
 							'title'  : document.title || '',
 							'lot'	 : oOptions.lot || 0,
 							'name': (oOptions && oOptions.name) || 0,
-							'user_id': (oOptions && oOptions.user_id) || 0							
+							'user_id': (oOptions && oOptions.user_id) || 0
 						};
 
 		this.iSelectedJot = oOptions.jot_id || 0;
@@ -943,12 +946,15 @@
 								$.get('modules/?r=messenger/search', { param:sText || '', type:iFilterType, starred: +_this.iStarredTalks },
 										function(oData)
 										{
+											const { code, html, jots_list } = oData;
 											clearTimeout(_this.iTimer);
-
-											if (parseInt(oData.code) === 1)
+											if (parseInt(code) === 1)
 												window.location.reload();
 											else
 											{
+												_this.aSearchJotsList = typeof jots_list === 'object' ? jots_list : null;
+												_this.showSearchPopup(_this.oSettings.lot);
+
 												const fCallback = () =>  typeof mixedOption === 'function' && mixedOption();
 												if (!parseInt(oData.code))
 												{			
@@ -1498,20 +1504,22 @@
 		}
 	}
 	
-	oMessenger.prototype.jumpToJot = function(iJumpJotId){
-		const iJotId = iJumpJotId ? iJumpJotId : this.iReplyId;
+	oMessenger.prototype.jumpToJot = function(iJumpJotId, fCallback){
+		const iJotId = iJumpJotId ? iJumpJotId : this.iReplyId,
+			  _this = this;
+
 		if (iJotId){
 			const oJot = $(`${this.sJot}[data-id="${iJotId}"]`);
 			if (oJot.length)
-				this.updateScrollPosition('center', undefined, oJot, () => oJot.addClass(this.sSelectedJot.substr(1)));
+				this.updateScrollPosition('center', undefined, oJot, () => oJot.addClass(_this.sSelectedJot.substr(1)));
 			else 
 			{
 				this.iSelectedJot = iJotId;
-				this.loadJotsForLot(this.oSettings.lot, iJotId);
+				this.loadJotsForLot(this.oSettings.lot, iJotId, fCallback);
 			}
 		}
 	}
-	
+
 	oMessenger.prototype.editJot = function(oObject){
 		const oJot = $(oObject).closest(this.sJot),
 			iJotId = oJot.data('id') || 0,
@@ -1949,6 +1957,50 @@
 		return;
     };
 
+	oMessenger.prototype.showSearchPopup = function(iLotId, bFirst = false){
+		const _this = this,
+			 oObject = $(_this.sSearchScrollArea);
+
+		if (!$(_this.sSearchCriteria).val().length) {
+			oObject.find('#search-items').text(0).end().fadeOut();
+			return false;
+		}
+
+		let iCounter = 0, iLotIndex = null;
+		if ($(_this.sSearchCriteria).val().length && _this.aSearchJotsList !== null){
+			if (Object.keys(_this.aSearchJotsList).length) {
+				Object.keys(_this.aSearchJotsList).map((iIndex) => {
+					if (+iLotId === +_this.aSearchJotsList[iIndex]) {
+						if (!iLotIndex) {
+							iJotId = iIndex;
+							iLotIndex = iIndex;
+						}
+						iCounter++;
+					}
+				});
+
+				if (iCounter >= 1)
+					--iCounter;
+			}
+			else
+				_this.aSearchJotsList = null;
+
+			if (bFirst)
+				return iLotIndex;
+
+			if (iLotIndex)
+				delete _this.aSearchJotsList[iLotIndex];
+		}
+
+		if (iCounter)
+			oObject.fadeIn();
+		else
+			oObject.fadeOut();
+
+		oObject.find('#search-items').text(iCounter);
+		return false;
+	}
+
 	/**
 	 * Load history for selected lot
 	 * @param iLotId
@@ -1957,6 +2009,7 @@
 	 * @param fCallback
 	 * @param bMarkAsRead
 	 */
+
 	oMessenger.prototype.loadTalk = function(iLotId, iJotId, bDontChangeCol, fCallback, bMarkAsRead = false){
 		const _this = this,
               fEmpty = { done: (r) => r()};
@@ -1983,7 +2036,9 @@
 		_this.oSettings.lot = iLotId;
 		_this.blockSendMessages(true);
 
-		return $.post('modules/?r=messenger/load_talk', { lot_id: iLotId, jot_id: iJotId, mark_as_read: +bMarkAsRead },
+		// check if the search enabled
+		let iJotLoadId = _this.showSearchPopup(iLotId, true);
+		return $.post('modules/?r=messenger/load_talk', { lot_id: iLotId, jot_id: (iJotLoadId ? iJotLoadId : iJotId), mark_as_read: +bMarkAsRead },
 			function({ title, history, header, code, unread_jots, last_unread_jot, text_area, muted })
 		{
 			bx_loading($(_this.sMainTalkBlock), false);
@@ -2025,6 +2080,7 @@
 
 								_this.updateCounters(unread_jots, true);
 								_this.updatePageIcon(undefined, iLotId);
+								_this.showSearchPopup(iLotId);
 							}
 						)
 						.waitForImages(() => _this.setPositionOnSelectedJot(fCallback));
@@ -3853,6 +3909,25 @@
 
 			return this;
 		},
+		onNextSearch: function (){
+			const iLotId = _oMessenger.oSettings.lot,
+				  iLeftJotId =  _oMessenger.aSearchJotsList && Object.keys(_oMessenger.aSearchJotsList).length ?
+				  Object.keys(_oMessenger.aSearchJotsList).find( iJotId => +_oMessenger.aSearchJotsList[iJotId] === +iLotId ) : 0 ;
+
+			if (iLeftJotId) {
+				const oPrevJot = $(`${_oMessenger.sJot}[data-id="${iLeftJotId}"]`);
+				if (oPrevJot.length)
+					_oMessenger.updateScrollPosition('center', 'fast', oPrevJot.addClass(_oMessenger.sSelectedJot.substr(1)));
+				else
+					_oMessenger.jumpToJot(iLeftJotId, () => {
+						$(`${_oMessenger.sJot}[data-id="${iLeftJotId}"]`).addClass(_oMessenger.sSelectedJot.substr(1))
+					});
+
+				_oMessenger.showSearchPopup(iLotId);
+			}
+
+			return this;
+		},
 		onScrollDown: function () {
 			const { iUnreadJotsNumber, iMaxHistory, iSelectedJot, sUnreadJotsCounter, oSettings: { lot }, iScrollDownPositionJotId } = _oMessenger;
 
@@ -3873,8 +3948,8 @@
 			{
 				_oMessenger.loadJotsForLot(lot, iSelectedJot);
 				$(sUnreadJotsCounter)
-					.text('')
-					.hide();
+						.text('')
+						.hide();
 			}
 
 			return this;
@@ -4182,7 +4257,7 @@
 					.removeClass('fill');
 
 			_oMessenger.iStarredTalks = !_oMessenger.iStarredTalks;
-			this.searchByItems($('#items').val());
+			this.searchByItems($(_oMessenger.sSearchCriteria).val());
 		},
 
 		removeFile: function (oEl, id) {

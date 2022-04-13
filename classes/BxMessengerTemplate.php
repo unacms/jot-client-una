@@ -100,7 +100,8 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 'unread_count' => $iUnreadLotsJots
             );
 		}
-
+        
+        $aParams['lot_id'] = $iLotId;
 		return $this -> parseHtmlByName('history.html', $aParams);
 	}
 

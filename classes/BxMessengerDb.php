@@ -756,6 +756,13 @@ class BxMessengerDb extends BxBaseModGeneralDb
 						WHERE `{$this->CNF['FIELD_ID']}` = :lot LIMIT 1", array('lot' => $iLotId));
     }
 
+    public function getLotByJotPairs(&$aJotsList){
+        $aJotsList = array_map('intval', $aJotsList);
+        return !empty($aJotsList) ? $this -> getAll("SELECT `{$this->CNF['FIELD_MESSAGE_FK']}`, `{$this->CNF['FIELD_MESSAGE_ID']}` 
+                                                               FROM `{$this->CNF['TABLE_MESSAGES']}` 
+                                                               WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` IN (" . implode(',', $aJotsList) . ")") : false;
+    }
+
 	/**
 	* Get the latest posted jot(message)
 	*@param int $iLotId lot id
@@ -987,18 +994,17 @@ class BxMessengerDb extends BxBaseModGeneralDb
 		if ($iLotId){
             $sWhere = " AND `j`.`{$this->CNF['FIELD_MESSAGE_FK']}`=:id";
             $aWhere['id'] = (int)$iLotId;
-        } else
-            if ($iProfileId)
-            {
-                $sWhere = " AND (`l`.`{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP '(^|,){$iProfileId}(,|$)' OR `l`.`{$this->CNF['FIELD_AUTHOR']}`=:profile)";
-                $aWhere['profile'] = (int)$iProfileId;
+        }
+
+		if ($iProfileId){
+            $sWhere = " AND (`l`.`{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP '(^|,){$iProfileId}(,|$)' OR `l`.`{$this->CNF['FIELD_AUTHOR']}`=:profile)";
+            $aWhere['profile'] = (int)$iProfileId;
 		}
 
-       return $this->getColumn("SELECT `l`.`{$this->CNF['FIELD_ID']}`
+       return $this->getPairs("SELECT `j`.`{$this->CNF['FIELD_MESSAGE_ID']}`, `j`.`{$this->CNF['FIELD_MESSAGE_FK']}`
 			 FROM `{$this->CNF['TABLE_MESSAGES']}` as `j`
 			 RIGHT JOIN `{$this->CNF['TABLE_ENTRIES']}` as `l` on `l`.`{$this->CNF['FIELD_ID']}` = `j`.`{$this->CNF['FIELD_MESSAGE_FK']}` 
-             WHERE `j`.`{$this->CNF['FIELD_MESSAGE']}` LIKE :criteria {$sWhere}
-             GROUP BY `j`.`{$this->CNF['FIELD_MESSAGE_FK']}`", $aWhere);
+             WHERE `j`.`{$this->CNF['FIELD_MESSAGE']}` LIKE :criteria {$sWhere}", $this->CNF['FIELD_MESSAGE_ID'], $this->CNF['FIELD_MESSAGE_FK'], $aWhere);
 	}
 	/**
 	* Get all member's lots
@@ -1009,7 +1015,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	public function getMyLots($iProfileId, &$aParams = array())
 	{
         $sJoin = $sWhere = '';
-		$aSWhere = array();
+        $aSelectedLots = $aSWhere = array();
 		$aWhere = array('profile' => (int)$iProfileId, 'parts' => '(^|,)' . (int)$iProfileId . '(,|$)');
 
 		$sParam = isset($aParams['term']) && $aParams['term'] ? $aParams['term'] : '';
@@ -1031,8 +1037,10 @@ class BxMessengerDb extends BxBaseModGeneralDb
             }
 
             $aSelectedLots = $this->searchMessage($sParam, $iProfileId);
-            if (!empty($aSelectedLots))
-                $sParamWhere .= " OR `l`.`{$this->CNF['FIELD_ID']}` IN (" . implode(',', $aSelectedLots) .")";
+            if (!empty($aSelectedLots)) {
+                $sParamWhere .= " OR `l`.`{$this->CNF['FIELD_ID']}` IN (" . implode(',', array_unique($aSelectedLots)) . ")";
+                $aParams['jots_list'] = $aSelectedLots;
+            }
 
             $aSWhere[] = "({$sParamWhere})";
 		}

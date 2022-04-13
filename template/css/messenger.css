@@ -288,8 +288,9 @@ div.bx-messenger-border.search .star a.active
 	margin-right: 0.5rem;
 }
 
-.bx-messenger-area-scroll {
+.bx-messenger-area-scroll-search {
 	right: 0.5rem;
+	display: flex;
 }
 
 div.bx-messenger-jots-actions-list
@@ -303,4 +304,49 @@ div.bx-messenger-jots-actions-list
 
 .bx-messenger-table-wrapper-rows.history {
 	min-height:auto !important;
+}
+
+/* Popup scroll element begin */
+.bx-messenger-area-scroll-item
+{
+	width: 2rem;
+	height: 2rem;
+	border-radius: 1.5rem;
+	position: absolute;
+	right: 0.1rem;
+}
+
+.bx-messenger-area-scroll-item .bx-messenger-history-arrow {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+
+.bx-messenger-area-scroll-item i {
+	font-size: 1.5rem;
+	line-height: 2rem;
+}
+
+.bx-messenger-area-scroll-item .bx-def-unit-alert {
+	top: -1rem;
+	right: initial;
+	border-radius: 1.5rem;
+}
+
+.bx-messenger-area-scroll-item .bx-messenger-history-arrow {
+	width:100%;
+}
+.bx-messenger-area-scroll-item span > span
+{
+	flex:1 1 auto;
+	position: absolute;
+}
+
+/* Popup scroll element end */
+
+.bx-messenger-area-scroll-search {
+	bottom: 3rem;
+	right: 0.1rem;
+	display: none;
 }

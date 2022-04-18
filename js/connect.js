@@ -11,10 +11,7 @@
  * Primus class to work with the server and main messenger class
  */ 
 ;window.oRTWSF = (function(){
-	let _oPrimus = null,
-		_oData = Object.create(null),
-		_sIP = '0.0.0.0',
-		sJWT;
+	let _oPrimus = null, _oData = Object.create(null), _sIdent, sJWT;
 
 	return {
 			/**
@@ -23,9 +20,9 @@
 			*/
 			init:function(oOptions){
 				const _this = this,
-					{ server, ip, jwt } = oOptions;
+					{ server, ident, jwt } = oOptions;
 
-				_this._sIP = ip || _this._sIP;
+				_this._sIdent = ident || _this._sIdent;
 				if (!server.length)
 					return;
 
@@ -52,7 +49,7 @@
 								this.write({
 									 action:'init',
 									 jwt: jwt,
-									 ip:_this._sIP,
+									 ident:_this._sIdent,
 									 user_id: oSettings.user_id,
 									 status: oSettings.status 
 								});
@@ -75,7 +72,6 @@
 							const { token } = oData;
 							sJWT = token;
 						});
-				
 			},
 			isInitialized:() => _oPrimus !== null && typeof _oPrimus !== 'undefined',
 			/* 
@@ -115,7 +111,7 @@
 			*Methods are called on members' activities in chat window and send data to the server 
 			*BEGIN
 			*/
-			initSettings:function(oData){							
+			initSettings:function(oData){
 				this.exec('init', oData);
 			},
 			message:function(oData){
@@ -138,7 +134,7 @@
 				if (!_oPrimus.writable)
 					_oPrimus.open();
 
-				const oObject = { action:sParam, ip:this._sIP };
+				const oObject = { action:sParam, ip:this._sIdent };
 				_oPrimus.write($.extend(oData, oObject));
 			}
 			/** END **/

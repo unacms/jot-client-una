@@ -60,6 +60,12 @@ define('BX_MSG_SETTING_FILES', 'files'); // allow to send files
 define('BX_MSG_SETTING_VIDEO_RECORD', 'video_rec'); // allow to record videos
 define('BX_MSG_SETTING_SMILES', 'smiles'); // allow to record videos
 
+// search criteria
+define('BX_SEARCH_CRITERIA_TITLES', 'titles');
+define('BX_SEARCH_CRITERIA_PARTS', 'participants');
+define('BX_SEARCH_CRITERIA_CONTENT', 'content');
+
+
 /**
  * Messenger module
  */
@@ -2888,6 +2894,19 @@ class BxMessengerModule extends BxBaseModGeneralModule
         }
 
         echoJson(array('code' => 0));
+    }
+
+    function serviceGetSearchOptions(){
+        $CNF = &$this->_oConfig->CNF;
+
+        if (!$this->isLogged)
+            return false;
+
+        $aResult = array();
+        foreach($CNF['SEARCH-CRITERIA'] as &$sItem)
+            $aResult[$sItem] = _t("_bx_messenger_search_item_{$sItem}");
+
+        return $aResult;
     }
 }
 

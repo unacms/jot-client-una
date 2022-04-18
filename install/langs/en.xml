@@ -286,5 +286,9 @@
 	<string name="_bx_messenger_bad_request"><![CDATA[Bad request attempt]]></string>
 	<string name="_bx_messenger_check_toxic"><![CDATA[Block messages with toxic content. This option can not work without Antispam module.]]></string>
 	<string name="_bx_messenger_toxic_message"><![CDATA[This message can not be PUBLISHED because doesn't meet our community standards. Please use kinder, gentler words if you want to try again.]]></string>
-        <string name="_bx_messenger_jot_server_jwt"><![CDATA[Jot Server's JWT token secret word. You should add the same word in <b>config.json</b> of your Jot Server ( leave it empty if don't want to use JWT tokens for Jot Server)]]></string>
+	<string name="_bx_messenger_jot_server_jwt"><![CDATA[Jot Server's JWT token secret word. You should add the same word in <b>config.json</b> of your Jot Server ( leave it empty if don't want to use JWT tokens for Jot Server)]]></string>
+	<string name="_bx_messenger_search_criteria_list"><![CDATA[Use these criteria for messages filtration]]></string>
+	<string name="_bx_messenger_search_item_titles"><![CDATA[talks titles]]></string>
+	<string name="_bx_messenger_search_item_participants"><![CDATA[participants names]]></string>
+	<string name="_bx_messenger_search_item_content"><![CDATA[messages content]]></string>
 </resources>

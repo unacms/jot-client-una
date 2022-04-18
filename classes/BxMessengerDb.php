@@ -1021,28 +1021,36 @@ class BxMessengerDb extends BxBaseModGeneralDb
 		$sParam = isset($aParams['term']) && $aParams['term'] ? $aParams['term'] : '';
 		if ($sParam)
 		{
-		    $sParamWhere = "`l`.`{$this->CNF['FIELD_TITLE']}` LIKE :title";
-			$aWhere['title'] = "%{$sParam}%";
-			$aProfiles = BxDolService::call('system', 'profiles_search', array($sParam), 'TemplServiceProfiles');
-			if (!empty($aProfiles))
-            {
-                $aRegexp = array();
-                foreach($aProfiles as &$aProfile)
-                    $aRegexp[] = "(^|,){$aProfile['value']}(,|$)";
+            $sParamWhere = '';
+		    if ($this->_oConfig->isSearchCriteria(BX_SEARCH_CRITERIA_TITLES)) {
+                $sParamWhere = "`l`.`{$this->CNF['FIELD_TITLE']}` LIKE :title";
+                $aWhere['title'] = "%{$sParam}%";
+            }
 
-                if (!empty($aRegexp)) {
-                    $aWhere['part_search'] = implode('|', $aRegexp);
-                    $sParamWhere .= " OR `{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP :part_search";
+            if ($this->_oConfig->isSearchCriteria(BX_SEARCH_CRITERIA_PARTS)) {
+                $aProfiles = BxDolService::call('system', 'profiles_search', array($sParam), 'TemplServiceProfiles');
+                if (!empty($aProfiles)) {
+                    $aRegexp = array();
+                    foreach ($aProfiles as &$aProfile)
+                        $aRegexp[] = "(^|,){$aProfile['value']}(,|$)";
+
+                    if (!empty($aRegexp)) {
+                        $aWhere['part_search'] = implode('|', $aRegexp);
+                        $sParamWhere .= " OR `{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP :part_search";
+                    }
                 }
             }
 
-            $aSelectedLots = $this->searchMessage($sParam, $iProfileId);
-            if (!empty($aSelectedLots)) {
-                $sParamWhere .= " OR `l`.`{$this->CNF['FIELD_ID']}` IN (" . implode(',', array_unique($aSelectedLots)) . ")";
-                $aParams['jots_list'] = $aSelectedLots;
+            if ($this->_oConfig->isSearchCriteria(BX_SEARCH_CRITERIA_CONTENT)) {
+                $aSelectedLots = $this->searchMessage($sParam, $iProfileId);
+                if (!empty($aSelectedLots)) {
+                    $sParamWhere .= " OR `l`.`{$this->CNF['FIELD_ID']}` IN (" . implode(',', array_unique($aSelectedLots)) . ")";
+                    $aParams['jots_list'] = $aSelectedLots;
+                }
             }
 
-            $aSWhere[] = "({$sParamWhere})";
+            if ($sParamWhere)
+                $aSWhere[] = "({$sParamWhere})";
 		}
 
         $iType = isset($aParams['type']) ? (int)$aParams['type'] : '';

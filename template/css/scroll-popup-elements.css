@@ -1,0 +1,96 @@
+/* Popup scroll element begin */
+.bx-messenger-area-scroll-item
+{
+    width: 2rem;
+    height: 2rem;
+    border-radius: 1.5rem;
+    position: absolute;
+    right: 0.1rem;
+}
+
+.bx-messenger-area-scroll-item .bx-messenger-history-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.bx-messenger-area-scroll-item i {
+    font-size: 1.5rem;
+    line-height: 2rem;
+}
+
+.bx-messenger-area-scroll-item .bx-def-unit-alert {
+    top: -1rem;
+    right: initial;
+    border-radius: 1.5rem;
+}
+
+.bx-messenger-area-scroll-item .bx-messenger-history-arrow {
+    width:100%;
+}
+.bx-messenger-area-scroll-item span > span
+{
+    flex:1 1 auto;
+    position: absolute;
+}
+/* Popup scroll element end */
+
+/* Popup scroll down arrow area begin */
+.bx-messenger-area-scroll
+{
+    width: 2rem;
+    height: 2rem;
+    border-radius: 1.5rem;
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+    display: none;
+}
+
+.bx-messenger-area-scroll .bx-messenger-history-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.bx-messenger-area-scroll i {
+    font-size: 1.5rem;
+    line-height: 2rem;
+}
+
+.bx-messenger-area-scroll .bx-def-unit-alert {
+    top: -1rem;
+    right: initial;
+    border-radius: 1.5rem;
+}
+
+.bx-messenger-area-scroll div
+{
+    display:flex;
+    font-weight:bold;
+    align-items:center;
+    text-align:center;
+    text-overflow:ellipsis;
+    background-color: rgba(74,144,226,0.8);
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    border-radius: 0.25rem;
+    height: 1.5rem;
+    color: white;
+}
+
+.bx-messenger-area-scroll div > span
+{
+    flex:1 1 auto;
+    position:relative;
+}
+/* Popup scroll down arrow area begin */
+
+/* Popup scroll area search element */
+.bx-messenger-area-scroll-search {
+    bottom: 3rem;
+    right: 0.5rem;
+    display: none;
+}

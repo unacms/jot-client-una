@@ -101,8 +101,12 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 'unread_count' => $iUnreadLotsJots
             );
 		}
-        
-        $aParams['lot_id'] = $iLotId;
+
+        $aParams['bx_if:search'] = array(
+            'condition' => $this->_oConfig->isSearchCriteria(BX_SEARCH_CRITERIA_CONTENT),
+            'content' => array()
+        );
+
 		return $this -> parseHtmlByName('history.html', $aParams);
 	}
 

@@ -277,4 +277,8 @@
 	<string name="_bx_messenger_check_toxic"><![CDATA[Блокировать сообщения с плохими словами. Опция работает только с установленным Antispam модулем.]]></string>
 	<string name="_bx_messenger_toxic_message"><![CDATA[Сообщение не может быть отправлено, так как противоречит стандартам нашего сообщества. Пожалуйста, используйте нормативную лексику!]]></string>
 	<string name="_bx_messenger_jot_server_jwt"><![CDATA[Jot Server JWT token <b>секретное слово</b>. Такое же слово вам необходимо добавить в <b>config.json</b> вашего Jot Server (оставьте поле пустым, если не хотите использовать JWT tokens для Jot Server)]]></string>
+	<string name="_bx_messenger_search_criteria_list"><![CDATA[Использовать выделенные поля для поиска в списке сообщений]]></string>
+	<string name="_bx_messenger_search_item_titles"><![CDATA[названия разговоров]]></string>
+	<string name="_bx_messenger_search_item_participants"><![CDATA[имена участников]]></string>
+	<string name="_bx_messenger_search_item_content"><![CDATA[тело соообщений]]></string>
 </resources>

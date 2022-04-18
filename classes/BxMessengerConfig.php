@@ -224,7 +224,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
                 'video_rec',
                 'smiles'
             ),
-
+            'SEARCH-CRITERIA' => array('titles', 'participants', 'content'),
             //options
             'MAX_SEND_SYMBOLS'	=> (int)getParam($aModule['db_prefix'] . 'max_symbols_number'),
             'MAX_PREV_JOTS_SYMBOLS' => (int)getParam($aModule['db_prefix'] . 'max_symbols_brief_jot'),
@@ -262,6 +262,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'CONTACT-JOIN-ORGANIZATION' => getParam($aModule['db_prefix'] . 'enable_joined_organizations') == 'on',
             'SHOW-FRIENDS' => getParam($aModule['db_prefix'] . 'show_friends') == 'on',
 			'CHECK-CONTENT-FOR-TOXIC' => getParam($aModule['db_prefix'] . 'check_toxic') == 'on',
+			'SEARCH-CRITERIA-SELECTED' => getParam($aModule['db_prefix'] . 'search_criteria'),
             'JWT' => array(
               'app_id' => getParam($aModule['db_prefix'] . 'jwt_app_id'),
               'secret' => getParam($aModule['db_prefix'] . 'jwt_app_secret'),
@@ -503,6 +504,14 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
 	    $sValidRootPath = realpath(BX_DIRECTORY_PATH_TMP);
 
 	    return $sRequestPath !== false && strcmp(substr($sRequestPath, 0, strlen($sValidRootPath)), $sValidRootPath) === 0;
+    }
+
+    public function isSearchCriteria($sSelected){
+        $aItems = $this->CNF['SEARCH-CRITERIA-SELECTED'] ? explode(',', $this->CNF['SEARCH-CRITERIA-SELECTED']) : array();
+        if (empty($aItems))
+            return false;
+
+        return in_array($sSelected, $aItems);
     }
 }
 

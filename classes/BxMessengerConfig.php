@@ -262,6 +262,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'CONTACT-JOIN-ORGANIZATION' => getParam($aModule['db_prefix'] . 'enable_joined_organizations') == 'on',
             'SHOW-FRIENDS' => getParam($aModule['db_prefix'] . 'show_friends') == 'on',
 			'CHECK-CONTENT-FOR-TOXIC' => getParam($aModule['db_prefix'] . 'check_toxic') == 'on',
+			'TIME-FROM-NOW' => getParam($aModule['db_prefix'] . 'time_in_history') == 'on',
 			'SEARCH-CRITERIA-SELECTED' => getParam($aModule['db_prefix'] . 'search_criteria'),
             'JWT' => array(
               'app_id' => getParam($aModule['db_prefix'] . 'jwt_app_id'),

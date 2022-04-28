@@ -960,7 +960,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 $sReactions = $this->getJotReactions($iJot);
                 $aVars['bx_repeat:jots'][] = array(
                     'title' => $sDisplayName,
-                    'time' => bx_time_js($aJot[$CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_TIME, true),
+                    'time' => bx_time_js($aJot[$CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_TIME, !$CNF['TIME-FROM-NOW']),
                     'views' => $bShowViews && ($iJotCount - 1 == $iKey) ? $this->getViewedJotProfiles($iJot, $iProfileId) : '',
                     'new' => (int)($iFirstUnreadJot && $iJot >= $iFirstUnreadJot),
                     'url' => $oProfile->getUrl(),
@@ -1416,7 +1416,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			(
 				'title' => $oProfile->getDisplayName(),
                 'views' => '',
-				'time' => bx_time_js(time(), BX_FORMAT_TIME, true),
+				'time' => bx_time_js(time(), BX_FORMAT_TIME, !$CNF['TIME-FROM-NOW'] ),
 				'url' => $oProfile->getUrl(),
 				'thumb' => $oProfile->getThumb(),
 				'display' => 'style="display:flex;"',

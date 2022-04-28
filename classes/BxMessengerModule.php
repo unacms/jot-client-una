@@ -2899,7 +2899,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
     function serviceGetSearchOptions(){
         $CNF = &$this->_oConfig->CNF;
 
-        if (!$this->isLogged)
+        if (!$this->isLogged())
             return false;
 
         $aResult = array();

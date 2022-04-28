@@ -281,4 +281,5 @@
 	<string name="_bx_messenger_search_item_titles"><![CDATA[названия разговоров]]></string>
 	<string name="_bx_messenger_search_item_participants"><![CDATA[имена участников]]></string>
 	<string name="_bx_messenger_search_item_content"><![CDATA[тело соообщений]]></string>
+	<string name="_bx_messenger_time_in_history"><![CDATA[Использовать <b>from now</b> формат времени в Talk's history]]></string>
 </resources>

@@ -55,7 +55,8 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_jwt_app_secret', '', @iCategId, '_bx_messenger_jwt_app_secret', 'digit', '', '', '', 42),
 ('bx_messenger_check_toxic', '', @iCategId, '_bx_messenger_check_toxic', 'checkbox', '', '', '', 43),
 ('bx_messenger_jot_server_jwt', '', @iCategId, '_bx_messenger_jot_server_jwt', 'digit', '', '', '', 44),
-('bx_messenger_search_criteria', 'titles,participants,content', @iCategId, '_bx_messenger_search_criteria_list', 'list', '', '', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:18:"get_search_options";}', 45);
+('bx_messenger_search_criteria', 'titles,participants,content', @iCategId, '_bx_messenger_search_criteria_list', 'list', '', '', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:18:"get_search_options";}', 45),
+('bx_messenger_time_in_history', '', @iCategId, '_bx_messenger_time_in_history', 'checkbox', '', '', '', 46);
 
 -- MENU: notifications
 SET @iMIOrder = (SELECT IFNULL(MAX(`order`), 0) FROM `sys_menu_items` WHERE `set_name` = 'sys_toolbar_member' AND `order` < 9999);

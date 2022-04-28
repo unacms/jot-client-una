@@ -291,4 +291,5 @@
 	<string name="_bx_messenger_search_item_titles"><![CDATA[talks titles]]></string>
 	<string name="_bx_messenger_search_item_participants"><![CDATA[participants names]]></string>
 	<string name="_bx_messenger_search_item_content"><![CDATA[messages content]]></string>
+	<string name="_bx_messenger_time_in_history"><![CDATA[Use <b>from now</b> time format in Talk's history]]></string>
 </resources>

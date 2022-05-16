@@ -1665,7 +1665,12 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $sFileUrl = $oStorage->getFileUrlById($iStorageId);
     	if (!empty($aFile))
 		{
-            $aInfo = getimagesize($sFileUrl);
+            $aInfo = @getimagesize($sFileUrl);
+            if (empty($aInfo)){
+                echo MsgBox(_t('_bx_messenger_post_file_not_found'));
+                exit;
+            }
+
             if ($aInfo[0] <= $iWidth && $aInfo[1] <= $iHeight) {
                 $iWidth = (int)$aInfo[0];
                 $iHeight = (int)$aInfo[1];

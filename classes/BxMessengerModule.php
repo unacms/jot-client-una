@@ -1919,8 +1919,12 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $aSenderProfileInfo = $oSenderProfile->getInfo();
             $aRecipientProfileInfo = $oRecipientProfile->getInfo();
 
-            if ($aSenderProfileInfo['type'] === 'bx_organizations' && $aRecipientProfileInfo['type'] != 'bx_organizations')
-                return BxDolConnection::getObjectInstance("bx_organizations_fans")->isConnected($iRecipient, $iSender, true);
+            if ($aSenderProfileInfo['type'] === 'bx_organizations' || $aRecipientProfileInfo['type'] === 'bx_organizations') {
+                if (BxDolConnection::getObjectInstance("bx_organizations_fans")->isConnected($iSender, $iRecipient, true) || $aSenderProfileInfo['type'] === 'bx_organizations')
+                    return true;
+
+                return BxDolConnection::getObjectInstance("sys_profiles_subscriptions")->isConnected($iSender, $iRecipient);
+            }
         }
 
        if ($CNF['DISABLE-PROFILE-PRIVACY'])
@@ -1949,6 +1953,10 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         $oProfile = BxDolProfile::getInstance($mixedObject);
         $sModule = $oProfile->getModule();
+
+        if (BxDolRequest::serviceExists($sModule, 'act_as_profile') && BxDolService::call($sModule, 'act_as_profile'))
+            return $this->onCheckContact($this->_iProfileId, (int)$mixedObject);
+
         if (BxDolRequest::serviceExists($sModule, 'is_group_profile') && BxDolService::call($sModule, 'is_group_profile')) {
             $aOwnerInfo = BxDolService::call($sModule, 'get_info', array($oProfile->getContentId(), false));
             if(empty($aOwnerInfo) || !is_array($aOwnerInfo))
@@ -1957,7 +1965,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             return BxDolService::call($sModule, 'check_allowed_view_for_profile', array($aOwnerInfo)) === CHECK_ACTION_RESULT_ALLOWED;
         }
 
-        return $this->onCheckContact($this->_iProfileId, (int)$mixedObject);
+        return true;
     }
 
     /**

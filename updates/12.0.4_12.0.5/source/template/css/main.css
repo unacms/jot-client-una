@@ -1,0 +1,1476 @@
+.bx-messenger-block a
+{
+	-ms-touch-action: manipulation;
+	touch-action: manipulation;
+}
+
+.bx-messenger-conversation-block
+{
+	overflow-y:auto;
+	overflow-x:hidden;	
+	position:relative;
+	height:100%;
+	min-height:50px;
+	-webkit-overflow-scrolling: touch;
+	scrollbar-width:none;
+}
+
+div.bx-messenger-post-box
+{
+	padding: 0 1rem;
+	border-left: none;
+	border-bottom: none;
+	border-right: none;
+	border-top: 1px solid inherit;
+	border-radius: 0;
+}
+
+.bx-messenger-post-box-send-actions i.sys-icon{
+	font-size: 1.5rem;
+}
+
+i.sys-icon.star.fill{
+	color: #f5a623;
+}
+
+
+div.bx-messenger-post-box-set svg
+{
+	vertical-align:middle;
+}
+
+div.bx-messenger-post-box .bx-messenger-post-box-set > div
+{
+	padding-top:0.5rem;
+}
+
+div.bx-messenger-post-box-send-area div.bx-messenger-text-box
+{
+	border: 0;
+	background-color: rgba(0,0,0,0);
+	max-height: 10rem;
+	padding: 0 !important;
+	height: auto;
+	display: block;
+	-webkit-touch-callout: none;
+	overflow-y: auto;
+}
+
+div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
+{
+	-webkit-touch-callout: none;
+}
+
+.bx-messenger-post-box-disabled
+{
+	background-color:rgba(0,0,0,0.05);
+	-moz-user-select: none;
+	cursor: text;
+	pointer-events: none;
+	top:0;
+}
+
+.bx-messenger-post-box-send-actions{
+	display: block;
+}
+
+.bx-messenger-post-box-send-actions-items
+{
+	overflow: hidden;
+	display: flex;
+	justify-content: space-between;
+}
+
+.bx-messenger-post-box-send-actions-items li.video{
+	display: none;
+}
+
+.bx-messenger-post-box-send-actions a,
+.bx-messenger-post-box-send-button a
+{
+	z-index:1;
+	cursor:pointer;
+}
+
+.bx-messenger-post-box-send-button a {
+	display: none;
+}
+
+.bx-messenger-post-box-send-actions ul
+{
+	list-style: none;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	line-height: normal;
+	margin-top:1rem;
+	margin-bottom:1rem;
+}
+
+.bx-messenger-post-box-send-actions ul li
+{
+	display:block;
+	margin-right: 1rem;
+	min-width: 1.5rem;
+	text-align: end;
+}
+
+.bx-messenger-post-box-send-button
+{
+	display: flex;
+	align-items: center;
+}
+
+.bx-messenger-jot-reactions {
+	display: flex;
+	flex-flow: wrap;
+	position: relative;
+	line-height: normal;
+	width: 100%;
+	align-items: center;
+}
+
+.bx-messenger-reaction,
+.bx-messenger-reactions-menu {
+	margin-top:0.3rem;
+}
+
+.bx-messenger-reaction span.count {
+	margin-right: 0.3rem;
+	margin-left: 0.2rem;
+	line-height: 1.25rem;
+}
+
+.bx-messenger-send-area-attachments .giphy-item{
+	display: inline-flex;
+	height: auto;
+	position: relative;
+}
+
+.bx-messenger-send-area-attachments .giphy-item i{
+	position: absolute;
+	right: 0.5rem;
+	top: 1.5rem;
+	cursor: pointer;
+	border-radius: 1rem;
+	border: 2px solid rgba(0,0,0,0);
+	width: 1.3rem;
+	line-height: 1.3rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 400;
+	color: white;
+	will-change: transform,opacity;
+	background-color: rgba(0,0,0,.5);
+	box-shadow: 0 0 0 0 hsla(0,0%,100%,0);
+	transition: box-shadow .25s ease-in;
+	font-size: 0.9rem;
+}
+
+.bx-messenger-send-area-attachments .giphy-item i:hover{
+	box-shadow: 0 0 0 .125em hsla(0,0%,100%,.9);
+}
+
+.bx-messenger-reaction.bx-def-label,
+.bx-messenger-reaction {
+	border-radius: 1rem;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.1rem 0.2rem;
+	margin-right: 0.5rem;
+	line-height: normal;
+}
+
+.bx-messenger-post-box .bx-messenger-post-box-send-area
+{
+	width:auto;
+	align-content: center;
+	justify-content: center;
+	display:flex;
+	position:relative;
+	border-radius: 0.7rem;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+}
+
+.bx-messenger-jots-message .bx-messenger-post-box-send-area
+{
+	width:100%;
+	display:block;	
+	position:relative;
+	border:1px solid #4a90e2;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	max-width:100%;
+	border-radius: 0.25rem;
+	margin:0;
+}
+
+.bx-messenger-post-box-send-area > div:first-child
+{
+	display: flex;
+	align-items: center;
+}
+
+.bx-messenger-jots-message .bx-messenger-post-box-send-area div
+{
+	max-width:100%;	
+	margin:0;
+}
+
+.bx-messenger-jots-message .embedly-card
+{
+	max-width:480px;
+}
+
+.pc-holder 
+{
+	border: 0 none;
+	border-radius: 2px;
+	display: inline-block;
+	overflow: hidden;
+	padding: 0.3rem 0.7rem;
+	position:relative;
+}
+
+.bx-messenger-conversation-block-wrapper
+{
+	position:absolute;
+	height:100%;
+	width:100%;
+}
+
+.bx-messenger-conversations
+{
+	position:relative;
+	height:auto;
+	display:flex;
+	width:100%;
+	margin-bottom:1rem;
+	flex-direction:column;
+}
+
+.bx-messenger-conversations div.bx-messenger-jots:last-child .bx-messenger-jots-avatars,
+.bx-messenger-conversations div.bx-messenger-jots:last-child .bx-messenger-jots-info
+{
+	border:none;
+}
+
+.bx-messenger-conversations .bx-messenger-jots-snip:hover
+{
+	background-color:rgba(0,0,0,0);
+}
+
+#bx-menu-db-menu-settings
+{
+	position: absolute; 
+	top: 3rem; 
+	right: 0;
+	left: auto !important;
+	display: none;
+}
+
+.bx-messenger-block .bx-messenger-right-menu-item
+{
+	width:auto;
+	float:right;
+}	
+
+#bx-menu-db-menu li{
+	text-align:left;
+}
+
+.bx-messenger-jots
+{
+	overflow:visible;
+	min-height:50px;	
+	display:flex;
+	flex-direction:row;
+	width:auto;
+	position: relative;
+}
+
+.bx-messenger-jots-avatars{
+	height:auto;
+	overflow:hidden;
+	text-align:center;	
+	position:relative;
+	padding: 0.8rem 0.8rem 0.8rem 0;
+	flex:0 0 auto;
+}
+
+.bx-messenger-jots-info
+{
+	vertical-align: top;
+	width:auto;	
+	padding-bottom:0.8rem;
+	padding-top:0.8rem;
+	flex:1 1 auto;
+	min-width: 0;
+}
+
+.bx-messenger-block-jots .bx-messenger-jots-info
+{
+	padding-bottom:0.25rem;
+	vertical-align:top;
+}
+
+.bx-messenger-jots-title
+{
+	position: relative;
+	width: 100%;
+	vertical-align:bottom;
+    display: flex;
+    align-content: center;
+    justify-content: flex-start;
+	line-height: 1.5rem;
+}
+
+.bx-messenger-jots-title > div
+{
+    align-items: center;
+	text-overflow: ellipsis;
+	white-space:nowrap;
+}
+
+.bx-messenger-jots-title div.title
+{
+	position: relative;
+	margin-right: 0.5rem;
+	overflow: hidden;
+}
+
+.bx-messenger-jots-title div.view{
+	display:block;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.bx-messenger-jots-title div.view img
+{
+    height:100%;
+    width: auto;
+    margin-left: 0.3rem;
+	max-width: 1rem;
+	max-height: 1rem;
+	vertical-align: middle;
+	display: inline-block;
+}
+
+.bx-messenger-jots-title div.time
+{
+	text-overflow: ellipsis;
+}
+
+.bx-messenger-jots-message
+{
+	position: relative;
+	overflow-wrap: break-word;
+	word-break: break-word;
+	padding-right: 1.8rem;
+	white-space:pre-line;
+}
+
+.bx-messenger-jots-message p {
+	margin: 0;
+}
+
+.bx-messenger-conversations-typing
+{
+	display: inline-block;	
+	opacity: 0.8;
+	position: relative;
+}
+
+.bx-messenger-conversations-typing span
+{
+	margin-right:0.25rem;
+	margin-left:0.3rem;	
+}
+
+#bx-messenger-info-area
+{
+	width:100%;
+	overflow:hidden;
+	position:absolute;
+	bottom:0px;
+	display:none;
+	padding:0.3rem;
+}
+
+#bx-messenger-info-area .bx-messenger-conversations-typing:before
+{
+	font-family: 'sys-user-far', 'sys-user-fal';
+	content: "\f4ad";
+	margin-left: 1rem;
+	font-size: 0.8rem;
+}
+
+#bx-messenger-info-area .bx-messenger-info-area-connecting
+{
+	display:none;	
+}
+
+#bx-messenger-info-area .bx-messenger-info-area-connecting span
+{
+	margin-left:0.3rem;
+}
+
+#bx-messenger-info-area .bx-messenger-info-area-connecting:before
+{
+	font-family: 'sys-user', 'sys-user-fal';
+	content: "\f1e6";
+	margin-left: 1rem;
+	font-size: 0.8rem;
+}
+
+#bx-messenger-info-area .bx-messenger-info-area-connect-failed
+{
+	display:none;
+}
+
+#bx-messenger-info-area .bx-messenger-info-area-connect-failed:before
+{
+	font-family: 'sys-user', 'sys-user-fal';
+	content: "\f06a";
+	margin-left: 1rem;
+	font-size: 0.8rem;
+}
+
+.bx-messenger-block-info
+{
+	position:relative;
+	top:0px;
+	right:0px;
+	overflow:hidden;	
+	margin:0.1rem;
+}
+.bx-messenger-block-info .sys-icon,
+.bx-messenger-block-info span
+{
+	color:inherit;
+	opacity:0.5;
+}
+.bx-messenger-block-info i span
+{
+	margin-left:0.3rem;
+	margin-right:0px;
+}
+
+.bx-messenger-main-block
+{
+   height:auto;
+   width:100%;
+   border-left: 0;
+   border-right: 0;
+   border-bottom: 0;
+   border-radius: 0;
+}
+
+.bx-messenger-main-block .bx-loading-ajax{
+	margin-top:auto;
+}
+
+.bx-messenger-main-block .pusher {
+    height: 100%;
+}
+
+.bx-messenger-conversation-block-wrapper.pushable{
+    overflow: hidden;
+}
+
+.bx-messenger-table-wrapper
+{
+	display: flex;
+	height: 100%;
+	width: 100%;
+	position: relative;
+	flex-direction: column;
+	background-color: inherit;
+}
+
+.bx-messenger-table-wrapper > div.bx-messenger-table-wrapper-rows {
+	display: flex;
+	width: 100%;
+}
+
+.bx-messenger-table-wrapper-rows.history {
+	flex: 1 1 100%;
+	flex-direction: column;
+	overflow: hidden;
+	position: relative;
+	min-height:400px;
+}
+
+.bx-messenger-table-wrapper-rows.text-area {
+	flex: 1 0 auto;
+	flex-direction: column;
+}
+
+.bx-messenger-block div.bx-messenger-date-time-hr:first-child {
+	margin-top: 1rem !important;
+}
+
+.bx-messenger-usernames div
+{
+  float:left;
+  width:100%;
+  overflow:hidden;
+}
+
+div.bx-messenger-jots-actions-list
+{
+    text-align: left;
+    flex:1 1 auto;
+    display: flex;
+    justify-content: flex-end;
+	padding-left: 0.5rem;
+	padding-right: 0.4rem;
+	color: inherit;
+	position: relative;
+}
+
+div.bx-messenger-reactions-menu{
+   display:block;
+}
+
+span.bx-messenger-reactions-menu-opened
+{
+	display: flex;
+	align-items: center;
+	height: 100%
+}
+
+span.bx-messenger-reactions-menu-opened a:hover
+{
+	opacity: 1;
+}
+
+div.bx-messenger-reactions-menu a,
+div.bx-messenger-reactions-menu i {
+	border-radius: 0.75rem;
+	width: 1.5rem;
+	height: 1.5rem;
+	text-align: center;
+	display: flex;
+	align-items: center;
+	font-size: 1rem;
+	justify-content: center;
+	line-height: 1.5rem;
+}
+
+div.bx-messenger-reactions-menu a,
+div.bx-messenger-reactions-menu i:hover {
+	color: inherit !important;
+}
+
+.bx-messenger-jots-message pre{
+	padding: 5px;
+	border: 1px solid #4a90e2;
+	background-color: white;
+	color: #4a90e2;
+	display: block;
+	overflow-x: auto;
+	margin-right: 1rem;
+}
+
+ul.bx-menu-object-jot a{
+	font-size: 0.875rem;
+	line-height: 1rem;
+}
+
+.info-menu i {
+	font-size: 1.3rem;
+}
+
+.info-menu ul.bx-menu-object-jot a{
+	font-size: 1rem;
+	line-height: 1.3rem;
+}
+
+.ui.popup.bx-messenger-jots-icons .bx-popup{
+	border-radius: inherit;
+}
+
+div.bx-messenger-jots-icons
+{
+	position: absolute;
+	display: none;
+	right: 0.1rem;
+    top:0;
+	height:auto;
+	width:auto;
+	z-index:100;
+}
+
+div.bx-messenger-jots-icons.active 
+{
+	display:inline;
+}
+
+div.bx-messenger-jots-icons a
+{
+	text-decoration:none;	
+	padding:0 0rem 0 0.5rem;
+	display:table-cell;
+}
+
+div.bx-messenger-attachment,
+.bx-messenger-jots-message > div 
+{
+	overflow: hidden;
+	position: relative;
+	margin: 0.5rem;
+	width:auto;
+	border-left: 2px solid rgba(0,0,0,0.1);
+	padding-left: 0.3rem;
+}
+
+div.bx-messenger-attachment-area
+{
+	max-width:100%;
+	display: flex;
+	flex-direction: column;
+}
+.bx-messenger-jots-message div
+{
+	margin-left:0.5rem;
+	height:auto;
+	overflow:visible;
+}
+
+div.bx-messenger-attachment-header span.bx-messenger-attachment-author-icon img
+{
+	width:1rem;
+	height:1rem;
+	top: 4px;
+	position: relative;	
+}
+
+div.bx-messenger-attachment div.bx-messenger-attachment-author-message
+{
+	position: relative;
+	margin-top: 0.5rem;
+	margin-bottom: 0.5rem;
+	opacity: 1;	
+	white-space:pre-line;
+}
+
+div.bx-messenger-attachment-footer
+{
+	text-transform:lowercase;
+}
+
+div.bx-messenger-attachment-footer span.type
+{
+	border-right:1px solid rgba(0,0,0,0.1);	
+	padding-right:0.2rem;
+}
+
+/* Upload Files Area */
+#bx-messenger-uploaded-files-area
+{
+	width:100%;
+}
+
+.bx-messenger-files-upload-description-area
+{
+	overflow:hidden;
+	width:100%;
+}
+
+.bx-messenger-upload-area div[contenteditable="true"],
+.bx-messenger-files-upload-area div[contenteditable="true"]{	
+	border:0px;
+	min-height:3rem;
+	outline:0;
+	margin-top:0.5rem;
+	margin-bottom:0.5rem;
+}
+
+.bx-messenger-files-upload-description-area div.bx-messenger-comment {
+	min-height: 2rem;
+	margin-bottom:1rem;
+}
+
+.bx-messenger-comment
+{
+	white-space:pre-line;
+}
+
+.bx-messenger-comment:empty:before 
+{
+	content: attr(placeholder);
+	color: #ccc;
+}
+
+.bx-messenger-send-area-attachments img{
+	border-radius: 0.45rem;
+	margin: 1rem 0;
+}
+
+.bx-messenger-comment:focus:before 
+{
+	content:'';
+}
+
+.bx-messenger-attachment-group{
+	display: none;
+	flex-direction: column;
+}
+
+.bx-messenger-attachment-giphy i.sys-icon{
+	position: absolute;
+	left: calc(50% - 1rem);
+	top: calc(50% - 1rem);
+	font-size: 2rem;
+	color: white;
+	cursor: pointer;
+}
+
+.bx-messenger-attachment-giphy,
+.bx-messenger-attachment-files
+{
+	position: relative;
+	margin-top: 0.5rem;
+	width: auto;
+	white-space:normal;
+}
+
+.bx-messenger-attachment-giphy img{
+	border-radius: 0.2rem;
+	width: 100%;
+	height: 100%;
+}
+
+.bx-messenger-attachment-file
+{	
+	float:left;
+	overflow:hidden;
+	font-size:3rem;
+	border: 1px solid rgba(219,233,249, 1);
+	border-radius: 0.5rem;
+	padding: 0.5rem;
+	position:relative;
+	max-width:320px;
+	width:70%;
+	display: flex;
+	align-items: center;
+
+}
+
+.bx-messenger-attachment-file-wrapper a
+{
+	color:inherit;
+}
+
+.bx-messenger-attachment-file-wrapper
+{
+	width:100%;
+	overflow:hidden;		
+	margin-bottom: 1rem;
+}
+
+.bx-messenger-attachment-file i
+{
+	float:left;
+	margin: 0.3rem;
+}
+div.bx-messenger-attachment-file-videos span.delete,
+div.bx-messenger-attachment-file-images span.delete
+{
+	position:absolute;
+	top:2.9rem;	
+	right:0;
+	opacity:inherit;
+}
+
+div.bx-messenger-attachment-file-wrapper span.delete
+{
+	position: absolute;
+	right:0;
+	opacity:inherit;
+}
+
+.bx-messenger-attachment-file-info
+{
+	overflow:hidden;
+	opacity:1;
+}
+
+.bx-messenger-attachment-file-info span
+{
+	font-size:1rem;
+	float:left;
+	margin: 0.3rem;
+	width:100%;
+}
+
+div.bx-messenger-attachment-file-download
+{
+	position:absolute;	
+	right:0;
+	bottom:0;
+	font-size:1rem;
+	margin:0.3rem;	
+}
+
+div.bx-messenger-attachment-file-videos,
+div.bx-messenger-attachment-file-images,
+div.bx-messenger-attachment-file-audio
+{
+	width:100%;
+	text-align:left;
+	float:left;
+	position:relative;
+	margin-bottom:0.5rem;
+}
+
+div.bx-messenger-attachment-file-images span.title
+{
+	width:100%;
+	overflow:hidden;
+	text-align:left;
+	opacity:1;
+	float:left;
+	margin-top:1rem;
+	padding:0.3rem;
+}
+
+div.bx-messenger-attachment-temp-video img,
+div.bx-messenger-attachment-file-audio audio
+{
+	max-width: 480px;
+	width: 90%;
+	float: left;
+	margin-top: 0.3rem;
+	border-radius:0.2rem;
+}
+
+div.bx-messenger-attachment-file-videos video.bx-player-plyr{
+	width:100%;
+}
+
+div.bx-messenger-attachment-file-audio .audio{
+	display: flex;
+	flex-direction: column;
+	justify-content: left;
+}
+
+div.bx-messenger-attachment-file-audio .audio > span{
+	margin:0.3rem;
+}
+
+div.bx-messenger-attachment-file-audio .audio .title{
+	font-weight: bold;
+}
+
+div.bx-messenger-attachment-file-audio .audio .file img{
+	max-height:3rem;
+}
+
+.bx-messenger-jots-message > img,
+div.bx-messenger-attachment-file-images img
+{
+	max-width: 40%;
+	float: left;
+	margin-top: 0.3rem;
+	cursor:zoom-in;
+	border-radius:0.2rem;
+}
+
+#bx-messenger-big-img
+{
+	overflow:hidden;
+}
+
+#bx-messenger-big-img img
+{
+	border-radius:0.2rem;
+}
+
+#bx-messenger-big-img .bx-popup-content-wrapped
+{
+	overflow:hidden;
+	vertical-align:middle;
+	text-align:center;
+	cursor:zoom-in;
+	width:100% !important;
+	height:100% !important;
+}
+
+div.bx-messenger-edit-jot
+{
+	margin:0.5rem 0 0 0;
+	padding:0;
+	border:0px;	
+	max-width:100%;
+	display:none;
+	white-space:normal;
+	line-height:1rem;
+	min-height:2rem;
+}
+
+div.bx-messenger-edit-jot div.bx-messenger-post-box-send-area
+{
+	margin-bottom:1rem;
+	max-width: calc(100% - 1rem);
+}
+
+div.bx-messenger-edit-jot div.bx-messenger-post-box-send-area div.bx-messenger-text-box
+{
+    max-height: 7rem;
+    min-height: 2.3rem;
+    vertical-align: middle;
+	padding-left: 0.5rem;
+	padding-top: 0.3rem;
+	display: block;
+}
+
+div.bx-messenger-edit-jot a.smiles
+{
+	right: 0.3rem;
+    top: 0.3rem;
+    position:absolute;
+}
+
+div.bx-messenger-edit-jot-buttons
+{
+	margin:0rem;
+	max-width:100%;
+}
+
+div.bx-messenger-edit-jot-buttons div
+{
+	margin:0 0.5rem 0 0;
+}
+.bx-messenger-jots-message-vc-icon,
+.bx-messenger-jots-message-edit-time
+{
+	position: absolute;
+	right: 1.05rem;
+	opacity: 0.4;
+	white-space: normal;
+	bottom: 0;
+}
+
+.bx-messenger-jots-message-edit-time i{
+	color: inherit !important;
+}
+
+div.bx-messenger-jots-message-deleted
+{
+	max-width: 100%;
+	text-align: left;
+	display: flex;
+	position: relative;
+	background-color: rgba(0,0,0,0.07);
+	max-height: 1.5rem;
+	overflow: hidden;
+	white-space: normal;
+	border-radius: 0.25rem;
+	padding: 0.3rem;
+	margin:0.25rem 0 0 0;	
+	border:0;
+	align-items:center;
+}
+
+div.bx-messenger-jots-message-deleted span
+{
+	margin-left: 1rem;
+}
+
+div.bx-messenger-jots-message-deleted span:first-child
+{
+	flex: 1 auto;
+	margin: 0.2rem;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+div.bx-messenger-jots-message-deleted span svg
+{
+	height: 1.3rem;
+	vertical-align:middle;
+}
+
+div.bx-messenger-hidden-jot div
+{
+	overflow:hidden;
+	/*max-width:100%;*/
+}
+
+div.bx-messenger-hidden-jot div.bx-messenger-jots-actions-list
+{
+	display:none;
+}
+
+div.bx-messenger-jots-title b
+{
+	font-size: 1.3rem;
+	line-height: 1.3rem;
+}
+
+div.bx-messenger-jots-actions-list > i{
+	cursor: pointer;
+	text-align: center;
+	width: 1.5rem;
+	border-radius: 0.75rem;
+	height: 1.5rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.875rem;
+	font-weight: 400;
+	padding: 0;
+}
+
+div.bx-messenger-hidden-jot
+{
+	margin-top:1rem;
+	border:1px solid #4a90e2;
+	white-space:normal;
+	padding:0.5rem;
+	border-radius:0.25rem;
+	overflow:hidden;
+	max-width:100%;
+}
+
+/* Popup scroll down arrow area begin */
+.bx-messenger-area-scroll
+{
+	width: 2rem;
+	height: 2rem;
+	border-radius: 1.5rem;
+	position: absolute;
+	bottom: 0.5rem;
+	right: 0.1rem;
+	display: none;
+}
+
+.bx-messenger-area-scroll .bx-messenger-history-arrow {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+
+.bx-messenger-area-scroll i {
+	font-size: 1.5rem;
+	line-height: 2rem;
+}
+
+.bx-messenger-area-scroll .bx-def-unit-alert {
+	top: -1rem;
+	right: initial;
+	border-radius: 1.5rem;
+}
+
+.bx-messenger-area-scroll div
+{
+	display:flex;
+	font-weight:bold;
+	align-items:center;
+	text-align:center;
+	text-overflow:ellipsis;
+	background-color: rgba(74,144,226,0.8);
+	margin-left: 0.5rem;
+	margin-right: 0.5rem;
+	border-radius: 0.25rem;
+	height: 1.5rem;
+	color: white;
+}
+
+.bx-messenger-area-scroll div > span
+{
+	flex:1 1 auto;
+	position:relative;
+}
+/* Popup scroll down arrow area begin */
+
+/* Video Recording Area */
+div.bx-messenger-upload-area
+{
+	overflow:hidden;
+	min-height:3rem;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.3rem;
+}
+
+div.bx-messenger-upload-area .bx-messenger-video-buttons
+{
+	overflow:hidden;
+	width:100%;	
+	display:flex;
+	justify-content:center;
+}
+
+div.bx-messenger-upload-area .bx-messenger-video-buttons .bx-btn
+{
+	float:none;
+}
+
+.bx-messenger-video
+{
+	position:relative;
+	text-align:center;
+}
+
+.bx-messenger-video video
+{
+	min-width:320px;
+	min-height:240px;
+	width:480px;
+	height:360px;
+	background-color:rgba(7,20,30,.8);
+}
+
+div.bx-messenger-video-block
+{
+	margin:1rem;
+	overflow:hidden;
+}
+
+div.bx-messenger-video-block div:first-child
+{
+	overflow:hidden;
+}
+
+.bx-messenger-video-buttons button.bx-btn
+{
+	vertical-align:middle;
+	min-width:2.2rem;
+}
+
+.bx-messenger-video-buttons svg
+{
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	fill:#fff;
+}
+
+.bx-messenger-video-buttons button.empty svg
+{
+	fill:none;
+}
+
+.bx-messenger-video-buttons div.bx-btn.active svg
+{
+	fill:orangered;
+}
+
+.bx-messenger-video-recording
+{
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    fill: orangered;
+    text-transform: uppercase;
+    font-size: 1rem;
+    font-weight: bold;
+    vertical-align: middle;
+	display:none;
+	color:#fff;
+}
+
+.bx-messenger-video-recording span
+{
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    font-weight: bold;
+    vertical-align: middle;
+	color:#fff;
+	margin-right:0.5rem;
+}
+
+.bx-messenger-video-recording .icon
+{
+	height:1rem;
+	width:1rem;
+	fill:orangered;
+	color:orangered;
+	top: 50%;
+}
+
+.bx-messenger-upload-description-area
+{
+	margin-right:1rem;
+	margin-left:1rem;
+	width: 100%;
+}
+
+@-moz-keyframes blinker {  
+	50% { opacity: 0; }
+}
+@-webkit-keyframes blinker {  
+	50% { opacity: 0; }
+}
+@keyframes blinker {  
+	50% { opacity: 0; }
+}
+
+.blink {
+	-moz-animation: blinker 2s linear infinite;
+	-webkit-animation: blinker 2s linear infinite;
+	animation: blinker 2s linear infinite;
+}
+
+.bx-messenger-block .bx-db-header i,
+.bx-messenger-block-menu-align-right i
+{
+	font-size: 1.25rem;
+}
+
+.bx-messenger-block.bx-db-container .bx-db-divider
+{
+	top:0;
+	position:relative;
+}
+
+#bx-messenger-send-area-giphy{
+	font-weight: 700;
+	border-radius: 1rem;
+}
+
+div.bx-messenger-giphy div.bx-messenger-giphy-scroll {
+	width: 100%;
+	height: 100%;
+	position: relative;
+	margin: auto;
+	display: flex;
+	justify-content: center;
+	overflow-x: scroll;
+	overflow-y: hidden;
+	white-space: nowrap;
+	-webkit-overflow-scrolling: touch;
+}
+
+div.bx-messenger-giphy{
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem 0.5rem 1rem;
+	min-height: 100px;
+	max-height: 200px;
+	overflow: hidden;
+	align-items: center;
+	height:100%;
+}
+
+div.bx-messenger-giphy div.search{
+    width:100%;
+	min-height: 2.5rem;
+	margin-bottom: 0.5rem;
+}
+
+div.bx-messenger-giphy div.search input{
+	height: 2.5rem;
+	line-height: 2.5rem;
+}
+
+div.bx-messenger-giphy .ui.loading i.icon:before,
+div.bx-messenger-giphy .ui.loading i.icon:after{
+    font-size: 1rem;
+	left:40% !important;
+	top:40% !important;
+}
+
+div.bx-messenger-giphy-items{
+	position:relative;
+	width:100%;
+	min-height: 8rem;
+	display: flex;
+	align-items: center;
+}
+
+div.bx-messenger-giphy-items > div.giphy-loading{
+	width: 100%;
+	position: absolute;
+	height: 100%;
+	min-height: 8rem;
+	background-color: rgba(0, 0, 0, 0.3);
+	top: 0;
+	left: 0;
+}
+
+div.giphy-upload img{
+	max-width: 100%;
+}
+
+div.giphy {
+	max-height: 250px;
+	height: auto;
+	overflow: hidden !important;
+	display: none;
+	flex-direction: column;
+}
+
+div.bx-messenger-uploading-form-buttons{
+	display: flex;
+	justify-content: space-evenly;
+	width: 100%;
+	margin: 0.5rem;
+}
+
+div.bx-messenger-giphy-items img{
+	max-width: 250px;
+	cursor: pointer;
+	margin-bottom: 0.5rem;
+	margin-right: 0.1rem;
+}
+
+.bx-messenger-attachment-giphy picture,
+.bx-messenger-static-giphy{
+	width: calc(100% - 2.8rem);
+	max-width: 320px;
+	overflow: hidden;
+	position: relative;
+}
+
+#bx-messenger-send-area-plus {
+	display: none;
+}
+
+.bx-messenger-date-time-hr{
+	position: relative;
+	text-align: center;
+	border: none;
+    border-top: 1px solid rgba(0,0,0,0.1);
+    margin-top: .5rem;
+    margin-bottom: .5rem;
+}
+
+.bx-messenger-date-time-value {
+	position: relative;
+	top: -0.75rem;
+	height: 0;
+}
+
+.bx-messenger-date-time-value > span{
+	margin-right: auto;
+	margin-left: auto;
+	height: 2rem;
+	padding: 0.3rem 0.5rem;
+	line-height: 1rem;
+	border-radius:0.7rem;
+}
+
+.bx-messenger-date-time-navigator {
+	width: 100%;
+	position: absolute;
+	top: 0.2rem;
+	margin: 0;
+	text-align: center;
+	align-items: center;
+	justify-content: center;
+	z-index: 100;
+	display: none;
+}
+
+.bx-messenger-date-time-navigator .bx-messenger-date-time-value {
+	top:0;
+}
+
+.bx-messenger-options-buttons {
+	display: flex;
+	justify-content: space-between;
+}
+
+.bx-messenger-reply-area {
+	display: none;
+}
+
+.bx-messenger-jots .bx-messenger-reply-area {
+	display: flex;
+	margin-left:0.25rem;
+	margin-bottom: 0.5rem;
+	background-color: rgba(0,0,0,0.04);
+	width: calc( 100% - 3rem);
+}
+
+.bx-messenger-reply-area a {
+	margin:0.2rem;
+	display: flex;
+}
+
+.bx-messenger-reply-area-message {
+	flex: 1 1 auto;
+	padding-left: 0.25rem;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	cursor: pointer;
+	padding-top: 0.3rem;
+	max-height: 2rem;
+	display: flex;	
+	justify-content: flex-start;
+}
+
+.bx-messenger-reply-area-message img{
+	max-width: 3rem;
+	height: auto;
+}
+
+.bx-messenger-reply-area-message .bx-messenger-attachment-file {
+	max-height: 1.5rem;	
+	max-width: 30%;
+	width: 30%;
+}
+
+.bx-messenger-reply-area-message .bx-messenger-attachment-file .sys-icon {
+	font-size: 1.5rem;
+}
+
+.bx-messenger-reply-area-message .bx-messenger-attachment-file .bx-messenger-attachment-file-info span {
+	font-size: 0.8rem;
+	margin:0;
+}
+
+.bx-messenger-reply-area-message span.title {
+	font-weight: 700;
+}
+
+.bx-messenger-send-retry i,
+.bx-messenger-send-retry i:hover,
+.bx-messenger-send-retry i:active
+{
+	color: inherit !important;
+	font-style:normal;
+}
+
+.bx-messenger-main-block.bx-def-border-block {
+	border-bottom-width: 0;
+	border-left-width: 0;
+	border-right-width: 0;
+}
+
+#bx-messenger-message-box .ql-container{
+	font-size: inherit;
+	font-family: inherit;
+}
+
+#bx-messenger-message-box .ql-editor::before,
+#bx-messenger-message-box .ql-editor{
+	color: inherit;
+	font-family: inherit;
+	font-style: inherit;
+	padding:0;
+	background: inherit;
+}
+#bx-messenger-message-box .ql-editor.ql-blank::before{
+	left: 0;
+	color: inherit;
+	font-style: inherit;
+	font-style: inherit;
+}

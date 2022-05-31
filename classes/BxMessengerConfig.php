@@ -189,9 +189,9 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
 
             // Emoji Plugin
             'EMOJI' => array(
-                'path' => $this->getHomeUrl() . 'js/emoji-mart/',
-                'css' => $this->getHomeUrl() . 'js/emoji-mart/css/emoji-mart.css',
-                'js' => $this->getHomeUrl() . 'js/emoji-mart/js/emoji-mart.js',
+                'path' => 'js/emoji-mart/',
+                'css' => 'emoji-mart.css',
+                'js' => 'emoji-mart.js',
             ),
 
              // objects

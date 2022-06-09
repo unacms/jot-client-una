@@ -3086,6 +3086,7 @@
 									clearable: true,
 									duration: 0,
 									searchDelay: 0,
+									searchOnFocus: false,
 									type : 'category',
 									boundary: $('.bx-db-header'),
 									apiSettings:
@@ -3120,7 +3121,6 @@
 												// each category
 												$.each(response[fields.categoryResults], function(index, category) {
 													if(category[fields.results] !== undefined && category.results.length > 0) {
-
 														html  += '<div class="category">';
 
 														if(category[fields.categoryName] !== undefined) {
@@ -3131,10 +3131,10 @@
 														html += '<div class="results">';
 														$.each(category.results, function(index, result) {
 															if(result[fields.url]) {
-																html  += '<a class="result" href="' + result[fields.url].replace(/"/g,"") + '">';
+																html  += '<a class="result' + (result[fields.no_desc] ? ' modified' : '') + '" href="' + result[fields.url].replace(/"/g,"") + '">';
 															}
 															else {
-																html  += '<a class="result">';
+																html  += '<a class="result' + (result[fields.no_desc] ? ' modified' : '') + '">';
 															}
 
 															if(result[fields.image] !== undefined && result[fields.image].length) {
@@ -3191,23 +3191,29 @@
 									  image	  : 'icon',
 									  name	  : 'name',
 									  letter  : 'letter',
-									  color	  : 'color'
+									  color	  : 'color',
+								      no_desc : 'no_desc'
 									},
 									maxResults: 20,
 									onResults: function(){
 										$(this)
 											.find('.results')
-											.css({'background-color': $('.bx-def-color-bg-page').css('background-color')});
+											.css({'background-color': $('.bx-def-color-bg-page').css('background-color')})
+											.bind('click', function(e){
+												if ($(e.target).attr('class') === 'name') {
+													e.stopPropagation();
+													e.preventDefault();
+												}
+											});
 									},
 									onSelect: function(result, response){
 										const { icon, id, value, letter, color } = result;
-										
+
 										let sTemplate = '';
 										if (!icon.length)
 											sTemplate = _this.sThumbLetter.replace('{color}', color).replace('{letter}', letter);
 										else
 											sTemplate = _this.sThumbIcon.replace('{icon}', icon);
-
 
 										$(this)
 											.before(`<b class="bx-def-color-bg-hl bx-def-round-corners bx-def-font-middle">${sTemplate}<span>${value}</span><input type="hidden" name="users[]" value="${id}" /></b>`)

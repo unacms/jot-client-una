@@ -263,6 +263,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'SHOW-FRIENDS' => getParam($aModule['db_prefix'] . 'show_friends') == 'on',
 			'CHECK-CONTENT-FOR-TOXIC' => getParam($aModule['db_prefix'] . 'check_toxic') == 'on',
 			'TIME-FROM-NOW' => getParam($aModule['db_prefix'] . 'time_in_history') == 'on',
+			'DONT-SHOW-DESC' => getParam($aModule['db_prefix'] . 'dont_show_search_desc') == 'on',
 			'SEARCH-CRITERIA-SELECTED' => getParam($aModule['db_prefix'] . 'search_criteria'),
             'JWT' => array(
               'app_id' => getParam($aModule['db_prefix'] . 'jwt_app_id'),

@@ -818,6 +818,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 	    if (empty($aUsers))
             return echoJson(array('items' => $aUsers));
 
+	    $bDonShowDesc = $this->_oConfig->CNF['DONT-SHOW-DESC'];
         foreach ($aUsers as &$aValue) {
             if (!$this->onCheckContact($this->_iUserId, $aValue['value']))
                 continue;
@@ -835,14 +836,15 @@ class BxMessengerModule extends BxBaseModGeneralModule
             if (!empty($aProfileInfoDetails) && !empty($oAccountInfo)) {
                 $aResult[$aProfileInfo['type']]['results'][] = array(
                     'value' => $sDisplayName,
+                    'no_desc' => (int)$bDonShowDesc,
                     'icon' => $bThumb ? $sThumb : '',
                     'color' => implode(', ', BxDolTemplate::getColorCode($aValue['value'], 1.0)),
                     'letter' => mb_substr($sDisplayName, 0, 1),
                     'id' => $oProfile->id(),
                     'profile_url' => $oProfile->getUrl(),
-                    'description' => _t('_bx_messenger_search_desc',
-                        bx_process_output($oAccountInfo->getInfo()['logged'], BX_DATA_DATE_TS),
-                        bx_process_output($aProfileInfoDetails['added'], BX_DATA_DATE_TS))
+                    'description' => !$bDonShowDesc ? _t('_bx_messenger_search_desc',
+                                                            bx_process_output($oAccountInfo->getInfo()['logged'], BX_DATA_DATE_TS),
+                                                            bx_process_output($aProfileInfoDetails['added'], BX_DATA_DATE_TS)) : ''
                 );
             }
         }

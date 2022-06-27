@@ -51,8 +51,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 						'semantic.min.js',
                         'soundjs.min.js',
                         'quill.min.js',
-                        'jquery-ui/jquery.ui.widget.min.js',
-                        'jquery-ui/jquery.ui.tooltip.min.js',
+                        'jquery-ui/jquery-ui.min.js',
                         $CNF['EMOJI']['js']
 					);
 

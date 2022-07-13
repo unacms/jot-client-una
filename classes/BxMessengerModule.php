@@ -579,7 +579,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
     }
 
     /**
-     * Prepare url for Lot title if was created on separated page
+     * Prepare url for Lot title if it was created on separated page
      * @param string URL
      * @return string URL
      */
@@ -2067,7 +2067,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 $this->sendProfilePush($iProfileId, $this->_iProfileId, $iProfileId, $aInfo['type']);
 
             $CNF = &$this->_oConfig->CNF;
-            $sIdent = $this->getPageIdent();
+            $sIdent = $this->getReferrerPageIdent();
             $sRoom = $this->_oConfig->getRoomId($sIdent);
             $aRoom = $this->_oDb->getPublicVideoRoom($sRoom);
             if (empty($aRoom) || !(int)$aRoom[$CNF['FPJVC_STATUS']]){
@@ -2086,7 +2086,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         exit;
     }
 
-    private function getPageIdent(){
+    private function getReferrerPageIdent(){
         $sPath = '';
         if (isset($_SERVER['HTTP_REFERER'])){
             $aPath = parse_url($_SERVER['HTTP_REFERER']);
@@ -2136,7 +2136,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $iCount = 0;
         if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')
         {
-           $sPageUrl = $this->getPageIdent();
+           $sPageUrl = $this->getReferrerPageIdent();
            /* ADD ABILITY TO call members when they on any page of the site and have incoming call */
            if (preg_match('/.*page\/(.*)\?id=(\d+).*/', $sPageUrl,$aParams)) {
                if (!empty($aParams) && isset($aParams[1]) && isset($aParams[2])){

@@ -381,24 +381,11 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
 	* Builds from server environment valid Url handle for lot 
 	*@return string url
 	*/
-	public function getPageIdent($sPageLink = '')
+    public function getPageIdent($sPageLink = '')
     {
-       $sUrl = 'index.php';
-       $sPageUrl = $sPageLink ? $sPageLink : $_SERVER['QUERY_STRING'];
-       if (!empty($sPageUrl)) {
-            parse_str($sPageUrl, $aUrl);
-            if (!empty($aUrl)) {
-                $aValidUrl = array();
-                foreach ($this->CNF['URL_IDENT_PARAMS'] as &$sParam)
-                    if (!empty($aUrl[$sParam]))
-                        $aValidUrl[$sParam] = $aUrl[$sParam];
-
-                if (!empty($aValidUrl))
-                    $sUrl = http_build_query($aValidUrl);
-            }
-        }
-
-        return $sUrl;
+       $sPageUrl = $sPageLink ? $sPageLink : $_SERVER['REQUEST_URI'];
+       $sPageUrl = BxDolPermalinks::getInstance()->unpermalink(ltrim($sPageUrl, '/'));
+       return $sPageUrl ? parse_url($sPageUrl, PHP_URL_QUERY) : 'index.php';
     }
 
     public function getPageLink($sUrl){

@@ -4141,8 +4141,7 @@
 					$('#bx-messenger-big-img, #bx-messenger-big-img .bx-popup-element-close, #bx-messenger-big-img img, #bx-popup-fog').click(function () {
 						$('#bx-messenger-big-img').dolPopupHide().remove();
 					});
-				},
-				closeElement: true
+				}
 			});
 		},
 
@@ -4475,7 +4474,6 @@
 
 						setTimeout(() => _oMessenger.updateCommentsAreaWidth(), 100);
 					},
-					closeElement: true,
 					closeOnOuterClick: false,
 					removeOnClose: true,
 					onHide: function () {

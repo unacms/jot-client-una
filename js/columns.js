@@ -33,7 +33,7 @@
 				iRightAreaHeight:null, //right column header height
 				iResizeTimeout:null,
 				fOffsetTop: null,
-				bIsSсreenStateMobile: false,
+				bIsScreenStateMobile: false,
 				sDirection: 'LTR', // by default left to right;
 				isRTL: function(){
 					return this.sDirection === 'RTL';
@@ -74,7 +74,7 @@
 					return $(window).width() <= 720;
 				},
 				isModeChanged:function(){
-					return this.bIsSсreenStateMobile !== this.isMobile();
+					return this.bIsScreenStateMobile !== this.isMobile();
 				},
 				changeColumn:function(sSide){
 					this.init();
@@ -111,7 +111,7 @@
 									oJotWindowBuilder.loadRightColumn();
 						}	
 						
-						this.oLeftCol.width(this.iLeftSize).fadeIn('slow');						
+						this.oLeftCol.width(this.iLeftSize).fadeIn('slow');
 						this.oRightCol.width(this.iRightSize).fadeIn('slow');
 											
 						this.updateLeftHeight();
@@ -126,7 +126,7 @@
 
 					if (this.fOffsetTop === null || this.isModeChanged()) {
 						this.fOffsetTop = $(this.sPrevBlocks).offset().top;
-						this.bIsSсreenStateMobile = this.isMobile();
+						this.bIsScreenStateMobile = this.isMobile();
 					}
 
 					this.iMainAreaHeight = window.innerHeight - this.fOffsetTop;

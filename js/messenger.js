@@ -3596,25 +3596,32 @@
 
 		if (_this.oJotWindowBuilder !== undefined) {
 			_this.oJotWindowBuilder.setDirection(_this.direction);
-			$(window).on('load resize touchmove', function ({ type }) {
-				if (type !== 'load')
-					_this.updateSendAreaButtons();
-
+			let iTimeout = null;
+			const fLoad = (type) => {
 				_this.oJotWindowBuilder.resizeWindow(() => {
-					_this.selectLotEmit($(`[data-lot="${_this.oSettings.lot}"]${_this.sLotSelector}`));
+					_this.selectLotEmit($(`[data-lot="${_this.oSettings.lot}"] ${_this.sLotSelector}`));
 					$(_this.sTalkList).waitForImages(() => {
 						if (type === 'load')
 							_this.setPositionOnSelectedJot(fCallback)
 					});
-					
+
 					_this.setScrollBarWidth();
-					
+
 					if ($(_this.sUserSelectorInput).length)
 						$(_this.sUserSelectorInput).focus();
-					else 
-						if (_this.oEditor && !_this.isMobile())
-							_this.oEditor.focus();
+					else if (_this.oEditor && !_this.isMobile())
+						_this.oEditor.focus();
 				});
+			};
+
+			$(window).on('load touchmove resize', function ({ type }) {
+					if (type !== 'load')
+						_this.updateSendAreaButtons();
+					else
+						return fLoad(type);
+
+					clearTimeout(iTimeout);
+					iTimeout = setTimeout(() => fLoad(type), 500);
 			});
 
 			_this.oJotWindowBuilder.loadRightColumn = function() {
@@ -3623,6 +3630,9 @@
 				else
 					_this.createLot();
 			};
+
+			$(window).load();
+
 		} else {
 			console.log('Page Builder was not initialized');
 		}

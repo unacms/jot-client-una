@@ -2,7 +2,7 @@
 .bx-messenger-jot-emoji {
     z-index: 1000;
     right:1rem;
-    position: absolute;
+    position: absolute !important;
     overflow: hidden;
     display: none;
     width: min-content;

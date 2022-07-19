@@ -1,0 +1,84 @@
+#bx-messenger-message-box .ql-editor::before,
+#bx-messenger-message-box .ql-editor{
+    color: inherit;
+    font-family: inherit;
+    font-style: inherit;
+    padding:0;
+    background: inherit;
+    --tw-ring-opacity: 0;
+}
+
+#bx-messenger-message-box .ql-editor.ql-blank::before{
+    left: 0;
+    color: inherit;
+    font-style: inherit;
+}
+
+#bx-messenger-message-box .ql-container{
+    font-size: inherit;
+    font-family: inherit;
+}
+
+div.bx-messenger-post-box-send-area div.bx-messenger-text-box:active {
+    border: 0;
+}
+
+div.bx-messenger-post-box-send-area div.bx-messenger-text-box
+{
+    border: 0;
+    background-color: rgba(0,0,0,0) !important;
+    max-height: 10rem;
+    padding: 0 !important;
+    height: auto;
+    display: block;
+    -webkit-touch-callout: none;
+    overflow-y: auto;
+}
+
+div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
+{
+    -webkit-touch-callout: none;
+}
+
+div.bx-messenger-edit-jot div.bx-messenger-post-box-send-area div.bx-messenger-text-box
+{
+    max-height: 7rem;
+    min-height: 2.3rem;
+    vertical-align: middle;
+    padding-left: 0.5rem;
+    padding-top: 0.3rem;
+    display: block;
+}
+
+.bx-messenger-main-block .ql-editor:focus:focus {
+    border: 0;
+    background: rgba(0,0,0,0);
+    box-shadow: none;
+}
+
+.bx-messenger-main-block .ql-editor {
+    line-height: inherit;
+    padding: 0.2rem 0.2rem;
+    overflow: visible;
+    min-height: auto !important;
+}
+
+.bx-messenger-main-block .ql-editor.ql-blank::before {
+    opacity: 0.9;
+    left: 0;
+    right: 1rem;
+    color: inherit;
+    font-family: inherit;
+}
+
+.bx-messenger-main-block .ql-editor.ql-blank:focus::before {
+    opacity: 1.0;
+}
+
+.bx-messenger-main-block .ql-bubble .ql-editor a.bx-mention {
+    text-decoration: none;
+}
+
+#bx-messenger-message-box .ql-editor::placeholder{
+    color: inherit;
+}

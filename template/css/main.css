@@ -114,6 +114,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
 	margin-right: 1rem;
 	min-width: 1.5rem;
 	text-align: end;
+	user-select: none;
 }
 
 .bx-messenger-post-box-send-button
@@ -470,7 +471,7 @@ div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
    border-left: 0;
    border-right: 0;
    border-bottom: 0;
-   border-radius: 0;
+   border-radius: 0 !important;
 }
 
 .bx-messenger-main-block .bx-loading-ajax{
@@ -1179,6 +1180,7 @@ div.bx-messenger-video-block div:first-child
 .bx-messenger-block-menu-align-right i
 {
 	font-size: 1.25rem;
+	line-height: 1.75rem;
 }
 
 .bx-messenger-block.bx-db-container .bx-db-divider
@@ -1420,5 +1422,38 @@ div.bx-messenger-giphy-items img{
 	left: 0;
 	color: inherit;
 	font-style: inherit;
-	font-style: inherit;
+}
+
+.bx-messenger-block .bx-def-border-block {
+	border-radius: 0;
+	box-shadow: none;
+	border-right:0;
+}
+
+.bx-messenger-block .bx-db-header {
+	padding-right: min(0.5rem, 5%) !important;
+	padding-left: min(0.9rem, 5%) !important;
+	height: 3.25rem;
+}
+
+.bx-messenger-block.jots .bx-db-header {
+	padding-right: min(0.8rem, 5%) !important;
+	padding-left: min(0.9rem, 5%) !important;
+	height: 3.25rem;
+}
+
+.bx-messenger-block {
+	box-shadow: none;
+}
+
+.bx-messenger-jots-message-vc-participants img {
+	max-width: 1rem;
+	max-height: 1rem;
+}
+
+.bx-messenger-reactions-menu .bx-def-label,
+.bx-messenger-jots-actions-list .bx-def-label {
+	padding: 0;
+	align-items: center;
+	display: inline-flex;
 }

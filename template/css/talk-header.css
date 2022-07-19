@@ -13,6 +13,7 @@
 {
 	text-align: right;
     white-space: nowrap;
+    justify-items: end;
 }
 
 .bx-messenger-block-menu-align-right{

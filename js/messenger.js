@@ -97,7 +97,7 @@
 		this.sJotMessageReplyArea = '.bx-messenger-reply-area';
 		this.sJotMessageTitle = '.bx-messenger-jots-title';
 		this.sTextArea = '.text-area';
-		this.sSearchCriteria = '#bx-search-criteria';
+		this.sSearchCriteria = '#bx-messenger-block-head #items';
 
 		//global class options
 		this.oUsersTemplate	= null;
@@ -3195,10 +3195,15 @@
 								      no_desc : 'no_desc'
 									},
 									maxResults: 20,
+									onResultsOpen: function(){
+										$(this).find('.category,.message.empty').addClass('bx-popup-border');
+									},
 									onResults: function(){
 										$(this)
 											.find('.results')
-											.css({'background-color': $('.bx-def-color-bg-page').css('background-color')})
+											.css({'background-color': $('.bx-popup-color-bg').css('background-color')})
+											.find('.category')
+											.addClass('bx-popup-border')
 											.bind('click', function(e){
 												if ($(e.target).attr('class') === 'name') {
 													e.stopPropagation();

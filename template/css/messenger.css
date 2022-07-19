@@ -301,3 +301,22 @@ div.bx-messenger-jots-actions-list
 .bx-messenger-table-wrapper-rows.history {
 	min-height:auto !important;
 }
+
+#bx-page-messenger .bx-page-block-container {
+	margin: 0 !important;
+	padding: 0;
+}
+
+#bx-page-messenger .bx-messenger-post-box {
+	border-left: 0;
+}
+
+#bx-messenger-block-head #items,
+#bx-messenger-add-users-input::placeholder,
+#bx-search-criteria::placeholder {
+	color: inherit;
+}
+#bx-messenger-block-head #items,
+#bx-search-criteria {
+   height: auto;
+}

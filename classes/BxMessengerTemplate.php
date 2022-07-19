@@ -35,6 +35,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         'scroll-popup-elements.css',
                         'talk-header.css',
                         'quill.bubble.css',
+                        'quill-messenger.css',
                         $CNF['EMOJI']['css']
 					 );
 
@@ -724,7 +725,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 					$this -> getOnlineStatus($oProfile-> id(), 0) ;
 			}
 			else
-                $sCount = '<div class="bx-def-label bx-def-font-middle status">' . $iParticipantsCount .'</div>';
+                $sCount = '<div class="bx-def-label bx-def-font-middle status menu">' . $iParticipantsCount .'</div>';
 	
 			
 			$aVars[$CNF['FIELD_ID']] = $aLot[$CNF['FIELD_ID']];

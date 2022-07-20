@@ -62,12 +62,13 @@ INSERT INTO `bx_messenger_lots_types` (`id`, `name`, `show_link`) VALUES
 (5, 'events', 1);
 
 CREATE TABLE IF NOT EXISTS `bx_messenger_users_info` (
-   `lot_id` int(11) NOT NULL auto_increment,
+   `id` int(11) NOT NULL auto_increment,
+   `lot_id` int(11) NOT NULL default '0',
    `user_id` int(11) NOT NULL default '0',
    `params` text NOT NULL default '',
    `star` tinyint(1) NOT NULL default '0',
-   UNIQUE KEY `id` (`lot_id`,`user_id`),
-   PRIMARY KEY (`lot_id`)
+   UNIQUE KEY `uid` (`lot_id`,`user_id`),
+   PRIMARY KEY (`id`)
 );
 
 CREATE TABLE IF NOT EXISTS `bx_messenger_lots_settings` (
@@ -85,7 +86,7 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_unread_jots` (
    `unread_count` int(11) NOT NULL default 0,
    `user_id` int(11) NOT NULL default 0,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `id` (`lot_id`, `user_id`),
+    UNIQUE KEY `uid` (`lot_id`, `user_id`),
     KEY `user` (`user_id`),
     KEY `jot` (`first_jot_id`)
 );

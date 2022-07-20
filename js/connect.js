@@ -11,7 +11,7 @@
  * Primus class to work with the server and main messenger class
  */ 
 ;window.oRTWSF = (function(){
-	let _oPrimus = null, _oData = Object.create(null), _sIdent, sJWT;
+	let _oPrimus = null, _oData = Object.create(null), _sIdent, sJWT, _sIP = '0.0.0.0';
 
 	return {
 			/**
@@ -20,9 +20,10 @@
 			*/
 			init:function(oOptions){
 				const _this = this,
-					{ server, ident, jwt } = oOptions;
+					{ server, ip, ident, jwt } = oOptions;
 
 				_this._sIdent = ident || _this._sIdent;
+				_this._sIP = ip || _this._sIP;
 				if (!server.length)
 					return;
 
@@ -49,6 +50,7 @@
 								this.write({
 									 action:'init',
 									 jwt: jwt,
+									 ip:_this._sIP,
 									 ident:_this._sIdent,
 									 user_id: oSettings.user_id,
 									 status: oSettings.status 
@@ -134,7 +136,7 @@
 				if (!_oPrimus.writable)
 					_oPrimus.open();
 
-				const oObject = { action:sParam, ip:this._sIdent };
+				const oObject = { action:sParam, ip:this._sIP, ident:this._sIdent };
 				_oPrimus.write($.extend(oData, oObject));
 			}
 			/** END **/

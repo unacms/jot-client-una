@@ -581,7 +581,16 @@ div.bx-messenger-reactions-menu i:hover {
 	margin-right: 1rem;
 }
 
-ul.bx-menu-object-jot a{
+.bx-menu-object-jot {
+	padding-left: 0;
+	list-style: none;
+}
+
+.bx-messenger-block .bx-db-divider{
+	display:block !important;
+}
+
+/*ul.bx-menu-object-jot a{
 	font-size: 0.875rem;
 	line-height: 1rem;
 }
@@ -594,6 +603,7 @@ ul.bx-menu-object-jot a{
 	font-size: 1rem;
 	line-height: 1.3rem;
 }
+*/
 
 .ui.popup.bx-messenger-jots-icons .bx-popup{
 	border-radius: inherit;
@@ -1183,11 +1193,11 @@ div.bx-messenger-video-block div:first-child
 	line-height: 1.75rem;
 }
 
-.bx-messenger-block.bx-db-container .bx-db-divider
+/*.bx-messenger-block.bx-db-container .bx-db-divider
 {
 	top:0;
 	position:relative;
-}
+}*/
 
 #bx-messenger-send-area-giphy{
 	font-weight: 700;
@@ -1304,7 +1314,7 @@ div.bx-messenger-giphy-items img{
 
 .bx-messenger-date-time-value {
 	position: relative;
-	top: -0.75rem;
+	top: -1rem;
 	height: 0;
 }
 

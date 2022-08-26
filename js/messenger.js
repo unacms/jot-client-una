@@ -2315,7 +2315,8 @@
 								}
 							}
 					}
-					fResolve();
+					if (typeof fResolve === 'function')
+						fResolve();
 				})
 				.fail(() => {
 					for (let sTmp of _this.oSendPool.keys()) {
@@ -2339,7 +2340,8 @@
 							.closest(_this.sJot)
 							.data('retry', true);
 					}
-					fReject();
+					if (typeof fReject === 'function')
+						fReject();
 				}));
 
 		_this.oSendPool.set( oParams.tmp_id, fSendMessagePromsie);

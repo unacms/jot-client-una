@@ -64,6 +64,13 @@ class BxMessengerLotMenu extends BxBaseModTextMenuView
             $this->_aObject['template'] = 'menu_messenger_talk_header_ver.html';
     }
 
+    public function isActive($sName){
+        if (!isset($this->_aObject['menu_items']))
+            $this->_aObject['menu_items'] = $this->getMenuItemsRaw ();
+
+        return !empty($sName) && isset($this->_aObject['menu_items'][$sName]) && (int)$this->_aObject['menu_items'][$sName]['active'];
+    }
+
     protected function _isVisible ($a)
     {
         if (!$this->_iProfileId)

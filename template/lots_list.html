@@ -12,17 +12,19 @@
 		</div>
 		<div class="bx-db-menu">
 			<ul class="bx-menu-btns-icon-hor bx-messenger-block-menu-align-right bx-clearfix flex justify-end">
-				<li class="bx-menu-item bx-menu-item-more-auto">
-					<a class="star bx-stl-mil-sm group" href="javascript:void(0);" onclick="oMessenger.showStarred(this);" title="__star_title__">
-						<i class="sys-icon star"></i>
-					</a>
-				</li>
-				<bx_if:create>
+				<bx_if:featured>
 					<li class="bx-menu-item bx-menu-item-more-auto">
-						<a class="star bx-stl-mil-sm group" href="javascript:void(0);" onclick="oMessenger.createLot();" title="__create_lot_title__" >
-							<i class="sys-icon bell"></i>
+						<a class="star bx-stl-mil-sm group" href="javascript:void(0);" onclick="oMessenger.showStarred(this);" title="__star_title__">
+							<i class="sys-icon star"></i>
 						</a>
 					</li>
+				</bx_if:featured>
+				<bx_if:create>
+				<li class="bx-menu-item bx-menu-item-more-auto">
+					<a class="bx-stl-mil-sm group" href="javascript:void(0);" onclick="oMessenger.createLot();" title="__create_lot_title__">
+						<i class="sys-icon edit"></i>
+					</a>
+				</li>
 				</bx_if:create>
 			</ul>
 		</div>

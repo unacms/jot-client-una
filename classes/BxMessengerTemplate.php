@@ -673,7 +673,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
 		foreach($aLots as &$aLot)
 		{
-			$aParticipantsList = $this -> _oDb -> getParticipantsList($aLot[$CNF['FIELD_ID']], true, $iProfileId);
+			$aParticipantsList = $this->_oDb->getParticipantsList($aLot[$CNF['FIELD_ID']], true, $iProfileId);
 			
 			$iParticipantsCount = count($aParticipantsList);
 			$aParticipantsList = $iParticipantsCount ? array_slice($aParticipantsList, 0, $CNF['PARAM_ICONS_NUMBER']) : array($iProfileId);
@@ -1047,25 +1047,32 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	*@return string html code
 	*/
 	public function getLotsList($iProfileId){
-		$aMyLots = $this->_oDb->getMyLots($iProfileId);
+        $CNF = &$this->_oConfig->CNF;
+	    $aMyLots = $this->_oDb->getMyLots($iProfileId);
 		if (!empty($aMyLots))
 			$sContent = $this->getLotsPreview($iProfileId, $aMyLots);
 		else
 			$sContent = $this->getFriendsList();
-		
+
+	    $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_ACTIONS_TALK_MENU']);
 		$aVars = array(
 			'items' => $sContent,
-			'star_title' => bx_js_string(_t('_bx_messenger_lots_menu_star_title')),
 			'search_for_title' => bx_js_string(_t('_bx_messenger_search_for_lost_title')),
 			'bx_repeat:menu' => array(
 										array('menu_title' => _t("_bx_messenger_lots_type_all"), 'type' => 0, 'count' => '')
 									 ),
-			'star_icon' => $this->_oConfig->CNF['STAR_ICON'],
-			'star_color' => $this->_oConfig->CNF['STAR_BACKGROUND_COLOR'],
+			'star_icon' => $CNF['STAR_ICON'],
+			'star_color' => $CNF['STAR_BACKGROUND_COLOR'],
             'bx_if:create' => array(
                 'condition' => $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_TALKS, $iProfileId) === true,
                 'content' => array(
                     'create_lot_title' => bx_js_string(_t('_bx_messenger_lots_menu_create_lot_title')),
+                )
+            ),
+            'bx_if:featured' => array(
+                'condition' => $oMenu->isActive('star'),
+                'content' => array(
+                    'star_title' => bx_js_string(_t('_bx_messenger_lots_menu_star_title')),
                 )
             )
 		);

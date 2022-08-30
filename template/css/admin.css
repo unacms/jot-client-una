@@ -195,7 +195,7 @@ div.bx-messenger-lots-menu ul li a.active{
 
 .bx-messenger-jots-snip-avatars-list div:first-child
 {
-	border-right: 1px solid #fff;
+	border-right: 1px solid transparent;
 }
 
 .bx-messenger-jots-snip-avatars-list div:first-child:nth-last-child(2),
@@ -271,7 +271,7 @@ div.bx-messenger-lots-menu ul li a.active{
 
 .bx-messenger-jots-snip-avatars-list div:nth-child(3):nth-last-child(1)
 {
-	border-top: 1px solid #fff;
+	border-top: 1px solid transparent;
 }
 
 .bx-messenger-padding-lots-lefttopbottom

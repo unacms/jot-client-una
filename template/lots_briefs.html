@@ -1,15 +1,15 @@
 <div class="bx-messenger-jots-snip" onclick="oMessenger.loadTalk(__id__);" data-lot="__id__">
 		<div class="bx-messenger-jots-snip-avatars bx-messenger-padding-lots-lefttopbottom">
-			<div class="bx-messenger-jots-snip-avatars-list bx-def-thumb bx-def-thumb-size" >
+			<div class="bx-messenger-jots-snip-avatars-list bx-def-thumb bx-def-thumb-size rounded-full" >
 				<bx_repeat:avatars>
 					<bx_if:avatars>
 						<div>
-							<img title="__title__" src="__thumb__" class="bx-def-thumb-size rounded-full" />
+							<img title="__title__" src="__thumb__" class="bx-def-thumb-size" />
 						</div>
 					</bx_if:avatars>
 					<bx_if:letters>
 						<div>
-							<p class="bx-def-thumb-size bx-base-pofile-unit-thumb bx-def-ava bx-def-box-sizing rounded-full" style="background-color:rgba(__color__)">__letter__</p>
+							<p class="bx-def-thumb-size bx-base-pofile-unit-thumb bx-def-ava bx-def-box-sizing" style="background-color:rgba(__color__)">__letter__</p>
 						</div>
 					</bx_if:letters>
 				</bx_repeat:avatars>

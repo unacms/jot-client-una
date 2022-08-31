@@ -996,7 +996,7 @@
 		if (!lot)
 			_this.blockSendMessages(true);
 
-		$.post('modules/?r=messenger/create_lot', { profile: user || 0, lot: lot || 0 }, function({ header, code, history, title, message, text_area }){
+		$.post('modules/?r=messenger/create_lot', { profile: user || 0, lot: lot || 0 }, function({ header, code, history, title, msg, text_area }){
 			bx_loading($(_this.sMainTalkBlock), false);
 					if (!code){
 						$(_this.sMainTalkBlock)
@@ -1041,8 +1041,8 @@
 						}
 
 					} else
-                        if (message)
-                            bx_alert(message);
+                        if (msg)
+                            bx_alert(msg);
 
 				_this.oSendPool = new Map();
 				_this.blockSendMessages();

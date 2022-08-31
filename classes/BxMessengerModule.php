@@ -727,20 +727,22 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_TALKS, $this->_iProfileId);
         if ($mixedResult !== true)
-            return echoJson(array('code' => 1, 'message' => $mixedResult));
+            return echoJson(array('code' => 1, 'msg' => $mixedResult));
 
         $iProfileId = (int)bx_get('profile');
-        $sHeader = '';
         if ($iProfileId)
         {
             $aLotInfo = $this->_oDb->getLotByUrlAndParticipantsList(BX_IM_EMPTY_URL, array($this->_iProfileId, $iProfileId));
             $iLotId = empty($aLotInfo) ? BX_IM_EMPTY : $aLotInfo[$this -> _oConfig -> CNF['FIELD_ID']];
             $sHeader = $this->_oTemplate->getTalkHeaderForUsername($this->_iProfileId, $iProfileId, false);
         } else
+        {
             $iLotId = (int)bx_get('lot');
+            if ($iLotId && !($this->_oDb->isAuthor($iLotId, $this->_iProfileId) || ($this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true)))
+                return echoJson(array('code' => 1, 'msg' => _t('_bx_messenger_lot_can_change_settings')));
 
-        if (!$sHeader)
-            $sHeader = $this->_oTemplate->getEditTalkArea($iProfileId, $iLotId);
+            $sHeader = $this->_oTemplate->getEditTalkArea($this->_iProfileId, $iLotId);
+        }
 
         echoJson(
             array(

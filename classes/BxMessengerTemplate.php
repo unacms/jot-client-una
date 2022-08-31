@@ -464,7 +464,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 'click' => "{$CNF['JSMain']}.createLot({lot:{$iLotId}});",
                 'title' => _t("_bx_messenger_lots_menu_add_part"),
                 'icon' => 'plus-circle',
-                'class' => ''
+                'class' => 'edit-list'
             ),
             array(
                 'permissions' => $bAllowed,

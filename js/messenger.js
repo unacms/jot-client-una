@@ -98,6 +98,7 @@
 		this.sJotMessageTitle = '.bx-messenger-jots-title';
 		this.sTextArea = '.text-area';
 		this.sSearchCriteria = '#bx-messenger-block-head #items';
+		this.sTalksListSearchBar = '.bx-messenger-participants-usernames';
 
 		//global class options
 		this.oUsersTemplate	= null;
@@ -2001,6 +2002,14 @@
 		return false;
 	}
 
+	oMessenger.prototype.editOnClick = function(oObject){
+		const _this = this,
+			  oEditObject = $('div[id^="lot-info-menu"] .edit-list');
+
+		if (!_this.isMobile() && oEditObject.length)
+			$('.bx-db-title', oObject).dblclick(() => oEditObject.click());
+	}
+
 	/**
 	 * Load history for selected lot
 	 * @param iLotId
@@ -2048,42 +2057,42 @@
 			if (~code)
 			{
 				_this.iMuted = +muted;
-				_this.blockSendMessages(false);
 				$(_this.sJotsBlock)
-						.find('.bx-db-header')
-						.replaceWith(header)
-						.end()
-						.find(_this.sTalkBlock)
-						.html(history)
-						.end()
-						.find(_this.sTextArea)
-						.replaceWith(text_area)
-						.end()
-						.bxMsgTime()
-						.addTimeIntervals()
-						.show(
-							function()
-							{
-								if (_this.oJotWindowBuilder) {
-									
-									if (!bDontChangeCol)
-										_this.oJotWindowBuilder.changeColumn();
-									else
-										_this.oJotWindowBuilder.updateColumnSize();
-								}
+					.find('.bx-db-header')
+					.replaceWith(header)
+					.end()
+					.find(_this.sTalkBlock)
+					.html(history)
+					.end()
+					.find(_this.sTextArea)
+					.replaceWith(text_area)
+					.end()
+					.bxMsgTime()
+					.addTimeIntervals()
+					.show(
+						function()
+						{
+							if (_this.oJotWindowBuilder) {
 
-								_this.updateLotSettings({
-									lot: iLotId,
-									last_unread_jot,
-									unread_jots
-								});
-
-								_this.updateCounters(unread_jots, true);
-								_this.updatePageIcon(undefined, iLotId);
-								_this.showSearchPopup(iLotId);
+								if (!bDontChangeCol)
+									_this.oJotWindowBuilder.changeColumn();
+								else
+									_this.oJotWindowBuilder.updateColumnSize();
 							}
-						)
-						.waitForImages(() => _this.setPositionOnSelectedJot(fCallback));
+
+							_this.updateLotSettings({
+								lot: iLotId,
+								last_unread_jot,
+								unread_jots
+							});
+
+							_this.updateCounters(unread_jots, true);
+							_this.updatePageIcon(undefined, iLotId);
+							_this.showSearchPopup(iLotId);
+							_this.editOnClick(this);
+						})
+					.waitForImages(() => _this.setPositionOnSelectedJot(fCallback));
+				_this.blockSendMessages(false);
 
 
 					if (typeof title !== 'undefined')
@@ -3875,6 +3884,8 @@
 			})
 			.on('click touchstart', (oEvent) => _oMessenger.onOuterClick(oEvent));
 
+			_oMessenger.editOnClick();
+			
 			if ((+oOptions.selected_profile || (+oOptions.jot_id && _oMessenger.bByUrl)) && _oMessenger.oJotWindowBuilder && _oMessenger.isMobile())
 				_oMessenger.oJotWindowBuilder.changeColumn('right');
 

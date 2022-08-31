@@ -986,9 +986,10 @@
 	*/
 	oMessenger.prototype.createLot = function(oOptions){
 		const _this = this,
-			{ lot, user } = oOptions || {};
+			{ lot, user, mute } = oOptions || {};
 
-		bx_loading($(_this.sMainTalkBlock), true);
+		if (typeof mute === 'undefined')
+			bx_loading($(_this.sMainTalkBlock), true);
 
 		_this.oSettings.lot = +lot;
 		// block send area if it is new talk
@@ -1040,10 +1041,8 @@
 						}
 
 					} else
-                    {
                         if (message)
                             bx_alert(message);
-                    }
 
 				_this.oSendPool = new Map();
 				_this.blockSendMessages();
@@ -2002,12 +2001,11 @@
 		return false;
 	}
 
-	oMessenger.prototype.editOnClick = function(oObject){
-		const _this = this,
-			  oEditObject = $('div[id^="lot-info-menu"] .edit-list');
+	oMessenger.prototype.editOnClick = function(){
+		const _this = this;
 
-		if (!_this.isMobile() && oEditObject.length)
-			$('.bx-db-title', oObject).dblclick(() => oEditObject.click());
+		if (!_this.isMobile())
+			$('.bx-db-title', $(_this.sJotsBlock)).dblclick(() => _this.createLot({ lot: _this.oSettings.lot, mute: true }));
 	}
 
 	/**
@@ -2063,6 +2061,7 @@
 					.end()
 					.find(_this.sTalkBlock)
 					.html(history)
+					.bxProcessHtml()
 					.end()
 					.find(_this.sTextArea)
 					.replaceWith(text_area)
@@ -2089,7 +2088,7 @@
 							_this.updateCounters(unread_jots, true);
 							_this.updatePageIcon(undefined, iLotId);
 							_this.showSearchPopup(iLotId);
-							_this.editOnClick(this);
+							_this.editOnClick(this, iLotId);
 						})
 					.waitForImages(() => _this.setPositionOnSelectedJot(fCallback));
 				_this.blockSendMessages(false);
@@ -2271,6 +2270,7 @@
 										.closest(_this.sJot)
 										.bxMsgTime()
 										.linkify()
+										.bxProcessHtml()
 										.find('div[id^="jot-menu-"]')
 										.attr('id', `jot-menu-${jot_id}`);
 
@@ -2933,7 +2933,8 @@
 								$(oList)
 									.append(aContent)
 									.waitForImages(() => _this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'fast', oObjects.last()))
-									.addTimeIntervals();
+									.addTimeIntervals()
+									.bxProcessHtml();
 
 
 								if ((_this.isBlockVersion() || (_this.isMobile() && _oMessenger.oJotWindowBuilder.isHistoryColActive())) && !bSilentMode)  /* play sound for jots only on mobile devices when chat area is active */
@@ -2955,6 +2956,7 @@
 
 							oList
 								.prepend($(html)
+									.bxProcessHtml()
 									.filter(_this.sJot)
 									.each(function(){
 										$(`${_this.sJotMessageViews} img`, this)

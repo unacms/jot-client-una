@@ -20,6 +20,21 @@
     position: absolute;
 }
 
+.bx-menu-object-bx_messenger_lot_menu .sys-icon,
+.bx-messenger-block .bx-db-menu .sys-icon
+{
+    display: block !important;
+}
+
+ul.bx-menu-object-bx_messenger_lot_menu li{
+    list-style: none;
+}
+
+ul.bx-menu-object-bx_messenger_lot_menu {
+    padding-left: 0;
+    margin-left: 0;
+}
+
 #bx-messenger-files-uploader
 {
     max-width:80%;

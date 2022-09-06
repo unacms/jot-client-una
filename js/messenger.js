@@ -2088,10 +2088,10 @@
 							_this.updateCounters(unread_jots, true);
 							_this.updatePageIcon(undefined, iLotId);
 							_this.showSearchPopup(iLotId);
-							_this.editOnClick(this, iLotId);
+							_this.editOnClick();
 						})
 					.waitForImages(() => _this.setPositionOnSelectedJot(fCallback));
-				_this.blockSendMessages(false);
+					_this.blockSendMessages(false);
 
 
 					if (typeof title !== 'undefined')

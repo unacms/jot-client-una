@@ -36,6 +36,9 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         'talk-header.css',
                         'quill.bubble.css',
                         'quill-messenger.css',
+                        'text-area.css',
+                        'messenger-block.css',
+                        'date-time-divider.css',
                         $CNF['EMOJI']['css']
 					 );
 

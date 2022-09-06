@@ -1,0 +1,134 @@
+div.bx-messenger-post-box
+{
+    padding: 0 0.5rem;
+    border-left: none;
+    border-bottom: none;
+    border-right: none;
+    border-top: 1px solid inherit;
+    border-radius: 0;
+}
+
+.bx-messenger-post-box-send-actions i.sys-icon{
+    font-size: 1rem;
+}
+
+div.bx-messenger-post-box-send-area div.bx-messenger-text-box:active {
+    border: 0;
+}
+
+div.bx-messenger-post-box-send-area div.bx-messenger-text-box
+{
+    border: 0;
+    background-color: rgba(0,0,0,0) !important;
+    max-height: 10rem;
+    /*padding: 0 !important;*/
+    height: auto;
+    display: block;
+    -webkit-touch-callout: none;
+    overflow-y: auto;
+}
+
+div.bx-messenger-post-box-set svg
+{
+    vertical-align:middle;
+}
+
+div.bx-messenger-post-box .bx-messenger-post-box-set > div
+{
+    padding-top:0.5rem;
+}
+
+div.bx-messenger-post-box-send-area div.bx-messenger-text-box
+{
+    border: 0;
+    background-color: rgba(0,0,0,0);
+    max-height: 10rem;
+    padding: 0 !important;
+    height: auto;
+    display: block;
+    -webkit-touch-callout: none;
+    overflow-y: auto;
+}
+
+div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
+{
+    -webkit-touch-callout: none;
+}
+
+.bx-messenger-post-box-disabled
+{
+    background-color:rgba(0,0,0,0.05);
+    -moz-user-select: none;
+    cursor: text;
+    pointer-events: none;
+    top:0;
+}
+
+.bx-messenger-post-box-send-actions{
+    display: block;
+}
+
+.bx-messenger-post-box-send-actions-items
+{
+    overflow: hidden;
+    display: flex;
+    justify-content: space-between;
+}
+
+.bx-messenger-post-box-send-actions-items li.video{
+    display: none;
+}
+
+.bx-messenger-post-box-send-actions a,
+.bx-messenger-post-box-send-button a
+{
+    z-index:1;
+    cursor:pointer;
+}
+
+.bx-messenger-post-box-send-button a {
+    display: none;
+}
+
+/*.bx-messenger-post-box-send-actions ul
+{
+	list-style: none;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	line-height: normal;
+	margin-top:1rem;
+	margin-bottom:1rem;
+}
+
+.bx-messenger-post-box-send-actions ul li
+{
+	display:block;
+	margin-right: 1rem;
+	min-width: 1.5rem;
+	text-align: end;
+	user-select: none;
+}*/
+
+.bx-messenger-post-box-send-button
+{
+    display: flex;
+    align-items: center;
+}
+
+
+div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
+{
+    -webkit-touch-callout: none;
+}
+
+div.bx-messenger-edit-jot div.bx-messenger-post-box-send-area div.bx-messenger-text-box
+{
+    max-height: 7rem;
+    min-height: 2.3rem;
+    vertical-align: middle;
+    padding-left: 0.5rem;
+    padding-top: 0.3rem;
+    display: block;
+}

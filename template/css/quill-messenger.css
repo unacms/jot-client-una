@@ -19,37 +19,6 @@
     font-family: inherit;
 }
 
-div.bx-messenger-post-box-send-area div.bx-messenger-text-box:active {
-    border: 0;
-}
-
-div.bx-messenger-post-box-send-area div.bx-messenger-text-box
-{
-    border: 0;
-    background-color: rgba(0,0,0,0) !important;
-    max-height: 10rem;
-    padding: 0 !important;
-    height: auto;
-    display: block;
-    -webkit-touch-callout: none;
-    overflow-y: auto;
-}
-
-div.bx-messenger-post-box-send-area div.bx-messenger-text-box div
-{
-    -webkit-touch-callout: none;
-}
-
-div.bx-messenger-edit-jot div.bx-messenger-post-box-send-area div.bx-messenger-text-box
-{
-    max-height: 7rem;
-    min-height: 2.3rem;
-    vertical-align: middle;
-    padding-left: 0.5rem;
-    padding-top: 0.3rem;
-    display: block;
-}
-
 .bx-messenger-main-block .ql-editor:focus:focus {
     border: 0;
     background: rgba(0,0,0,0);

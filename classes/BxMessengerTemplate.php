@@ -337,7 +337,10 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
      * @return array content and title of the block
      */
 	public function getTalkBlock($iProfileId, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $bIsBlockVersion = false){
-        return $this -> parseHtmlByName('talk.html', array(
+        if (!$bIsBlockVersion && $this->_oConfig->CNF['USE-UNIQUE-MODE'])
+	        return $this->getCreateTalkForm($iProfileId, $iLotId);
+
+	    return $this -> parseHtmlByName('talk.html', array(
 			'header' => $this->getTalkHeader($iLotId, $iProfileId, $bIsBlockVersion),
 			'history' => $this->getHistory($iProfileId, $iLotId, $iJotId),
             'text_area' => $this->getTextArea($iProfileId, $iLotId)
@@ -425,6 +428,10 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	public function getTalkHeader($iLotId, $iProfileId, $bIsBlockVersion = false, $isArray = false){
         $CNF = &$this->_oConfig->CNF;
         $aLotInfo = array();
+
+        if (!$bIsBlockVersion && $CNF['USE-UNIQUE-MODE'])
+           return $this -> parseHtmlByName('header_wrapper.html', array('header' => $this->getEditTalkArea($iProfileId, $iLotId)));
+
         if ($iLotId)
             $aLotInfo = $this -> _oDb -> getLotInfoById($iLotId);
 
@@ -594,7 +601,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                     'bx_repeat:participants_list' => $aParticipants,
                     'bx_if:edit_mode' =>
                         array(
-                            'condition' => $bAllowToSave,
+                            'condition' => $bAllowToSave && !$this->_oConfig->CNF['USE-UNIQUE-MODE'],
                             'content' => array(
                                 'lot' => $iLotId,
                             )
@@ -1067,7 +1074,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			'star_icon' => $CNF['STAR_ICON'],
 			'star_color' => $CNF['STAR_BACKGROUND_COLOR'],
             'bx_if:create' => array(
-                'condition' => $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_TALKS, $iProfileId) === true,
+                'condition' => $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_TALKS, $iProfileId) === true && !$this->_oConfig->CNF['USE-UNIQUE-MODE'],
                 'content' => array(
                     'create_lot_title' => bx_js_string(_t('_bx_messenger_lots_menu_create_lot_title')),
                 )

@@ -2637,6 +2637,7 @@
 	*/	
 	oMessenger.prototype.findLotByParticipantsList = function(fCallback){
 		const _this = this;
+		_this.blockSendMessages(true);
 		$.post('modules/?r=messenger/find_lot', { participants: this.getParticipantsList() },
 			function(oData){
 				if (oData.lot) {
@@ -2652,8 +2653,8 @@
 						.html('');
 
 					_this.oSettings.lot = 0;
-					_this.blockSendMessages(true);
 				}
+				_this.blockSendMessages(false);
 			}, 
 		'json');
 	}
@@ -3872,8 +3873,7 @@
 					}
 			});
 
-			if (!oOptions.lot && !_this.iSelectedPersonToTalk)
-				_oMessenger.initUsersSelector();
+			_oMessenger.initUsersSelector();
 
 			$(window).on('focus', () => {
 				_oMessenger.updatePageIcon();
@@ -3933,6 +3933,7 @@
 								fLoading();
 							}
 
+							_oMessenger.initUsersSelector();
 							_oMessenger.setScrollBarWidth();
 						});
 			}

@@ -24,6 +24,7 @@
 .bx-messenger-block .bx-db-menu .sys-icon
 {
     display: block !important;
+    text-align: center;
 }
 
 ul.bx-menu-object-bx_messenger_lot_menu li{
@@ -132,7 +133,6 @@ ul.bx-menu-object-bx_messenger_lot_menu {
     line-height: 2rem;
     margin: 0;
 }
-
 
 .bx-messenger-lot-header-menu {
     position: relative;

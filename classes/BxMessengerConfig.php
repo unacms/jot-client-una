@@ -264,10 +264,11 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
 			'CHECK-CONTENT-FOR-TOXIC' => getParam($aModule['db_prefix'] . 'check_toxic') == 'on',
 			'TIME-FROM-NOW' => getParam($aModule['db_prefix'] . 'time_in_history') == 'on',
 			'DONT-SHOW-DESC' => getParam($aModule['db_prefix'] . 'dont_show_search_desc') == 'on',
+			'USE-UNIQUE-MODE' => getParam($aModule['db_prefix'] . 'use_unique_mode') == 'on',
 			'SEARCH-CRITERIA-SELECTED' => getParam($aModule['db_prefix'] . 'search_criteria'),
             'JWT' => array(
               'app_id' => getParam($aModule['db_prefix'] . 'jwt_app_id'),
-              'secret' => getParam($aModule['db_prefix'] . 'jwt_app_secret'),
+              'secret' => getParam($aModule['db_prefix'] . 'jwt_app_ secret'),
             ),
             'JOT-JWT' =>  trim(getParam($aModule['db_prefix'] . 'jot_server_jwt')),
             'JSMain' => 'oMessenger'

@@ -293,4 +293,5 @@
 	<string name="_bx_messenger_search_item_content"><![CDATA[messages content]]></string>
 	<string name="_bx_messenger_time_in_history"><![CDATA[Use <b>from now</b> time format in Talk's history]]></string>
 	<string name="_bx_messenger_dont_show_search_desc"><![CDATA[Don't show description in search profiles popup]]></string>
+	<string name="_bx_messenger_use_unique_mode"><![CDATA[Enable unique mode]]></string>
 </resources>

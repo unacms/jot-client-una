@@ -600,16 +600,17 @@ class BxMessengerModule extends BxBaseModGeneralModule
 	public function actionUpdate(){	   
         $CNF = &$this->_oConfig->CNF;
 
-        if (!$this->isLogged())
+        $iJot = (int)bx_get('jot');
+        $iLotId = (int)bx_get('lot');
+        $sLoad = bx_get('load');
+
+        if (!$this->isLogged() && !($sLoad && $iJot && $iLotId))
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
 
         $sUrl = bx_get('url');
         if ($sUrl)
             $sUrl = $this->getPreparedUrl($sUrl);
 
-        $iJot = (int)bx_get('jot');
-        $iLotId = (int)bx_get('lot');
-        $sLoad = bx_get('load');
         $isFocused = (bool)bx_get('focus');
         $iRequestedJot = (int)bx_get('req_jot');
         $iLastViewedJot = (int)bx_get('last_viewed_jot');

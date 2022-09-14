@@ -1862,8 +1862,11 @@
 
 		this.notifyNewUnreadChats(iUnreadLotsCount);
 
-		if (bEnable === true || iUnreadLotsCount)
+		$(document).prop('title', $(document).prop('title').replace(/\(\d\)$/g, ''));
+		if (bEnable === true || iUnreadLotsCount) {
 			$('link[rel="shortcut icon"]').attr('href', this.sInfoFavIcon);
+			$(document).prop('title', $(document).prop('title') + ` (${iUnreadLotsCount})`);
+		}
 		else 
 		if (bEnable === false || !iUnreadLotsCount)
 			$('link[rel="shortcut icon"]').attr('href', this.sDefaultFavIcon);

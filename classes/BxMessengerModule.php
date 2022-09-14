@@ -593,11 +593,24 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return strtolower($aUrl['path'] . (isset($aUrl['query']) ? '?' . $aUrl['query'] : ''));
     }
 
+    private function isAvailable($iLotId){
+        if (!$iLotId)
+            return false;
+
+        $CNF = &$this->_oConfig->CNF;
+        $bIsParticipant = $this->_oDb->isParticipant($iLotId, $this->_iProfileId);
+        $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
+        if (!empty($aLotInfo) && !$bIsParticipant && $aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
+            return false;
+
+        return true;
+    }
+
     /**
      * Loads messages for  lot(conversation) (when member wants to view history or get new messages from participants)
      * @return string with json
      */
-	public function actionUpdate(){	   
+	public function actionUpdate(){
         $CNF = &$this->_oConfig->CNF;
 
         $iJot = (int)bx_get('jot');
@@ -606,6 +619,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         if (!$this->isLogged() && !($sLoad && $iJot && $iLotId))
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
+
+        if ($iLotId && !$this->isAvailable($iLotId))
+            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_talk_is_not_allowed')));
 
         $sUrl = bx_get('url');
         if ($sUrl)
@@ -1038,7 +1054,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         echoJson($aResult);
     }
-
     /**
      * React on defined jot
      * @return string with json

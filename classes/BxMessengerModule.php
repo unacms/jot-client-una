@@ -771,27 +771,69 @@ class BxMessengerModule extends BxBaseModGeneralModule
             ));
     }
 
-    public function searchProfiles($sTerm, $aExcept = array(), $iLimit = 10){
+    public function searchFriends($sTerm){
+        $oConnection = BxDolConnection::getObjectInstance('sys_profiles_friends');
+        $aProfiles = $oConnection->getConnectedContent($this->_iProfileId, true);
+        $aResult = array();
+        if (empty($aProfiles))
+            return $aResult;
+
         $aModules = BxDolService::call('system', 'get_profiles_modules', array(), 'TemplServiceProfiles');
+        if (empty($aModules))
+            return $aResult;
+
+        $aProfilesModules = array();
+        foreach($aModules as &$aModule)
+            $aProfilesModules[$aModule['name']] = BxDolModule::getInstance($aModule['name']);
+
+        foreach($aProfiles as &$iID){
+            $oProfileInfo = BxDolProfile::getInstance($iID);
+            if (!empty($oProfileInfo)) {
+                $aInfo = $oProfileInfo->getInfo();
+                if (isset($aInfo['type']) && isset($aProfilesModules[$aInfo['type']])) {
+                    $aProfileInfo = $aProfilesModules[$aInfo['type']]->_oDb->getContentInfoByProfileId($iID);
+                    $sFields = getParam($aProfilesModules[$aInfo['type']]->_oConfig->CNF['PARAM_SEARCHABLE_FIELDS']);
+                    if ($sFields && ($aFields = explode(',', $sFields))) {
+                        foreach($aFields as &$sKey){
+                            if (stripos($aProfileInfo[$sKey], $sTerm) !== FALSE)
+                                $aResult[$aInfo['type']][] = $aProfileInfo;
+                        }
+                    }
+                }
+            }
+
+        }
+
+       return $aResult;
+    }
+
+    public function searchProfiles($sTerm, $aExcept = array(), $iLimit = 10){
+        $CNF = &$this->_oConfig->CNF;
+	    $aModules = BxDolService::call('system', 'get_profiles_modules', array(), 'TemplServiceProfiles');
         if (empty($aModules))
             return array();
 
-        $aModules = array_map(function($aModule){
-            return $aModule['name'];
-        }, $aModules);
+        if ($CNF['USE-FRIENDS-ONLY-MODE'])
+            $aSearchResult = $this->searchFriends(bx_get('term'));
+        else
+        {
+            $aModules = array_map(function($aModule){
+                return $aModule['name'];
+            }, $aModules);
 
-        $o = new BxDolSearch($aModules);
-        $o->setDataProcessing(true);
-        $o->setCustomSearchCondition(array('keyword' => $sTerm));
-        $o->setCustomCurrentCondition(array(
-            'paginate' => array(
-                'perPage' => $iLimit/count($aModules) + 0.5
-            )
-        ));
+            $o = new BxDolSearch($aModules);
+            $o->setDataProcessing(true);
+            $o->setCustomSearchCondition(array('keyword' => $sTerm));
+            $o->setCustomCurrentCondition(array(
+                'paginate' => array(
+                    'perPage' => $iLimit/count($aModules) + 0.5
+                )
+            ));
 
-        $aSearchResult = $o->response();
-        if (empty($aSearchResult))
-            return array();
+            $aSearchResult = $o->response();
+            if (empty($aSearchResult))
+                return array();
+        }
 
         $aUsers = array();
         foreach($aSearchResult as $sModule => $aItems){
@@ -1054,6 +1096,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         echoJson($aResult);
     }
+
     /**
      * React on defined jot
      * @return string with json

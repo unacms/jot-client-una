@@ -1021,9 +1021,9 @@ class BxMessengerDb extends BxBaseModGeneralDb
 		$sParam = isset($aParams['term']) && $aParams['term'] ? $aParams['term'] : '';
 		if ($sParam)
 		{
-            $sParamWhere = '';
+            $aParamWhere = [];
 		    if ($this->_oConfig->isSearchCriteria(BX_SEARCH_CRITERIA_TITLES)) {
-                $sParamWhere = "`l`.`{$this->CNF['FIELD_TITLE']}` LIKE :title";
+                $aParamWhere[] = "`l`.`{$this->CNF['FIELD_TITLE']}` LIKE :title";
                 $aWhere['title'] = "%{$sParam}%";
             }
 
@@ -1036,7 +1036,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
                     if (!empty($aRegexp)) {
                         $aWhere['part_search'] = implode('|', $aRegexp);
-                        $sParamWhere .= " OR `{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP :part_search";
+                        $aParamWhere[]= "`{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP :part_search";
                     }
                 }
             }
@@ -1044,13 +1044,13 @@ class BxMessengerDb extends BxBaseModGeneralDb
             if ($this->_oConfig->isSearchCriteria(BX_SEARCH_CRITERIA_CONTENT)) {
                 $aSelectedLots = $this->searchMessage($sParam, $iProfileId);
                 if (!empty($aSelectedLots)) {
-                    $sParamWhere .= " OR `l`.`{$this->CNF['FIELD_ID']}` IN (" . implode(',', array_unique($aSelectedLots)) . ")";
+                    $aParamWhere[] = "`l`.`{$this->CNF['FIELD_ID']}` IN (" . implode(',', array_unique($aSelectedLots)) . ")";
                     $aParams['jots_list'] = $aSelectedLots;
                 }
             }
 
-            if ($sParamWhere)
-                $aSWhere[] = "({$sParamWhere})";
+            if (!empty($aParamWhere))
+                $aSWhere[] = '(' . implode(' OR ', $aParamWhere) . ')';
 		}
 
         $iType = isset($aParams['type']) ? (int)$aParams['type'] : '';
@@ -1141,7 +1141,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 		$bResult = true;
 		
 		$aWhere['profile'] = (int)$iProfileId;
-			
+
 		$bResult &= $this-> query("DELETE
 			FROM `{$this->CNF['TABLE_ENTRIES']}`
 			WHERE `{$this->CNF['FIELD_AUTHOR']}`=:profile", $aWhere);
@@ -1924,6 +1924,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
         return @unserialize($aOptions);
     }
+
 }
 
 /** @} */

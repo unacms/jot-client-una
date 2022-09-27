@@ -337,10 +337,13 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	    return $iAuthorId;
     }
 
-    function createLot($iProfileId, $sUrl = '', $sTitle = '', $sType = '', $aParticipants = array()){
+    function createLot($iProfileId, $aData){
+        $sUrl = isset($aData['url']) ? $aData['url'] : '';
+        $aParticipants = isset($aData['participants']) ? $aData['participants'] : array();
+
         $iAuthorId = $this->findThePageOwner($sUrl);
         $iAuthorId = $iAuthorId ? $iAuthorId : (int)$iProfileId;
-        $iLotId = $this->createNewLot($iAuthorId, $sTitle, $sType, $sUrl, $aParticipants);
+        $iLotId = $this->createNewLot($iAuthorId, $aData, $aParticipants);
         if (!$iLotId)
             return false;
 
@@ -362,6 +365,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	*/
     public function saveMessage($aData, $aParticipants = array())
     {
+        $CNF = &$this->_oConfig->CNF;
         $iLotId = isset($aData['lot']) ? (int)$aData['lot'] : 0;
         $aLotInfo = $iLotId ? $this->getLotInfoById($iLotId) : array();
 		
@@ -372,7 +376,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
             return false;
 
         if (empty($aLotInfo))
-            $iLotId = $this->createLot((int)$aData['member_id'], $aData['url'], $aData['title'], $aData['type'], $aParticipants);
+            $iLotId = $this->createLot((int)$aData['member_id'], $aData);
         else
             $iLotId = $aLotInfo[$this->CNF['FIELD_ID']];
 
@@ -493,8 +497,27 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	*@param array $aParticipants list of participants
 	*@return  int affected rows
 	*/
-	public function createNewLot($iProfileId, $sTitle, $iType, $sUrl = '', $aParticipants = array())
+	public function createNewLot($iProfileId, $aData, $aParticipants = array())
 	{
+        $CNF = &$this->_oConfig->CNF;
+        $sTitle = isset($aData['title']) ? $aData['title'] : '';
+        $iType = isset($aData['type']) ? $aData['type'] : BX_IM_TYPE_PRIVATE;
+        $sUrl = isset($aData['url']) ? $aData['url'] : '';
+        $sPage = isset($aData['page']) ? $aData['page'] : '';
+
+        $aServiceParams = array();
+        if (isset($aData['service_params']))
+            $aServiceParams = is_array($aData['service_params']) ? $aData['service_params'] : array($aData['service_params']);
+
+        if ($sPage && ($aServiceData = $this->getTalkServiceData($sPage))){
+           $aService = @unserialize($aServiceData[$this->CNF['FLSE_SERVICE']]);
+           $aTalkServiceData = BxDolService::call($aService['module'], $aService['service'], $aServiceParams);
+           if (!empty($aTalkServiceData)) {
+               if (isset($aTalkServiceData['title']))
+                   $sTitle = $aTalkServiceData['title'];
+           }
+        }
+
 		$mixedParticipants = !empty($aParticipants) ? implode(',', $aParticipants) : '';
 		$sQuery = $this->prepare("INSERT INTO `{$this->CNF['TABLE_ENTRIES']}` 
 												SET  `{$this->CNF['FIELD_TITLE']}` = ?, 
@@ -1925,6 +1948,23 @@ class BxMessengerDb extends BxBaseModGeneralDb
         return @unserialize($aOptions);
     }
 
+    function getTalkServiceData($sPage){
+        return $this->getRow("SELECT * FROM `{$this->CNF['TABLE_LOT_SERVICE']}` WHERE `{$this->CNF['FLSE_PAGE']}`=:page LIMIT 1", array('page' => $sPage));
+    }
+
+    function updateTalkService(&$aData){
+        if (!isset($aData['page']) || !isset($aData['service']))
+            return false;
+
+        $sPage = $aData['page'];
+        $sService = is_array($aData['service']) ? @serialize($aData['service']) : $aData['service'];
+
+        return $this->query("REPLACE INTO `{$this->CNF['TABLE_LOT_SERVICE']}` 
+                                            SET 
+                                                `{$this->CNF['FLSE_PAGE']}`=:page, 
+                                                `{$this->CNF['FLSE_SERVICE']}`=:service",
+                                            array('page' => $sPage, 'service' => $sService));
+    }
 }
 
 /** @} */

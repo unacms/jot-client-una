@@ -58,7 +58,7 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_search_criteria', 'titles,participants,content', @iCategId, '_bx_messenger_search_criteria_list', 'list', '', '', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:18:"get_search_options";}', 45),
 ('bx_messenger_time_in_history', '', @iCategId, '_bx_messenger_time_in_history', 'checkbox', '', '', '', 46),
 ('bx_messenger_dont_show_search_desc', '', @iCategId, '_bx_messenger_dont_show_search_desc', 'checkbox', '', '', '', 47),
-('bx_messenger_use_unique_mode', '', @iCategId, '_bx_messenger_use_unique_mode', 'checkbox', '', '', '', 48)
+('bx_messenger_use_unique_mode', '', @iCategId, '_bx_messenger_use_unique_mode', 'checkbox', '', '', '', 48),
 ('bx_messenger_connect_friends_only', '', @iCategId, '_bx_messenger_connect_friends_only', 'checkbox', '', '', '', 49);
 
 -- MENU: notifications

@@ -166,6 +166,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $this->_oTemplate->loadCssJs('view');
         $aLotInfo = $this->_oDb->getLotByClass($sModule);
         $sUrl = $this->_oConfig->getPageIdent();
+
         $iType = $this->_oConfig->getTalkType($sModule);
         if (empty($aLotInfo))
             $aLotInfo = $this->_oDb->getLotByUrl($sUrl);
@@ -174,10 +175,25 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (!$iLotId) {
             $sTalkUrl = $this->getPreparedUrl($sUrl);
             $sTalkTitle = BxDolTemplate::getInstance()->getPageHeader();
-            $iLotId = $this->_oDb->createLot($this->_iProfileId, $sTalkUrl, $sTalkTitle, $iType);
+
+            $sServiceParams = $sPage = '';
+            if ($sUrl) {
+                parse_str($sUrl, $aUrl);
+                if (!empty($aUrl)) {
+                    $sPage = isset($aUrl['i']) ? $aUrl['i'] : '';
+                    $sServiceParams = isset($aUrl['id']) ? $aUrl['id'] : array();
+                }
         }
 
-        $sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, true, $iLotId, BX_IM_EMPTY, BX_IM_EMPTY, $this->_oConfig->getTalkType($sModule));
+            $iLotId = $this->_oDb->createLot( $this->_iProfileId, array(
+                'url' => $sTalkUrl,
+                'title' => $sTalkTitle,
+                'type' => $iType,
+                'page' => $sPage,
+                'service_params' => $sServiceParams ));
+        }
+
+        $sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, true, $iLotId, BX_IM_EMPTY, BX_IM_EMPTY, $iType);
         $aHeader = $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId, true, true);
 
         $sContent = $this->_oTemplate->parseHtmlByName('talk_body.html', array(
@@ -993,7 +1009,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $aResult = array('message' => _t('_bx_messenger_save_part_success'), 'code' => 0);
 		if (!$iLotId)
 		{
-            $iLotId = $this->_oDb->createNewLot($this->_iProfileId, BX_IM_EMPTY_URL, BX_IM_TYPE_PRIVATE, BX_IM_EMPTY_URL, $this->getParticipantsList(bx_get('participants')));
+            $iLotId = $this->_oDb->createNewLot($this->_iProfileId, array('title' => '', 'type' => BX_IM_TYPE_PRIVATE, 'url' => BX_IM_EMPTY_URL), $this->getParticipantsList(bx_get('participants')));
             $aResult['lot'] = $iLotId;
             $this->onCreateLot($iLotId);
 		}
@@ -2674,7 +2690,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $sUrl = bx_get('url');
             $sTitle = bx_get('title');
             $aLot = $this -> _oDb -> getLotByUrlAndParticipantsList($sUrl);
-            $iLotId = empty($aLot) ? $this->_oDb->createNewLot($this->_iProfileId, $sTitle, BX_IM_TYPE_PRIVATE, $sUrl) : $aLot[$this->_oConfig->CNF['FIELD_ID']];
+            $iLotId = empty($aLot) ? $this->_oDb->createNewLot($this->_iProfileId,  array('title' => $sTitle, 'type' => BX_IM_TYPE_PRIVATE, 'url' => $sUrl)) : $aLot[$this->_oConfig->CNF['FIELD_ID']];
         }
 
         $CNF = &$this->_oConfig->CNF;

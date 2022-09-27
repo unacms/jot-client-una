@@ -33,6 +33,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'TABLE_PUBLIC_JVC' => $aModule['db_prefix'] . 'public_jvc',
             'TABLE_JVCT' => $aModule['db_prefix'] . 'jvc_track',
             'TABLE_LOT_SETTINGS' => $aModule['db_prefix'] . 'lots_settings',
+            'TABLE_LOT_SERVICE' => $aModule['db_prefix'] . 'lots_services',
             'TABLE_CMTS_OBJECTS' => 'sys_objects_cmts',
             'TABLE_ENTRIES_FULLTEXT' => 'search_title',
             'TABLE_ENTRIES_COMMENTS_FULLTEXT' => 'search_fields',
@@ -139,6 +140,10 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             // messenger lot settings
             'FLS_ID' => 'lot_id',
             'FLS_SETTINGS' => 'settings',
+
+            // messenger lots services          
+            'FLSE_PAGE' => 'page',
+            'FLSE_SERVICE' => 'service',
 
             // page URIs
             'URL_HOME' => BX_DOL_URL_ROOT . 'page.php?i=messenger',

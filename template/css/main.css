@@ -1078,19 +1078,6 @@ div.bx-messenger-video-block div:first-child
 	animation: blinker 2s linear infinite;
 }
 
-/*.bx-messenger-block .bx-db-header i,
-.bx-messenger-block-menu-align-right i
-{
-	font-size: 1.25rem;
-	line-height: 1.75rem;
-}*/
-
-/*.bx-messenger-block.bx-db-container .bx-db-divider
-{
-	top:0;
-	position:relative;
-}*/
-
 #bx-messenger-send-area-giphy{
 	font-weight: 700;
 	border-radius: 1rem;

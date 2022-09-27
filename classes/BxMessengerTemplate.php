@@ -737,7 +737,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			else
                 $sCount = '<div class="bx-def-label bx-def-font-middle status menu">' . $iParticipantsCount .'</div>';
 	
-			
 			$aVars[$CNF['FIELD_ID']] = $aLot[$CNF['FIELD_ID']];
 			$aVars[$CNF['FIELD_TITLE']] = $sTitle;
 			$aVars['number'] = $sCount;
@@ -1156,7 +1155,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         {
                             $sTalkTitle = $oModuleProfile->getDisplayName();
                             $iType = $this->_oConfig->getTalkType($sModule);
-                            $iLotId = $this->_oDb->createLot($iProfileId, $sUrl, $sTalkTitle, $iType, array($iProfileId));
+                            $iLotId = $this->_oDb->createLot($iProfileId, array('url' => $sUrl, 'title' => $sTalkTitle, 'type' => $iType, 'participants' => array($iProfileId)));
                         }
                     }
                 }

@@ -66,6 +66,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'FIELD_URL' => 'url',
             'FIELD_TYPE' => 'type',
             'FIELD_CLASS' => 'class',
+            'FIELD_VISIBILITY' => 'visibility',
 
             // storage tale
             'FIELD_ST_ID' => 'id',

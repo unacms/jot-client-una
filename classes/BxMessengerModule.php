@@ -65,6 +65,10 @@ define('BX_SEARCH_CRITERIA_TITLES', 'titles');
 define('BX_SEARCH_CRITERIA_PARTS', 'participants');
 define('BX_SEARCH_CRITERIA_CONTENT', 'content');
 
+// visibility
+define('BX_MSG_VISIBILITY_VISIBLE', 0);
+define('BX_MSG_VISIBILITY_HIDDEN', 1);
+define('BX_MSG_VISIBILITY_ALL', 2);
 
 /**
  * Messenger module

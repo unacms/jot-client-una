@@ -504,6 +504,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
         $iType = isset($aData['type']) ? $aData['type'] : BX_IM_TYPE_PRIVATE;
         $sUrl = isset($aData['url']) ? $aData['url'] : '';
         $sPage = isset($aData['page']) ? $aData['page'] : '';
+        $iVisibility = isset($aData['visibility']) ? (int)$aData['visibility'] : 0;
 
         $aServiceParams = array();
         if (isset($aData['service_params']))
@@ -515,17 +516,21 @@ class BxMessengerDb extends BxBaseModGeneralDb
            if (!empty($aTalkServiceData)) {
                if (isset($aTalkServiceData['title']))
                    $sTitle = $aTalkServiceData['title'];
+
+               if (isset($aTalkServiceData['visibility']))
+                   $iVisibility = (int)$aTalkServiceData['visibility'];
            }
         }
 
 		$mixedParticipants = !empty($aParticipants) ? implode(',', $aParticipants) : '';
 		$sQuery = $this->prepare("INSERT INTO `{$this->CNF['TABLE_ENTRIES']}` 
-												SET  `{$this->CNF['FIELD_TITLE']}` = ?, 
-													 `{$this->CNF['FIELD_TYPE']}` = ?, 
+												SET  `{$this->CNF['FIELD_TITLE']}` = ?,
+													 `{$this->CNF['FIELD_TYPE']}` = ?,
 													 `{$this->CNF['FIELD_AUTHOR']}` = ?,
 													 `{$this->CNF['FIELD_ADDED']}` = UNIX_TIMESTAMP(),
 													 `{$this->CNF['FIELD_PARTICIPANTS']}` = ?,
-													 `{$this->CNF['FIELD_URL']}` = ?", $sTitle, $iType, $iProfileId, $mixedParticipants, $sUrl);
+													 `{$this->CNF['FIELD_VISIBILITY']}` = ?,
+													 `{$this->CNF['FIELD_URL']}` = ?", $sTitle, $iType, $iProfileId, $mixedParticipants, $iVisibility, $sUrl);
 		
 		return $this->query($sQuery) ? $this -> lastId() : false;
 	}
@@ -1090,6 +1095,18 @@ class BxMessengerDb extends BxBaseModGeneralDb
 			$aSWhere[] = "`u`.`{$this->CNF['FIELD_INFO_STAR']}` = 1";
 		}
 
+        if(isset($aParams['visibility'])){
+            if ($aParams['visibility'] !== BX_MSG_VISIBILITY_ALL) {
+                $aWhere['visibility'] = $aParams['visibility'];
+                $aSWhere[] = " `l`.`{$this->CNF['FIELD_VISIBILITY']}` = :visibility";
+            }
+        }
+        else
+        {
+            $aSWhere[] = " `l`.`{$this->CNF['FIELD_VISIBILITY']}` = :visibility";
+            $aWhere['visibility'] = BX_MSG_VISIBILITY_VISIBLE;
+        }
+
         $iLastLot = isset($aParams['last_lot']) ? (int)$aParams['last_lot'] : 0;
         if ($iLastLot) {
             $aWhere['last_lot'] = $iLastLot;
@@ -1103,21 +1120,20 @@ class BxMessengerDb extends BxBaseModGeneralDb
        $aWhere['per_page'] = isset($aParams['per_page']) ? (int)$aParams['per_page'] : (int)$this->CNF['MAX_LOTS_NUMBER'];
        $sLimit = "LIMIT :start, :per_page";
 
-
        $bShowLeft = isset($aParams['left']);
        $sLeft = "";
        if ($bShowLeft)
            $sLeft = "SQL_CALC_FOUND_ROWS";
 
        $aResult = $this-> getAll("SELECT 
-                                        {$sLeft}   
-                                        `l`.*, 
-                                         IF (`l`.`{$this->CNF['FIELD_UPDATED']}` = 0, `l`.`{$this->CNF['FIELD_ADDED']}`, `l`.`{$this->CNF['FIELD_UPDATED']}`) as `order` 
-			                             FROM `{$this->CNF['TABLE_ENTRIES']}` as `l`
-                                         {$sJoin}
-                                         WHERE (`l`.`{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP :parts OR `l`.`{$this->CNF['FIELD_AUTHOR']}`=:profile) {$sWhere}
-                                         ORDER BY `order` DESC
-                                         {$sLimit}", $aWhere);
+                                             {$sLeft}
+                                            `l`.*,
+                                             IF (`l`.`{$this->CNF['FIELD_UPDATED']}` = 0, `l`.`{$this->CNF['FIELD_ADDED']}`, `l`.`{$this->CNF['FIELD_UPDATED']}`) as `order` 
+                                             FROM `{$this->CNF['TABLE_ENTRIES']}` as `l`
+                                             {$sJoin}
+                                             WHERE (`l`.`{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP :parts OR `l`.`{$this->CNF['FIELD_AUTHOR']}`=:profile) {$sWhere}
+                                             ORDER BY `order` DESC
+                                            {$sLimit}", $aWhere);
 
        if ($bShowLeft)
            $aParams['left'] = (int)$this->getOne("SELECT FOUND_ROWS()") - $aWhere['start'];

@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_lots` (
    `author` int(11) unsigned NOT NULL default 0,
    `participants` text NOT NULL default '',
    `class` varchar(20) NOT NULL default 'custom', 
+   `visibility` tinyint(1) NOT NULL default 0,
    PRIMARY KEY  (`id`)
 );
 

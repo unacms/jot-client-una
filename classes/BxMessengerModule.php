@@ -1968,7 +1968,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
     public function onCreateLot($iLotId)
     {
-        bx_alert($this->_oConfig->getObject('alert'), 'create_lot', $iLotId, $this->_iUserId);
+        bx_alert($this->_oConfig->getObject('alert'), 'create_lot', $iLotId, $this->_iProfileId, $this->_oDb->getLotInfoById($iLotId));
     }
 
     public function onDeleteLot($iLotId, $iProfileId = 0)
@@ -2694,7 +2694,12 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $sUrl = bx_get('url');
             $sTitle = bx_get('title');
             $aLot = $this -> _oDb -> getLotByUrlAndParticipantsList($sUrl);
-            $iLotId = empty($aLot) ? $this->_oDb->createNewLot($this->_iProfileId,  array('title' => $sTitle, 'type' => BX_IM_TYPE_PRIVATE, 'url' => $sUrl)) : $aLot[$this->_oConfig->CNF['FIELD_ID']];
+            if (empty($aLot)) {
+                $this->_oDb->createNewLot($this->_iProfileId, array('title' => $sTitle, 'type' => BX_IM_TYPE_PRIVATE, 'url' => $sUrl));
+                $this->onCreateLot($iLotId);
+            }
+             else
+                $iLotId = $aLot[$this->_oConfig->CNF['FIELD_ID']];
         }
 
         $CNF = &$this->_oConfig->CNF;

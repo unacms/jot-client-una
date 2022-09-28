@@ -343,11 +343,12 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
         $iAuthorId = $this->findThePageOwner($sUrl);
         $iAuthorId = $iAuthorId ? $iAuthorId : (int)$iProfileId;
+
         $iLotId = $this->createNewLot($iAuthorId, $aData, $aParticipants);
         if (!$iLotId)
             return false;
 
-        bx_alert($this->_oConfig->getObject('alert'), 'create_lot', $iLotId, $iProfileId);
+        bx_alert($this->_oConfig->getObject('alert'), 'create_lot', $iLotId, $iProfileId, $this->getLotInfoById($iLotId));
         foreach($aParticipants as &$iParticipant) {
             if ((int)$iParticipant === (int)$iProfileId)
                 continue;
@@ -500,31 +501,23 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	public function createNewLot($iProfileId, $aData, $aParticipants = array())
 	{
         $CNF = &$this->_oConfig->CNF;
+
+        // before to create lot
+        bx_alert($this->_oConfig->getObject('alert'), 'create_lot_before', 0, $iProfileId, array(
+            'data' => &$aData,
+            'participants' => &$aParticipants
+        ));
+
         $sTitle = isset($aData['title']) ? $aData['title'] : '';
         $iType = isset($aData['type']) ? $aData['type'] : BX_IM_TYPE_PRIVATE;
         $sUrl = isset($aData['url']) ? $aData['url'] : '';
         $sPage = isset($aData['page']) ? $aData['page'] : '';
         $iVisibility = isset($aData['visibility']) ? (int)$aData['visibility'] : 0;
 
-        $aServiceParams = array();
-        if (isset($aData['service_params']))
-            $aServiceParams = is_array($aData['service_params']) ? $aData['service_params'] : array($aData['service_params']);
 
-        if ($sPage && ($aServiceData = $this->getTalkServiceData($sPage))){
-           $aService = @unserialize($aServiceData[$this->CNF['FLSE_SERVICE']]);
-           $aTalkServiceData = BxDolService::call($aService['module'], $aService['service'], $aServiceParams);
-           if (!empty($aTalkServiceData)) {
-               if (isset($aTalkServiceData['title']))
-                   $sTitle = $aTalkServiceData['title'];
-
-               if (isset($aTalkServiceData['visibility']))
-                   $iVisibility = (int)$aTalkServiceData['visibility'];
-           }
-        }
-
-		$mixedParticipants = !empty($aParticipants) ? implode(',', $aParticipants) : '';
-		$sQuery = $this->prepare("INSERT INTO `{$this->CNF['TABLE_ENTRIES']}` 
-												SET  `{$this->CNF['FIELD_TITLE']}` = ?,
+        $mixedParticipants = !empty($aParticipants) ? implode(',', $aParticipants) : '';
+	$sQuery = $this->prepare("INSERT INTO `{$this->CNF['TABLE_ENTRIES']}` 
+										SET  `{$this->CNF['FIELD_TITLE']}` = ?,
 													 `{$this->CNF['FIELD_TYPE']}` = ?,
 													 `{$this->CNF['FIELD_AUTHOR']}` = ?,
 													 `{$this->CNF['FIELD_ADDED']}` = UNIX_TIMESTAMP(),
@@ -1962,25 +1955,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
             return false;
 
         return @unserialize($aOptions);
-    }
-
-    function getTalkServiceData($sPage){
-        return $this->getRow("SELECT * FROM `{$this->CNF['TABLE_LOT_SERVICE']}` WHERE `{$this->CNF['FLSE_PAGE']}`=:page LIMIT 1", array('page' => $sPage));
-    }
-
-    function updateTalkService(&$aData){
-        if (!isset($aData['page']) || !isset($aData['service']))
-            return false;
-
-        $sPage = $aData['page'];
-        $sService = is_array($aData['service']) ? @serialize($aData['service']) : $aData['service'];
-
-        return $this->query("REPLACE INTO `{$this->CNF['TABLE_LOT_SERVICE']}` 
-                                            SET 
-                                                `{$this->CNF['FLSE_PAGE']}`=:page, 
-                                                `{$this->CNF['FLSE_SERVICE']}`=:service",
-                                            array('page' => $sPage, 'service' => $sService));
-    }
+    }  
 }
 
 /** @} */

@@ -139,6 +139,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
 
             // messenger lot settings
             'FLS_ID' => 'lot_id',
+            'FLS_ACTIONS' => 'actions',
             'FLS_SETTINGS' => 'settings',
 
             // page URIs

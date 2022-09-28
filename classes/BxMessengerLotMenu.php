@@ -82,6 +82,10 @@ class BxMessengerLotMenu extends BxBaseModTextMenuView
             return false;
 
         $aLotInfo = $this->_oModule->_oDb->getLotInfoById($this->_iContentId);
+        $aLotMenuSettings = $this->_oModule->_oDb->getLotSettings($this->_iContentId, $CNF['FLS_SETTINGS']);
+        if (!empty($aLotMenuSettings) && in_array($a['name'], $aLotMenuSettings))
+            return false;
+
         switch ($a['name']) {
             case 'settings':
                 $sPopupMenuName = time();

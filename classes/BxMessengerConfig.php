@@ -33,6 +33,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'TABLE_PUBLIC_JVC' => $aModule['db_prefix'] . 'public_jvc',
             'TABLE_JVCT' => $aModule['db_prefix'] . 'jvc_track',
             'TABLE_LOT_SETTINGS' => $aModule['db_prefix'] . 'lots_settings',
+            'TABLE_LOT_ATTACHMENTS' => $aModule['db_prefix'] . 'attachments',
             'TABLE_CMTS_OBJECTS' => 'sys_objects_cmts',
             'TABLE_ENTRIES_FULLTEXT' => 'search_title',
             'TABLE_ENTRIES_COMMENTS_FULLTEXT' => 'search_fields',
@@ -142,6 +143,10 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'FLS_ACTIONS' => 'actions',
             'FLS_SETTINGS' => 'settings',
 
+            // messenger lots attachments
+            'FLAT_NAME' => 'name',
+            'FLAT_SERVICE' => 'service',
+
             // page URIs
             'URL_HOME' => BX_DOL_URL_ROOT . 'page.php?i=messenger',
             'URL_REPOST' => 'archive/',
@@ -172,7 +177,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
                                         ),
             'IMPLODE_GROUPS' => array(
                                             BX_ATT_GROUPS_ATTACH => array(
-                                                BX_ATT_TYPE_FILES, BX_ATT_TYPE_FILES_UPLOADING, BX_ATT_TYPE_GIPHY, BX_ATT_TYPE_REPOST
+                                                BX_ATT_TYPE_FILES, BX_ATT_TYPE_FILES_UPLOADING, BX_ATT_TYPE_GIPHY, BX_ATT_TYPE_REPOST, BX_ATT_TYPE_CUSTOM
                                             ),
                                         ),
             'URL_IDENT_PARAMS' => array('i','r','id','profile_id'),

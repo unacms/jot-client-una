@@ -1752,6 +1752,12 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
 						$aResult[BX_ATT_TYPE_FILES][] = $this -> parseHtmlByName('files.html', $aItems);
 						break;
+                default:
+                    if ($sType && ($aService = $this->_oDb->getLotAttachmentType($sType)) && (int)$sValue){
+                        if (isset($aService['module']) && isset($aService['method']) && BxDolRequest::serviceExists($aService['module'], $aService['method'])) {
+                            $aResult[BX_ATT_TYPE_CUSTOM][] =  BxDolService::call($aService['module'], $aService['method'], array((int)$sValue));
+                        }
+                    }
 			}
 		}
 

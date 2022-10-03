@@ -25,6 +25,7 @@ define('BX_ATT_TYPE_FILES', 'files');
 define('BX_ATT_TYPE_FILES_UPLOADING', 'uploading');
 define('BX_ATT_TYPE_GIPHY', 'giphy');
 define('BX_ATT_TYPE_REPOST', 'repost');
+define('BX_ATT_TYPE_CUSTOM', 'custom');
 define('BX_ATT_TYPE_REPLY', 'reply');
 define('BX_ATT_TYPE_VC', 'vc'); // video conference
 

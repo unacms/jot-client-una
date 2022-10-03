@@ -1989,6 +1989,24 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
         return $sField && isset($mixedOptions[$sField]) ? @unserialize($mixedOptions[$sField]) : $mixedOptions;
     }
+
+    function getLotAttachmentType($sName){
+        $sService = $this->getOne("SELECT `{$this->CNF['FLAT_SERVICE']}` FROM `{$this->CNF['TABLE_LOT_ATTACHMENTS']}` WHERE `{$this->CNF['FLAT_NAME']}`=:name LIMIT 1", array('name' => $sName));
+        return $sService ? @unserialize($sService) : false;
+    }
+
+    function updateLotAttachmentType(&$aData){
+        if (!isset($aData['name']) || !isset($aData['service']))
+            return false;
+
+        $sService = is_array($aData['service']) ? @serialize($aData['service']) : $aData['service'];
+
+        return $this->query("REPLACE INTO `{$this->CNF['TABLE_LOT_ATTACHMENTS']}` 
+                                            SET 
+                                                `{$this->CNF['FLSE_NAME']}`=:name, 
+                                                `{$this->CNF['FLAT_SERVICE']}`=:service",
+                                       array('name' => $aData['name'], 'service' => $sService));
+    }
 }
 
 /** @} */

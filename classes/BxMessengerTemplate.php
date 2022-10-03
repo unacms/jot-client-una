@@ -930,13 +930,16 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
                 if ($bIsTrash || ($iIsVC && !$aJot[$CNF['FIELD_MESSAGE']]))
                     $sMessage = $this->getMessageIcons($aJot[$CNF['FIELD_MESSAGE_ID']], $bIsTrash ? 'delete' : 'vc', isAdmin() || $bIsLotAuthor);
-                else {
+                else
+                {
                     $sMessage = $this->_oConfig->bx_linkify($aJot[$CNF['FIELD_MESSAGE']]);
-                    if (!empty($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']])){
-						if ($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']] !== BX_ATT_TYPE_REPLY)
-							$sAttachment = $this->getAttachment($aJot);
-						else 
-							$sReply = $this->getAttachment($aJot);						
+                    if (!empty($aJot[$CNF['FIELD_MESSAGE_AT']])){
+                        $aAttachments = $this->getAttachment($aJot);
+						if (isset($aAttachments[BX_ATT_GROUPS_ATTACH]) && $aAttachments[BX_ATT_GROUPS_ATTACH])
+							$sAttachment = $aAttachments[BX_ATT_GROUPS_ATTACH];
+
+						if (isset($aAttachments[BX_ATT_TYPE_REPLY]) && $aAttachments[BX_ATT_TYPE_REPLY])
+							$sReply = $aAttachments[BX_ATT_TYPE_REPLY];
 					}					
                 }
 
@@ -1568,7 +1571,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         $CNF = &$this -> _oConfig -> CNF;
         if (!empty($aJot))
         {
-            switch($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']])
+            switch($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']])
             {               
                 case BX_ATT_TYPE_GIPHY:
                     return '<img src="//media1.giphy.com/media/' . $aJot[$CNF['FIELD_MESSAGE_AT']] . '/giphy_s.gif" />';
@@ -1620,41 +1623,51 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 		 * @param array $aJot jot info
 		 * @param bool $bMenu show menu in attached items
 		 * @param bool $bIsDynamicallyLoad true when message is dynamically loaded to the history
+		 * @param bool $bImplode implode attachments types to the groups to show in histroy
 		 * @return string html code
 	 */
-	function getAttachment($aJot, $bMenu = true, $bIsDynamicallyLoad = false){
-		$sHTML = '';
+	function getAttachment($aJot, $bMenu = true, $bIsDynamicallyLoad = false, $bImplode = true){
 		$iViewer = bx_get_logged_profile_id();
-		$CNF = &$this -> _oConfig -> CNF;
-		
-		$bIsLotAuthor = $this -> _oDb -> isAuthor($aJot[$CNF['FIELD_MESSAGE_FK']], $iViewer);
-		if (!empty($aJot))
-		{
-			switch($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']])
+		$CNF = &$this->_oConfig->CNF;
+
+		if (empty($aJot) || empty($aJot[$CNF['FIELD_MESSAGE_AT']]))
+            return false;
+
+        $bIsLotAuthor = $this -> _oDb -> isAuthor($aJot[$CNF['FIELD_MESSAGE_FK']], $iViewer);
+
+        if ($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']])
+            $mixedValues = array($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']] => $aJot[$CNF['FIELD_MESSAGE_AT']]);
+        else
+            $mixedValues = @unserialize($aJot[$CNF['FIELD_MESSAGE_AT']]);
+
+        $aResult = array();
+        foreach($mixedValues as $sType => $sValue) {
+			switch($sType)
 			{
 				case BX_ATT_TYPE_REPOST:
-						$sHTML = $this -> getJotAsAttachment($aJot[$CNF['FIELD_MESSAGE_AT']]);
+                    $aResult[BX_ATT_TYPE_REPOST][] = $this -> getJotAsAttachment($sValue);
 						break;
 				case BX_ATT_TYPE_GIPHY:
-                        $sHTML = $this -> parseHtmlByName('giphy.html', array(
-                            'gif' => $aJot[$CNF['FIELD_MESSAGE_AT']],
+                    $aResult[BX_ATT_TYPE_GIPHY][] = $this -> parseHtmlByName('giphy.html', array(
+                            'gif' => $sValue,
                             'time' => time(),
                             'static' => $bIsDynamicallyLoad ? 'none' : 'flex',
                             'dynamic' => $bIsDynamicallyLoad ? 'block' : 'none',
                         ));
                         break;
 				case BX_ATT_TYPE_REPLY:
-						 $iJotId = (int)$aJot[$CNF['FIELD_MESSAGE_AT']];
-						 if ($iJotId && ($aReplyJot = $this->_oDb->getJotById((int)$aJot[$CNF['FIELD_MESSAGE_AT']]))){							 
-							  $sHTML = $this -> parseHtmlByName('reply.html', array(
-									'id' => (int)$aJot[$CNF['FIELD_MESSAGE_AT']],
+						 $iJotId = (int)$sValue;
+						 if ($iJotId && ($aReplyJot = $this->_oDb->getJotById($iJotId))){
+                             $aResult[BX_ATT_TYPE_REPLY][] = $this -> parseHtmlByName('reply.html', array(
+									'id' => $iJotId,
 									'message' => $this->getReplyPreview($iJotId),
 								));
 						}
 						break;
                 case BX_ATT_TYPE_FILES_UPLOADING:
                 case BX_ATT_TYPE_FILES:
-                        $aUploadingFilesList = $aJot[$CNF['FIELD_MESSAGE_AT']] ? explode(',', $aJot[$CNF['FIELD_MESSAGE_AT']]) : array();
+                        $aUploadingFilesList = $sValue ? explode(',', $sValue) : array();
+
 						$aFiles = $this -> _oDb -> getJotFiles($aJot[$CNF['FIELD_MESSAGE_ID']]);
 						$aItems = array(
 							'bx_repeat:images' => array(),
@@ -1736,13 +1749,28 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                                 'url' => $this->getImageUrl('audio-na.png'),
                                 'name' => $sFileName,
                             );
-						
-						$sHTML = $this -> parseHtmlByName('files.html', $aItems);
+
+						$aResult[BX_ATT_TYPE_FILES][] = $this -> parseHtmlByName('files.html', $aItems);
 						break;
 			}
 		}
 
-		return $sHTML;
+        $aAttachments = array();
+        if ($bImplode) {
+            foreach ($CNF['IMPLODE_GROUPS'] as $sGroup => $aItems) {
+                foreach ($aResult as $sKey => $sValue) {
+                    if (in_array($sKey, $aItems)) {
+                        if (!isset($aAttachments[$sGroup]))
+                            $aAttachments[$sGroup] = '';
+
+                        $aAttachments[$sGroup] .= implode('', $aResult[$sKey]);
+                    } else
+                        $aAttachments[$sKey] = implode('', $aResult[$sKey]);
+                }
+            }
+        }
+
+		return $aAttachments;
 	}
 
 	public function getFileContent($aFile){
@@ -1802,36 +1830,40 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	*@return string html code
 	*/
 	function getJotAsAttachment($iJotId){
-		$sHTML = '';
-		
+		$CNF = &$this->_oConfig->CNF;
+	    $sHTML = '';
+
 		$aJot = $this -> _oDb -> getJotById($iJotId);
 		if (empty($aJot))
 			return $sHTML;
 
 		$iAttachedJotId = $this -> _oDb -> hasAttachment($iJotId);
-		if ($iJotId != $iAttachedJotId)
+		if ($iAttachedJotId !== false)
 		{
-			$sOriginalMessage = $this->_oConfig->cleanRepostLinks($aJot[$this->_oConfig->CNF['FIELD_MESSAGE']], $iAttachedJotId);
+			$sOriginalMessage = $this->_oConfig->cleanRepostLinks($aJot[$CNF['FIELD_MESSAGE']], $iAttachedJotId);
 			if (!$sOriginalMessage)
 				$aJot = $this -> _oDb -> getJotById($iAttachedJotId);
 		}
 		
-		if ($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES || $aJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_GIPHY)
-			$sMessage = $aJot[$this->_oConfig->CNF['FIELD_MESSAGE']] . $this -> getAttachment($aJot, false);
+		if (isset($aJot[$CNF['FIELD_MESSAGE_AT']]) && $aJot[$CNF['FIELD_MESSAGE_AT']]) {
+            $aAttachment = $this->getAttachment($aJot, false);
+            if (isset($aAttachment[BX_ATT_GROUPS_ATTACH]))
+                $sMessage = $aJot[$CNF['FIELD_MESSAGE']] . $aAttachment[BX_ATT_GROUPS_ATTACH];
+        }
 		else
-			$sMessage = $this -> _oConfig -> bx_linkify($aJot[$this->_oConfig->CNF['FIELD_MESSAGE']]);
+			$sMessage = $this -> _oConfig -> bx_linkify($aJot[$CNF['FIELD_MESSAGE']]);
 		
 		if (!empty($aJot))
 		{
 			$aLotsTypes = $this -> _oDb -> getLotsTypesPairs();
-			$oProfile = $this -> getObjectUser($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_AUTHOR']]);
+			$oProfile = $this -> getObjectUser($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);
 			$aLotInfo =  $this -> _oDb -> getLotByJotId($iJotId, false);
 			$sHTML = $this -> parseHtmlByName('repost.html', array(
 					'icon' => $oProfile -> getThumb(),
 					'message' => $sMessage,
 					'username' => $oProfile -> getDisplayName(),
-					'message_type' => !empty($aLotInfo) && isset($aLotInfo[$this->_oConfig->CNF['FIELD_TYPE']])? _t('_bx_messenger_lots_message_type_' . $aLotsTypes[$aLotInfo[$this->_oConfig->CNF['FIELD_TYPE']]]) : '',
-					'date' => bx_process_output($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_ADDED']], BX_DATA_DATETIME_TS),
+					'message_type' => !empty($aLotInfo) && isset($aLotInfo[$CNF['FIELD_TYPE']])? _t('_bx_messenger_lots_message_type_' . $aLotsTypes[$aLotInfo[$CNF['FIELD_TYPE']]]) : '',
+					'date' => bx_process_output($aJot[$CNF['FIELD_MESSAGE_ADDED']], BX_DATA_DATETIME_TS),
 				));
 		}
 		
@@ -1925,11 +1957,11 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 		if (empty($aJot))
 			return '';
 
-		$sMessage = $this -> _oConfig -> bx_linkify($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE']]);
-		$sAttachment = !empty($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE_AT_TYPE']]) ? $this -> getAttachment($aJot) : '';
+		$sMessage = $this->_oConfig->bx_linkify($aJot[$this -> _oConfig -> CNF['FIELD_MESSAGE']]);
+		$aAttachment = $this -> getAttachment($aJot);
 		$aVars = array(
 			'message' => $sMessage,
-			'attachment' => $sAttachment
+			'attachment' => isset($aAttachment[BX_ATT_GROUPS_ATTACH]) ? $aAttachment[BX_ATT_GROUPS_ATTACH] : ''
 		);
 		
 		return $this -> parseHtmlByName('hidden_jot.html',  $aVars);

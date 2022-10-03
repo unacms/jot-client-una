@@ -181,7 +181,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 								SET 
 									`{$sField}` =:value
 								WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('id' => $iJotId, 'value' => $mixedValue));
-       }
+	}
 
 	/**
 	* Removes participant from the participants list
@@ -366,7 +366,6 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	*/
     public function saveMessage($aData, $aParticipants = array())
     {
-        $CNF = &$this->_oConfig->CNF;
         $iLotId = isset($aData['lot']) ? (int)$aData['lot'] : 0;
         $aLotInfo = $iLotId ? $this->getLotInfoById($iLotId) : array();
 		
@@ -516,7 +515,8 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
 
         $mixedParticipants = !empty($aParticipants) ? implode(',', $aParticipants) : '';
-	$sQuery = $this->prepare("INSERT INTO `{$this->CNF['TABLE_ENTRIES']}` 
+
+        $sQuery = $this->prepare("INSERT INTO `{$this->CNF['TABLE_ENTRIES']}` 
 										SET  `{$this->CNF['FIELD_TITLE']}` = ?,
 													 `{$this->CNF['FIELD_TYPE']}` = ?,
 													 `{$this->CNF['FIELD_AUTHOR']}` = ?,
@@ -1210,21 +1210,27 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	*@param int sType attachment type
 	*@return int affected rows
 	*/
-	public function addAttachment($iJotId, $mixedContent, $sType = BX_ATT_TYPE_REPOST){
-		$iJotId = (int)$iJotId;
-		if (!$iJotId || !($aJotInfo = $this -> getJotById($iJotId)) || !$mixedContent)
-			return false;
-		
-		if ($aJotInfo[$this->CNF['FIELD_MESSAGE_AT_TYPE']] && $aJotInfo[$this->CNF['FIELD_MESSAGE_AT_TYPE']] != BX_ATT_TYPE_REPOST) /* don't update attachment if it is already exists and it is not a repost */
-			return false;
-			
-		$sQuery = $this->prepare("UPDATE `{$this->CNF['TABLE_MESSAGES']}` 
-												SET  `{$this->CNF['FIELD_MESSAGE_AT_TYPE']}` = ?, 
+
+	public function addAttachment($iJotId, $aAttachments, $mixedType = false){
+        $iJotId = (int)$iJotId;
+        if (!$iJotId || !($aJotInfo = $this -> getJotById($iJotId)) || empty($aAttachments))
+            return false;
+
+        if ($mixedType !== false){
+            if (empty($aJotInfo[$this->CNF['FIELD_MESSAGE_AT']]))
+                $aAttachments = array($mixedType => $aAttachments);
+            else
+                $aAttachments = @unserialize($aJotInfo[$this->CNF['FIELD_MESSAGE_AT']]) + array($mixedType => $aAttachments);
+
+        }
+
+        $sQuery = $this->prepare("UPDATE `{$this->CNF['TABLE_MESSAGES']}` 
+												SET  
 													 `{$this->CNF['FIELD_MESSAGE_AT']}` = ?
-												WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = ?", $sType, $mixedContent, $iJotId);
-		
-		return $this -> query($sQuery);
-	}
+												WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = ?", @serialize($aAttachments), $iJotId);
+
+        return $this -> query($sQuery);
+    }
 	
 	/**
 	* Add attachment to the jot
@@ -1244,6 +1250,8 @@ class BxMessengerDb extends BxBaseModGeneralDb
 		if ($aJotInfo[$this->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_REPOST)
 			$sWhere = ",`{$this->CNF['FIELD_MESSAGE_AT_TYPE']}` = '', `{$this->CNF['FIELD_MESSAGE_AT']}` = ''";
 
+		echo $sWhere;
+
         $sMessage = clear_xss($sMessage);
 
 		$sQuery = $this->prepare("UPDATE `{$this->CNF['TABLE_MESSAGES']}` 
@@ -1262,13 +1270,30 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	*@param string $sType attachment type
 	*@return int original attachment Id
 	*/
-	public function hasAttachment($iJotId, $sType='repost'){
-		$iResult = $this->getOne("SELECT
-									`{$this->CNF['FIELD_MESSAGE_AT']}` 
+	public function hasAttachment($iJotId, $sType = BX_ATT_TYPE_REPOST){
+		$aValues = $this->getRow("SELECT
+									`{$this->CNF['FIELD_MESSAGE_AT']}`, 
+                                    `{$this->CNF['FIELD_MESSAGE_AT_TYPE']}`
 									FROM `{$this->CNF['TABLE_MESSAGES']}` 
-									WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id AND `{$this->CNF['FIELD_MESSAGE_AT_TYPE']}`= :type", array('id' => $iJotId, 'type' => $sType));
+									WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('id' => $iJotId));
+
+		if (!isset($aValues[$this->CNF['FIELD_MESSAGE_AT']]))
+		    return false;
+
+		if ($aValues[$this->CNF['FIELD_MESSAGE_AT_TYPE']]) {
+	        if ($aValues[$this->CNF['FIELD_MESSAGE_AT_TYPE']] == $sType && (int)$aValues[$this->CNF['FIELD_MESSAGE_AT']] && $aValues[$this->CNF['FIELD_MESSAGE_AT']] !== $iJotId)
+                return (int)$aValues[$this->CNF['FIELD_MESSAGE_AT']];
+
+            return false;
+        }
+
+        $mixedResult = @unserialize($aValues[$this->CNF['FIELD_MESSAGE_AT']]);
+		if (is_array($mixedResult)) {
+            if (isset($mixedResult[$sType]) && (int)$mixedResult[$sType] && (int)$mixedResult[$sType] != $iJotId)
+                return (int)$mixedResult[$sType];
+        }
 		
-		return $iResult ? $iResult : $iJotId;
+		return false;
 	}
 	
 	public function updateFiles($iJotId, $mixedValues){
@@ -1277,7 +1302,9 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	}
 	
 	public function getJotFiles($iJot, $bCount = false){
-		return !$bCount ? $this->getAll("SELECT * FROM `{$this->CNF['OBJECT_STORAGE']}` WHERE `{$this->CNF['FIELD_ST_JOT']}` = :id", array('id' => $iJot)) : $this->getOne("SELECT COUNT(*) FROM `{$this->CNF['OBJECT_STORAGE']}` WHERE `{$this->CNF['FIELD_ST_JOT']}` = :id", array('id' => $iJot));
+		return !$bCount ?
+                        $this->getAll("SELECT * FROM `{$this->CNF['OBJECT_STORAGE']}` WHERE `{$this->CNF['FIELD_ST_JOT']}` = :id", array('id' => $iJot)) :
+                        $this->getOne("SELECT COUNT(*) FROM `{$this->CNF['OBJECT_STORAGE']}` WHERE `{$this->CNF['FIELD_ST_JOT']}` = :id", array('id' => $iJot));
 	}
 	
 	private function removeFilesByJotId($iJotId){
@@ -1287,7 +1314,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 		 
 		 $oStorage = BxDolStorage::getObjectInstance($this->CNF['OBJECT_STORAGE']);
 		 $bResult = true;
-		 foreach($aFiles as $iKey => $aFile)
+		 foreach($aFiles as &$aFile)
 			$bResult &= $oStorage -> deleteFile($aFile[$this->CNF['FIELD_ST_ID']], $aFile[$this->CNF['FIELD_ST_AUTHOR']]);
 		  
 		  return $bResult;

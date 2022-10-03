@@ -28,6 +28,8 @@ define('BX_ATT_TYPE_REPOST', 'repost');
 define('BX_ATT_TYPE_REPLY', 'reply');
 define('BX_ATT_TYPE_VC', 'vc'); // video conference
 
+define('BX_ATT_GROUPS_ATTACH', 'attachment');
+
 // Reactions actions
 define('BX_JOT_REACTION_ADD', 'add');
 define('BX_JOT_REACTION_REMOVE', 'remove');
@@ -392,6 +394,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             if (!$iLotId)
                 $aResult['lot_id'] = $this->_oDb->getLotByJotId($iId);
 
+            $aAttachments = [];
 		    if (!empty($aFiles)) {
                 $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
                 $aUploadingFilesNames = $aCompleteFilesNames = array();
@@ -419,15 +422,19 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     }
                 }
 
-                if (!empty($aCompleteFilesNames) || !empty($aUploadingFilesNames))
-                    $this->_oDb->addAttachment($iId, implode(',', array_merge($aCompleteFilesNames, $aUploadingFilesNames)), !empty($aUploadingFilesNames) ? BX_ATT_TYPE_FILES_UPLOADING : BX_ATT_TYPE_FILES);               
+                if (!empty($aCompleteFilesNames) || !empty($aUploadingFilesNames)) {
+                    $aAttachments[!empty($aUploadingFilesNames) ? BX_ATT_TYPE_FILES_UPLOADING : BX_ATT_TYPE_FILES] = implode(',', array_merge($aCompleteFilesNames, $aUploadingFilesNames));
+                }
             }
 
 			if (is_array($aGiphy) && !empty($aGiphy))
-               $this->_oDb->addAttachment($iId, current($aGiphy), BX_ATT_TYPE_GIPHY);
-		   
+                $aAttachments[BX_ATT_TYPE_GIPHY] = current($aGiphy);
+
 			if ($iReply)
-               $this->_oDb->addAttachment($iId, $iReply, BX_ATT_TYPE_REPLY);
+                $aAttachments[BX_ATT_TYPE_REPLY] = $iReply;
+
+            if (!empty($aAttachments))
+                $this->_oDb->addAttachment($iId, $aAttachments);
 
             $aResult['jot_id'] = $iId;
 			$aJot = $this->_oDb->getJotById($iId);
@@ -1573,7 +1580,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
             $sHTML = $this->_oTemplate->getJotAsAttachment($aUrl['id']);
             if ($sHTML && !$bDontAttach)
-                $this->_oDb->addAttachment($iJotId, $aUrl['id']);
+                $this->_oDb->addAttachment($iJotId, $aUrl['id'], BX_ATT_TYPE_REPOST);
 
             return echoJson(array('code' => 0, 'html' => $sHTML));
         }
@@ -1594,9 +1601,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
 		{
             $aJot = $this->_oDb->getJotById($iJotId);
             if ($this->_oDb->isParticipant($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_FK']], $this->_iUserId)) {
-                $sHTML = $this->_oTemplate->getAttachment($aJot, true, true);
-                if ($sHTML)
-                    return echoJson(array('code' => 0, 'html' => $sHTML));
+                if (($aAttachment = $this->_oTemplate->getAttachment($aJot, true, true)) && isset($aAttachment[BX_ATT_GROUPS_ATTACH]))
+                    return echoJson(array('code' => 0, 'html' => $aAttachment[BX_ATT_GROUPS_ATTACH]));
             }
         }
 
@@ -2590,10 +2596,11 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $aJots = array();
         foreach ($aJotsList as &$aJot) {
             $aAuthor = BxDolProfile::getInstance($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);
+            $aAttachments = $this->_oTemplate->getAttachment($aJot, true);
             $aJots[] = array_merge($aJot, array(
                 'thumb' => $aAuthor->getThumb(),
                 'name' => $aAuthor->getDisplayName(),
-                'files' => $this->_oTemplate->getAttachment($aJot, true)
+                'files' => isset($aAttachments[BX_ATT_GROUPS_ATTACH]) ? $aAttachments[BX_ATT_GROUPS_ATTACH] : ''
             ));
         }
 
@@ -2969,6 +2976,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         $aUploadedFiles = $this->_oDb->getJotFiles($iJotId);
         $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
+        $aSuccessfulFiles = array();
         foreach ($aFiles as &$aFile) {
             $sRealName = $aFile['realname'];
             if (!empty($aUploadedFiles) && array_filter($aUploadedFiles, function($aF) use ($sRealName, $CNF) {
@@ -2989,9 +2997,22 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     $CNF['FIELD_ST_JOT'] => $iJotId,
                     $CNF['FIELD_ST_NAME'] => $sRealName
                 ));
-                $this->_oDb->updateJot($iJotId, $CNF['FIELD_MESSAGE_AT_TYPE'], BX_ATT_TYPE_FILES);
+
+                $aSuccessfulFiles[] = $sRealName;
                 @unlink($sFile);
             }
+        }
+
+        if (count($aSuccessfulFiles)){
+            $aJotInfo = $this->_oDb->getJotById($iJotId);
+            if (!empty($aJotInfo[$CNF['FIELD_MESSAGE_AT']])) {
+                $aFilesData = @unserialize($aJotInfo[$CNF['FIELD_MESSAGE_AT']]);
+                if (isset($aFilesData[BX_ATT_TYPE_FILES_UPLOADING]))
+                    unset($aFilesData[BX_ATT_TYPE_FILES_UPLOADING]);
+            }
+
+            $aFilesData[BX_ATT_TYPE_FILES] = implode(',', $aSuccessfulFiles );
+            $this->_oDb->updateJot($iJotId, $CNF['FIELD_MESSAGE_AT'], @serialize($aFilesData));
         }
 
         echoJson(array('code' => 0));

@@ -170,6 +170,11 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
                                             'bx_events' => BX_IM_TYPE_EVENTS,
                                             'bx_spaces' => BX_IM_TYPE_GROUPS
                                         ),
+            'IMPLODE_GROUPS' => array(
+                                            BX_ATT_GROUPS_ATTACH => array(
+                                                BX_ATT_TYPE_FILES, BX_ATT_TYPE_FILES_UPLOADING, BX_ATT_TYPE_GIPHY, BX_ATT_TYPE_REPOST
+                                            ),
+                                        ),
             'URL_IDENT_PARAMS' => array('i','r','id','profile_id'),
 
              // GIPHY

@@ -73,6 +73,12 @@ define('BX_MSG_VISIBILITY_VISIBLE', 0);
 define('BX_MSG_VISIBILITY_HIDDEN', 1);
 define('BX_MSG_VISIBILITY_ALL', 2);
 
+// Talks types
+define('BX_MSG_TALK_TYPE_MEMBERS', 'members');
+define('BX_MSG_TALK_TYPE_FRIENDS', 'friends');
+define('BX_MSG_TALK_TYPE_MARKET', 'market');
+
+
 /**
  * Messenger module
  */
@@ -289,29 +295,32 @@ class BxMessengerModule extends BxBaseModGeneralModule
     }
 
 
-    public function serviceSendMessage($iRecipient, $mixedData, $iSender = 0)
+    public function serviceSendMessage($iRecipient = 0, $mixedData, $iSender = 0)
     {
         if (!$iSender)
-			$iSender = $this->_iProfileId;
-        
-		$aData = array();
-		if (is_array($mixedData))
-		    $aData = $mixedData;
-		elseif (is_string($mixedData))
+         $iSender = $this->_iProfileId;
+
+        $aData = array();
+        if (is_array($mixedData))
+            $aData = $mixedData;
+        elseif (is_string($mixedData))
             $aData['message'] = $mixedData;
 
-		if (empty($aData))
-			return _t('_bx_messenger_send_message_no_data');
-		
-		$aData['participants'] = array($iRecipient);
-		if ($iSender)
-			$aData['participants'][] = $iSender;
+        if (empty($aData))
+            return _t('_bx_messenger_send_message_no_data');
 
-		$mixedResult = $this->sendMessage($aData, $iRecipient, $iSender);
-		if (is_array($mixedResult) && isset($mixedResult['jot_id']))
-			return true;
-		
-		return is_string($mixedResult) ? $mixedResult : false;
+             $aData['participants'] = array();
+        if ($iRecipient)
+            $aData['participants'][] = $iRecipient;
+
+        if ($iSender)
+            $aData['participants'][] = $iSender;
+
+        $mixedResult = $this->sendMessage($aData, $iRecipient, $iSender);
+        if (is_array($mixedResult) && isset($mixedResult['jot_id']))
+            return true;
+
+        return is_string($mixedResult) ? $mixedResult : false;
     }
 	
 	/**
@@ -325,16 +334,17 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $sMessage = isset($aData['message']) ? trim($aData['message']) : '';
         $iLotId = isset($aData['lot']) ? (int)$aData['lot'] : 0;
         $iType = (isset($aData['type']) && $aData['type'] && $this->_oDb->isLotType($aData['type'])) ? (int)$aData['type'] : BX_IM_TYPE_PRIVATE;        
-        $aFiles = isset($aData[BX_ATT_TYPE_FILES]) ? $aData[BX_ATT_TYPE_FILES] : array();
-        $aGiphy = isset($aData[BX_ATT_TYPE_GIPHY]) ? $aData[BX_ATT_TYPE_GIPHY] : array();
-		$iReply = isset($aData['reply']) ? (int)$aData['reply'] : '';
-		$aParticipants = isset($aData['participants']) ? $aData['participants'] : array();
-		$sUrl = $sTitle = '';
+        $aFiles = isset($aData[BX_ATT_TYPE_FILES]) ? $aData[BX_ATT_TYPE_FILES] : [];
+        $aGiphy = isset($aData[BX_ATT_TYPE_GIPHY]) ? $aData[BX_ATT_TYPE_GIPHY] : [];
+        $iReply = isset($aData['reply']) ? (int)$aData['reply'] : '';
+        $aParticipants = isset($aData['participants']) ? $aData['participants'] : [];
+        $aAttachments = isset($aData['attachment']) ? $aData['attachment'] : [];
+        $sClass = isset($aData['class']) ? $aData['class'] : '';
+        $sUrl = $sTitle = '';
 
-		$CNF = &$this->_oConfig->CNF;
-		
+        $CNF = &$this->_oConfig->CNF;
 		// check if message contains toxic
-		if ($sMessage && $CNF['CHECK-CONTENT-FOR-TOXIC'] && BxDolRequest::serviceExists('bx_antispam', 'is_toxic')){
+        if ($sMessage && $CNF['CHECK-CONTENT-FOR-TOXIC'] && BxDolRequest::serviceExists('bx_antispam', 'is_toxic')){
             if (bx_srv('bx_antispam', 'is_toxic', [$sMessage]))
                 return _t('_bx_messenger_toxic_message');
         }
@@ -349,9 +359,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if ($mixedResult !== true)
 			return $mixedResult;
 			
-        if (!$sMessage && empty($aFiles) && empty($aGiphy))
-            return _t('_bx_messenger_send_message_no_data');
-
         if ($iLotId) {
             $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
             $iType = $aLotInfo[$CNF['FIELD_TYPE']];
@@ -366,22 +373,25 @@ class BxMessengerModule extends BxBaseModGeneralModule
 		if ($iRecipient && !$this->onCheckContact($iSender, $iRecipient))
 			return _t('_bx_messenger_contact_privacy_not_allowed');
 		
-        if ($iType !== BX_IM_TYPE_PRIVATE) {
+        if ($iType !== BX_IM_TYPE_PRIVATE || $sClass) {
             $sUrl = isset($aData['url']) ? $aData['url'] : '';
             $sTitle = isset($aData['title']) ? $aData['title'] : '';
         }
-		
+
         // prepare participants list
-        $aParticipants = $this->getParticipantsList($aParticipants, $iSender !== $this->_iProfileId);
+        $aParticipants = !empty($aParticipants) ? $aParticipants : $this->getParticipantsList($aParticipants, $iSender !== $this->_iProfileId);
         if (!$iLotId && empty($aParticipants) && $iType === BX_IM_TYPE_PRIVATE)
             return _t('_bx_messenger_send_message_no_data');
 
-		$sMessage = $this -> prepareMessageToDb($sMessage);
-		if ($sMessage && $iType != BX_IM_TYPE_PRIVATE && $sUrl)
+        $sMessage = $this -> prepareMessageToDb($sMessage);
+        if ($sMessage && $iType != BX_IM_TYPE_PRIVATE && $sUrl)
                 $sUrl = $this->getPreparedUrl($sUrl);
-       
+
+        if ($sClass === BX_MSG_TALK_TYPE_MARKET)
+            $sUrl = $this->_oConfig->getPageIdent($sUrl);
+
         $aResult = array();
-        if (($sMessage || !empty($aFiles) || !empty($aGiphy)) && ($iId = $this->_oDb->saveMessage(
+        if (($sMessage || !empty($aFiles) || !empty($aGiphy) || !empty($aAttachments)) && ($iId = $this->_oDb->saveMessage(
             array(
                     'message' => $sMessage,
                     'type' => $iType,
@@ -389,13 +399,14 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     'url' => $sUrl,
                     'title' => $sTitle,
                     'lot' => $iLotId,
-					'reply' => $iReply
-            ), $aParticipants)))
+                    'class' => $sClass,
+                    'reply' => $iReply,
+                    'participants' => $aParticipants
+            ))))
         {
             if (!$iLotId)
                 $aResult['lot_id'] = $this->_oDb->getLotByJotId($iId);
 
-            $aAttachments = [];
 		    if (!empty($aFiles)) {
                 $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
                 $aUploadingFilesNames = $aCompleteFilesNames = array();
@@ -428,10 +439,10 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 }
             }
 
-			if (is_array($aGiphy) && !empty($aGiphy))
+            if (is_array($aGiphy) && !empty($aGiphy))
                 $aAttachments[BX_ATT_TYPE_GIPHY] = current($aGiphy);
 
-			if ($iReply)
+            if ($iReply)
                 $aAttachments[BX_ATT_TYPE_REPLY] = $iReply;
 
             if (!empty($aAttachments))
@@ -3020,16 +3031,42 @@ class BxMessengerModule extends BxBaseModGeneralModule
     }
 
     function serviceGetSearchOptions(){
-        $CNF = &$this->_oConfig->CNF;
-
-        if (!$this->isLogged())
-            return false;
-
         $aResult = array();
+        $CNF = &$this->_oConfig->CNF;
         foreach($CNF['SEARCH-CRITERIA'] as &$sItem)
             $aResult[$sItem] = _t("_bx_messenger_search_item_{$sItem}");
 
         return $aResult;
+    }
+
+    function serviceSetTalkAvatar($iLotId, $mixedFile){
+        if (!$mixedFile)
+            return false;
+
+        return $this->setLotAvatar($iLotId, $mixedFile);
+    }
+
+    function setLotAvatar($iLotId, $mixedFile = null) {
+        if (!$this->isLogged() || $mixedFile === null)
+            return false;
+
+        if (!($aLotInfo = $this->_oDb->getLotInfoById($iLotId)))
+            return false;
+
+        $CNF = &$this->_oConfig->CNF;
+        $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
+        if (is_array($mixedFile) && isset($mixedFile['name'])) {
+           $sFile = BX_DIRECTORY_PATH_TMP . basename($mixedFile['name']);
+           $iFileId = $oStorage->storeFileFromPath($sFile, false, $this->_iProfileId, $iLotId);
+        } elseif (filter_var($mixedFile, FILTER_VALIDATE_URL) !== false)
+           $iFileId = $oStorage->storeFileFromUrl($mixedFile, false, $this->_iProfileId, $iLotId);
+         elseif ((int)$mixedFile)
+            $iFileId = (int)$mixedFile;
+
+        if ($iFileId) {
+            $oStorage->afterUploadCleanup($iFileId, $this->_iProfileId);
+            $this->_oDb->saveLotSettings($iLotId, $iFileId, $CNF['FLS_ICON']);
+        }
     }
 }
 

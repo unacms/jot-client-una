@@ -142,6 +142,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'FLS_ID' => 'lot_id',
             'FLS_ACTIONS' => 'actions',
             'FLS_SETTINGS' => 'settings',
+            'FLS_ICON' => 'icon',
 
             // messenger lots attachments
             'FLAT_NAME' => 'name',
@@ -181,6 +182,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
                                             ),
                                         ),
             'URL_IDENT_PARAMS' => array('i','r','id','profile_id'),
+            'TITLE_CONSTANTS' => array('opponent'),
 
              // GIPHY
              'GIPHY' => array(
@@ -210,6 +212,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'OBJECT_STORAGE' => 'bx_messenger_files',
             'OBJECT_IMAGES_TRANSCODER_GALLERY' => 'bx_messenger_photos_resized',
             'OBJECT_IMAGES_TRANSCODER_PREVIEW' => 'bx_messenger_preview',
+            'OBJECT_IMAGES_TRANSCODER_ICON' => 'bx_messenger_icon',
             'OBJECT_MP3_TRANSCODER' => 'bx_messenger_mp3',
             'OBJECT_VIDEOS_TRANSCODERS' => array(
                                                     'poster' => 'bx_messenger_videos_poster',
@@ -515,6 +518,15 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             return false;
 
         return in_array($sSelected, $aItems);
+    }
+
+    public function replaceConstant($sTitle, $aMarkers){
+        foreach($this->CNF['TITLE_CONSTANTS'] as &$sItem){
+            if (isset($aMarkers[$sItem]))
+                $sTitle = str_replace('{' . $sItem . '}', $aMarkers[$sItem], $sTitle);
+        }
+
+        return $sTitle;
     }
 }
 

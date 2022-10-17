@@ -445,6 +445,14 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 $sTitle = _t('_bx_messenger_linked_title', '<a href ="'. $this->_oConfig->getPageLink($aLotInfo[$CNF['FIELD_URL']]) .'">' . $sTitle . '</a>');
             else if ($aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
                 $sTitle = $this -> getParticipantsNames($iProfileId, $iLotId);
+
+            if ($aLotInfo[$CNF['FIELD_CLASS']] === BX_MSG_TALK_TYPE_MARKET) {
+                $aParticipants = $this->_oDb->getParticipantsList($iLotId, true, $iProfileId);
+                if (count($aParticipants) == 1) {
+                    $sOpponent = BXDolProfile::getInstance(current($aParticipants))->getDisplayName();
+                    $sTitle = $this->_oConfig->replaceConstant(_t('_bx_messenger_talk_types_market_title'), array('opponent' => $sOpponent));
+                }
+            }
         }
 
         $aVars = array(
@@ -681,38 +689,65 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 		$CNF = &$this->_oConfig->CNF;
 		$sContent = '';
 
+        $oStorage = new BxMessengerStorage($CNF['OBJECT_STORAGE']);
 		foreach($aLots as &$aLot)
 		{
-			$aParticipantsList = $this->_oDb->getParticipantsList($aLot[$CNF['FIELD_ID']], true, $iProfileId);
-			
+	    	$aParticipantsList = $this->_oDb->getParticipantsList($aLot[$CNF['FIELD_ID']], true, $iProfileId);
+            $sAvatar = '';
+            $iIcon = 0;
+            $aVars['bx_repeat:avatars'] = array();
+	    	if ($iIcon = $this->_oDb->getLotSettings($aLot[$CNF['FIELD_ID']], $CNF['FLS_ICON'])) {
+                $oImagesTranscoder = BxDolTranscoderImage::getObjectInstance($CNF['OBJECT_IMAGES_TRANSCODER_ICON']);
+                $sAvatar = $oImagesTranscoder->getFileUrl($iIcon);
+                $aVars['bx_repeat:avatars'][] = array(
+                    'bx_if:avatars' => array(
+                        'condition' => $sAvatar,
+                        'content' => array(
+                            'title' => $aLot[$CNF['FIELD_TITLE']],
+                            'thumb' => $sAvatar,
+                        )
+                    ),
+                    'bx_if:letters' => array(
+                        'condition' => false,
+                        'content' => array(
+                            'color' => '',
+                            'letter' => ''
+                        )
+                    ),
+                    'status' => ''
+                );
+	    	}
+
 			$iParticipantsCount = count($aParticipantsList);
 			$aParticipantsList = $iParticipantsCount ? array_slice($aParticipantsList, 0, $CNF['PARAM_ICONS_NUMBER']) : array($iProfileId);
-			
-			$aVars['bx_repeat:avatars'] = array();
+
 			$aNickNames = array();
 			foreach($aParticipantsList as $iParticipant){
 				$oProfile = $this -> getObjectUser($iParticipant);
                 if ($oProfile) {
-                    $sThumb = $oProfile->getThumb();
-                    $bThumb = stripos($sThumb, 'no-picture') === FALSE;
                     $sDisplayName = $oProfile->getDisplayName();
-					$aVars['bx_repeat:avatars'][] = array(
-                        'bx_if:avatars' => array(
-                            'condition' => $bThumb,
-                            'content' => array(
-                                'title' => $sDisplayName,
-                                'thumb' => $sThumb,
-                            )
-                        ),
-                        'bx_if:letters' => array(
-                            'condition' => !$bThumb,
-                            'content' => array(
-                                'color' => implode(', ', BxDolTemplate::getColorCode($iParticipant, 1.0)),
-                                'letter' => mb_substr($sDisplayName, 0, 1)
-                            )
-                        ),
-                        'status' => ''
- 					);
+
+                    if (!$sAvatar) {
+                        $sThumb = $oProfile->getThumb();
+                        $bThumb = stripos($sThumb, 'no-picture') === FALSE;
+                        $aVars['bx_repeat:avatars'][] = array(
+                            'bx_if:avatars' => array(
+                                'condition' => $bThumb,
+                                'content' => array(
+                                    'title' => $sDisplayName,
+                                    'thumb' => $sThumb,
+                                )
+                            ),
+                            'bx_if:letters' => array(
+                                'condition' => !$bThumb,
+                                'content' => array(
+                                    'color' => implode(', ', BxDolTemplate::getColorCode($iParticipant, 1.0)),
+                                    'letter' => mb_substr($sDisplayName, 0, 1)
+                                )
+                            ),
+                            'status' => ''
+                        );
+                    }
 				 
 					$aNickNames[] = $sDisplayName;
 			    }
@@ -1634,7 +1669,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             return false;
 
         $bIsLotAuthor = $this -> _oDb -> isAuthor($aJot[$CNF['FIELD_MESSAGE_FK']], $iViewer);
-
         if ($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']])
             $mixedValues = array($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']] => $aJot[$CNF['FIELD_MESSAGE_AT']]);
         else
@@ -1731,15 +1765,15 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 								else
 									$aItems['bx_repeat:files'][] = array(
 																			'file' => $this -> parseHtmlByName('a_file.html', 
-																															  array(
-																																		'file' => $this -> parseHtmlByName('file.html', array(
-																																							'type' => $oStorage -> getFontIconNameByFileName($aFile[$CNF['FIELD_ST_NAME']]),
-																																							'name' => $aFile[$CNF['FIELD_ST_NAME']],
-																																							'file_type' => $aFile[$CNF['FIELD_ST_TYPE']],																		
-																																		)),
-																																		'id' => $aFile[$CNF['FIELD_MESSAGE_ID']],
-																																		'url' => BX_DOL_URL_ROOT																																	
-																																	)),
+																				array(
+																								'file' => $this -> parseHtmlByName('file.html', array(
+																													'type' => $oStorage -> getFontIconNameByFileName($aFile[$CNF['FIELD_ST_NAME']]),
+																													'name' => $aFile[$CNF['FIELD_ST_NAME']],
+																													'file_type' => $aFile[$CNF['FIELD_ST_TYPE']],
+																								)),
+																								'id' => $aFile[$CNF['FIELD_MESSAGE_ID']],
+																								'url' => BX_DOL_URL_ROOT
+																							)),
 																			'delete_code' => $bMenu ? $this -> deleteFileCode($aFile[$CNF['FIELD_MESSAGE_ID']], $isAllowedDelete) : ''
 																		);								
 						}
@@ -1755,7 +1789,8 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 default:
                     if ($sType && ($aService = $this->_oDb->getLotAttachmentType($sType)) && (int)$sValue){
                         if (isset($aService['module']) && isset($aService['method']) && BxDolRequest::serviceExists($aService['module'], $aService['method'])) {
-                            $aResult[BX_ATT_TYPE_CUSTOM][] =  BxDolService::call($aService['module'], $aService['method'], array((int)$sValue));
+                            $sContent = BxDolService::call($aService['module'], $aService['method'], array((int)$sValue));
+                            $aResult[BX_ATT_TYPE_CUSTOM][] = $this -> parseHtmlByName('custom_attachment.html', array('content' => $sContent));
                         }
                     }
 			}

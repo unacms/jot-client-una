@@ -364,13 +364,18 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	*@param array $aParticipants participants list, if it empty then used default for lot
 	*@return int affected rows
 	*/
-    public function saveMessage($aData, $aParticipants = array())
+    public function saveMessage($aData)
     {
         $iLotId = isset($aData['lot']) ? (int)$aData['lot'] : 0;
         $aLotInfo = $iLotId ? $this->getLotInfoById($iLotId) : array();
-		
+        $aParticipants = isset($aData['participants']) ? $aData['participants'] : [];
+
+        if (isset($aData['class']) && $aData['class'] === BX_MSG_TALK_TYPE_MARKET)
+            $aLotInfo = $this->getLotByUrl($aData['url']);
+        else
         if (empty($aLotInfo))
             $aLotInfo = $this->getLotByUrlAndParticipantsList($aData['url'], $aParticipants, $aData['type']);
+
 
         if ($iLotId && $aData['type'] == BX_IM_TYPE_PRIVATE && !$this->isParticipant($iLotId, $aData['member_id']))
             return false;
@@ -511,6 +516,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
         $iType = isset($aData['type']) ? $aData['type'] : BX_IM_TYPE_PRIVATE;
         $sUrl = isset($aData['url']) ? $aData['url'] : '';
         $sPage = isset($aData['page']) ? $aData['page'] : '';
+        $sClass = isset($aData['class']) ? $aData['class'] : '';
         $iVisibility = isset($aData['visibility']) ? (int)$aData['visibility'] : 0;
 
 
@@ -523,7 +529,8 @@ class BxMessengerDb extends BxBaseModGeneralDb
 													 `{$this->CNF['FIELD_ADDED']}` = UNIX_TIMESTAMP(),
 													 `{$this->CNF['FIELD_PARTICIPANTS']}` = ?,
 													 `{$this->CNF['FIELD_VISIBILITY']}` = ?,
-													 `{$this->CNF['FIELD_URL']}` = ?", $sTitle, $iType, $iProfileId, $mixedParticipants, $iVisibility, $sUrl);
+													 `{$this->CNF['FIELD_CLASS']}` = ?,
+													 `{$this->CNF['FIELD_URL']}` = ?", $sTitle, $iType, $iProfileId, $mixedParticipants, $iVisibility, $sClass, $sUrl);
 		
 		return $this->query($sQuery) ? $this -> lastId() : false;
 	}
@@ -1250,10 +1257,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 		if ($aJotInfo[$this->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_REPOST)
 			$sWhere = ",`{$this->CNF['FIELD_MESSAGE_AT_TYPE']}` = '', `{$this->CNF['FIELD_MESSAGE_AT']}` = ''";
 
-		echo $sWhere;
-
         $sMessage = clear_xss($sMessage);
-
 		$sQuery = $this->prepare("UPDATE `{$this->CNF['TABLE_MESSAGES']}` 
 												SET  `{$this->CNF['FIELD_MESSAGE']}` = ?,
 													 `{$this->CNF['FIELD_MESSAGE_LAST_EDIT']}` = UNIX_TIMESTAMP(),
@@ -1953,25 +1957,26 @@ class BxMessengerDb extends BxBaseModGeneralDb
                              );
     }
 
-    function saveLotSettings($iLotId, $aOptions, $sField = 'actions'){
+    function saveLotSettings($iLotId, $mixedOptions, $sField = 'actions'){
         if (!$iLotId || !$sField)
             return false;
 
-        if (empty($aOptions))
-            $aOptions = array();
+        if (empty($mixedOptions))
+            $mixedOptions = array();
 
+        $mixedData = is_array($mixedOptions) ? @serialize($mixedOptions) : (int)$mixedOptions;
         $aLotSettings = $this->getLotSettings($iLotId, false);
         if (empty($aLotSettings)){
             return $this->query("INSERT INTO `{$this->CNF['TABLE_LOT_SETTINGS']}` 
-                                            SET 
-                                                `{$sField}` = :data,
-                                                `{$this->CNF['FLS_ID']}` = :id", array('data' => @serialize($aOptions), 'id' => $iLotId));
+                                           SET 
+                                             `{$sField}` = :data,
+                                             `{$this->CNF['FLS_ID']}` = :id", array('data' => $mixedData, 'id' => $iLotId));
         }
 
         return $this->query("UPDATE `{$this->CNF['TABLE_LOT_SETTINGS']}` 
-                                            SET 
-                                          `{$sField}` = :actions
-                                        WHERE `{$this->CNF['FLS_ID']}` = :id", array('actions' => @serialize($aOptions), 'id' => $iLotId));
+                                       SET 
+                                         `{$sField}` = :actions
+                                       WHERE `{$this->CNF['FLS_ID']}` = :id", array('actions' => $mixedData, 'id' => $iLotId));
     }
 
     function isActionAllowed($iLotId, $sAction = BX_MSG_SETTING_MSG){
@@ -1987,7 +1992,8 @@ class BxMessengerDb extends BxBaseModGeneralDb
         if (!$iLotId || !($mixedOptions = $this -> getRow("SELECT * FROM `{$this->CNF['TABLE_LOT_SETTINGS']}` WHERE `{$this->CNF['FLS_ID']}` = :id", array('id' => $iLotId))))
             return false;
 
-        return $sField && isset($mixedOptions[$sField]) ? @unserialize($mixedOptions[$sField]) : $mixedOptions;
+        return $sField && isset($mixedOptions[$sField]) ?
+                    ( $sField !== $this->CNF['FLS_ICON'] ? @unserialize($mixedOptions[$sField]) : (int)$mixedOptions[$sField] ) : $mixedOptions;
     }
 
     function getLotAttachmentType($sName){

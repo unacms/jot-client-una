@@ -446,7 +446,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             else if ($aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
                 $sTitle = $this -> getParticipantsNames($iProfileId, $iLotId);
 
-            if ($aLotInfo[$CNF['FIELD_CLASS']] === BX_MSG_TALK_TYPE_MARKET) {
+            if ($aLotInfo[$CNF['FIELD_CLASS']] === BX_MSG_TALK_CLASS_MARKET) {
                 $aParticipants = $this->_oDb->getParticipantsList($iLotId, true, $iProfileId);
                 if (count($aParticipants) == 1) {
                     $sOpponent = BXDolProfile::getInstance(current($aParticipants))->getDisplayName();

@@ -38,13 +38,12 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_lots` (
    `updated` int(11) NOT NULL default 0,
    `author` int(11) unsigned NOT NULL default 0,
    `participants` text NOT NULL default '',
-   `class` varchar(20) NOT NULL default 'custom', 
+   `class` varchar(20) NOT NULL default 'custom',
    `visibility` tinyint(1) NOT NULL default 0,
    PRIMARY KEY  (`id`)
 );
 
 INSERT INTO `bx_messenger_lots` (`id`, `title`, `url`, `type`, `created`, `author`, `participants`, `class`) VALUES
-(NULL, '_bx_messenger_lots_class_friends', '', 3, UNIX_TIMESTAMP(), 0, '', 'friends'),
 (NULL, '_bx_messenger_lots_class_my_members', '', 3, UNIX_TIMESTAMP(), 0, '', 'members');
 
 

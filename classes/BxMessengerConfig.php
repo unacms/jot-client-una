@@ -301,7 +301,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
 	*@return int type
 	*/
 	public function getTalkType($sModule = ''){
-		return $sModule && isset($this->CNF['PARAM_MODULE_TYPES'][$sModule]) ? $this->CNF['PARAM_MODULE_TYPES'][$sModule] : BX_IM_TYPE_PUBLIC; 
+		return $sModule && isset($this->CNF['PARAM_MODULE_TYPES'][$sModule]) ? $this->CNF['PARAM_MODULE_TYPES'][$sModule] : BX_IM_TYPE_PUBLIC;
 	}
 	
 	/**

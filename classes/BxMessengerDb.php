@@ -368,14 +368,9 @@ class BxMessengerDb extends BxBaseModGeneralDb
     {
         $iLotId = isset($aData['lot']) ? (int)$aData['lot'] : 0;
         $aLotInfo = $iLotId ? $this->getLotInfoById($iLotId) : array();
-        $aParticipants = isset($aData['participants']) ? $aData['participants'] : [];
 
-        if (isset($aData['class']) && $aData['class'] === BX_MSG_TALK_TYPE_MARKET)
-            $aLotInfo = $this->getLotByUrl($aData['url']);
-        else
         if (empty($aLotInfo))
-            $aLotInfo = $this->getLotByUrlAndParticipantsList($aData['url'], $aParticipants, $aData['type']);
-
+            $aLotInfo = $this->findLotByParams($aData);
 
         if ($iLotId && $aData['type'] == BX_IM_TYPE_PRIVATE && !$this->isParticipant($iLotId, $aData['member_id']))
             return false;
@@ -399,40 +394,80 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	}	
 
 	/**
-	* Save message for participants to database
-	*@param string $sUrl of the page with lot
-	*@param array $aParticipants participants list
-	*@param int $iType lot type
+	* Find appropriate Talk using input params
+	*@param array $aData params
 	*@return array Lot info
 	*/
-	public function getLotByUrlAndParticipantsList($sUrl = '', $aParticipants = array(), $iType = BX_IM_TYPE_PRIVATE){
-		if ($iType != BX_IM_TYPE_PRIVATE && $sUrl && $aLot = $this -> getLotByUrl($sUrl)) 
-			return $aLot;
-		
-		$aResult = array();
-		if (!empty($aParticipants)){
-			$sWhere = " AND `{$this->CNF['FIELD_AUTHOR']}` IN (" . $this -> implode_escape($aParticipants) . ")";
+	public function findLotByParams($aData){
+        $sUrl = isset($aData['url']) ? $aData['url'] : '';
+        $aParticipants = isset($aData['participants']) && is_array($aData['participants']) ? $aData['participants'] : [];
+        $sClass = isset($aData['class']) ? $aData['class'] : '';
+        $iType = isset($aData['type']) ? $aData['type'] : 0;
 
-			$aLots = $this -> getAll("SELECT * FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `type` = :type {$sWhere}", array('type' => $iType));
+        $aWhere = $aWhereBindings = [];
+        $aLots = [];
+        if (!empty($aParticipants)) {
+            $aItems = $this->getLotsByParticipantsList($aParticipants, $iType, true);
+            foreach($aItems as &$aItem)
+                $aLots[] = $aItem[$this->CNF['FIELD_ID']];
 
-			if (!empty($aLots))
-			{
-				foreach($aLots as $iKey => $aValue)
-				{
-					 $aParticipantsList = $this -> getParticipantsList($aValue[$this->CNF['FIELD_ID']]);
-					 if (empty($aParticipantsList) || count($aParticipantsList) != count($aParticipants)) continue;
-					 
-					 sort($aParticipantsList);
-					 sort($aParticipants);
-					 
-					 if (array_values($aParticipantsList) == array_values($aParticipants)){
-						$aResult = $aValue;
-					 }	
-				}					
-			}
+        if (!empty($aLots))
+                $aWhere[] = "`{$this->CNF['FIELD_ID']}` IN (" . implode(',', $aLots) . ")";
+            else
+                return [];
+        }
+
+        if ($sClass){
+            $aWhere[] = "`{$this->CNF['FIELD_CLASS']}` =:class";
+            $aWhereBindings['class'] = $sClass;
+        }
+
+        if ($sUrl){
+            $aWhere[] = "`{$this->CNF['FIELD_URL']}` =:url";
+            $aWhereBindings['url'] = $sUrl;
+        }
+
+        if ($iType){
+            $aWhere[] = "`{$this->CNF['FIELD_TYPE']}` =:type";
+            $aWhereBindings['type'] = $iType;
+        }
+
+        return $this -> getRow("SELECT * FROM `{$this->CNF['TABLE_ENTRIES']}` 
+                                                WHERE " . implode(' AND ', $aWhere) . " LIMIT 1", $aWhereBindings);
+    }
+
+	function getLotsByParticipantsList($aParticipants, $mixedType = false, $bGetAll = false){
+        $aParticipantsList = $aResult = [];
+        if (empty($aParticipants))
+            return $aResult;
+
+        foreach ($aParticipants as &$iParticipant)
+            $aParticipantsList[] = "(^|,)" . (int)$iParticipant . "(,|$)";
+
+        if (empty($aParticipantsList))
+            return $aResult;
+
+        $aWhere[] = "`{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP '" . implode('|', $aParticipantsList) . "'";
+        if ($mixedType)
+            $aWhere[] = "`{$this->CNF['FIELD_TYPE']}` = " . $mixedType;
+
+        $aLots = $this->getAll("SELECT * FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE " . implode(' AND ', $aWhere));
+        if (empty($aLots))
+            return $aResult;
+
+        foreach ($aLots as &$aLot) {
+            $aTalkParticipants = explode(',', $aLot[$this->CNF['FIELD_PARTICIPANTS']]);
+            if (count($aTalkParticipants) != count($aParticipants))
+                continue;
+
+            sort($aTalkParticipants);
+            sort($aParticipants);
+
+            if (array_values($aTalkParticipants) == array_values($aParticipants))
+                $aResult[] = $aLot;
 		}
 
-		return $aResult;
+        return !$bGetAll && !empty($aResult) ? current($aResult) : $aResult;
 	}
 
 	/**
@@ -516,7 +551,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
         $iType = isset($aData['type']) ? $aData['type'] : BX_IM_TYPE_PRIVATE;
         $sUrl = isset($aData['url']) ? $aData['url'] : '';
         $sPage = isset($aData['page']) ? $aData['page'] : '';
-        $sClass = isset($aData['class']) ? $aData['class'] : '';
+        $sClass = isset($aData['class']) ? $aData['class'] : BX_ATT_TYPE_CUSTOM;
         $iVisibility = isset($aData['visibility']) ? (int)$aData['visibility'] : 0;
 
 

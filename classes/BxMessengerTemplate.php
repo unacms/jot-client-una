@@ -694,7 +694,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 		{
 	    	$aParticipantsList = $this->_oDb->getParticipantsList($aLot[$CNF['FIELD_ID']], true, $iProfileId);
             $sAvatar = '';
-            $iIcon = 0;
             $aVars['bx_repeat:avatars'] = array();
 	    	if ($iIcon = $this->_oDb->getLotSettings($aLot[$CNF['FIELD_ID']], $CNF['FLS_ICON'])) {
                 $oImagesTranscoder = BxDolTranscoderImage::getObjectInstance($CNF['OBJECT_IMAGES_TRANSCODER_ICON']);

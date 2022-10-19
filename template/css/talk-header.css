@@ -148,3 +148,11 @@ ul.bx-menu-object-bx_messenger_lot_menu {
 .bx-messenger-lot-header-menu a:last-child {
     margin-right: 0;
 }
+
+.bx-messenger-block .bx-db-menu .bx-stl-mii-sm .sys-icon {
+    font-size: inherit;
+}
+
+.bx-artificer .bx-messenger-block .bx-db-menu .bx-stl-mii-sm .sys-icon {
+    font-size: initial;
+}

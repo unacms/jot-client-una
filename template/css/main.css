@@ -473,29 +473,9 @@ div.bx-messenger-reactions-menu i:hover {
 	margin-right: 1rem;
 }
 
-.bx-menu-object-jot {
-	padding-left: 0;
-	list-style: none;
-}
-
 .bx-messenger-block .bx-db-divider{
 	display:block !important;
 }
-
-/*ul.bx-menu-object-jot a{
-	font-size: 0.875rem;
-	line-height: 1rem;
-}
-
-.info-menu i {
-	font-size: 1.3rem;
-}
-
-.info-menu ul.bx-menu-object-jot a{
-	font-size: 1rem;
-	line-height: 1.3rem;
-}
-*/
 
 .ui.popup.bx-messenger-jots-icons .bx-popup{
 	border-radius: inherit;
@@ -1304,4 +1284,9 @@ div.bx-messenger-giphy-items img{
 	padding: 0;
 	align-items: center;
 	display: inline-flex;
+}
+
+.bx-menu-object-jot {
+	padding-left: 0;
+	list-style: none;
 }

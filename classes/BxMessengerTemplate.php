@@ -689,7 +689,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 		$CNF = &$this->_oConfig->CNF;
 		$sContent = '';
 
-        $oStorage = new BxMessengerStorage($CNF['OBJECT_STORAGE']);
 		foreach($aLots as &$aLot)
 		{
 	    	$aParticipantsList = $this->_oDb->getParticipantsList($aLot[$CNF['FIELD_ID']], true, $iProfileId);
@@ -783,25 +782,32 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			$aVars[$CNF['FIELD_MESSAGE']] = $aVars['sender_username'] = '';
 			if (!empty($aLatestJots))
 			{
-				$sMessage = '';
+                $aAttachType = [];
+			    if ($aLatestJots[$CNF['FIELD_MESSAGE_AT_TYPE']])
+                    $aAttachType = array($aLatestJots[$CNF['FIELD_MESSAGE_AT_TYPE']] => $aLatestJots[$CNF['FIELD_MESSAGE_AT']]);
+                else if ($aLatestJots[$CNF['FIELD_MESSAGE_AT']])
+                    $aAttachType = @unserialize($aLatestJots[$CNF['FIELD_MESSAGE_AT']]);
+
+                $sMessage = '';
 				if (isset($aLatestJots[$CNF['FIELD_MESSAGE']]))
 				{
-                    $sMessage = preg_replace( '/<br\W*?\/>|\n/', " ", $aLatestJots[$CNF['FIELD_MESSAGE']]);
+				    $sMessage = preg_replace( '/<br\W*?\/>|\n/', " ", $aLatestJots[$CNF['FIELD_MESSAGE']]);
 				    $sMessage = html2txt($sMessage);
-					if ($aLatestJots[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_REPOST)
+
+					if (isset($aAttachType[BX_ATT_TYPE_REPOST]))
 					{
-						$sMessage = $this -> _oConfig -> cleanRepostLinks($sMessage, $aLatestJots[$this->_oConfig->CNF['FIELD_MESSAGE_AT']]);
+						$sMessage = $this -> _oConfig -> cleanRepostLinks($sMessage, $aAttachType[BX_ATT_TYPE_REPOST]);
 						$sMessage = $sMessage ? $sMessage : _t('_bx_messenger_repost_message');
 					}
 					
-					$sMessage = BxTemplFunctions::getInstance()->getStringWithLimitedLength($sMessage, $this->_oConfig-> CNF['MAX_PREV_JOTS_SYMBOLS']);
+					$sMessage = BxTemplFunctions::getInstance()->getStringWithLimitedLength($sMessage, $CNF['MAX_PREV_JOTS_SYMBOLS']);
 				}
 				
 				if (!$sMessage){
-				    if ($aLatestJots[$CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
+				    if (isset($aAttachType[BX_ATT_TYPE_FILES]))
 					    $sMessage = _t('_bx_messenger_attached_files_message', $this -> _oDb -> getJotFiles($aLatestJots[$CNF['FIELD_MESSAGE_ID']], true));
 
-				    if ($aLatestJots[$CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_GIPHY)
+				    if (isset($aAttachType[BX_ATT_TYPE_GIPHY]))
                         $sMessage = _t('_bx_messenger_attached_giphy_message');
 
                     if ((int)$aLatestJots[$CNF['FIELD_MESSAGE_VIDEOC']])
@@ -969,12 +975,12 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                     $sMessage = $this->_oConfig->bx_linkify($aJot[$CNF['FIELD_MESSAGE']]);
                     if (!empty($aJot[$CNF['FIELD_MESSAGE_AT']])){
                         $aAttachments = $this->getAttachment($aJot);
-						if (isset($aAttachments[BX_ATT_GROUPS_ATTACH]) && $aAttachments[BX_ATT_GROUPS_ATTACH])
+						if (isset($aAttachments[BX_ATT_GROUPS_ATTACH]) && !empty($aAttachments[BX_ATT_GROUPS_ATTACH]))
 							$sAttachment = $aAttachments[BX_ATT_GROUPS_ATTACH];
 
 						if (isset($aAttachments[BX_ATT_TYPE_REPLY]) && $aAttachments[BX_ATT_TYPE_REPLY])
 							$sReply = $aAttachments[BX_ATT_TYPE_REPLY];
-					}					
+					}
                 }
 
                 $sActionIcon = '';
@@ -1605,24 +1611,30 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         $CNF = &$this -> _oConfig -> CNF;
         if (!empty($aJot))
         {
-            switch($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']])
+            $aAttachType = [];
+            if ($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']])
+                $aAttachType = array($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']] => $aJot[$CNF['FIELD_MESSAGE_AT']]);
+            else if ($aJot[$CNF['FIELD_MESSAGE_AT']])
+                $aAttachType = @unserialize($aJot[$CNF['FIELD_MESSAGE_AT']]);
+
+            $sAttachmentType = '';
+            foreach($aAttachType as $sType => $sValue){
+                if ($sType == BX_ATT_TYPE_REPLY && !$aJot[$CNF['FIELD_MESSAGE']])
+                    continue;
+
+                $sAttachmentType = $sType;
+                break;
+            }
+
+            switch($sAttachmentType)
             {               
                 case BX_ATT_TYPE_GIPHY:
-                    return '<img src="//media1.giphy.com/media/' . $aJot[$CNF['FIELD_MESSAGE_AT']] . '/giphy_s.gif" />';
+                    return '<img src="//media1.giphy.com/media/' . $aAttachType[$sAttachmentType] . '/giphy_s.gif" />';
                 case BX_ATT_TYPE_REPLY:
                     return get_mb_substr(html2txt($aJot[$CNF['FIELD_MESSAGE']]), 0, $CNF['JOT-PREVIEW-TEXT-LENGTH']);
                 case BX_ATT_TYPE_FILES_UPLOADING:
                 case BX_ATT_TYPE_FILES:
-                    $aUploadingFilesList = $aJot[$CNF['FIELD_MESSAGE_AT']] ? explode(',', $aJot[$CNF['FIELD_MESSAGE_AT']]) : array();
                     $aFiles = $this -> _oDb -> getJotFiles($aJot[$CNF['FIELD_MESSAGE_ID']]);
-                    $aItems = array(
-                        'bx_repeat:images' => array(),
-                        'bx_repeat:files' => array(),
-                        'bx_repeat:videos' => array(),
-                        'bx_repeat:audios' => array(),
-                        'bx_repeat:loading_placeholder' => array()
-                    );
-
                     $aTranscodersVideo = $this -> getAttachmentsVideoTranscoders();
                     $oStorage = new BxMessengerStorage($CNF['OBJECT_STORAGE']);
                     $oTranscoderMp3 = BxDolTranscoderAudio::getObjectInstance($CNF['OBJECT_MP3_TRANSCODER']);
@@ -1691,7 +1703,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 				case BX_ATT_TYPE_REPLY:
 						 $iJotId = (int)$sValue;
 						 if ($iJotId && ($aReplyJot = $this->_oDb->getJotById($iJotId))){
-                             $aResult[BX_ATT_TYPE_REPLY][] = $this -> parseHtmlByName('reply.html', array(
+					         $aResult[BX_ATT_TYPE_REPLY][] = $this -> parseHtmlByName('reply.html', array(
 									'id' => $iJotId,
 									'message' => $this->getReplyPreview($iJotId),
 								));
@@ -1700,7 +1712,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 case BX_ATT_TYPE_FILES_UPLOADING:
                 case BX_ATT_TYPE_FILES:
                         $aUploadingFilesList = $sValue ? explode(',', $sValue) : array();
-
 						$aFiles = $this -> _oDb -> getJotFiles($aJot[$CNF['FIELD_MESSAGE_ID']]);
 						$aItems = array(
 							'bx_repeat:images' => array(),
@@ -1795,7 +1806,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			}
 		}
 
-        $aAttachments = array();
+        $aAttachments = [];
         if ($bImplode) {
             foreach ($CNF['IMPLODE_GROUPS'] as $sGroup => $aItems) {
                 foreach ($aResult as $sKey => $sValue) {

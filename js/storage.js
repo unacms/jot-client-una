@@ -75,14 +75,18 @@
     delete(sCateg, sKey, sField){
         if (sCateg && sKey && typeof this._oData[sCateg] !== 'undefined') {
  			if (typeof sField !== 'undefined'){
-				const oObject = JSON.parse(this._oData[sCateg][sKey]);
-				if (typeof oObject[sField] !== 'undefined'){
-					delete oObject[sField];
-					if ($.isEmptyObject(oObject))
-						delete this._oData[sCateg][sKey];
-					else 
-						this._oData[sCateg][sKey] = JSON.stringify(oObject);
-				}
+ 			    try {
+                    const oObject = JSON.parse(this._oData[sCateg][sKey]);
+                    if (typeof oObject[sField] !== 'undefined') {
+                        delete oObject[sField];
+                        if ($.isEmptyObject(oObject))
+                            delete this._oData[sCateg][sKey];
+                        else
+                            this._oData[sCateg][sKey] = JSON.stringify(oObject);
+                    }
+                } catch(e){
+ 			        console.log('Local storage error', e.toString());
+                }
 			}			
 			else 
 				delete this._oData[sCateg][sKey];

@@ -262,18 +262,12 @@ class BxMessengerModule extends BxBaseModGeneralModule
             bx_login_form();
 
         $oPage = BxDolPage::getObjectInstance('bx_messenger_main');
-
         if (!$oPage) {
             $this->_oTemplate->displayPageNotFound();
             exit;
         }
 
-        $s = $oPage->getCode();
-
-        $this->_oTemplate = BxDolTemplate::getInstance();
-        $this->_oTemplate->setPageNameIndex(BX_PAGE_DEFAULT);
-        $this->_oTemplate->setPageContent('page_main_code', $s);
-        $this->_oTemplate->getPageCode();
+        $oPage->displayPage();
     }
 
     public function actionArchive($iJotId)

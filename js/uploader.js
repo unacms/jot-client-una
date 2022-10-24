@@ -11,6 +11,7 @@
  * FilePond files uploader integration
  */
 
+var iMessengerFilesUploadCount = 0; /* TODO Remove this var when filepond will release fix for onwarning and maxFile problem */
 ;window.oMessengerUploader = class {
     constructor(oOptions) {
         this.aFiles = [];
@@ -50,6 +51,7 @@
 
     init(){
         const _this = this;
+
         $(document).on('drop paste', (e) => {
             const { target } = e;
             _this.oTarget = target;
@@ -60,38 +62,6 @@
                 server: {
                     url: `${_this.sFileUrl}`,
                     revert: null,
-                },
-                fileRenameFunction: file => {
-                    const { extension } = file;
-                    const sChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                    let sNewName = '';
-                    for (let  i = 0; i < 12; i++ )
-                        sNewName += sChars.charAt(Math.floor(Math.random() * sChars.length));
-
-                    return ( sNewName && (sNewName.toLowerCase() + extension) ) || '';
-                },
-                beforeDropFile: function(oFile){
-                    const sPreg = /\.(jpeg|jpg|gif|png)$/;
-
-                    if (typeof oFile === 'string')
-                        return sPreg.test(oFile);
-
-                    return oFile instanceof File && !~oFile.type.toLowerCase().indexOf('text/html');
-                },
-                beforeAddFile: ({ file }) => {
-                    const { type } = file;
-                    if (type){
-                        const aTypes = type.split('/');
-                        if (typeof aTypes[1] !== 'undefined' && ~_this.aRestrictedExtensions.indexOf(aTypes[1].toLowerCase())){
-                            bx_alert(_t('_bx_messenger_file_type_is_not_allowed'));
-                            return false;
-                        }
-                    }
-
-                    if (_this.isBlockVersion && _this.oTarget !== null && !$(_this.oTarget).closest(_this.sMainObject).length)
-                        return false;
-
-                    return !(file instanceof Blob && !(file instanceof File) && ~type.toLowerCase().indexOf('text/html'));
                 },
                 allowFileRename: true,
                 imagePreviewMaxHeight: 96,
@@ -114,19 +84,53 @@
                 labelFileProcessingError: _t('_bx_messenger_invalid_server_response'),
                 labelButtonRemoveItem: _t('_bx_messenger_uploading_remove_button'),
                 maxFileSize: this.maxFileSize,
+                fileRenameFunction: file => {
+                    const { extension } = file;
+                    const sChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                    let sNewName = '';
+                    for (let  i = 0; i < 12; i++ )
+                        sNewName += sChars.charAt(Math.floor(Math.random() * sChars.length));
+
+                    return ( sNewName && (sNewName.toLowerCase() + extension) ) || '';
+                },
+                beforeDropFile: function(oFile){
+                    const sPreg = /\.(jpeg|jpg|gif|png)$/;
+
+                    if (typeof oFile === 'string')
+                        return sPreg.test(oFile);
+
+                    return oFile instanceof File && !~oFile.type.toLowerCase().indexOf('text/html');
+                },
+                beforeAddFile: function({ file }){
+                    const { type } = file;
+                    if (type){
+                        const aTypes = type.split('/');
+                        if (typeof aTypes[1] !== 'undefined' && ~_this.aRestrictedExtensions.indexOf(aTypes[1].toLowerCase())){
+                            bx_alert(_t('_bx_messenger_file_type_is_not_allowed'));
+                            return false;
+                        }
+                    }
+
+                    if (_this.isBlockVersion && _this.oTarget !== null && !$(_this.oTarget).closest(_this.sMainObject).length)
+                        return false;
+
+                    return !(file instanceof Blob && !(file instanceof File) && ~type.toLowerCase().indexOf('text/html'));
+                },
                 onwarning: (oObject) => {
                     const { body, type } = oObject;
-                    if (type === 'warning' && body === 'Max files')
+                    if (type === 'warning' && body === 'Max files' && iMessengerFilesUploadCount === this.maxFiles) {
                         bx_alert(_t('_bx_messenger_max_files_upload_error', _this.maxFiles));
+                        iMessengerFilesUploadCount = 0;
+                    }
                     else
                         console.log(oObject);
                 },
-                onaddfilestart: (file) => {
+                onaddfilestart: function() {
                     _this.bClean = false;
                     _this.bLoading = true;
 					_this.isReady = false;
                 },
-                onprocessfiles: () => {
+                onprocessfiles: function(){
                     let iCount = 0;
                     _this.aFiles.map(function(oFile){
                         if (oFile.status === 5) iCount++;
@@ -146,9 +150,11 @@
                     if (typeof _this.onUpdateAttachments === 'function')
                         _this.onUpdateAttachments(!aFilteredFiles.length);
 
+                    iMessengerFilesUploadCount = _this.aFiles.length;
                 },
-                onremovefile: (error, oFile) => {
+                onremovefile: function(error, oFile){
                     const { file } = oFile;
+
                     _this.bLoading = false;
                     if (!_this.bClean && file && file.name)
                         $.ajax({
@@ -156,8 +162,8 @@
                             type: 'DELETE',
                             data:  { name: file.name }
                         });
-                },                
-                onaddfile: (oFile) => {
+                },
+                onaddfile: function(oFile) {
                     if (typeof _this.onAddFilesCallback === 'function' && !_this.bClean)
                         _this.onAddFilesCallback();
                 }

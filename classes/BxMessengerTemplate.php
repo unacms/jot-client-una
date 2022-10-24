@@ -237,16 +237,16 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	public function initFilesUploader(){
         $this->addCss(array(
             'filepond-custom.css',
-            'filepond.min.css',
-            'filepond-plugin-image-preview.min.css',
-            'filepond-plugin-media-preview.min.css'
+            'filepond-plugin-media-preview.min.css',
+            BX_DIRECTORY_PATH_PLUGINS_PUBLIC . 'filepond/|filepond.min.css',
+            BX_DIRECTORY_PATH_PLUGINS_PUBLIC . 'filepond/|filepond-plugin-image-preview.min.css'
         ));
 
         $this->addJs(array(
             'uploader.js',
-            'filepond.min.js',
-            'filepond-plugin-image-preview.min.js',
-            'filepond-plugin-file-validate-size.min.js',
+            'filepond/filepond.min.js',
+            'filepond/filepond-plugin-image-preview.min.js',
+            'filepond/filepond-plugin-file-validate-size.min.js',
             'filepond-plugin-media-preview.min.js',
             'filepond-plugin-file-rename.min.js'
         ));

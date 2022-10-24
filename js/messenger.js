@@ -4355,7 +4355,7 @@
 						bx_loading($(_oMessenger.sFilesUploadAreaOnForm), false);
 						if (!parseInt(oData.code)) {
 							const sMessage = $(_oMessenger.sAddFilesFormComments).text();
-							_oMessenger.sendMessage(sMessage, {files: [{ complete: 1, realname: fileName, name: fileName }]}, function (iJotId) {
+							_oMessenger.sendMessage(sMessage, {files: [{ complete: 1, realname: fileName, name: fileName, content_type: 'video_rec' }]}, function (iJotId) {
 								if (typeof oCallback == 'function')
 									oCallback();
 

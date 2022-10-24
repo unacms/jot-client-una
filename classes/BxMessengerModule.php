@@ -333,7 +333,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 	private function sendMessage(&$aData, $iRecipient = 0, $iSender = 0){
         $sMessage = isset($aData['message']) ? trim($aData['message']) : '';
         $iLotId = isset($aData['lot']) ? (int)$aData['lot'] : 0;
-        $iType = (isset($aData['type']) && $aData['type'] && $this->_oDb->isLotType($aData['type'])) ? (int)$aData['type'] : BX_IM_TYPE_PRIVATE;        
+        $iType = (isset($aData['type']) && $aData['type'] && $this->_oDb->isLotType($aData['type'])) ? (int)$aData['type'] : BX_IM_TYPE_PRIVATE;
         $aFiles = isset($aData[BX_ATT_TYPE_FILES]) ? $aData[BX_ATT_TYPE_FILES] : [];
         $aGiphy = isset($aData[BX_ATT_TYPE_GIPHY]) ? $aData[BX_ATT_TYPE_GIPHY] : [];
         $iReply = isset($aData['reply']) ? (int)$aData['reply'] : '';
@@ -348,7 +348,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             if (bx_srv('bx_antispam', 'is_toxic', [$sMessage]))
                 return _t('_bx_messenger_toxic_message');
         }
-		
+
 		if ($iRecipient && !($oRecipient = BxDolProfile::getInstance($iRecipient)))
                 return _t('_bx_messenger_profile_not_found');
 
@@ -358,6 +358,26 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_SEND_MESSAGE, $iSender);
         if ($mixedResult !== true)
 			return $mixedResult;
+
+        if ($iLotId) {
+            $mixedOptions = $this->_oDb->getLotSettings($iLotId);
+            if ($sMessage && $mixedOptions !== false && !in_array(BX_MSG_SETTING_MSG, $mixedOptions))
+                return _t('_bx_messenger_send_message_save_error');
+
+
+            if (!empty($aFiles)) {
+                if (count($aFiles) == 1 && isset(current($aFiles)['content_type']) && current($aFiles)['content_type'] == BX_MSG_SETTING_VIDEO_RECORD) {
+                    if ($mixedOptions !== false && !in_array(BX_MSG_SETTING_VIDEO_RECORD, $mixedOptions))
+                        return _t('_bx_messenger_send_message_save_error');
+                }
+
+                if (!empty($aFiles) && $mixedOptions !== false && !in_array(BX_MSG_SETTING_FILES, $mixedOptions))
+                    return _t('_bx_messenger_send_message_save_error');
+            }
+
+            if (!empty($aGiphy) && $mixedOptions !== false && !in_array(BX_MSG_SETTING_GIPHY, $mixedOptions))
+                return _t('_bx_messenger_send_message_save_error');
+        }
 			
         if ($iLotId) {
             $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
@@ -466,7 +486,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 		$aData = &$_POST;
 		 if (!$this->isLogged())
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
-		
+
 		$mixedResult = $this->sendMessage($aData);
 		if (is_array($mixedResult)){
 			if (isset($mixedResult['lot_id']))

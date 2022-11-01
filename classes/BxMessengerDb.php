@@ -1511,12 +1511,12 @@ class BxMessengerDb extends BxBaseModGeneralDb
         if (!$iJotId)
             return true;
 
+        if (!$iProfileId)
+            $iProfileId = bx_get_logged_profile_id();
+
         $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_MESSAGES, $iProfileId);
         if ($mixedResult === true)
             return true;
-
-        if (!$iProfileId)
-            $iProfileId = bx_get_logged_profile_id();
 
         if (!$iJotAuthor){
             $aJot = $this->getJotById($iJotId);

@@ -295,10 +295,13 @@ class BxMessengerModule extends BxBaseModGeneralModule
     }
 
 
-    public function serviceSendMessage($iRecipient = 0, $mixedData, $iSender = 0)
+    public function serviceSendMessage($iRecipient = 0, $mixedData = '', $iSender = 0)
     {
         if (!$iSender)
          $iSender = $this->_iProfileId;
+
+        if (empty($mixedData))
+            return _t('_bx_messenger_send_message_no_data');
 
         $aData = array();
         if (is_array($mixedData))

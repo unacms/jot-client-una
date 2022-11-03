@@ -312,7 +312,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (empty($aData))
             return _t('_bx_messenger_send_message_no_data');
 
-             $aData['participants'] = array();
+        $aData['participants'] = array();
         if ($iRecipient)
             $aData['participants'][] = $iRecipient;
 
@@ -402,7 +402,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         }
 
         // prepare participants list
-        $aParticipants = !empty($aParticipants) ? $aParticipants : $this->getParticipantsList($aParticipants, $iSender !== $this->_iProfileId);
+        $aParticipants = $this->getParticipantsList($aParticipants, $iSender !== $this->_iProfileId);
         if (!$iLotId && empty($aParticipants) && $iType === BX_IM_TYPE_PRIVATE)
             return _t('_bx_messenger_send_message_no_data');
 

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="ru" flag="ru" title="Russian">
+	<string_add name="_bx_messenger_check_toxic"><![CDATA[Блокировать сообщения с плохими словами. Опция работает только с установленным Antispam модулем.]]></string_add>
+	<string_add name="_bx_messenger_toxic_message"><![CDATA[Сообщение не может быть отправлено, так как противоречит стандартам нашего сообщества. Пожалуйста, используйте нормативную лексику!]]></string_add>
+	<string_add name="_bx_messenger_jot_server_jwt"><![CDATA[Jot Server JWT token <b>секретное слово</b>. Такое же слово вам необходимо добавить в <b>config.json</b> вашего Jot Server (оставьте поле пустым, если не хотите использовать JWT tokens для Jot Server)]]></string_add>
+	<string_add name="_bx_messenger_search_criteria_list"><![CDATA[Использовать выделенные поля для поиска в списке сообщений]]></string_add>
+	<string_add name="_bx_messenger_search_item_titles"><![CDATA[названия разговоров]]></string_add>
+	<string_add name="_bx_messenger_search_item_participants"><![CDATA[имена участников]]></string_add>
+	<string_add name="_bx_messenger_search_item_content"><![CDATA[тело соообщений]]></string_add>
+	<string_add name="_bx_messenger_time_in_history"><![CDATA[Использовать <b>from now</b> формат времени в Talk's history]]></string_add>
+	<string_add name="_bx_messenger_dont_show_search_desc"><![CDATA[Не показывать описание профилей во всплывающем окне поиска]]></string_add>
+	<string_add name="_bx_messenger_use_unique_mode"><![CDATA[Разрешать создавать разговоры только с уникальным списком пользователей]]></string_add>
+	<string_add name="_bx_messenger_talk_is_not_allowed"><![CDATA[Этот чат для Вас недоступеный!]]></string_add>
+	<string_add name="_bx_messenger_connect_friends_only"><![CDATA[Разрешить создавать разговоры только друзьям]]></string_add>
+	<string_add name="_bx_messenger_talk_types_market_title"><![CDATA[Разговор с {opponent}]]></string_add>
+</resources>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="en" flag="gb" title="English">	
+	<string_add name="_bx_messenger_check_toxic"><![CDATA[Block messages with toxic content. This option can not work without Antispam module.]]></string_add>
+	<string_add name="_bx_messenger_toxic_message"><![CDATA[This message can not be PUBLISHED because doesn't meet our community standards. Please use kinder, gentler words if you want to try again.]]></string_add>
+	<string_add name="_bx_messenger_jot_server_jwt"><![CDATA[Jot Server's JWT token secret word. You should add the same word in <b>config.json</b> of your Jot Server ( leave it empty if don't want to use JWT tokens for Jot Server)]]></string_add>
+	<string_add name="_bx_messenger_search_criteria_list"><![CDATA[Use these criteria for messages filtration]]></string_add>
+	<string_add name="_bx_messenger_search_item_titles"><![CDATA[talks titles]]></string_add>
+	<string_add name="_bx_messenger_search_item_participants"><![CDATA[participants names]]></string_add>
+	<string_add name="_bx_messenger_search_item_content"><![CDATA[messages content]]></string_add>
+	<string_add name="_bx_messenger_time_in_history"><![CDATA[Use <b>from now</b> time format in Talk's history]]></string_add>
+	<string_add name="_bx_messenger_dont_show_search_desc"><![CDATA[Don't show description in search profiles popup]]></string_add>
+	<string_add name="_bx_messenger_use_unique_mode"><![CDATA[Enable unique mode]]></string_add>
+	<string_add name="_bx_messenger_talk_is_not_allowed"><![CDATA[Talk is available for you!]]></string_add>
+	<string_add name="_bx_messenger_connect_friends_only"><![CDATA[Allow to create Talks only with friends]]></string_add>
+	<string_add name="_bx_messenger_talk_types_market_title"><![CDATA[Conversation with {opponent}]]></string_add>
+</resources>

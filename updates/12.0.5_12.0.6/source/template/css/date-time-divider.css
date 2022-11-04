@@ -1,0 +1,48 @@
+.bx-messenger-date-time-hr{
+    position: relative;
+    text-align: center;
+    margin-top: .5rem;
+    margin-bottom: .5rem;
+}
+
+.bx-messenger-date-time-value {
+    position: relative;
+    top: -0.9rem;
+    height: 0;
+}
+
+.bx-messenger-date-time-value > span{
+    margin-right: auto;
+    margin-left: auto;
+    height: 2rem;
+    padding: 0.1rem 0.3rem !important;
+    line-height: 1rem;
+    border-radius:0.7rem;
+}
+
+.bx-messenger-date-time-navigator {
+    width: 100%;
+    position: absolute;
+    top: 0.2rem;
+    margin: 0;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    display: none;
+}
+
+.bx-messenger-date-time-navigator .bx-messenger-date-time-value {
+    top:0;
+}
+
+div.bx-messenger-date-time-hr:first-child {
+    margin-top: 1rem !important;
+}
+
+.bx-messenger-date-time-value .bx-def-label {
+    opacity: 0.8 !important;
+    display: inline;
+    font-size: 0.75rem !important;
+    line-height: 1rem !important;
+}

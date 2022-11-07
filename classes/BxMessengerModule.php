@@ -364,21 +364,23 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         if ($iLotId) {
             $mixedOptions = $this->_oDb->getLotSettings($iLotId);
-            if ($sMessage && $mixedOptions !== false && !in_array(BX_MSG_SETTING_MSG, $mixedOptions))
-                return _t('_bx_messenger_send_message_save_error');
 
+            $bCheckAction = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $iSender) === true;
+            $bIsAuthor = $bCheckAction || $this->_oDb->isAuthor($iLotId, $iSender);
+
+            if ($sMessage && $mixedOptions !== false && !in_array(BX_MSG_SETTING_MSG, $mixedOptions) && !$bIsAuthor)
+                return _t('_bx_messenger_send_message_save_error');
 
             if (!empty($aFiles)) {
                 if (count($aFiles) == 1 && isset(current($aFiles)['content_type']) && current($aFiles)['content_type'] == BX_MSG_SETTING_VIDEO_RECORD) {
-                    if ($mixedOptions !== false && !in_array(BX_MSG_SETTING_VIDEO_RECORD, $mixedOptions))
+                    if ($mixedOptions !== false && !in_array(BX_MSG_SETTING_VIDEO_RECORD, $mixedOptions) && !$bIsAuthor)
                         return _t('_bx_messenger_send_message_save_error');
                 }
-
-                if (!empty($aFiles) && $mixedOptions !== false && !in_array(BX_MSG_SETTING_FILES, $mixedOptions))
+                if (!empty($aFiles) && $mixedOptions !== false && !in_array(BX_MSG_SETTING_FILES, $mixedOptions) && !$bIsAuthor)
                     return _t('_bx_messenger_send_message_save_error');
             }
 
-            if (!empty($aGiphy) && $mixedOptions !== false && !in_array(BX_MSG_SETTING_GIPHY, $mixedOptions))
+            if (!empty($aGiphy) && $mixedOptions !== false && !in_array(BX_MSG_SETTING_GIPHY, $mixedOptions) && !$bIsAuthor)
                 return _t('_bx_messenger_send_message_save_error');
         }
 			
@@ -3063,7 +3065,12 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     unset($aFilesData[BX_ATT_TYPE_FILES_UPLOADING]);
             }
 
-            $aFilesData[BX_ATT_TYPE_FILES] = implode(',', $aSuccessfulFiles );
+            $sFilesList = implode(',', $aSuccessfulFiles );
+            if (!empty($aFilesData[BX_ATT_TYPE_FILES]))
+                $aFilesData[BX_ATT_TYPE_FILES] = $aFilesData[BX_ATT_TYPE_FILES] . ",{$sFilesList}";
+            else
+                $aFilesData[BX_ATT_TYPE_FILES] = $sFilesList;
+
             $this->_oDb->updateJot($iJotId, $CNF['FIELD_MESSAGE_AT'], @serialize($aFilesData));
         }
 

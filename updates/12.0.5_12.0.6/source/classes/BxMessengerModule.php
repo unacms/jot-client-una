@@ -364,21 +364,23 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         if ($iLotId) {
             $mixedOptions = $this->_oDb->getLotSettings($iLotId);
-            if ($sMessage && $mixedOptions !== false && !in_array(BX_MSG_SETTING_MSG, $mixedOptions))
-                return _t('_bx_messenger_send_message_save_error');
 
+            $bCheckAction = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $iSender) === true;
+            $bIsAuthor = $bCheckAction || $this->_oDb->isAuthor($iLotId, $iSender);
+
+            if ($sMessage && $mixedOptions !== false && !in_array(BX_MSG_SETTING_MSG, $mixedOptions) && !$bIsAuthor)
+                return _t('_bx_messenger_send_message_save_error');
 
             if (!empty($aFiles)) {
                 if (count($aFiles) == 1 && isset(current($aFiles)['content_type']) && current($aFiles)['content_type'] == BX_MSG_SETTING_VIDEO_RECORD) {
-                    if ($mixedOptions !== false && !in_array(BX_MSG_SETTING_VIDEO_RECORD, $mixedOptions))
+                    if ($mixedOptions !== false && !in_array(BX_MSG_SETTING_VIDEO_RECORD, $mixedOptions) && !$bIsAuthor)
                         return _t('_bx_messenger_send_message_save_error');
                 }
-
-                if (!empty($aFiles) && $mixedOptions !== false && !in_array(BX_MSG_SETTING_FILES, $mixedOptions))
+                if (!empty($aFiles) && $mixedOptions !== false && !in_array(BX_MSG_SETTING_FILES, $mixedOptions) && !$bIsAuthor)
                     return _t('_bx_messenger_send_message_save_error');
             }
 
-            if (!empty($aGiphy) && $mixedOptions !== false && !in_array(BX_MSG_SETTING_GIPHY, $mixedOptions))
+            if (!empty($aGiphy) && $mixedOptions !== false && !in_array(BX_MSG_SETTING_GIPHY, $mixedOptions) && !$bIsAuthor)
                 return _t('_bx_messenger_send_message_save_error');
         }
 			
@@ -445,21 +447,26 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     }
 
                     $sFile = BX_DIRECTORY_PATH_TMP . basename($aFile['name']);
+                    $sExt = $oStorage->getFileExt($sFile);
+                    $sFilename = $oStorage->getFileTitle($aFile['realname']) . ".{$sExt}";
+
                     $iFile = $oStorage->storeFileFromPath($sFile, $iType == BX_IM_TYPE_PRIVATE, $this->_iProfileId, (int)$iId);
                     if ($iFile) {
                         $oStorage->afterUploadCleanup($iFile, $this->_iProfileId);
                         $this->_oDb->updateFiles($iFile, array(
                             $CNF['FIELD_ST_JOT'] => $iId,
-                            $CNF['FIELD_ST_NAME'] => $aFile['realname']
+                            $CNF['FIELD_ST_NAME'] => $sFilename
                         ));
-                        $aCompleteFilesNames[] = $aFile['realname'];
+                        $aCompleteFilesNames[] = $sFilename;
                         @unlink($sFile);
                     }
                 }
 
-                if (!empty($aCompleteFilesNames) || !empty($aUploadingFilesNames)) {
-                    $aAttachments[!empty($aUploadingFilesNames) ? BX_ATT_TYPE_FILES_UPLOADING : BX_ATT_TYPE_FILES] = implode(',', array_merge($aCompleteFilesNames, $aUploadingFilesNames));
-                }
+                if (!empty($aUploadingFilesNames))
+                    $aAttachments[BX_ATT_TYPE_FILES_UPLOADING] = implode(',', $aUploadingFilesNames);
+
+                if (!empty($aCompleteFilesNames))
+                    $aAttachments[BX_ATT_TYPE_FILES] = implode(',', $aCompleteFilesNames);
             }
 
             if (is_array($aGiphy) && !empty($aGiphy))
@@ -3013,7 +3020,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if ($mixedResult !== true)
             return echoJson(array('code' => 1, 'message' => $mixedResult));
 
-
         $CNF = &$this->_oConfig->CNF;
         $aLotInfo = $this->_oDb->getLotByJotId($iJotId, false);
         if (empty($aLotInfo) || ($aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_PRIVATE &&
@@ -3036,15 +3042,17 @@ class BxMessengerModule extends BxBaseModGeneralModule
             }
 
             $sFile = BX_DIRECTORY_PATH_TMP . basename($aFile['name']);
+            $sExt = $oStorage->getFileExt($sFile);
             $iFileId = $oStorage->storeFileFromPath($sFile, $aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE, $this->_iProfileId, (int)$iJotId);
+            $sFilename = $oStorage->getFileTitle($sRealName) . ".{$sExt}";
             if ($iFileId) {
                 $oStorage->afterUploadCleanup($iFileId, $this->_iProfileId);
                 $this->_oDb->updateFiles($iFileId, array(
                     $CNF['FIELD_ST_JOT'] => $iJotId,
-                    $CNF['FIELD_ST_NAME'] => $sRealName
+                    $CNF['FIELD_ST_NAME'] => $sFilename
                 ));
 
-                $aSuccessfulFiles[] = $sRealName;
+                $aSuccessfulFiles[] = $sFilename;
                 @unlink($sFile);
             }
         }
@@ -3057,7 +3065,12 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     unset($aFilesData[BX_ATT_TYPE_FILES_UPLOADING]);
             }
 
-            $aFilesData[BX_ATT_TYPE_FILES] = implode(',', $aSuccessfulFiles );
+            $sFilesList = implode(',', $aSuccessfulFiles );
+            if (!empty($aFilesData[BX_ATT_TYPE_FILES]))
+                $aFilesData[BX_ATT_TYPE_FILES] = $aFilesData[BX_ATT_TYPE_FILES] . ",{$sFilesList}";
+            else
+                $aFilesData[BX_ATT_TYPE_FILES] = $sFilesList;
+
             $this->_oDb->updateJot($iJotId, $CNF['FIELD_MESSAGE_AT'], @serialize($aFilesData));
         }
 

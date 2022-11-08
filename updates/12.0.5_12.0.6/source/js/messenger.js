@@ -492,9 +492,12 @@
 				},
 				onUpdateAttachments: (bUpdate) => this.updateSendArea(bUpdate),
 				onUploadingComplete: (sName, aFiles, fCallback) => {
-					const { id, uploading_jot_id } = _this.aUploaderQueue[sName] || {};
-					if (sName && uploading_jot_id && aFiles.length) {
-						const fUpload = () => {
+					if (typeof _this.aUploaderQueue[sName] === 'undefined')
+						return false;
+
+					const { id } = _this.aUploaderQueue[sName] || {},
+							fUpload = () => {
+								const { uploading_jot_id } = _this.aUploaderQueue[sName];
 												return $.post('modules/?r=messenger/update_uploaded_files/', {
 													jot_id: uploading_jot_id,
 													files: aFiles
@@ -516,16 +519,18 @@
 													if (typeof fCallback === 'function')
 														fCallback();
 
+									delete _this.aUploaderQueue[sName];
 												}, 'json');
-											};
+							}
 
-							if (_this.oSendPool.has(id))
-								_this.oSendPool.get(id).then(() => fUpload());
-							else
+					if (aFiles.length) {
+						if (_this.oSendPool.has(id)) {
+							const oThread = _this.oSendPool.get(id);
+							if (oThread.promise !== null)
+								oThread.promise.then(fUpload);
+						} else
 								fUpload();
 					}
-					if (typeof _this.aUploaderQueue[sName] !== 'undefined')
-						delete _this.aUploaderQueue[sName];
 				}
 			}))).getUploader();
 
@@ -2159,7 +2164,7 @@
 		if (_this.oFilesUploader) {
 			oParams.files = _this.oFilesUploader.getAllFiles();
 			if (oParams.files.length && !_this.oFilesUploader.isReady())
-				_this.aUploaderQueue[_this.oFilesUploader.name()] = { id: oParams.tmp_id };
+				_this.aUploaderQueue[_this.oFilesUploader.name()] = {id: oParams.tmp_id};
 		}
 
 		if (typeof mixedObjects !== 'undefined' && Array.isArray(mixedObjects.files))
@@ -2238,7 +2243,7 @@
 		_this.updateScrollPosition('bottom');
 
 		// save message to database and broadcast to all participants
-		const fSendMessagePromsie = () => new Promise((fResolve, fReject) => $.post('modules/?r=messenger/send', oParams, function ({
+		_this.oSendPool.set( oParams.tmp_id, { 'promise': null, 'run': () => $.post('modules/?r=messenger/send', oParams, function ({
 																						jot_id,
 																						header,
 																						tmp_id,
@@ -2280,8 +2285,9 @@
 									$(_this.sTalkList).addTimeIntervals();
 
 									Object.keys(_this.aUploaderQueue).map((sKey) => {
-										if (+_this.aUploaderQueue[sKey].id === +tmp_id)
+										if (+_this.aUploaderQueue[sKey].id === +tmp_id) {
 											_this.aUploaderQueue[sKey].uploading_jot_id = jot_id;
+										}
 									});
 								}
 
@@ -2314,7 +2320,6 @@
 
 					if (typeof fCallBack == 'function')
 						fCallBack(jot_id);
-
 				}, 'json')
 				.done(() => {
 					if (_this.oSendPool.has(oParams.tmp_id)) {
@@ -2322,13 +2327,13 @@
 						if (_this.oSendPool.size && !+$(`[data-tmp="${oParams.tmp_id}"]`).data('retry'))
 							for (let sTmp of _this.oSendPool.keys()) {
 								if (!$(`[data-tmp="${sTmp}"]`).data('retry')){
-									_this.oSendPool.get(sTmp)();
+										const oThread = _this.oSendPool.get(sTmp);
+										if (oThread.promise === null)
+											oThread.promise = oThread.run();
 									break;
 								}
 							}
 					}
-					if (typeof fResolve === 'function')
-						fResolve();
 				})
 				.fail(() => {
 					for (let sTmp of _this.oSendPool.keys()) {
@@ -2340,7 +2345,8 @@
 							  		</a>`)
 									.on('click', function(){
 										if (_this.oSendPool.has(sTmp)) {
-											_this.oSendPool.get(sTmp)();
+											const oThread = _this.oSendPool.get(sTmp);
+											oThread.promise = oThread.run();
 
 											$(`[data-tmp="${sTmp}"]`)
 												.find('time')
@@ -2352,11 +2358,7 @@
 							.closest(_this.sJot)
 							.data('retry', true);
 					}
-					if (typeof fReject === 'function')
-						fReject();
-				}));
-
-		_this.oSendPool.set( oParams.tmp_id, fSendMessagePromsie);
+				})});
 
 		// in case if there are some not sent messages, find the first just sent
 		let bRetry = false, iNewCount = 0;
@@ -2371,8 +2373,9 @@
 
 		if (_this.oSendPool.size === 1 || (bRetry && iNewCount === 1))
 		{
-			if (_this.oSendPool.has(oParams.tmp_id))
-				_this.oSendPool.get(oParams.tmp_id)();
+			const oThread = _this.oSendPool.get(oParams.tmp_id);
+			if (oThread.promise === null)
+				oThread.promise = oThread.run();
 		}
 
 		return true;

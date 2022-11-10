@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_jots` (
    `created` int(11) NOT NULL default '0',
    `user_id` int(11) unsigned NOT NULL default '0',
    `attachment_type` varchar(255) NOT NULL default '',
-   `attachment` text NOT NULL default '',
+   `attachment` text NOT NULL,
    `last_edit` int(11) NOT NULL default '0',
    `edit_by` int(11) unsigned NOT NULL default '0',
    `trash` tinyint(1) unsigned NOT NULL default 0,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_lots` (
    `created` int(11) NOT NULL default 0,
    `updated` int(11) NOT NULL default 0,
    `author` int(11) unsigned NOT NULL default 0,
-   `participants` text NOT NULL default '',
+   `participants` text NOT NULL,
    `class` varchar(20) NOT NULL default 'custom',
    `visibility` tinyint(1) NOT NULL default 0,
    PRIMARY KEY  (`id`)
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_attachments` (
 CREATE TABLE IF NOT EXISTS `bx_messenger_users_info` (
    `lot_id` int(11) unsigned NOT NULL default 0,
    `user_id` int(11) unsigned NOT NULL default 0,
-   `params` text NOT NULL default '',
+   `params` text NOT NULL,
    `star` tinyint(1) NOT NULL default '0',
    PRIMARY KEY (`lot_id`,`user_id`)
 );

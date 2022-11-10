@@ -20,7 +20,8 @@ class BxMessengerUpdater extends BxDolStudioUpdater
             if(!$this->oDb->isFieldExists('bx_messenger_lots', 'visibility'))
                 $this->oDb->query("ALTER TABLE `bx_messenger_lots` ADD `visibility` tinyint(1) NOT NULL default 0");
 
-            if(!$this->oDb->isIndexExists('bx_messenger_users_info', 'id')) {
+            if($this->oDb->isIndexExists('bx_messenger_users_info', 'id')) {
+               $this->oDb->query("ALTER TABLE `bx_messenger_users_info` CHANGE `lot_id` `lot_id` INT(11) UNSIGNED NOT NULL");
                $this->oDb->query("ALTER TABLE `bx_messenger_users_info` DROP INDEX `id`");
                $this->oDb->query("ALTER TABLE `bx_messenger_users_info` ADD PRIMARY KEY (`lot_id`,`user_id`)");
             }
@@ -29,13 +30,10 @@ class BxMessengerUpdater extends BxDolStudioUpdater
                 $this->oDb->query("ALTER TABLE `bx_messenger_lots_settings` CHANGE `settings` `actions` varchar(255) NOT NULL default ''");
                 $this->oDb->query("ALTER TABLE `bx_messenger_lots_settings` ADD `settings` varchar(255) NOT NULL default ''");
                 $this->oDb->query("ALTER TABLE `bx_messenger_lots_settings` ADD `icon` int(11) NOT NULL default '0'");
-            }
-
-            if(!$this->oDb->isIndexExists('bx_messenger_lots_settings', 'id')) {
-                $this->oDb->query("ALTER TABLE `bx_messenger_lots_settings` DROP INDEX `id`");
+				$this->oDb->query("ALTER TABLE `bx_messenger_lots_settings` DROP INDEX `id`");
                 $this->oDb->query("ALTER TABLE `bx_messenger_lots_settings` ADD PRIMARY KEY (`lot_id`)");
             }
-
+    
             if(!$this->oDb->isFieldExists('bx_messenger_unread_jots', 'id'))
                 $this->oDb->query("ALTER TABLE `bx_messenger_unread_jots` ADD `id` int(11) unsigned PRIMARY KEY AUTO_INCREMENT");
 

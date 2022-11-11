@@ -611,14 +611,42 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $aResult = array('code' => 0);
         $aParams = array('term' => $sParam, 'star' => (bool)$iStarred);
 
-        $aMyLots = $this->_oDb->getMyLots($this->_iUserId, $aParams);
+        $aMyLots = $this->_oDb->getMyLots($this->_iProfileId, $aParams);
+        $aFriends = array();
+        if ($this->_oConfig->CNF['USE-FRIENDS-ONLY-MODE'] && $sParam && $this->_oConfig->isSearchCriteria(BX_SEARCH_CRITERIA_PARTS)) {
+            $aIMList = array();
+            if (!empty($aMyLots))
+                foreach($aMyLots as &$aLot){
+                    $aParticipants = explode(',', $aLot[$this->_oConfig->CNF['FIELD_PARTICIPANTS']]);
+                    if (count($aParticipants) == 2 && $aLot[$this->_oConfig->CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
+                        $aIMList[] = (int)$aParticipants[0] !== (int)$this->_iProfileId ? $aParticipants[0] : $aParticipants[1];
+                }
+
+            $aFriendsList = $this->searchFriends($sParam);
+            foreach ($aFriendsList as $sModule => $aItems) {
+                    foreach($aItems as &$aItem) {
+                        $aCNF = BxDolModule::getInstance($sModule)->_oConfig->CNF;
+                        $iFriendId = BxDolProfile::getInstanceByContentAndType($aItem[$aCNF['FIELD_ID']], $sModule)->id();
+                        if (in_array($iFriendId, $aIMList))
+                            continue;
+
+                        array_push($aFriends, $iFriendId);
+                    }
+                }
+            }
+
         if (empty($aMyLots))
-            $sContent = $sParam ? MsgBox(_t('_bx_messenger_txt_msg_no_results')) : $this->_oTemplate->getFriendsList();
+            $sContent = $sParam ? MsgBox(_t('_bx_messenger_txt_msg_no_results')) : $this->_oTemplate->getFriendsList($this->_iProfileId);
         else
         {
-            $sContent = $this->_oTemplate->getLotsPreview($this->_iUserId, $aMyLots);
+            $sContent = $this->_oTemplate->getLotsPreview($this->_iProfileId, $aMyLots);
             if (isset($aParams['jots_list']) && is_array($aParams['jots_list']))
                 $aResult['jots_list'] = $aParams['jots_list'];
+        }
+
+        if (!empty($aFriends)) {
+            $sFriends = $this->_oTemplate->getFriendsList($this->_iProfileId, $aFriends);
+            $sContent = !empty($aMyLots) ? $sContent . $sFriends : $sFriends;
         }
 
         $aResult['html'] = $sContent;
@@ -841,6 +869,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
     }
 
     public function searchFriends($sTerm){
+        if (!$sTerm || !($aTerms = preg_split("/[\s,]+/", $sTerm)))
+            return array();
+
         $oConnection = BxDolConnection::getObjectInstance('sys_profiles_friends');
         $aProfiles = $oConnection->getConnectedContent($this->_iProfileId, true);
         $aResult = array();
@@ -855,22 +886,39 @@ class BxMessengerModule extends BxBaseModGeneralModule
         foreach($aModules as &$aModule)
             $aProfilesModules[$aModule['name']] = BxDolModule::getInstance($aModule['name']);
 
+        $aFieldsFilter = array();
         foreach($aProfiles as &$iID){
             $oProfileInfo = BxDolProfile::getInstance($iID);
             if (!empty($oProfileInfo)) {
                 $aInfo = $oProfileInfo->getInfo();
                 if (isset($aInfo['type']) && isset($aProfilesModules[$aInfo['type']])) {
                     $aProfileInfo = $aProfilesModules[$aInfo['type']]->_oDb->getContentInfoByProfileId($iID);
-                    $sFields = getParam($aProfilesModules[$aInfo['type']]->_oConfig->CNF['PARAM_SEARCHABLE_FIELDS']);
-                    if ($sFields && ($aFields = explode(',', $sFields))) {
-                        foreach($aFields as &$sKey){
-                            if (stripos($aProfileInfo[$sKey], $sTerm) !== FALSE)
+
+                    if (!isset($aFieldsFilter[$aInfo['type']])) {
+                        $sFields = getParam($aProfilesModules[$aInfo['type']]->_oConfig->CNF['PARAM_SEARCHABLE_FIELDS']);
+                        if ($sFields)
+                            $aFieldsFilter[$aInfo['type']] = explode(',', $sFields);
+                    }
+
+                    if ($aFieldsFilter[$aInfo['type']]) {
+                        $sSearchString = '';
+                        foreach($aFieldsFilter[$aInfo['type']] as &$sKey)
+                           $sSearchString .= " {$aProfileInfo[$sKey]}";
+
+                        if ($sSearchString) {
+                            $bResult = true;
+                            foreach ($aTerms as &$sValue)
+                                if (stripos($sSearchString, $sValue) === FALSE) {
+                                    $bResult = false;
+                                    break;
+                                }
+
+                            if ($bResult)
                                 $aResult[$aInfo['type']][] = $aProfileInfo;
                         }
                     }
                 }
             }
-
         }
 
        return $aResult;

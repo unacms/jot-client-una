@@ -945,7 +945,7 @@
 	*/
 	oMessenger.prototype.searchByItems = function(mixedOption, sText){
 		const _this = this,
-			iFilterType	= typeof mixedOption == 'function' || mixedOption === undefined ? this.iFilterType : mixedOption,
+			iFilterType = ( typeof mixedOption === 'function' || mixedOption === undefined ? this.iFilterType : mixedOption ),
 			searchFunction = function()
 							{
 								_this.iTimer = setTimeout(() => bx_loading($(_this.sLotsListBlock), true), 1000);
@@ -962,10 +962,10 @@
 												_this.showSearchPopup(_this.oSettings.lot);
 
 												const fCallback = () =>  typeof mixedOption === 'function' && mixedOption();
-												if (!parseInt(oData.code))
+												if (!parseInt(code))
 												{			
 													$(_this.sLotsListBlock)
-														.html(oData.html)
+														.html(html)
 														.bxMsgTime()
 														.fadeIn(fCallback);
 													

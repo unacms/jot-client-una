@@ -1078,14 +1078,14 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	public function getMyLots($iProfileId, &$aParams = array())
 	{
         $sJoin = $sWhere = '';
-        $aSelectedLots = $aSWhere = array();
-		$aWhere = array('profile' => (int)$iProfileId, 'parts' => '(^|,)' . (int)$iProfileId . '(,|$)');
-
-		$sParam = isset($aParams['term']) && $aParams['term'] ? $aParams['term'] : '';
-		if ($sParam)
-		{
+        $aSWhere = array();
+        $aWhere = array('profile' => (int)$iProfileId, 'parts' => '(^|,)' . (int)$iProfileId . '(,|$)');
+        $sParam = isset($aParams['term']) && $aParams['term'] ? $aParams['term'] : '';
+        
+        if ($sParam)
+        {
             $aParamWhere = [];
-		    if ($this->_oConfig->isSearchCriteria(BX_SEARCH_CRITERIA_TITLES)) {
+            if ($this->_oConfig->isSearchCriteria(BX_SEARCH_CRITERIA_TITLES)) {
                 $aParamWhere[] = "`l`.`{$this->CNF['FIELD_TITLE']}` LIKE :title";
                 $aWhere['title'] = "%{$sParam}%";
             }
@@ -1114,7 +1114,9 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
             if (!empty($aParamWhere))
                 $aSWhere[] = '(' . implode(' OR ', $aParamWhere) . ')';
-		}
+        	else
+                return false;
+        }
 
         $iType = isset($aParams['type']) ? (int)$aParams['type'] : '';
 		if ($iType)

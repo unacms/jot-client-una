@@ -620,41 +620,31 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
     }
 	/**
 	* Search friends function which shows fiends only if member have no any talks yet
-	*@param string $sParam keywords
+	*@param array $aFriends friends list
 	*@return string html code
 	*/
-	function getFriendsList($sParam = ''){
+	function getFriendsList($iProfileId, $aFriends = array()){
 		$iLimit = (int)$this->_oConfig->CNF['PARAM_FRIENDS_NUM_BY_DEFAULT'] ? (int)$this->_oConfig->CNF['PARAM_FRIENDS_NUM_BY_DEFAULT'] : 5;
 
 		$sContent = MsgBox(_t('_Empty'));
 		if (!$this->_oConfig->CNF['SHOW-FRIENDS'])
 			return $sContent;
 
-        $aFriends = array();
-         if (!$sParam){
-             bx_import('BxDolConnection');
+        if (empty($aFriends)) {
+            bx_import('BxDolConnection');
             $oConnection = BxDolConnection::getObjectInstance('sys_profiles_friends');
-            if (!$oConnection || !($aFriends = $oConnection -> getConnectionsAsArray ('content', bx_get_logged_profile_id(), 0, false, 0, $iLimit + 1, BX_CONNECTIONS_ORDER_ADDED_DESC)))
-                 return $sContent;
-        }
-         else
-         {
-            $aUsers = BxDolService::call('system', 'profiles_search', array($sParam, $iLimit), 'TemplServiceProfiles');
-            if (empty($aUsers))
-                 return $sContent;
-
-            foreach($aUsers as &$aValue)
-                $aFriends[] = $aValue['value'];
+            if (!$oConnection || !($aFriends = $oConnection->getConnectionsAsArray('content', $iProfileId, 0, false, 0, $iLimit + 1, BX_CONNECTIONS_ORDER_ADDED_DESC)))
+                return $sContent;
         }
 
         $aItems['bx_repeat:friends'] = array();
         foreach($aFriends as &$iValue){
             $oProfile = $this -> getObjectUser($iValue);
-             $sThumb = $oProfile->getThumb();
-             $bThumb = stripos($sThumb, 'no-picture') === FALSE;
-             $sDisplayName = $oProfile->getDisplayName();
+            $sThumb = $oProfile->getThumb();
+            $bThumb = stripos($sThumb, 'no-picture') === FALSE;
+            $sDisplayName = $oProfile->getDisplayName();
 
-             $aItems['bx_repeat:friends'][] = array(
+            $aItems['bx_repeat:friends'][] = array(
                  'name' => $sDisplayName,
                  'id' => $oProfile -> id(),
                  'bx_if:avatars' => array(
@@ -1104,7 +1094,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 		if (!empty($aMyLots))
 			$sContent = $this->getLotsPreview($iProfileId, $aMyLots);
 		else
-			$sContent = $this->getFriendsList();
+			$sContent = $this->getFriendsList($iProfileId);
 
 	    $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_ACTIONS_TALK_MENU']);
 		$aVars = array(

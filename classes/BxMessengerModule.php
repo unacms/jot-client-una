@@ -1342,12 +1342,13 @@ class BxMessengerModule extends BxBaseModGeneralModule
     public function actionEditJot()
     {
         $iJotId = bx_get('jot');
-        $aJotInfo = $this->_oDb->getJotById($iJotId);
         $aResult = array('code' => 1);
+        if (!($aJotInfo = $this->_oDb->getJotById($iJotId)))
+            return echoJson($aResult);
 
         $sMessage = preg_replace(array('/\<p>\<br[^>]*>\<\/p>/i', '/\<p>/i', '/\<\/p>/i'), array("<br/>", "", "<br/>"), bx_get('message'));
         $mixedResult = $this->_oDb->isAllowedToDeleteJot($iJotId, $this->_iProfileId);
-        if (empty($aJotInfo) || $mixedResult !== true)
+        if ($mixedResult !== true)
             return echoJson($aResult);
 
         if ($this->_oDb->editJot($iJotId, $this->_iProfileId, $sMessage)) {

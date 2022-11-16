@@ -1513,6 +1513,9 @@ class BxMessengerDb extends BxBaseModGeneralDb
         if (!$iJotId)
             return true;
 
+        if (!($aJot = $this->getJotById($iJotId)))
+            return false;
+
         if (!$iProfileId)
             $iProfileId = bx_get_logged_profile_id();
 
@@ -1520,13 +1523,11 @@ class BxMessengerDb extends BxBaseModGeneralDb
         if ($mixedResult === true)
             return true;
 
-        if (!$iJotAuthor){
-            $aJot = $this->getJotById($iJotId);
+        if (!$iJotAuthor)
             $iJotAuthor = $aJot[$this->CNF['FIELD_MESSAGE_AUTHOR']];
-        }
 
         if (!$iLotAuthorId) {
-            $iLotId = $this->getLotByJotId($iJotId);
+            $iLotId = $aJot[$this->CNF['FIELD_MESSAGE_FK']];
             $bIsLotAuthor = $this -> isAuthor($iLotId, $iProfileId);
         }
         else

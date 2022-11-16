@@ -184,6 +184,7 @@
 		this.iLotType = oOptions.type || 0;
 		this.iMuted = +oOptions.muted;
 		this.bByUrl = +oOptions.by_url;
+		this.bDontChangeTitle = +oOptions.change_title;
 		this.iSelectedPersonToTalk = oOptions.selected_profile || 0;
 		this.isBlockMessenger = typeof oOptions.block_version !== 'undefined' ? oOptions.block_version : $(this.sLotsBlock).length === 0;
 		this.oFilesUploaderSettings = typeof oOptions['files_uploader'] !== 'undefined' ? $.extend(oOptions['files_uploader'], { main_object_name: this.sMainTalkBlock }) : null;
@@ -1867,14 +1868,14 @@
 
 		this.notifyNewUnreadChats(iUnreadLotsCount);
 
-		$(document).prop('title', $(document).prop('title').replace(/\(\d\)$/g, ''));
-		if (bEnable === true || iUnreadLotsCount) {
-			$('link[rel="shortcut icon"]').attr('href', this.sInfoFavIcon);
-			$(document).prop('title', $(document).prop('title') + ` (${iUnreadLotsCount})`);
+		if (!this.bDontChangeTitle){
+			$(document).prop('title', $(document).prop('title').replace(/\(\d\)$/g, ''));
+			if (bEnable === true || iUnreadLotsCount) {
+				$('link[rel="shortcut icon"]').attr('href', this.sInfoFavIcon);
+				$(document).prop('title', $(document).prop('title') + ` (${iUnreadLotsCount})`);
+			} else if (bEnable === false || !iUnreadLotsCount)
+				$('link[rel="shortcut icon"]').attr('href', this.sDefaultFavIcon);
 		}
-		else 
-		if (bEnable === false || !iUnreadLotsCount)
-			$('link[rel="shortcut icon"]').attr('href', this.sDefaultFavIcon);
 	};
 	
 	$.fn.waitForImages = function(fCallback){

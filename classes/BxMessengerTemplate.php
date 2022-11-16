@@ -1242,6 +1242,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			'last_unread_jot' => $iLastUnreadJot,
 			'unread_jots' => $iUnreadJotsNumber,
 			'allow_attach' => +$bAttach,
+			'change_title' => (int)$CNF['UPDATE-PAGE-TITLE'],
 			'muted' => ($iLotId && $iProfileId ? (int)$this->_oDb->isMuted($iLotId, $iProfileId) : 0),
 			'dates_intervals_template' => $this->parseHtmlByName('date-separator.html', array('date' => '__date__')),
 			'reaction_template' => $this->parseHtmlByName('reaction.html', array(

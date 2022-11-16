@@ -281,6 +281,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'DONT-SHOW-DESC' => getParam($aModule['db_prefix'] . 'dont_show_search_desc') == 'on',
             'USE-UNIQUE-MODE' => getParam($aModule['db_prefix'] . 'use_unique_mode') == 'on',
             'USE-FRIENDS-ONLY-MODE' => getParam($aModule['db_prefix'] . 'connect_friends_only') == 'on',
+            'UPDATE-PAGE-TITLE' => getParam($aModule['db_prefix'] . 'dont_update_title') == 'on',
             'SEARCH-CRITERIA-SELECTED' => getParam($aModule['db_prefix'] . 'search_criteria'),
             'JWT' => array(
               'app_id' => getParam($aModule['db_prefix'] . 'jwt_app_id'),

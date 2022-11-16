@@ -59,7 +59,8 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_time_in_history', '', @iCategId, '_bx_messenger_time_in_history', 'checkbox', '', '', '', 46),
 ('bx_messenger_dont_show_search_desc', '', @iCategId, '_bx_messenger_dont_show_search_desc', 'checkbox', '', '', '', 47),
 ('bx_messenger_use_unique_mode', '', @iCategId, '_bx_messenger_use_unique_mode', 'checkbox', '', '', '', 48),
-('bx_messenger_connect_friends_only', '', @iCategId, '_bx_messenger_connect_friends_only', 'checkbox', '', '', '', 49);
+('bx_messenger_connect_friends_only', '', @iCategId, '_bx_messenger_connect_friends_only', 'checkbox', '', '', '', 49),
+('bx_messenger_dont_update_title', '', @iCategId, '_bx_messenger_dont_update_title', 'checkbox', '', '', '', 50);
 
 -- MENU: notifications
 SET @iMIOrder = (SELECT IFNULL(MAX(`order`), 0) FROM `sys_menu_items` WHERE `set_name` = 'sys_toolbar_member' AND `order` < 9999);

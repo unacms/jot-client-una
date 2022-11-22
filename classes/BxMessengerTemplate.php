@@ -1937,18 +1937,20 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             array(
                 'click' => "javascript:window.open('" . $this->_oConfig->getBaseUri() . "download_file/{$iFileId}" . "');",
                 'title' => _t('_bx_messenger_file_download'),
-                'icon' => 'download'
+                'icon' => 'download',
+                'class' => ''
             ),
             array(
                 'permissions' => true,
                 'click' => "if (confirm('" . bx_js_string(_t('_bx_messenger_post_confirm_delete_file')) . "')) 
                                                 {$CNF['JSMain']}.removeFile(this, {$iFileId})",
                 'title' => _t('_bx_messenger_upload_delete'),
-                'icon' => 'backspace'
+                'icon' => 'backspace',
+                'class' => ''
             ),
         );
 
-         $aVars = array('class' => 'file-menu', 'position' => 'left center');
+         $aVars = array();
          foreach ($aMenuItems as &$aItem) {
                 if (isset($aItem['permissions']) && $aItem['permissions'] === true && !$bAllowedDelete)
                     continue;

@@ -382,9 +382,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
             if (!empty($aGiphy) && $mixedOptions !== false && !in_array(BX_MSG_SETTING_GIPHY, $mixedOptions) && !$bIsAuthor)
                 return _t('_bx_messenger_send_message_save_error');
-        }
-			
-        if ($iLotId) {
+
+
             $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
             $iType = isset($aLotInfo[$CNF['FIELD_TYPE']]) ? $aLotInfo[$CNF['FIELD_TYPE']] : BX_IM_TYPE_PUBLIC;
 			if ($iType == BX_IM_TYPE_PRIVATE && !$iRecipient){

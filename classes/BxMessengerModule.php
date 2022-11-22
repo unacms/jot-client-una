@@ -353,7 +353,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         }
 
 		if ($iRecipient && !($oRecipient = BxDolProfile::getInstance($iRecipient)))
-                return _t('_bx_messenger_profile_not_found');
+            return _t('_bx_messenger_profile_not_found');
 
 		if (!$iSender)
 			$iSender = $this->_iProfileId;
@@ -363,6 +363,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
 			return $mixedResult;
 
         if ($iLotId) {
+            if (!($aLotInfo = $this->_oDb->getLotInfoById($iLotId)))
+                return _t('_bx_messenger_not_found');
+
             $mixedOptions = $this->_oDb->getLotSettings($iLotId);
 
             $bCheckAction = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $iSender) === true;
@@ -383,8 +386,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
             if (!empty($aGiphy) && $mixedOptions !== false && !in_array(BX_MSG_SETTING_GIPHY, $mixedOptions) && !$bIsAuthor)
                 return _t('_bx_messenger_send_message_save_error');
 
-
-            $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
             $iType = isset($aLotInfo[$CNF['FIELD_TYPE']]) ? $aLotInfo[$CNF['FIELD_TYPE']] : BX_IM_TYPE_PUBLIC;
 			if ($iType == BX_IM_TYPE_PRIVATE && !$iRecipient){
 				$aPartList = $this->_oDb->getParticipantsList($iLotId, true, $iSender);

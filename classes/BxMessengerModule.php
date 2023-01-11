@@ -868,12 +868,13 @@ class BxMessengerModule extends BxBaseModGeneralModule
             ));
     }
 
-    public function searchFriends($sTerm){
+    public function searchFriends($sTerm, $aProfilesList = array()){
         if (!$sTerm || !($aTerms = preg_split("/[\s,]+/", $sTerm)))
             return array();
 
         $oConnection = BxDolConnection::getObjectInstance('sys_profiles_friends');
-        $aProfiles = $oConnection->getConnectedContent($this->_iProfileId, true);
+        $aProfiles = !empty($aProfilesList) ? $aProfilesList : $oConnection->getConnectedContent($this->_iProfileId, true);
+
         $aResult = array();
         if (empty($aProfiles))
             return $aResult;
@@ -931,7 +932,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             return array();
 
         if ($CNF['USE-FRIENDS-ONLY-MODE'])
-            $aSearchResult = $this->searchFriends(bx_get('term'));
+            $aSearchResult = $this->searchFriends($sTerm);
         else
         {
             $aModules = array_map(function($aModule){
@@ -951,6 +952,12 @@ class BxMessengerModule extends BxBaseModGeneralModule
             if (empty($aSearchResult))
                 return array();
         }
+
+        bx_alert($this->getName(), 'get_profiles_list', 0, 0, array(
+                'term' => $sTerm,
+                'override_list' => &$aSearchResult)
+        );
+
 
         $aUsers = array();
         foreach($aSearchResult as $sModule => $aItems){

@@ -298,4 +298,5 @@
 	<string name="_bx_messenger_connect_friends_only"><![CDATA[Allow to create Talks only with friends]]></string>
 	<string name="_bx_messenger_talk_types_market_title"><![CDATA[Conversation with {opponent}]]></string>
 	<string name="_bx_messenger_dont_update_title"><![CDATA[Don't update page title when new messages income]]></string>
+	<string name="_bx_messenger_menu_title_view"><![CDATA[Talk's header menu]]></string>
 </resources>

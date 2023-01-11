@@ -288,4 +288,5 @@
 	<string name="_bx_messenger_connect_friends_only"><![CDATA[Разрешить создавать разговоры только друзьям]]></string>
 	<string name="_bx_messenger_talk_types_market_title"><![CDATA[Разговор с {opponent}]]></string>
 	<string name="_bx_messenger_dont_update_title"><![CDATA[Не обновлять заголовок страницы при поступлении новых сообщений]]></string>
+	<string name="_bx_messenger_menu_title_view"><![CDATA[Меню блока разговора]]></string>
 </resources>

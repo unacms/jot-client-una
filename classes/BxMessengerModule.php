@@ -1670,6 +1670,16 @@ class BxMessengerModule extends BxBaseModGeneralModule
     }
 
     /**
+     * Delete profile's сontent
+     * @param int $iProfileId
+     * @return boolean $bTalks if true then remove the all content including talks where profile participates
+     */
+    public function serviceDeleteProfileContent($iProfileId, $bTalks = false)
+    {
+        return $this->_oDb->deleteProfileInfo($iProfileId, $bTalks);
+    }
+
+    /**
      * Parse jot's link (repost)
      * @param object oAlert
      * @return string json
@@ -3158,19 +3168,21 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         $CNF = &$this->_oConfig->CNF;
         $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
+        $iFileId = 0;
         if (is_array($mixedFile) && isset($mixedFile['name'])) {
            $sFile = BX_DIRECTORY_PATH_TMP . basename($mixedFile['name']);
            $iFileId = $oStorage->storeFileFromPath($sFile, false, $this->_iProfileId, $iLotId);
         } elseif (filter_var($mixedFile, FILTER_VALIDATE_URL) !== false)
            $iFileId = $oStorage->storeFileFromUrl($mixedFile, false, $this->_iProfileId, $iLotId);
          elseif ((int)$mixedFile)
-            $iFileId = (int)$mixedFile;
+           $iFileId = (int)$mixedFile;
 
         if ($iFileId) {
             $oStorage->afterUploadCleanup($iFileId, $this->_iProfileId);
             $this->_oDb->saveLotSettings($iLotId, $iFileId, $CNF['FLS_ICON']);
         }
     }
+
 }
 
 /** @} */

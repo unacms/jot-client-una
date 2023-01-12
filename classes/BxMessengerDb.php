@@ -1211,9 +1211,10 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	/**
 	* Delete all profiles info from lots and jots
 	*@param int  $iProfileId
+    *@param bool $bTalks if true to remove the talk where removed user participates
 	*@return int affected rows
 	*/
-	public function deleteProfileInfo($iProfileId){
+	public function deleteProfileInfo($iProfileId, $bTalks = false){
 		$bResult = true;
 		
 		$aWhere['profile'] = (int)$iProfileId;
@@ -1226,25 +1227,31 @@ class BxMessengerDb extends BxBaseModGeneralDb
 			FROM `{$this->CNF['TABLE_MESSAGES']}` 
 			WHERE `{$this->CNF['FIELD_MESSAGE_AUTHOR']}`=:profile", $aWhere);
 		
-		foreach($aJots as $iKey => $aJot)
+		foreach($aJots as &$aJot)
            $this->clearJotsConnections($aJot[$this->CNF['FIELD_MESSAGE_ID']], $aJot[$this->CNF['FIELD_MESSAGE_FK']]);
 			
 		$bResult &= $this-> query("DELETE
 			FROM `{$this->CNF['TABLE_MESSAGES']}` 
 			WHERE `{$this->CNF['FIELD_MESSAGE_AUTHOR']}`=:profile", $aWhere);
 
-		$aJots = $this-> getAll("SELECT * 
-			FROM `{$this->CNF['TABLE_ENTRIES']}` 
-			WHERE FIND_IN_SET(:profile, `{$this->CNF['FIELD_PARTICIPANTS']}`)", $aWhere);
+		if ($bTalks)
+            $bResult &= (bool)$this->query("DELETE 
+                                           FROM `{$this->CNF['TABLE_ENTRIES']}`
+                                           WHERE FIND_IN_SET(:profile, `{$this->CNF['FIELD_PARTICIPANTS']}`) AND `type`=:type", array_merge($aWhere, ['type' => BX_IM_TYPE_PRIVATE]));
 
-		if (empty($aJots)) 
-				return $bResult;
+		$aLots = $this->getAll("SELECT * 
+            FROM `{$this->CNF['TABLE_ENTRIES']}` 
+            WHERE FIND_IN_SET(:profile, `{$this->CNF['FIELD_PARTICIPANTS']}`)", $aWhere);
+
+        if (empty($aLots))
+            return $bResult;
+
+        foreach ($aLots as &$aLot) {
+            $bResult &= $this->removeParticipant($aLot[$this->CNF['FIELD_ID']], $iProfileId);
+        }
+
 		
-		foreach($aJots as $iKey => $aJot){
-			$bResult &= $this -> removeParticipant($aJot[$this->CNF['FIELD_ID']], $iProfileId);
-		}
-		
-		return $bResult;	
+		return $bResult;
 	}
 
 	/**

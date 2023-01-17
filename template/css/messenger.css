@@ -15,12 +15,6 @@
 	margin-left:0 !important;
 }
 
-#bx-content-wrapper .bx-def-page-width
-{
-	width:100%;
-	padding:0;
-}
-
 #bx-footer-wrapper {
 	display:none;
 }
@@ -313,6 +307,16 @@ div.bx-messenger-jots-actions-list
 
 #bx-page-messenger .bx-messenger-post-box {
 	border-left: 0;
+}
+
+.bx-page-messenger .bx-layout-row {
+	gap:0;
+}
+
+.bx-page-messenger .bx-page-wrapper {
+	margin:0;
+	max-width: 100%;
+	padding:0;
 }
 
 #bx-messenger-block-head #items,

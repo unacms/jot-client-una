@@ -56,12 +56,12 @@
 						if (!iParent || this.oLeftCol != null || this.oRightCol != null) return ;
 
 						if (this.isRTL()) {
-							this.oLeftCol = $(this.sBothColumnsParent + ' > div').last();
-							this.oRightCol = $(this.sBothColumnsParent + ' > div').first();
+							this.oLeftCol = $(this.sBothColumnsParent + ' > ').last();
+							this.oRightCol = $(this.sBothColumnsParent + ' > ').first();
 						} else
 						{
-							this.oLeftCol = $(this.sBothColumnsParent + ' > div').first();
-							this.oRightCol = $(this.sBothColumnsParent + ' > div').last();
+							this.oLeftCol = $(this.sBothColumnsParent + ' > ').first();
+							this.oRightCol = $(this.sBothColumnsParent + ' > ').last();
 						}
 						const iLeftW = (this.oLeftCol.outerWidth()*100/iParent).toFixed(2);
 						if (!iLeftW)

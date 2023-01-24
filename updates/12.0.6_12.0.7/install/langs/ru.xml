@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources name="ru" flag="ru" title="Russian">
+	<string_add name="_bx_messenger_dont_update_title"><![CDATA[Не обновлять заголовок страницы при поступлении новых сообщений]]></string_add>
+	<string_add name="_bx_messenger_menu_title_view"><![CDATA[Меню блока разговора]]></string_add>
+</resources>

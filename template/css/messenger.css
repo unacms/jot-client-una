@@ -309,11 +309,11 @@ div.bx-messenger-jots-actions-list
 	border-left: 0;
 }
 
-.bx-page-messenger .bx-layout-row {
+#bx-page-messenger .bx-layout-row {
 	gap:0;
 }
 
-.bx-page-messenger .bx-page-wrapper {
+#bx-content-wrapper .bx-page-wrapper {
 	margin:0;
 	max-width: 100%;
 	padding:0;

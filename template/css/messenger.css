@@ -313,6 +313,10 @@ div.bx-messenger-jots-actions-list
 	gap:0;
 }
 
+.bx-media-phone #bx-page-messenger .bx-layout-col {
+	width: 100% !important;
+}
+
 #bx-content-wrapper .bx-page-wrapper {
 	margin:0;
 	max-width: 100%;

@@ -544,7 +544,14 @@
 		this.oEditor = this.initTextEditor({
 			selector: this.sMessengerBox,
 			placeholder: _t('_bx_messenger_post_area_message'),
-			onEnter: () => $(_this.sSendButton).click(),
+			onEnter: () => {
+				if (!(_this.isMobileDevice() || _this.isUnaMobileApp())) {
+					$(_this.sSendButton).click();
+					return true;
+				}
+
+				return false;
+			},
 			onInit : function(){
 				if (typeof fCallback === 'function') {
 					fCallback();
@@ -1561,8 +1568,13 @@
 							const oEditEditor = _this.initTextEditor({
 								selector: _this.sEditJotAreaId,
 								onEnter: () => {
-									_this.saveJot($(_this.sEditJotAreaId));
-									_this.oEditor.focus();
+									if (!(_this.isMobileDevice() || _this.isUnaMobileApp())) {
+										_this.saveJot($(_this.sEditJotAreaId));
+										_this.oEditor.focus();
+										return true;
+									}
+
+									return false;
 								},
 								onChange: () => updateScrollFunction(),
 								onESC: () => {

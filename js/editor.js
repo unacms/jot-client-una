@@ -169,6 +169,7 @@
 
     initEditor(){
         const _this = this;
+        const Delta = Quill.import('delta');
         this.oEditor = new Quill(this.oHtmlEditorObject, {
                 placeholder: this.oPlaceholder,
                 theme: 'bubble',
@@ -180,6 +181,18 @@
                         matchers: [
                             [
                                 'IMG', () => { return { ops: [] } }
+                            ],
+                            [ Node.ELEMENT_NODE, function(node, delta) {
+                                return delta.compose(new Delta().retain(delta.length(),
+                                        {
+                                            color: false,
+                                            background: false,
+                                            /*bold: false,
+                                            strike: false,
+                                            underline: false*/
+                                        }
+                                    ));
+                                }
                             ]
                         ],
                         matchVisual: false
@@ -189,7 +202,10 @@
                             enter: {
                                 key: 13,
                                 shiftKey: false,
-                                handler: () => this.onEnter()
+                                handler: () => {
+                                    if (!this.onEnter())
+                                       return true;
+                                }
                             },
                             up: {
                                 key: 38,

@@ -195,7 +195,6 @@
 	<string name="_bx_messenger_file_download"><![CDATA[Download file]]></string>
 	<string name="_bx_messenger_txt_subobject_added_single"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> sent {subentry_sample}]]></string>
 	<string name="_bx_messenger_txt_sample_comment_giphy_single"><![CDATA[an animation]]></string>
-	<string name="_bx_messenger_txt_sample_email_push"><![CDATA[sent {0}]]></string>
 	<string name="_bx_messenger_lots_menu_video_conf_start"><![CDATA[Start video conference]]></string>
 	<string name="_bx_messenger_lots_menu_video_conf_join"><![CDATA[Join to video conference]]></string>
 	<string name="_bx_messenger_jitsi_err_can_join_conference"><![CDATA[Sorry, you can not participate in video conference]]></string>
@@ -299,4 +298,7 @@
 	<string name="_bx_messenger_talk_types_market_title"><![CDATA[Conversation with {opponent}]]></string>
 	<string name="_bx_messenger_dont_update_title"><![CDATA[Don't update page title when new messages income]]></string>
 	<string name="_bx_messenger_menu_title_view"><![CDATA[Talk's header menu]]></string>
+	<string name="_bx_messenger_txt_sample_comment_reply_single"><![CDATA[reply]]></string>
+	<string name="_bx_messenger_txt_sample_comment_repost_single"><![CDATA[repost]]></string>
+	<string name="_bx_messenger_txt_sample_email_push"><![CDATA[sent {0}]]></string>
 </resources>

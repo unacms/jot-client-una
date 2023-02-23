@@ -1495,9 +1495,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 }
             }
         }
-        else
-            if ($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES)
-                $sMessage = _t('_bx_messenger_attached_files_message', $this->_oDb->getJotFiles($aJot[$CNF['FIELD_MESSAGE_ID']], true));
 
         return $this->sendNotification($iLotId, $iJotId, $sMessage, $aReceived);
     }
@@ -1515,9 +1512,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
      * @return bool|string
      */
     private function sendNotification($iLotId, $iJotId, $sMessage, $aReceived = array(), $aRecipients = array(), $sType = BX_MSG_NTFS_MESSAGE){
-        if (!$sMessage)
-            return false;
-
         // check if the Notifications module is installed and send notifications through it
         if ($this->_oDb->isModuleByName('bx_notifications'))
             return $this->sendNotifications($iLotId, $iJotId, $aReceived, $aRecipients, $sType);
@@ -1527,6 +1521,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         $aParticipantList = $this->_oDb->getParticipantsList($iLotId, true);
         if (empty($aParticipantList) || !in_array($this->_iProfileId, $aParticipantList))
+            return false;
+
+        if (!$sMessage)
             return false;
 
         // use own push notifications ability
@@ -1588,7 +1585,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         curl_setopt($oCh, CURLOPT_HEADER, FALSE);
         curl_setopt($oCh, CURLOPT_POST, TRUE);
         curl_setopt($oCh, CURLOPT_POSTFIELDS, $aFields);
-        curl_setopt($oCh, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($oCh, CURLOPT_SSL_VERIFYPEER, TRUE);
 
         $sResult = curl_exec($oCh);
         curl_close($oCh);
@@ -1962,16 +1959,26 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $sEntryUrl = $this->_oConfig->getPageLink($aLotInfo[$CNF['FIELD_URL']]);
         }
 
+        $bAttachmentFiles = $this->_oConfig->isAttachmentType($aJotInfo, BX_ATT_TYPE_FILES);
+        $bAttachmentGiphy = $this->_oConfig->isAttachmentType($aJotInfo, BX_ATT_TYPE_GIPHY);
+        $bAttachmentReply = $this->_oConfig->isAttachmentType($aJotInfo, BX_ATT_TYPE_REPLY);
+        $bAttachmentRepost = $this->_oConfig->isAttachmentType($aJotInfo, BX_ATT_TYPE_REPOST);
+
+        $sTruncatedMessage = $sMessage = '';
         // replace br to spaces and truncate the line
-        $sTruncatedMessage = strmaxtextlen(preg_replace( '/<br\W*?\/>|\n/', " ", $aJotInfo[$CNF['FIELD_MESSAGE']]), $CNF['PARAM_MAX_JOT_NTFS_MESSAGE_LENGTH']);
-        $sMessage = _t('_bx_messenger_txt_sample_comment_single', $sTruncatedMessage);
-        switch($aJotInfo[$CNF['FIELD_MESSAGE_AT_TYPE']]){
-            case BX_ATT_TYPE_FILES:
-                $sMessage = _t('_bx_messenger_txt_sample_comment_file_single', $this->_oDb->getJotFiles($aJotInfo[$CNF['FIELD_MESSAGE_ID']], true));
-                break;
-            case BX_ATT_TYPE_GIPHY:
-                $sMessage = _t('_bx_messenger_txt_sample_comment_giphy_single');
+        if ($aJotInfo[$CNF['FIELD_MESSAGE']] && !$bAttachmentRepost) {
+            $sTruncatedMessage = strmaxtextlen(preg_replace('/<br\W*?\/>|\n/', " ", $aJotInfo[$CNF['FIELD_MESSAGE']]), $CNF['PARAM_MAX_JOT_NTFS_MESSAGE_LENGTH']);
+            $sMessage = _t('_bx_messenger_txt_sample_comment_single', $sTruncatedMessage);
         }
+
+        if ($bAttachmentFiles)
+            $sMessage = _t('_bx_messenger_txt_sample_comment_file_single', $this->_oDb->getJotFiles($aJotInfo[$CNF['FIELD_MESSAGE_ID']], true));
+        elseif ($bAttachmentGiphy)
+            $sMessage = _t('_bx_messenger_txt_sample_comment_giphy_single');
+        elseif ($bAttachmentReply)
+            $sMessage = _t('_bx_messenger_txt_sample_comment_reply_single');
+        elseif ($bAttachmentRepost)
+            $sMessage = _t('_bx_messenger_txt_sample_comment_repost_single');
 
         $aResult = array(
             'entry_sample' => _t('_bx_messenger_message'),
@@ -1979,37 +1986,28 @@ class BxMessengerModule extends BxBaseModGeneralModule
             'entry_caption' => $sTitle,
             'entry_author' => $aEvent['object_owner_id'],
             'subentry_sample' => $sMessage,
-            'lang_key' =>  $aJotInfo[$CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_FILES
-                            || $aJotInfo[$CNF['FIELD_MESSAGE_AT_TYPE']] == BX_ATT_TYPE_GIPHY
+            'lang_key' =>  $bAttachmentFiles || $bAttachmentGiphy
                 ? '_bx_messenger_txt_subobject_added_single' : "_bx_messenger_txt_subobject_added_{$sType}"
         );
 
-        list($iNumber) = explode('.', bx_get_ver());
-        if ((int)$iNumber > 10){
-            $sSubject = _t("_bx_messenger_notification_subject_{$sType}", BxDolProfile::getInstanceMagic($aEvent['owner_id'])->getDisplayName());
+        $sSubject = _t("_bx_messenger_notification_subject_{$sType}", BxDolProfile::getInstanceMagic($aEvent['owner_id'])->getDisplayName());
 
-            $sAlterBody = $sTruncatedMessage;
-            switch($aJotInfo[$CNF['FIELD_MESSAGE_AT_TYPE']]){
-                case BX_ATT_TYPE_FILES:
-                case BX_ATT_TYPE_GIPHY:
-                    $sAlterBody = _t('_bx_messenger_txt_sample_email_push', html2txt($sMessage));
-            }
+        $sAlterBody = $sTruncatedMessage ? $sTruncatedMessage : _t('_bx_messenger_txt_sample_email_push', html2txt($sMessage));
 
-            $aResult['lang_key'] = array(
-                    'site' => $aResult['lang_key'],
-                    'email' => $sAlterBody,
-                    'push' => $sAlterBody
+        $aResult['lang_key'] = array(
+           'site' => $aResult['lang_key'],
+           'email' => $sAlterBody,
+           'push' => $sAlterBody
+        );
+
+        $aResult['settings'] = array(
+                'email' => array(
+                    'subject' => $sSubject
+                ),
+                'push' => array(
+                    'subject' => $sSubject
+                )
             );
-
-            $aResult['settings'] = array(
-                    'email' => array(
-                        'subject' => $sSubject
-                    ),
-                    'push' => array(
-                        'subject' => $sSubject
-                    )
-                );
-        }
 
         return $aResult;
     }

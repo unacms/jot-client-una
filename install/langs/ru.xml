@@ -195,7 +195,6 @@
 	<string name="_bx_messenger_file_download"><![CDATA[Скачать файл]]></string>
 	<string name="_bx_messenger_txt_subobject_added_single"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> оправил(а) {subentry_sample}]]></string>
 	<string name="_bx_messenger_txt_sample_comment_giphy_single"><![CDATA[анимацию]]></string>
-	<string name="_bx_messenger_txt_sample_email_push"><![CDATA[прислал(а) {0}]]></string>
 	<string name="_bx_messenger_lots_menu_video_conf_start"><![CDATA[Начать видео конференцию]]></string>
 	<string name="_bx_messenger_lots_menu_video_conf_join"><![CDATA[Присоединиться к видео конференции]]></string>
 	<string name="_bx_messenger_jitsi_err_can_join_conference"><![CDATA[Извините, но вы не можете участвовать в этой конференции.]]></string>
@@ -289,4 +288,7 @@
 	<string name="_bx_messenger_talk_types_market_title"><![CDATA[Разговор с {opponent}]]></string>
 	<string name="_bx_messenger_dont_update_title"><![CDATA[Не обновлять заголовок страницы при поступлении новых сообщений]]></string>
 	<string name="_bx_messenger_menu_title_view"><![CDATA[Меню блока разговора]]></string>
+	<string name="_bx_messenger_txt_sample_comment_reply_single"><![CDATA[ответ]]></string>
+	<string name="_bx_messenger_txt_sample_comment_repost_single"><![CDATA[репост]]></string>
+	<string name="_bx_messenger_txt_sample_email_push"><![CDATA[прислал(а) {0}]]></string>
 </resources>

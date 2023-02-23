@@ -529,6 +529,17 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
 
         return $sTitle;
     }
+
+    public function isAttachmentType(&$aJot, $sType = BX_ATT_TYPE_REPLY) {
+        if (empty($aJot) || empty($aJot[$this->CNF['FIELD_MESSAGE_AT']]))
+            return false;
+
+        if ($aJot[$this->CNF['FIELD_MESSAGE_AT_TYPE']])
+            return $aJot[$this->CNF['FIELD_MESSAGE_AT_TYPE']] === $sType;
+
+        $mixedResult = @unserialize($aJot[$this->CNF['FIELD_MESSAGE_AT']]);
+        return isset($mixedResult[$sType]);
+    }
 }
 
 /** @} */

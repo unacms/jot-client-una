@@ -178,14 +178,18 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $CNF = &$this->_oConfig->CNF;
 
         $this->_oTemplate->loadCssJs('view');
-        $aLotInfo = $this->_oDb->getLotByClass($sModule);
-        $sUrl = $this->_oConfig->getPageIdent();
 
+        $sClass = str_replace('{type}', '', $sModule);
+        $aLotInfo = [];
+        if ($sClass)
+            $aLotInfo = $this->_oDb->getLotByClass($sModule);
+
+        $sUrl = $this->_oConfig->getPageIdent();
         $iType = $this->_oConfig->getTalkType($sModule);
-        if (empty($aLotInfo)){
+        if (empty($aLotInfo) && $sUrl){
             $aLotInfo = $this->_oDb->findLotByParams(array(
                 $CNF['FIELD_TYPE'] => $iType,
-                $CNF['FIELD_CLASS'] => BX_ATT_TYPE_CUSTOM,
+                $CNF['FIELD_CLASS'] => BX_MSG_TALK_CLASS_CUSTOM,
                 $CNF['FIELD_URL'] => $sUrl
             ));
         }
@@ -195,21 +199,11 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $sTalkUrl = $this->getPreparedUrl($sUrl);
             $sTalkTitle = BxDolTemplate::getInstance()->getPageHeader();
 
-            $sServiceParams = $sPage = '';
-            if ($sUrl) {
-                parse_str($sUrl, $aUrl);
-                if (!empty($aUrl)) {
-                    $sPage = isset($aUrl['i']) ? $aUrl['i'] : '';
-                    $sServiceParams = isset($aUrl['id']) ? $aUrl['id'] : array();
-                }
-        }
-
             $iLotId = $this->_oDb->createLot($this->_iProfileId, array(
                 'url' => $sTalkUrl,
                 'title' => $sTalkTitle,
                 'type' => $iType,
-                'page' => $sPage,
-                'service_params' => $sServiceParams));
+                'page' => $this->_oConfig->getPageName($sUrl)));
         }
 
         $sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, true, $iLotId, BX_IM_EMPTY, BX_IM_EMPTY, $iType);
@@ -1086,7 +1080,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (!empty($aParticipants) && ($aChat = $this->_oDb->findLotByParams(array(
                 $CNF['FIELD_PARTICIPANTS'] => $aParticipants,
                 $CNF['FIELD_TYPE'] => BX_IM_TYPE_PRIVATE,
-                $CNF['FIELD_CLASS'] => BX_ATT_TYPE_CUSTOM,
+                $CNF['FIELD_CLASS'] => BX_MSG_TALK_CLASS_CUSTOM,
             ))))
             $aResult['lot'] = $aChat[$this->_oConfig->CNF['FIELD_ID']];
 
@@ -1118,7 +1112,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $aLot = $this->_oDb->findLotByParams(array(
                                                         $CNF['FIELD_PARTICIPANTS'] => $aParticipants,
                                                         $CNF['FIELD_TYPE'] => BX_IM_TYPE_PRIVATE,
-                                                        $CNF['FIELD_CLASS'] => BX_ATT_TYPE_CUSTOM,
+                                                        $CNF['FIELD_CLASS'] => BX_MSG_TALK_CLASS_CUSTOM,
                                                 ));
             if (!empty($aLot))
                 $iLotId = $aLot[$this->_oConfig->CNF['FIELD_ID']];
@@ -3157,7 +3151,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return $this->setLotAvatar($iLotId, $mixedFile);
     }
 
-    function setLotAvatar($iLotId, $mixedFile = null) {
+    private function setLotAvatar($iLotId, $mixedFile = null) {
         if (!$this->isLogged() || $mixedFile === null)
             return false;
 

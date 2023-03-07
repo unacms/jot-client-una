@@ -551,7 +551,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
         $iType = isset($aData['type']) ? $aData['type'] : BX_IM_TYPE_PRIVATE;
         $sUrl = isset($aData['url']) ? $aData['url'] : '';
         $sPage = isset($aData['page']) ? $aData['page'] : '';
-        $sClass = isset($aData['class']) ? $aData['class'] : BX_ATT_TYPE_CUSTOM;
+        $sClass = isset($aData['class']) ? $aData['class'] : BX_MSG_TALK_CLASS_CUSTOM;
         $iVisibility = isset($aData['visibility']) ? (int)$aData['visibility'] : 0;
 
 

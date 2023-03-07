@@ -181,7 +181,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
                                                 BX_ATT_TYPE_FILES, BX_ATT_TYPE_FILES_UPLOADING, BX_ATT_TYPE_GIPHY, BX_ATT_TYPE_REPOST, BX_ATT_TYPE_CUSTOM
                                             ),
                                         ),
-            'URL_IDENT_PARAMS' => array('i','r','id','profile_id'),
+            'URL_IDENT_PARAMS' => array('i','id','profile_id'),
             'TITLE_CONSTANTS' => array('opponent'),
 
              // GIPHY
@@ -402,8 +402,34 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
     public function getPageIdent($sPageLink = '')
     {
        $sPageUrl = $sPageLink ? $sPageLink : $_SERVER['REQUEST_URI'];
+       if ($sPageUrl === '/' || $sPageUrl === '/index.php')
+           return 'index.php';
+
        $sPageUrl = BxDolPermalinks::getInstance()->unpermalink(ltrim($sPageUrl, '/'));
-       return $sPageUrl ? parse_url($sPageUrl, PHP_URL_QUERY) : 'index.php';
+       $sPageUrl = parse_url($sPageUrl, PHP_URL_QUERY);
+
+       if (!empty($sPageUrl)) {
+            parse_str($sPageUrl, $aUrl);
+            if (!empty($aUrl)) {
+                $aValidUrl = array();
+                foreach ($this->CNF['URL_IDENT_PARAMS'] as &$sParam)
+                    if (!empty($aUrl[$sParam]))
+                        $aValidUrl[$sParam] = $aUrl[$sParam];
+
+                if (!empty($aValidUrl))
+                    $sPageUrl = http_build_query($aValidUrl);
+            }
+       }
+
+      return $sPageUrl;
+    }
+
+    function getPageName($sIdent){
+        if (!$sIdent)
+            return '';
+
+        parse_str($sIdent, $aUrl);
+        return !empty($aUrl) && isset($aUrl['i']) ? $aUrl['i'] : '';
     }
 
     public function getPageLink($sUrl){

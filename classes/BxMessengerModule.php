@@ -119,6 +119,13 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 $iLotId = !empty($aLotsList) ? current($aLotsList)[$this->_oConfig->CNF['FIELD_ID']] : 0;
             }
         }
+        
+        if(bx_is_api())
+            return [bx_api_get_block('messenger_inbox', [
+                'jot_id' => $this->_iJotId,
+                'lot_id' => $iLotId,
+                'profile_id' => $iProfileId
+            ])];
 
 		$sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, false, $iLotId, $this->_iJotId, $iProfileId);
         return	$sConfig . $this->_oTemplate->getLotsList($this->_iProfileId, $iLotId, $iProfileId);
@@ -130,6 +137,13 @@ class BxMessengerModule extends BxBaseModGeneralModule
     {
         if (!$this->isLogged())
             return '';
+
+        if(bx_is_api())
+            return [bx_api_get_block('messenger_lot', [
+                'jot_id' => $this->_iJotId,
+                'lot_id' => $this->_oDb->getLotByJotId($this->_iJotId),
+                'lots' => $this -> _oDb -> getMyLots($this->_iProfileId)
+            ])];
 
         $CNF = &$this->_oConfig->CNF;
         if ($iViewedProfileId = (int)bx_get('profile_id')) {

@@ -15,13 +15,13 @@
 
 class BxMessengerStorage extends BxDolStorage
 {	
-    function __construct($sObject)
+	function __construct($sObject)
 	{
 		$aObject = BxDolStorageQuery::getStorageObject($sObject);
 		parent::__construct($aObject);
 	}
 	
-    public function isValidFileExt($sFileName){
+	public function isValidFileExt($sFileName){
 		$sExt = $this -> getFileExt($sFileName);
         return $this -> isValidExt($sExt);
 	}

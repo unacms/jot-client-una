@@ -14,7 +14,7 @@
 ;window.oMessengerStorage = class {
     constructor(sName = ''){
         this._sSubLot = 'lots';
-        this._sName = typeof sName === 'string' && sName.length ? sName : 'Jot';
+        this._sName = typeof sName === 'string' && sName.length ? sName : 'una-jots-data';
         this._oData = typeof localStorage[this._sName] !== 'undefined' ? JSON.parse(localStorage.getItem(this._sName)) : {};
     }
 
@@ -45,8 +45,30 @@
         return this.delete(this._sSubLot, iLotId);
     }
 	
-	 deleteLotItem(iLotId, sField){
+	deleteLotItem(iLotId, sField){
         return this.delete(this._sSubLot, iLotId, sField);
+    }
+
+    getValue(sKey){
+        return sKey && typeof this._oData[sKey] !== 'undefined' && this._oData[sKey];
+    }
+
+    setValue(sKey, mixedValue){
+        if (sKey && typeof mixedValue !== 'undefined') {
+            if (typeof this._oData[sKey] === 'undefined')
+                this._oData[sKey] = mixedValue;
+
+            this.save();
+        }
+
+        return this;
+    };
+
+    deleteValue(sKey){
+        if (typeof this._oData[sKey] !== 'undefined')
+            delete this._oData[sKey];
+
+        this.save();
     }
 
     get(sCateg, sKey){
@@ -76,14 +98,14 @@
         if (sCateg && sKey && typeof this._oData[sCateg] !== 'undefined') {
  			if (typeof sField !== 'undefined'){
  			    try {
-                    const oObject = JSON.parse(this._oData[sCateg][sKey]);
+				const oObject = JSON.parse(this._oData[sCateg][sKey]);
                     if (typeof oObject[sField] !== 'undefined') {
-                        delete oObject[sField];
-                        if ($.isEmptyObject(oObject))
-                            delete this._oData[sCateg][sKey];
+					delete oObject[sField];
+					if ($.isEmptyObject(oObject))
+						delete this._oData[sCateg][sKey];
                         else
-                            this._oData[sCateg][sKey] = JSON.stringify(oObject);
-                    }
+						this._oData[sCateg][sKey] = JSON.stringify(oObject);
+				}
                 } catch(e){
  			        console.log('Local storage error', e.toString());
                 }

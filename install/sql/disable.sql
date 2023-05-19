@@ -14,9 +14,8 @@ DELETE FROM `sys_menu_items` WHERE `module` = @sName;
 DELETE FROM `sys_objects_page` WHERE `module` = @sName;
 DELETE FROM `sys_pages_blocks` WHERE `module` = @sName OR `object` = 'bx_messenger_main';
 
-
 -- ALERTS
-SET @iHandler := (SELECT `id` FROM `sys_alerts_handlers` WHERE `name` = @sName LIMIT 1);
+SET @iHandler := (SELECT `id` FROM `sys_alerts_handlers` WHERE `name` LIKE CONCAT(@sName, '%') LIMIT 1);
 DELETE FROM `sys_alerts` WHERE `handler_id` = @iHandler;
 DELETE FROM `sys_alerts_handlers` WHERE `id` = @iHandler;
 
@@ -33,3 +32,6 @@ DELETE FROM `sys_acl_actions` WHERE `Module` = @sName;
 DELETE FROM `sys_menu_items` WHERE `module` = @sName;
 DELETE FROM `sys_menu_sets` WHERE `module` = @sName;
 DELETE FROM `sys_objects_menu` WHERE `module` = @sName;
+
+-- PRIVACY
+DELETE FROM `sys_objects_privacy` WHERE `object` = 'bx_messenger_allow_view_groups_to';

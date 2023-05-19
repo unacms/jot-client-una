@@ -1,15 +1,22 @@
+/*.bx-messenger-block .bx-db-menu a,
+.bx-messenger-block .bx-db-menu span
+{
+    margin-left: 0.4rem;
+    margin-right: 0.4rem;
+}
+
 .bx-messenger-block .bx-db-menu a:last-child{
     margin-right: 0;
 }
+*/
 
 .bx-messenger-block .bx-db-menu
 {
 	text-align: right;
     white-space: nowrap;
-    justify-items: end;
 }
 
-.bx-messenger-block-menu-align-right{
+.bx-messenger-block-menu-align-right {
     text-align: right;
     white-space: nowrap;
 }
@@ -18,22 +25,6 @@
 {
     margin: auto;
     position: absolute;
-}
-
-.bx-menu-object-bx_messenger_lot_menu .sys-icon,
-.bx-messenger-block .bx-db-menu .sys-icon
-{
-    display: block !important;
-    text-align: center;
-}
-
-ul.bx-menu-object-bx_messenger_lot_menu li{
-    list-style: none;
-}
-
-ul.bx-menu-object-bx_messenger_lot_menu {
-    padding-left: 0;
-    margin-left: 0;
 }
 
 #bx-messenger-files-uploader
@@ -45,15 +36,13 @@ ul.bx-menu-object-bx_messenger_lot_menu {
     display: none;
 }
 
-#bx-messenger-add-users-input
+/*.bx-messenger-add-users-input
 {
     width:auto;
     float:left;
     border:0px;
     box-shadow:none;
     background-color:rgba(0,0,0,0);
-    /*max-height:2rem;
-    font-size:1rem;*/
     padding:0px;
     border-radius:0;
     align-self: center;
@@ -86,6 +75,7 @@ ul.bx-menu-object-bx_messenger_lot_menu {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+*/
 
 .bx-messenger-right-column{
     text-align:left;
@@ -118,41 +108,21 @@ ul.bx-menu-object-bx_messenger_lot_menu {
     overflow: visible !important;
 }
 
-#bx-messenger-add-users img.bx-def-thumb-size
+#bx-menu-db-menu-settings
 {
-    width:2rem;
-    height:2rem;
-    line-height: 2rem;
-    margin: 0;
+    position: absolute;
+    top: 3rem;
+    right: 0;
+    left: auto !important;
+    display: none;
 }
 
-#bx-messenger-add-users .bx-def-thumb-size
+#bx-menu-db-menu li{
+    text-align:left;
+}
+
+.bx-messenger-block .bx-messenger-right-menu-item
 {
-    width:2rem;
-    height:2rem;
-    line-height: 2rem;
-    margin: 0;
-}
-
-.bx-messenger-lot-header-menu {
-    position: relative;
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-}
-
-.bx-messenger-lot-header-menu a {
-    margin-right: 0.4rem;
-}
-
-.bx-messenger-lot-header-menu a:last-child {
-    margin-right: 0;
-}
-
-.bx-messenger-block .bx-db-menu .bx-stl-mii-sm .sys-icon {
-    font-size: inherit;
-}
-
-.bx-artificer .bx-messenger-block .bx-db-menu .bx-stl-mii-sm .sys-icon {
-    font-size: initial;
+    width:auto;
+    float:right;
 }

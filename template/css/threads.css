@@ -1,0 +1,12 @@
+#bx-messenger-thread-replies-area {
+    display: flex;
+}
+
+#bx-messenger-thread-body {
+    display: flex;
+    flex-direction: column;
+}
+
+#bx-messenger-thread-body .history {
+    min-height: auto;
+}

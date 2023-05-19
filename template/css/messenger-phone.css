@@ -1,20 +1,10 @@
-.bx-messenger-jots-actions-list .bx-def-media-desktop-hide {
-    text-align: right;
-}
-
-
-.bx-messenger-jots-actions-list .bx-messenger-mobile-menu .bx-popup-close-wrapper,
-.bx-messenger-jots-actions-list .bx-messenger-mobile-menu .bx-popup-footer-wrapper
-{
-  display: none;
-}
-
 .bx-db-menu-popup .bx-messenger-lot-header-menu a{
     padding: 0.3rem;
 }
 
 @media (max-width:480px)
 {
+    /*
     div.ui.sidebar.giphy {
         min-height:80%;
         max-height:80%;
@@ -22,14 +12,16 @@
         display: flex;
         flex-direction: column;
     }
+    */
 
     .bx-messenger-video
     {
         position:inherit;
     }
-    .bx-messenger-attachment-giphy{
+    /*.bx-messenger-attachment-giphy{
         max-width: 70%;
     }
+    */
     .bx-messenger-video video
     {
         width:100%;
@@ -150,9 +142,9 @@
         display:block;
     }
 
-    #bx-messenger-add-users-input
+    /*#bx-messenger-add-users-input
     {
         max-width:calc(100% - 2rem);
-    }
+    }*/
 
 }

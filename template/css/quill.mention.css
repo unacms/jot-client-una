@@ -51,9 +51,3 @@
 .bx-mention > span {
   margin: 0 3px;
 }
-
-.ql-editor:focus {
-  border: 0;
-  background: rgba(0,0,0,0);
-  box-shadow: none;
-}

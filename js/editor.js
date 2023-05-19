@@ -109,7 +109,7 @@
                 if (event.clipboardData.getData('text/plain').length > 0)
                     $(this.oHtmlSendButton).fadeIn();
             }
-        }
+        };
         Quill.register('modules/clipboard', Clipboard, true);
     }
 
@@ -139,7 +139,7 @@
         MessengerMentionBlot.blotName = "MessengerMentionBlot";
         Quill.register(MessengerMentionBlot);
 
-        const sTailWindClasses = $('body').hasClass('bx-artificer') ? ' rounded-md shadow  ring-1 ring-gray-200 dark:ring-gray-700 bg-white dark:bg-gray-800' : '';
+        const sTailWindClasses = $('body').hasClass('bx-artificer') ? ' rounded-md shadow ring-1 ring-gray-200 dark:ring-gray-700 bg-white dark:bg-gray-800' : '';
         return {
             allowedChars: /^[\w]*$/,
             mentionDenotationChars: ["@"],
@@ -187,9 +187,6 @@
                                         {
                                             color: false,
                                             background: false,
-                                            /*bold: false,
-                                            strike: false,
-                                            underline: false*/
                                         }
                                     ));
                                 }
@@ -204,7 +201,7 @@
                                 shiftKey: false,
                                 handler: () => {
                                     if (!this.onEnter())
-                                       return true;
+                                        return true;
                                 }
                             },
                             up: {

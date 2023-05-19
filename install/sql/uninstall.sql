@@ -15,7 +15,10 @@ DROP TABLE IF EXISTS `bx_messenger_jvc`;
 DROP TABLE IF EXISTS `bx_messenger_jvc_track`;
 DROP TABLE IF EXISTS `bx_messenger_public_jvc`;
 DROP TABLE IF EXISTS `bx_messenger_lots_settings`;
-DROP TABLE IF EXISTS `bx_messenger_attachments`;
+DROP TABLE IF EXISTS `bx_messenger_groups`;
+DROP TABLE IF EXISTS `bx_messenger_groups_lots`;
+DROP TABLE IF EXISTS `bx_messenger_saved_jots`;
+DROP TABLE IF EXISTS `bx_messenger_jots_media_tracker`;
 
 -- STORAGES & TRANSCODERS
 DELETE FROM `sys_objects_storage` WHERE `object` LIKE 'bx_messenger%';

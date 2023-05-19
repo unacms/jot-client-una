@@ -7,11 +7,13 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_jots` (
    `created` int(11) NOT NULL default '0',
    `user_id` int(11) unsigned NOT NULL default '0',
    `attachment_type` varchar(255) NOT NULL default '',
-   `attachment` text NOT NULL,
+   `attachment` text NOT NULL default '',
    `last_edit` int(11) NOT NULL default '0',
    `edit_by` int(11) unsigned NOT NULL default '0',
    `trash` tinyint(1) unsigned NOT NULL default 0,
-   `vc` int(11) NOT NULL default 0,   
+   `parent` int(11) unsigned NOT NULL default 0,
+   `vc` int(11) NOT NULL default 0,
+   `reply` int(11) NOT NULL default 0,
    PRIMARY KEY (`id`),
    KEY `lot_id` (`lot_id`),
    KEY `user_lot` (`user_id`,`lot_id`)
@@ -29,6 +31,13 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_jot_reactions` (
    UNIQUE KEY `jot` (`jot_id`,`emoji_id`, `user_id`)
 );
 
+CREATE TABLE IF NOT EXISTS `bx_messenger_jots_media_tracker` (
+   `file_id` int(11) NOT NULL default 0,
+   `user_id` int(11) unsigned NOT NULL default 0,
+   `collapsed` tinyint(1) NOT NULL default 1,
+    PRIMARY KEY (`file_id`, `user_id`)
+);
+
 CREATE TABLE IF NOT EXISTS `bx_messenger_lots` (
    `id` int(11) NOT NULL auto_increment,
    `title` varchar(255) NOT NULL,
@@ -37,15 +46,24 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_lots` (
    `created` int(11) NOT NULL default 0,
    `updated` int(11) NOT NULL default 0,
    `author` int(11) unsigned NOT NULL default 0,
-   `participants` text NOT NULL,
+   `participants` text NOT NULL default '',
    `class` varchar(20) NOT NULL default 'custom',
+   `parent_jot` int(11) unsigned NOT NULL default 0,
    `visibility` tinyint(1) NOT NULL default 0,
    PRIMARY KEY  (`id`)
 );
 
-INSERT INTO `bx_messenger_lots` (`id`, `title`, `url`, `type`, `created`, `author`, `participants`, `class`) VALUES
-(NULL, '_bx_messenger_lots_class_my_members', '', 3, UNIX_TIMESTAMP(), 0, '', 'members');
+INSERT INTO `bx_messenger_groups_lots` (`lot_id`, `group_id`) VALUES
+(1, 1);
 
+CREATE TABLE IF NOT EXISTS `bx_messenger_attachments` (
+  `name` varchar(50) NOT NULL default '',
+  `service` varchar(255) NOT NULL,
+  PRIMARY KEY (`name`)
+);
+
+INSERT INTO `bx_messenger_lots` (`id`, `title`, `url`, `type`, `created`, `author`, `participants`, `class`) VALUES
+(1, '_bx_messenger_lots_class_my_members', '', , UNIX_TIMESTAMP(), 0, '', 'members');
 
 CREATE TABLE IF NOT EXISTS `bx_messenger_lots_types` (
    `id` int(11) NOT NULL auto_increment,
@@ -61,26 +79,20 @@ INSERT INTO `bx_messenger_lots_types` (`id`, `name`, `show_link`) VALUES
 (4, 'groups', 1),
 (5, 'events', 1);
 
-CREATE TABLE IF NOT EXISTS `bx_messenger_attachments` (
-   `name` varchar(50) NOT NULL default '',
-   `service` varchar(255) NOT NULL,
-    PRIMARY KEY (`name`)
-);
-
 CREATE TABLE IF NOT EXISTS `bx_messenger_users_info` (
-   `lot_id` int(11) unsigned NOT NULL default 0,
-   `user_id` int(11) unsigned NOT NULL default 0,
-   `params` text NOT NULL,
-   `star` tinyint(1) NOT NULL default '0',
-   PRIMARY KEY (`lot_id`,`user_id`)
+    `lot_id` int(11) unsigned NOT NULL default 0,
+    `user_id` int(11) unsigned NOT NULL default 0,
+    `params` text NOT NULL,
+    `star` tinyint(1) NOT NULL default '0',
+    PRIMARY KEY (`lot_id`,`user_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `bx_messenger_lots_settings` (
-  `lot_id` int(11) NOT NULL,
-  `actions` varchar(255) NOT NULL default '',
-  `settings` varchar(255) NOT NULL default '',
-  `icon` int(11) NOT NULL default '0',
-   PRIMARY KEY (`lot_id`)
+    `lot_id` int(11) NOT NULL,
+    `actions` varchar(255) NOT NULL default '',
+    `settings` varchar(255) NOT NULL default '',
+    `icon` int(11) NOT NULL default '0',
+    PRIMARY KEY (`lot_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `bx_messenger_unread_jots` (
@@ -193,26 +205,40 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_mp3_processed` (
   UNIQUE KEY `remote_id` (`remote_id`)
 );
 
------ Live Comments table
+CREATE TABLE IF NOT EXISTS `bx_messenger_groups` (
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `author` int(11) unsigned NOT NULL,
+    `added` int(11) unsigned NOT NULL,
+    `allow_view_to` int(10) unsigned NOT NULL DEFAULT 3,
+    `name` varchar(50) NOT NULL,
+    `desc` varchar(255) NOT NULL,
+    `url` varchar(255) NOT NULL,
+    `module` varchar(50) NOT NULL,
+    `count` int(10) unsigned NOT NULL DEFAULT 0,
+    `profile_id` int(11) unsigned NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `module` (`module`)
+);
 
-CREATE TABLE IF NOT EXISTS `bx_messenger_lcomments` (
-  `lcmt_id` int(11) NOT NULL AUTO_INCREMENT,
-  `lcmt_parent_id` int(11) NOT NULL DEFAULT '0',
-  `lcmt_system_id` int(11) NOT NULL DEFAULT '0',
-  `lcmt_vparent_id` int(11) NOT NULL DEFAULT '0',
-  `lcmt_object_id` int(11) NOT NULL DEFAULT '0',
-  `lcmt_author_id` int(11) NOT NULL DEFAULT '0',
-  `lcmt_level` int(11) NOT NULL DEFAULT '0',
-  `lcmt_text` text NOT NULL,
-  `lcmt_time` int(11) unsigned NOT NULL DEFAULT '0',
-  `lcmt_replies` int(11) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`lcmt_id`),
-  KEY `lcmt_object_id` (`lcmt_object_id`,`lcmt_parent_id`),
-  FULLTEXT KEY `search_fields` (`lcmt_text`)
+INSERT INTO `bx_messenger_groups` (`id`, `author`, `added`, `allow_view_to`, `name`, `desc`, `url`, `module`, `count`, `profile_id`) VALUES
+(1, 0, UNIX_TIMESTAMP(), 3, 'Homepage', '', 'i=index', 'bx_messenger_pages', 0, 0);
+
+CREATE TABLE IF NOT EXISTS `bx_messenger_groups_lots` (
+    `lot_id` int(11) unsigned NOT NULL,
+    `group_id` int(11) unsigned NOT NULL,
+    UNIQUE KEY (`lot_id`, `group_id`)
+);
+
+
+
+CREATE TABLE IF NOT EXISTS `bx_messenger_saved_jots` (
+    `jot_id` int(11) NOT NULL default 0,
+    `profile_id` int(11) NOT NULL default 0,
+    UNIQUE KEY `id` (`jot_id`, `profile_id`),
+    KEY `profile` (`profile_id`)
 );
 
 -- STORAGES & TRANSCODERS
-
 SET @sStorageEngine = (SELECT `value` FROM `sys_options` WHERE `name` = 'sys_storage_default');
 
 INSERT INTO `sys_objects_storage` (`object`, `engine`, `params`, `token_life`, `cache_control`, `levels`, `table_files`, `ext_mode`, `ext_allow`, `ext_deny`, `quota_size`, `current_size`, `quota_number`, `current_number`, `max_file_size`, `ts`) VALUES
@@ -223,8 +249,8 @@ INSERT INTO `sys_objects_storage` (`object`, `engine`, `params`, `token_life`, `
 
 INSERT INTO `sys_objects_transcoder` (`object`, `storage_object`, `source_type`, `source_params`, `private`, `atime_tracking`, `atime_pruning`, `ts`, `override_class_name`) VALUES 
 ('bx_messenger_preview', 'bx_messenger_photos_resized', 'Storage', 'a:1:{s:6:"object";s:18:"bx_messenger_files";}', 'no', '1', '2592000', '0', ''),
-('bx_messenger_icon', 'bx_messenger_photos_resized', 'Storage', 'a:1:{s:6:"object";s:18:"bx_messenger_files";}', 'no', '1', '0', '0', ''),
 ('bx_messenger_videos_poster', 'bx_messenger_videos_processed', 'Storage', 'a:1:{s:6:"object";s:18:"bx_messenger_files";}', 'no', '0', '0', '0', 'BxDolTranscoderVideo'),
+('bx_messenger_icon', 'bx_messenger_photos_resized', 'Storage', 'a:1:{s:6:"object";s:18:"bx_messenger_files";}', 'no', '1', '0', '0', ''),
 ('bx_messenger_videos_mp4', 'bx_messenger_videos_processed', 'Storage', 'a:1:{s:6:"object";s:18:"bx_messenger_files";}', 'no', '0', '0', '0', 'BxDolTranscoderVideo'),
 ('bx_messenger_videos_mp4_hd', 'bx_messenger_videos_processed', 'Storage', 'a:1:{s:6:"object";s:18:"bx_messenger_files";}', 'no', '0', '0', '0', 'BxDolTranscoderVideo'),
 ('bx_messenger_videos_webm', 'bx_messenger_videos_processed', 'Storage', 'a:1:{s:6:"object";s:18:"bx_messenger_files";}', 'no', '0', '0', '0', 'BxDolTranscoderVideo'),
@@ -232,13 +258,12 @@ INSERT INTO `sys_objects_transcoder` (`object`, `storage_object`, `source_type`,
 
 INSERT INTO `sys_transcoder_filters` (`transcoder_object`, `filter`, `filter_params`, `order`) VALUES 
 ('bx_messenger_preview', 'Resize', 'a:3:{s:1:"w";s:3:"720";s:1:"h";s:3:"720";s:11:"crop_resize";s:1:"0";}', 0),
-('bx_messenger_icon', 'Resize', 'a:3:{s:1:"w";s:2:"96";s:1:"h";s:2:"96";s:11:"crop_resize";s:1:"0";}', 0),
 ('bx_messenger_videos_poster', 'Poster', 'a:2:{s:1:"h";s:3:"720";s:10:"force_type";s:3:"jpg";}', 0),
+('bx_messenger_icon', 'Resize', 'a:3:{s:1:"w";s:2:"96";s:1:"h";s:2:"96";s:11:"crop_resize";s:1:"0";}', 0),
 ('bx_messenger_videos_mp4', 'Mp4', 'a:2:{s:1:"h";s:3:"480";s:10:"force_type";s:3:"mp4";}', 0),
 ('bx_messenger_videos_mp4_hd', 'Mp4', 'a:3:{s:1:"h";s:3:"720";s:13:"video_bitrate";s:4:"1536";s:10:"force_type";s:3:"mp4";}', 0),
 ('bx_messenger_videos_webm', 'Webm', 'a:2:{s:1:"h";s:3:"480";s:10:"force_type";s:4:"webm";}', 0),
 ('bx_messenger_mp3', 'Mp3', 'a:2:{s:13:"audio_bitrate";s:3:"128";s:10:"force_type";s:3:"mp3";}', 0);
-
 
 -- STUDIO PAGE & WIDGET
 INSERT INTO `sys_std_pages`(`index`, `name`, `header`, `caption`, `icon`) VALUES

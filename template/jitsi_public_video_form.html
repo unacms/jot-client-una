@@ -111,19 +111,16 @@
             oOptions.jwt = '__jwt_token__';
 
         const oApi = new JitsiMeetExternalAPI('__domain__', oOptions);
+        oApi.executeCommand('subject', '__title__');
+        oApi.executeCommand('displayName', '__user_name__');
+        oApi.executeCommand('avatarUrl', '__avatar__');
+
+        if (__audio_only__)
+            oApi.executeCommand('toggleVideo');
 
         oApi
             .on('videoConferenceLeft', fConfLeft)
-            .on('videoConferenceJoined', () => {
-                oApi.executeCommand('subject', '__title__');
-                oApi.executeCommand('displayName', '__user_name__');
-                oApi.executeCommand('avatarUrl', '__avatar__');
-
-                if (__audio_only__)
-                    oApi.executeCommand('toggleVideo');
-
-                return fConfJoin();
-            });
+            .on('videoConferenceJoined', fConfJoin);
 
         $(window).on('beforeunload', fConfLeft);
 

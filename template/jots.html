@@ -1,48 +1,57 @@
 <bx_repeat:jots>
-	<div class="bx-messenger-jots<bx_if:blink-jot> bx-messenger-blink-jot</bx_if:blink-jot>" data-id="__id__" __display__ data-new="__new__" data-my="__my__">
-		<div class="bx-messenger-jots-avatars bx-def-padding-thd-right">
-			<a href="__url__">
-				<bx_if:avatars>
-					<img class="bx-def-thumb bx-def-thumb-size rounded-full" title="__title__" src="__thumb__" />
-				</bx_if:avatars>
-				<bx_if:letters>
-					<p class="bx-def-thumb bx-def-thumb-size bx-base-pofile-unit-thumb bx-def-ava bx-def-box-sizing rounded-full" style="background-color:rgba(__color__)">__letter__</p>
-				</bx_if:letters>
-			</a>
-		</div>
-		<div class="bx-messenger-jots-info bx-def-font-middle">
-			<div class="bx-messenger-jots-title">
-				<div class="title font-semibold bx-def-font-default" title="__title__">
-					__title__
-				</div>
-				<div class="time bx-def-font-light bx-def-font-grayed">__time__</div>
-				<div class="view">__views__</div>
-				<bx_if:jot_menu>
-					<div class="bx-messenger-jots-actions-list">
-						<i class="bx-def-label sys-icon ellipsis-v menu"></i>
-							__jot_menu__
-					</div>
-				</bx_if:jot_menu>
+	<bx_if:time-separator>
+		__date__
+	</bx_if:time-separator>
+		<div class="bx-messenger-jots<bx_if:blink-jot> bx-messenger-blink-jot</bx_if:blink-jot><bx_if:new> pt-4</bx_if:new>" data-id="__id__" __display__ data-new="__new__" data-my="__my__">
+			<div class="bx-messenger-jots-avatars px-4 w-20">
+				<bx_if:show_author>
+					<a href="__url__" target="_blank">
+						<bx_if:avatars>
+							<img class="ring-2 ring-white dark:ring-gray-900 h-12 w-12 rounded-full" title="__title__" src="__thumb__" />
+						</bx_if:avatars>
+						<bx_if:letters>
+							<p class="bx-def-thumb bx-def-thumb-size rounded-full flex items-center justify-center" style="background-color:rgba(__color__)">__letter__</p>
+						</bx_if:letters>
+					</a>
+				</bx_if:show_author>
 			</div>
-			__reply__
-			<div class="bx-messenger-jots-message bx-def-font-middle" __display_message__>__message____edit_icon__</div>
-			__attachment__
-			<bx_if:show_reactions_area>
-				<div class="bx-messenger-jot-reactions">
-					<bx_if:reactions>
-						__reactions__
-						<bx_if:reactions_menu>
-							<div class="bx-messenger-reactions-menu" style="display:__display__">
-									<span class="bx-messenger-reactions-menu-opened">
-										<a href="javascript:void(0);" title="<bx_text:_bx_messenger_reaction_jot />" onclick="oMessenger.onAddReaction(this, true);" class="reactions menu">
-											<i class="sys-icon smile-wink bx-def-label menu"></i>
-										</a>
-									</span>
+			<div class="bx-messenger-jots-info">
+				<bx_if:show_title>
+					<div class="bx-messenger-jots-title" title="__title__">__title__</div>
+				</bx_if:show_title>
+				<div class="bx-messenger-jots-message-container flex-col">
+					<div class="bx-messenger-jots-message-wrapper group">
+						<div class="bx-messenger-jots-message-body bx-messenger-jots-message-bg __message_class__">
+							__reply__
+							<div class="flex">
+								<div class="bx-messenger-jots-message" __display_message__>__message__</div>
 							</div>
-						</bx_if:reactions_menu>
-					</bx_if:reactions>
+							__icons__
+						</div>
+						<bx_if:jot_menu>
+							__jot_menu__
+						</bx_if:jot_menu>
+					</div>
+					<bx_if:show_reactions_area>
+						<div class="bx-messenger-jot-reactions">
+							<bx_if:reactions>
+								__reactions__
+								<bx_if:reactions_menu>
+									<div class="bx-messenger-reactions-menu" style="display:__display__">
+										<span class="bx-messenger-reactions-menu-opened">
+											<a href="javascript:void(0);" title="<bx_text:_bx_messenger_jot_menu_reaction />" onclick="oMessenger.onAddReaction(this, true);" class="reactions bx-def-label">
+												<i class="sys-icon smile-wink"></i>
+											</a>
+										</span>
+									</div>
+								</bx_if:reactions_menu>
+							</bx_if:reactions>
+						</div>
+					</bx_if:show_reactions_area>
+					__view_in_chat__
+					__thread_replies__
+					__attachment__
 				</div>
-			</bx_if:show_reactions_area>
+			</div>
 		</div>
-	</div>
 </bx_repeat:jots>

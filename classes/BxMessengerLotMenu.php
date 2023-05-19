@@ -12,11 +12,12 @@
 /**
  * View block menu.
  */
-class BxMessengerLotMenu extends BxBaseModTextMenuView
+class BxMessengerLotMenu extends BxBaseModTextMenu
 {
     protected $_oModule;
     private $_sPopupTalOptions = '';
     private $_iProfileId = 0;
+    private $_isBlockVersion = true;
     public function __construct($aObject, $oTemplate = false)
     {
         $this-> MODULE = 'bx_messenger';
@@ -24,6 +25,16 @@ class BxMessengerLotMenu extends BxBaseModTextMenuView
         $this->_iProfileId = bx_get_logged_profile_id();
 
         parent::__construct($aObject, $this->_oModule->_oTemplate);
+    }
+    public function setMessengerType($bType){
+        $this->_isBlockVersion = $bType;
+    }
+
+    public function isActive($sName){
+        if (!isset($this->_aObject['menu_items']))
+            $this->_aObject['menu_items'] = $this->getMenuItemsRaw ();
+
+        return !empty($sName) && isset($this->_aObject['menu_items'][$sName]) && (int)$this->_aObject['menu_items'][$sName]['active'];
     }
 
     public function _getMenuItem ($aMenu)
@@ -64,13 +75,6 @@ class BxMessengerLotMenu extends BxBaseModTextMenuView
             $this->_aObject['template'] = 'menu_messenger_talk_header_ver.html';
     }
 
-    public function isActive($sName){
-        if (!isset($this->_aObject['menu_items']))
-            $this->_aObject['menu_items'] = $this->getMenuItemsRaw ();
-
-        return !empty($sName) && isset($this->_aObject['menu_items'][$sName]) && (int)$this->_aObject['menu_items'][$sName]['active'];
-    }
-
     protected function _isVisible ($a)
     {
         if (!$this->_iProfileId)
@@ -88,22 +92,47 @@ class BxMessengerLotMenu extends BxBaseModTextMenuView
 
         switch ($a['name']) {
             case 'settings':
-                $sPopupMenuName = time();
-                if ($this->_iContentId) {
-                    $sPopupMenuName = "lot-info-menu-{$this->_iContentId}";
-                    $this->addMarkers(array('lot_menu_id' => $sPopupMenuName));
+                if ($this->_iContentId)
+                    $this->addMarkers(array('lot_menu_id' => "lot-info-menu-{$this->_iContentId}"));
+
+                $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_TALK_INFO_MENU']);
+                $oMenu->setContentId($this->_iContentId);
+
+                $this->_sPopupTalOptions = $oMenu->getCode();
+                return true;
+
+            case 'parent':
+                if (isset($aLotInfo[$CNF['FIELD_PARENT_JOT']]) && (int)$aLotInfo[$CNF['FIELD_PARENT_JOT']]) {
+                    $iMainLotId = $this->_oModule->_oDb->getLotByJotId((int)$aLotInfo[$CNF['FIELD_PARENT_JOT']]);
+                    $aType = $this->_oModule->_oDb->getLotType($iMainLotId);
+                    $this->addMarkers(array('id' => $iMainLotId, 'type' => $aType['type'], 'jot' => (int)$aLotInfo[$CNF['FIELD_PARENT_JOT']]));
+                    return true;
                 }
 
-                $this->_sPopupTalOptions = BxTemplStudioFunctions::getInstance()->transBox($sPopupMenuName, $oModule->_oTemplate->getLotMenuCode($this->_iContentId, bx_get_logged_profile_id()), true);
-                return true;
+                return false;
+            case 'list':
+                if (!$this->_isBlockVersion)
+                    return false;
+
+                if (!($iGroupId = $this->_oModule->_oDb->getGroupIdByLotId($this->_iContentId)))
+                    return false;
+
+                $aGroupsList = $this->_oModule->_oDb->getTalksByGroupId($iGroupId);
+                unset($aGroupsList[$this->_iContentId]);
+                if (empty($aGroupsList))
+                    return false;
+
+                /*
+                 *  if (!($this->_isBlockVersion && $aLotInfo[$CNF['FIELD_CLASS']] !== 'members'))
+                    return false;
+                 * */
 
             case 'mute':
             case 'star':
                 $this->addMarkers(array('id' => $this->_iContentId));
                 return true;
-
             case 'video_call':
-                if ($oModule->_oConfig->isJitsiAllowed($aLotInfo[$CNF['FIELD_TYPE']])) {
+                if (empty($aLotInfo) || $oModule->_oConfig->isJitsiAllowed($aLotInfo[$CNF['FIELD_TYPE']])) {
                     if (!empty($aLotInfo)) {
                         $aJVC = $oModule->_oDb->getJVC($this->_iContentId);
                         $sRoom = empty($aJVC) ? $oModule->_oConfig->getRoomId($aLotInfo[$CNF['FIELD_ID']], $aLotInfo[$CNF['FIELD_AUTHOR']]) : $aJVC[$CNF['FJVC_ROOM']];

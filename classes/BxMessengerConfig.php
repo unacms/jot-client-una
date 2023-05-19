@@ -28,12 +28,16 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'TABLE_TYPES' => $aModule['db_prefix'] . 'lots_types',
             'TABLE_USERS_INFO' => $aModule['db_prefix'] . 'users_info',
             'TABLE_LIVE_COMMENTS' => $aModule['db_prefix'] . 'lcomments',
-            'TABLE_JOR_REACTIONS' => $aModule['db_prefix'] . 'jot_reactions',
+            'TABLE_JOT_REACTIONS' => $aModule['db_prefix'] . 'jot_reactions',
             'TABLE_JVC' => $aModule['db_prefix'] . 'jvc',
             'TABLE_PUBLIC_JVC' => $aModule['db_prefix'] . 'public_jvc',
             'TABLE_JVCT' => $aModule['db_prefix'] . 'jvc_track',
             'TABLE_LOT_SETTINGS' => $aModule['db_prefix'] . 'lots_settings',
+            'TABLE_GROUPS' => $aModule['db_prefix'] . 'groups',
+            'TABLE_GROUPS_LOTS' => $aModule['db_prefix'] . 'groups_lots',
+            'TABLE_SAVED_JOTS' => $aModule['db_prefix'] . 'saved_jots',
             'TABLE_LOT_ATTACHMENTS' => $aModule['db_prefix'] . 'attachments',
+            'TABLE_JOTS_MEDIA_TRACKER' => $aModule['db_prefix'] . 'jots_media_tracker',
             'TABLE_CMTS_OBJECTS' => 'sys_objects_cmts',
             'TABLE_ENTRIES_FULLTEXT' => 'search_title',
             'TABLE_ENTRIES_COMMENTS_FULLTEXT' => 'search_fields',
@@ -66,6 +70,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'FIELD_URL' => 'url',
             'FIELD_TYPE' => 'type',
             'FIELD_CLASS' => 'class',
+            'FIELD_PARENT_JOT' => 'parent_jot',
             'FIELD_VISIBILITY' => 'visibility',
 
             // storage tale
@@ -90,6 +95,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'FIELD_MESSAGE_EDIT_BY' => 'edit_by',
             'FIELD_MESSAGE_TRASH' => 'trash',
             'FIELD_MESSAGE_VIDEOC' => 'vc',
+            'FIELD_MESSAGE_REPLY' => 'reply',
 
             // lots types table fields
             'FIELD_TYPE_ID' => 'id',
@@ -97,6 +103,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'FIELD_TYPE_LINKED' => 'show_link', // means use link in title
 
             // new messages table
+            'FIELD_NEW_ID' => 'id',
             'FIELD_NEW_LOT' => 'lot_id',
             'FIELD_NEW_JOT' => 'first_jot_id',
             'FIELD_NEW_UNREAD' => 'unread_count',
@@ -107,6 +114,11 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'FIELD_INFO_USER_ID' => 'user_id',
             'FIELD_INFO_STAR' => 'star',
             'FIELD_INFO_PARAMS' => 'params', // means use link in title
+
+            // jots media tracker
+            'FJMT_FILE_ID' => 'file_id',
+            'FJMT_USER_ID' => 'user_id',
+            'FJMT_COLLAPSED' => 'collapsed',
 
              // jot reactions fields
             'FIELD_REACT_JOT_ID' => 'jot_id',
@@ -144,9 +156,28 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'FLS_SETTINGS' => 'settings',
             'FLS_ICON' => 'icon',
 
+            // messenger lot settings
+            'FSJ_ID' => 'jot_id',
+            'FSJ_PROFILE_ID' => 'profile_id',
+
             // messenger lots attachments
             'FLAT_NAME' => 'name',
             'FLAT_SERVICE' => 'service',
+
+            // messenger groups
+            'FMG_ID' => 'id',
+            'FMG_NAME' => 'name',
+            'FMG_AUTHOR' => 'author',
+            'FMG_ADDED' => 'added',
+            'FMG_PRIVACY' => 'allow_view_to',
+            'FMG_DESC' => 'desc',
+            'FMG_MODULE' => 'module',
+            'FMG_URL' => 'url',
+            'FMG_PROFILE_ID' => 'profile_id',
+
+            // messenger lot settings
+            'FMGL_LOT_ID' => 'lot_id',
+            'FMGL_GROUP_ID' => 'group_id',
 
             // page URIs
             'URL_HOME' => BX_DOL_URL_ROOT . 'page.php?i=messenger',
@@ -176,13 +207,18 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
                                             'bx_events' => BX_IM_TYPE_EVENTS,
                                             'bx_spaces' => BX_IM_TYPE_GROUPS
                                         ),
+            'ADD-TO-PAGES-AREA' => array(
+                BX_MSG_TALK_TYPE_PAGES => array('system', 'custom', '')
+            ),
+            'JOT-MENU-TO-SHOW' => ['reaction', 'reply'],
             'IMPLODE_GROUPS' => array(
-                                            BX_ATT_GROUPS_ATTACH => array(
-                                                BX_ATT_TYPE_FILES, BX_ATT_TYPE_FILES_UPLOADING, BX_ATT_TYPE_GIPHY, BX_ATT_TYPE_REPOST, BX_ATT_TYPE_CUSTOM
-                                            ),
-                                        ),
+                BX_ATT_GROUPS_ATTACH => array(
+                    BX_ATT_TYPE_FILES, BX_ATT_TYPE_FILES_UPLOADING, BX_ATT_TYPE_GIPHY, BX_ATT_TYPE_REPOST, BX_ATT_TYPE_CUSTOM
+                ),
+            ),
             'URL_IDENT_PARAMS' => array('i','id','profile_id'),
             'TITLE_CONSTANTS' => array('opponent'),
+			'GROUPS_ITEMS_FIELD' => 'items',
 
              // GIPHY
              'GIPHY' => array(
@@ -201,15 +237,9 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
                 'LIB-LINK' => 'external_api.js'
             ),
 
-            // Emoji Plugin
-            'EMOJI' => array(
-                'path' => 'js/emoji-mart/',
-                'css' => 'emoji-mart.css',
-                'js' => 'emoji-mart.js',
-            ),
-
              // objects
             'OBJECT_STORAGE' => 'bx_messenger_files',
+            'OBJECT_PRIVACY_GROUPS' => 'bx_messenger_allow_view_groups_to',
             'OBJECT_IMAGES_TRANSCODER_GALLERY' => 'bx_messenger_photos_resized',
             'OBJECT_IMAGES_TRANSCODER_PREVIEW' => 'bx_messenger_preview',
             'OBJECT_IMAGES_TRANSCODER_ICON' => 'bx_messenger_icon',
@@ -226,6 +256,10 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'OBJECT_MENU_ACTIONS_VIEW_ENTRY' => 'bx_messenger_view', // actions menu on view entry page
             'OBJECT_MENU_ACTIONS_MY_ENTRIES' => 'bx_messenger_my', // actions menu on my entries page
             'OBJECT_MENU_ACTIONS_TALK_MENU' => 'bx_messenger_lot_menu',
+            'OBJECT_MENU_TALK_INFO_MENU' => 'bx_messenger_lot_info_menu',
+            'OBJECT_MENU_JOT_MENU' => 'bx_messenger_jot_menu',
+            'OBJECT_MENU_NAV_LEFT_MENU' => 'bx_messenger_nav_menu',
+            'OBJECT_MENU_GROUPS_MENU' => 'bx_messenger_groups_menu',
             'OBJECT_MENU_SUBMENU' => '', // main module submenu
             'OBJECT_MENU_MANAGE_TOOLS' => 'bx_messenger_menu_manage_tools', //manage menu in content administration tools
             'OBJECT_GRID' => 'bx_messenger',
@@ -240,7 +274,11 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
                 'smiles'
             ),
             'SEARCH-CRITERIA' => array('titles', 'participants', 'content'),
+            'VIEW-IN-TALKS' => array(BX_MSG_TALK_TYPE_MR, BX_MSG_TALK_TYPE_REPLIES, BX_MSG_TALK_TYPE_SAVED),
             //options
+            'DATE-SEPARATOR-FORMAT-Y' => 'M j, Y, G:i',
+            'DATE-SEPARATOR-FORMAT' => 'M j, G:i',
+            'DATE-SHIFT' => 300, // time period to show date separator
             'MAX_SEND_SYMBOLS'	=> (int)getParam($aModule['db_prefix'] . 'max_symbols_number'),
             'MAX_PREV_JOTS_SYMBOLS' => (int)getParam($aModule['db_prefix'] . 'max_symbols_brief_jot'),
             'MAX_JOTS_BY_DEFAULT' => (int)getParam($aModule['db_prefix'] . 'max_jot_number_default'),
@@ -279,7 +317,6 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'CHECK-CONTENT-FOR-TOXIC' => getParam($aModule['db_prefix'] . 'check_toxic') == 'on',
             'TIME-FROM-NOW' => getParam($aModule['db_prefix'] . 'time_in_history') == 'on',
             'DONT-SHOW-DESC' => getParam($aModule['db_prefix'] . 'dont_show_search_desc') == 'on',
-            'USE-UNIQUE-MODE' => getParam($aModule['db_prefix'] . 'use_unique_mode') == 'on',
             'USE-FRIENDS-ONLY-MODE' => getParam($aModule['db_prefix'] . 'connect_friends_only') == 'on',
             'UPDATE-PAGE-TITLE' => getParam($aModule['db_prefix'] . 'dont_update_title') == 'on',
             'SEARCH-CRITERIA-SELECTED' => getParam($aModule['db_prefix'] . 'search_criteria'),
@@ -288,7 +325,8 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
               'secret' => getParam($aModule['db_prefix'] . 'jwt_app_secret'),
             ),
             'JOT-JWT' =>  trim(getParam($aModule['db_prefix'] . 'jot_server_jwt')),
-            'JSMain' => 'oMessenger'
+            'JSMain' => 'oMessenger',
+            'JSMessengerLib' => 'oMUtils',
         );
 
 		$this->_aObjects = array(
@@ -401,14 +439,14 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
 	*/
     public function getPageIdent($sPageLink = '')
     {
-       $sPageUrl = $sPageLink ? $sPageLink : $_SERVER['REQUEST_URI'];
-       if ($sPageUrl === '/' || $sPageUrl === '/index.php')
-           return 'index.php';
+        $sPageUrl = $sPageLink ? $sPageLink : $_SERVER['REQUEST_URI'];
+        if ($sPageUrl === '/' || $sPageUrl === '/index.php')
+            return 'index.php';
 
-       $sPageUrl = BxDolPermalinks::getInstance()->unpermalink(ltrim($sPageUrl, '/'));
-       $sPageUrl = parse_url($sPageUrl, PHP_URL_QUERY);
+        $sPageUrl = BxDolPermalinks::getInstance()->unpermalink(ltrim($sPageUrl, '/'));
+        $sPageUrl = parse_url($sPageUrl, PHP_URL_QUERY);
 
-       if (!empty($sPageUrl)) {
+        if (!empty($sPageUrl)) {
             parse_str($sPageUrl, $aUrl);
             if (!empty($aUrl)) {
                 $aValidUrl = array();
@@ -419,9 +457,9 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
                 if (!empty($aValidUrl))
                     $sPageUrl = http_build_query($aValidUrl);
             }
-       }
+        }
 
-      return $sPageUrl;
+        return $sPageUrl;
     }
 
     function getPageName($sIdent){
@@ -432,9 +470,25 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
         return !empty($aUrl) && isset($aUrl['i']) ? $aUrl['i'] : '';
     }
 
+    function normalizeLink($sUrl){
+        $aValidUrl = array();
+        parse_str($sUrl, $aUrl);
+        if (!empty($aUrl)) {
+            foreach ($this->CNF['URL_IDENT_PARAMS'] as &$sParam)
+                if (!empty($aUrl[$sParam]))
+                    $aValidUrl[$sParam] = $aUrl[$sParam];
+        }
+
+        return !empty($aValidUrl) ? http_build_query($aValidUrl) : $sUrl;
+    }
+
     public function getPageLink($sUrl){
-        if ($sUrl === 'index.php')
+        if ($sUrl === 'index.php' || !$sUrl)
             return BX_DOL_URL_ROOT;
+
+        if ($sUrl && $sUrl[0] === '/') {
+            $sUrl = 'i=' . ltrim($sUrl, '/');
+        }
 
 	    return BxDolPermalinks::getInstance()->permalink(str_replace('{link}', $sUrl, $this->CNF['URL_TEMPLATE']));
     }
@@ -525,6 +579,22 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
         return "{$sHeader}.{$sPayload}.{$sSignature}";
     }
 
+    function getPageIcon(){
+        if ($sFileUrl = BxDolDesigns::getInstance()->getSiteLogoUrl())
+            return $sFileUrl;
+
+        if (!($iIdIcon = (int)getParam('sys_site_icon')))
+            return BxDolTemplate::getInstance()->getIconUrl('apple-touch-icon.png');
+
+        $oTranscoder = BxDolTranscoderImage::getObjectInstance(BX_DOL_TRANSCODER_OBJ_ICON_FAVICON);
+        return $oTranscoder->getFileUrl($iIdIcon);
+    }
+
+    function getTalksBriefsTime($iUnixTimestamp){
+        $sDateUTC = bx_time_utc ($iUnixTimestamp);
+        return '<time datetime="' . $sDateUTC . '" data-bx-format="y" data-bx-autoformat="' . getParam('sys_format_timeago') . '">' . $sDateUTC . '</time>';
+    }
+
     public function isValidToUpload($sFileName){
         if (!$sFileName)
             return false;
@@ -534,9 +604,9 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             return false;
 
         $sRequestPath = realpath(BX_DIRECTORY_PATH_TMP . $sFileName);
-	    $sValidRootPath = realpath(BX_DIRECTORY_PATH_TMP);
+        $sValidRootPath = realpath(BX_DIRECTORY_PATH_TMP);
 
-	    return $sRequestPath !== false && strcmp(substr($sRequestPath, 0, strlen($sValidRootPath)), $sValidRootPath) === 0;
+        return $sRequestPath !== false && strcmp(substr($sRequestPath, 0, strlen($sValidRootPath)), $sValidRootPath) === 0;
     }
 
     public function isSearchCriteria($sSelected){
@@ -554,6 +624,10 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
         }
 
         return $sTitle;
+    }
+
+    public function generateHash($sId){
+        return md5(BX_DOL_SECRET . $sId);
     }
 
     public function isAttachmentType(&$aJot, $sType = BX_ATT_TYPE_REPLY) {

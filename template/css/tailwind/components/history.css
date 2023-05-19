@@ -1,0 +1,143 @@
+.bx-messenger-conversation-block-wrapper {
+    @apply absolute w-full h-full;
+}
+
+.bx-messenger-conversation-block
+{
+    @apply overflow-y-auto relative h-full min-h-[50px] snap-y touch-pan-y overflow-x-hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width:none;
+}
+
+.bx-messenger-conversation-block-history {
+    @apply flex-dynamic flex-col overflow-hidden relative;
+}
+
+.bx-messenger-conversations
+{
+    @apply relative h-auto flex w-full mb-4 flex-col;
+}
+
+.panel .bx-messenger-history-block-header,
+.panel .bx-messenger-conversation-block-wrapper {
+    @apply hidden;
+}
+
+.bx-messenger-conversations .bx-messenger-jots-snip:hover
+{
+    @apply bg-transparent;
+}
+
+.bx-messenger-conversation-block-history {
+    @apply w-full;
+}
+
+.bx-messenger-conversations-typing
+{
+    @apply inline-block opacity-80 relative;
+}
+
+.bx-messenger-conversations-typing span
+{
+    @apply mr-1 ml-1.5;
+}
+
+/* Popup scroll down arrow area begin */
+.bx-messenger-area-scroll
+{
+    @apply w-8 h-8 rounded-[1.5rem] absolute bottom-[0.5rem] right-4 hidden;
+}
+
+.bx-messenger-area-scroll .bx-messenger-history-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.bx-messenger-area-scroll i {
+    font-size: 1.5rem;
+    line-height: 2rem;
+}
+
+.bx-messenger-area-scroll .bx-def-unit-alert {
+    top: -1rem;
+    right: initial;
+    border-radius: 1.5rem;
+}
+
+.bx-messenger-area-scroll div
+{
+    display:flex;
+    font-weight:bold;
+    align-items:center;
+    text-align:center;
+    text-overflow:ellipsis;
+    background-color: rgba(74,144,226,0.8);
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    border-radius: 0.25rem;
+    height: 1.5rem;
+    color: white;
+}
+
+.bx-messenger-area-scroll div > span
+{
+    flex:1 1 auto;
+    position:relative;
+}
+/* Popup scroll down arrow area begin */
+
+#bx-messenger-info-area
+{
+    width:100%;
+    overflow:hidden;
+    position:absolute;
+    bottom:0px;
+    display:none;
+    padding:0.3rem;
+}
+
+#bx-messenger-info-area .bx-messenger-conversations-typing:before
+{
+    font-family: 'sys-user-far', 'sys-user-fal';
+    content: "\f4ad";
+    margin-left: 1rem;
+    font-size: 0.8rem;
+}
+
+#bx-messenger-info-area .bx-messenger-info-area-connecting
+{
+    display:none;
+}
+
+#bx-messenger-info-area .bx-messenger-info-area-connecting span
+{
+    margin-left:0.3rem;
+}
+
+#bx-messenger-info-area .bx-messenger-info-area-connecting:before
+{
+    font-family: 'sys-user', 'sys-user-fal';
+    content: "\f1e6";
+    margin-left: 1rem;
+    font-size: 0.8rem;
+}
+
+#bx-messenger-info-area .bx-messenger-info-area-connect-failed
+{
+    display:none;
+}
+
+#bx-messenger-info-area .bx-messenger-info-area-connect-failed:before
+{
+    font-family: 'sys-user', 'sys-user-fal';
+    content: "\f06a";
+    margin-left: 1rem;
+    font-size: 0.8rem;
+}
+
+.bx-messenger-block a
+{
+    @apply touch-manipulation;
+}

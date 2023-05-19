@@ -1,0 +1,27 @@
+{
+  "name": "messenger-tailwind-components",
+  "version": "1.0.0",
+  "description": "",
+  "main": "tailwind.config.js",
+  "scripts": {
+    "tailwind": "npm run compile --FILE=tailwind-messenger -- --content=\"../../mobile-menu-button.html,../../left-nav-menu.html,../../main.html,../../lots-briefs.html,../../../js/nav-menu.js\"",
+    "compile": "npx tailwindcss -i ./components/%npm_config_file% -o ../%npm_config_file%",
+    "compile:minify": "npx tailwindcss -i ./components/%npm_config_file% -o ../%npm_config_file% --minify",
+    "build": "node compile.js ./components",
+    "build:minify": "npm run build minify",
+    "remove:files": "npm run build remove",
+    "clear": "rm -rf ./node_modules package-lock.json yarn.lock && npm run remove:files"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.23",
+    "postcss-cli": "^10.1.0",
+    "tailwindcss": "^3.3.2"
+  },
+  "dependencies": {
+    "@tailwindcss/typography": "github:tailwindcss/typography"
+  }
+}

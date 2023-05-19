@@ -52,7 +52,9 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	*/
 	public function getLotInfoById($iId)
 	{
-		$sQuery = $this -> prepare("SELECT * FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = ? LIMIT 1", (int)$iId);
+	    $sQuery = $this -> prepare("SELECT `l`.*, `g`.`{$this->CNF['FMGL_GROUP_ID']}` FROM `{$this->CNF['TABLE_ENTRIES']}` as `l`
+                                           LEFT JOIN `{$this->CNF['TABLE_GROUPS_LOTS']}` as `g` ON `g`.`{$this->CNF['FMGL_LOT_ID']}` = `l`.`{$this->CNF['FIELD_ID']}`
+                                           WHERE `{$this->CNF['FIELD_ID']}` = ? LIMIT 1", (int)$iId);
 		return $this -> getRow($sQuery);
 	}
 
@@ -98,7 +100,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	*@return int affected rows
 	*/
 	public function deleteLot($iLotId){
-		$aJots = $this -> getJotsByLotId($iLotId);
+		$aJots = $this -> getJotsByLotId(['lot' => $iLotId]);
 		foreach($aJots as $iKey => $aJot)
             $this->clearJotsConnections($aJot[$this->CNF['FIELD_MESSAGE_ID']], $iLotId);
 
@@ -120,7 +122,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
      *@return boolean result
      */
     public function clearLot($iLotId){
-        $aJots = $this -> getJotsByLotId($iLotId);
+        $aJots = $this -> getJotsByLotId(['lot' => $iLotId]);
         foreach($aJots as $iKey => $aJot)
             $this->clearJotsConnections($aJot[$this->CNF['FIELD_MESSAGE_ID']], $iLotId);
 
@@ -153,6 +155,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	public function clearJotsConnections($iJotId, $iLotId = 0){
         $this->removeFilesByJotId($iJotId);
         $this->deleteJotReactions($iJotId);
+        $this->deleteSavedJotItems($iJotId);
 
         if (!$iLotId)
             $iLotId = $this->getLotByJotId($iJotId, true);
@@ -181,7 +184,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 								SET 
 									`{$sField}` =:value
 								WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('id' => $iJotId, 'value' => $mixedValue));
-	}
+       }
 
 	/**
 	* Removes participant from the participants list
@@ -344,11 +347,17 @@ class BxMessengerDb extends BxBaseModGeneralDb
         $iAuthorId = $this->findThePageOwner($sUrl);
         $iAuthorId = $iAuthorId ? $iAuthorId : (int)$iProfileId;
 
-        $iLotId = $this->createNewLot($iAuthorId, $aData, $aParticipants);
+        if (isset($aData['thread']) && $aData['thread']) {
+            $aJotInfo = $this->getJotById($aData['thread']);
+            $iLotId = $this->createNewLot($iProfileId, $aData, $aParticipants);
+        }
+        else
+            $iLotId = $this->createNewLot($iAuthorId, $aData, $aParticipants);
+
         if (!$iLotId)
             return false;
 
-        bx_alert($this->_oConfig->getObject('alert'), 'create_lot', $iLotId, $iProfileId, $this->getLotInfoById($iLotId));
+        bx_alert($this->_oConfig->getObject('alert'), 'create_lot', $iLotId, $iProfileId);
         foreach($aParticipants as &$iParticipant) {
             if ((int)$iParticipant === (int)$iProfileId)
                 continue;
@@ -369,14 +378,18 @@ class BxMessengerDb extends BxBaseModGeneralDb
         $iLotId = isset($aData['lot']) ? (int)$aData['lot'] : 0;
         $aLotInfo = $iLotId ? $this->getLotInfoById($iLotId) : array();
 
-        if (empty($aLotInfo))
+        if (empty($aLotInfo) && $aData['type'] == BX_IM_TYPE_PRIVATE && !$aData['title'])
             $aLotInfo = $this->findLotByParams($aData);
 
         if ($iLotId && $aData['type'] == BX_IM_TYPE_PRIVATE && !$this->isParticipant($iLotId, $aData['member_id']))
             return false;
 
-        if (empty($aLotInfo))
+        if (empty($aLotInfo)){
             $iLotId = $this->createLot((int)$aData['member_id'], $aData);
+
+			if (isset($aData['group_id']) && (int)$aData['group_id'] && (int)$iLotId)
+				$this->addLotToGroup($iLotId, $aData['group_id']);
+		}
         else
             $iLotId = $aLotInfo[$this->CNF['FIELD_ID']];
 
@@ -391,14 +404,14 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
       	$aData['message'] = clear_xss($aData['message']);
 	    return $this->addJot($iLotId, $aData['message'], $aData['member_id']);
-	}	
+	}
 
-	/**
-	* Find appropriate Talk using input params
-	*@param array $aData params
-	*@return array Lot info
-	*/
-	public function findLotByParams($aData){
+    /**
+     * Find appropriate Talk using input params
+     *@param array $aData params
+     *@return array Lot info
+     */
+    public function findLotByParams($aData){
         $sUrl = isset($aData['url']) ? $aData['url'] : '';
         $aParticipants = isset($aData['participants']) && is_array($aData['participants']) ? $aData['participants'] : [];
         $sClass = isset($aData['class']) ? $aData['class'] : '';
@@ -411,7 +424,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
             foreach($aItems as &$aItem)
                 $aLots[] = $aItem[$this->CNF['FIELD_ID']];
 
-        if (!empty($aLots))
+            if (!empty($aLots))
                 $aWhere[] = "`{$this->CNF['FIELD_ID']}` IN (" . implode(',', $aLots) . ")";
             else
                 return [];
@@ -436,7 +449,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
                                                 WHERE " . implode(' AND ', $aWhere) . " LIMIT 1", $aWhereBindings);
     }
 
-	function getLotsByParticipantsList($aParticipants, $mixedType = false, $bGetAll = false){
+    function getLotsByParticipantsList($aParticipants, $mixedType = false, $bGetAll = false){
         $aParticipantsList = $aResult = [];
         if (empty($aParticipants))
             return $aResult;
@@ -465,18 +478,18 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
             if (array_values($aTalkParticipants) == array_values($aParticipants))
                 $aResult[] = $aLot;
-		}
+        }
 
         return !$bGetAll && !empty($aResult) ? current($aResult) : $aResult;
-	}
+    }
 
-	/**
+    /**
 	* Mark message as read in lot history
 	*@param int $iJotId message id
 	*@param int iProfileId	
 	*/
 	public function readMessage($iJotId, $iProfileId){
-        $aJotInfo = $this->getJotById($iJotId);
+	    $aJotInfo = $this->getJotById($iJotId);
 	    if (!empty($aJotInfo) && $this->deleteNewJot($iProfileId, $aJotInfo[$this->CNF['FIELD_MESSAGE_FK']], $iJotId))
             bx_alert($this->_oConfig->getObject('alert'), 'read_jot', $iJotId, $iProfileId, array('author_id' => $aJotInfo[$this->CNF['FIELD_MESSAGE_AUTHOR']], 'lot_id' => $aJotInfo[$this->CNF['FIELD_MESSAGE_FK']]));
     }
@@ -516,7 +529,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 		$sQuery = $this->prepare("INSERT INTO `{$this->CNF['TABLE_MESSAGES']}` 
 												SET  `{$this->CNF['FIELD_MESSAGE']}` = ?, 
 													 `{$this->CNF['FIELD_MESSAGE_FK']}` = ?, 
-													 `{$this->CNF['FIELD_MESSAGE_AUTHOR']}` = ?,
+													 `{$this->CNF['FIELD_MESSAGE_AUTHOR']}` = ?,													 
 													 `{$this->CNF['FIELD_MESSAGE_ADDED']}` = UNIX_TIMESTAMP()", $sMessage, $iLotId, $iProfileId);
 
 		if (!$this->query($sQuery))
@@ -537,8 +550,8 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	*@param array $aParticipants list of participants
 	*@return  int affected rows
 	*/
-	public function createNewLot($iProfileId, $aData, $aParticipants = array())
-	{
+    public function createNewLot($iProfileId, $aData, $aParticipants = array())
+    {
         $CNF = &$this->_oConfig->CNF;
 
         // before to create lot
@@ -548,10 +561,11 @@ class BxMessengerDb extends BxBaseModGeneralDb
         ));
 
         $sTitle = isset($aData['title']) ? $aData['title'] : '';
-        $iType = isset($aData['type']) ? $aData['type'] : BX_IM_TYPE_PRIVATE;
+        $iType = isset($aData['type']) ? (int)$aData['type'] : BX_IM_TYPE_PRIVATE;
         $sUrl = isset($aData['url']) ? $aData['url'] : '';
         $sPage = isset($aData['page']) ? $aData['page'] : '';
         $sClass = isset($aData['class']) ? $aData['class'] : BX_MSG_TALK_CLASS_CUSTOM;
+        $iThread = isset($aData['thread']) ? (int)$aData['thread'] : BX_ATT_TYPE_CUSTOM;
         $iVisibility = isset($aData['visibility']) ? (int)$aData['visibility'] : 0;
 
 
@@ -565,10 +579,11 @@ class BxMessengerDb extends BxBaseModGeneralDb
 													 `{$this->CNF['FIELD_PARTICIPANTS']}` = ?,
 													 `{$this->CNF['FIELD_VISIBILITY']}` = ?,
 													 `{$this->CNF['FIELD_CLASS']}` = ?,
-													 `{$this->CNF['FIELD_URL']}` = ?", $sTitle, $iType, $iProfileId, $mixedParticipants, $iVisibility, $sClass, $sUrl);
-		
-		return $this->query($sQuery) ? $this -> lastId() : false;
-	}
+													 `{$this->CNF['FIELD_PARENT_JOT']}` = ?,
+													 `{$this->CNF['FIELD_URL']}` = ?", $sTitle, $iType, $iProfileId, $mixedParticipants, $iVisibility, $sClass, $iThread, $sUrl);
+
+        return $this->query($sQuery) ? $this -> lastId() : false;
+    }
 	
 	/**
 	*Get list of types of member lots
@@ -679,7 +694,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	*@param int $iParticipantId profile id
 	*@return mixed false or affected rows
 	*/
-	private function removeParticipant($iLotId, $iParticipantId){
+	public function removeParticipant($iLotId, $iParticipantId){
 		$aParticipants = $this -> getParticipantsList($iLotId);
 		$iKey = array_search($iParticipantId, $aParticipants);
 		
@@ -699,9 +714,16 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	*@param int $iLimit number of jots to get
 	*@return array of the jots
 	*/
-	public function getJotsByLotId($iLotId, $iStart = BX_IM_EMPTY, $sMode = 'new', $iLimit = BX_IM_EMPTY, $bInclude = false){
-		$sLimit = '';
-		$aSWhere[] = "`{$this->CNF['FIELD_MESSAGE_FK']}` = :lot_id ";
+	public function getJotsByLotId($aData){  /* $iLotId, $iStart = BX_IM_EMPTY, $sMode = 'new', $iLimit = BX_IM_EMPTY, $bInclude = false */
+        $iLotId = isset($aData['lot']) ? (int)$aData['lot'] : BX_IM_EMPTY;
+        $iStart = isset($aData['start']) ? (int)$aData['start'] : BX_IM_EMPTY;
+        $sMode = isset($aData['mode']) ? $aData['mode'] : 'new';
+        $iLimit = isset($aData['limit']) ? (int)$aData['limit'] : BX_IM_EMPTY;
+        $bInclude = isset($aData['include']) && $aData['include'];
+        $sArea = isset($aData['area']) ? $aData['area'] : '';
+
+        $sJoin = $sWhereJoin = $sLimit = '';
+		$aSWhere[] = "`m`.`{$this->CNF['FIELD_MESSAGE_FK']}` = :lot_id ";
 		$aBindings['lot_id'] = (int)$iLotId;
 		$sInsideOrder = $sMode == 'all' ? 'ASC' : 'DESC';
 
@@ -711,7 +733,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 			if ($bInclude)
 				$sEqual='=';
 				
-			$aSWhere[] = "`{$this->CNF['FIELD_MESSAGE_ID']}` " . ($sMode == 'new' ? '>' . $sEqual : '<' . $sEqual) . " :start ";
+			$aSWhere[] = "`m`.`{$this->CNF['FIELD_MESSAGE_ID']}` " . ($sMode == 'new' ? '>' . $sEqual : '<' . $sEqual) . " :start ";
 			$aBindings['start'] = (int)$iStart;
 
             if ($sMode == 'new')
@@ -727,13 +749,44 @@ class BxMessengerDb extends BxBaseModGeneralDb
 		if (!empty($aBindings))
 			$sWhere = 'WHERE ' . implode(' AND ', $aSWhere);
 
-		$sQuery = "SELECT * FROM `{$this->CNF['TABLE_MESSAGES']}`
-									{$sWhere}	
-									ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}` {$sInsideOrder}
-									$sLimit";
-									
-		return $this -> getAll( $iStart && $sMode == 'new' ? $sQuery : "({$sQuery}) ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}`", $aBindings);					
+		if ($sArea)
+           list($sJoin, $sWhereJoin, $sFields, $sGroupBy) = $this->getJotsByArea($sArea);
+
+		$sQuery = "SELECT `m`.* FROM `{$this->CNF['TABLE_MESSAGES']}` as `m`
+                    {$sJoin}
+			    	{$sWhere} {$sWhereJoin}	
+				    ORDER BY `m`.`{$this->CNF['FIELD_MESSAGE_ID']}` {$sInsideOrder}
+					{$sLimit}";
+
+		//print_r($aBindings);
+
+		return $this -> getAll( $iStart && $sMode == 'new' ? $sQuery : "({$sQuery}) ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}`", $aBindings);
 	}
+
+    function getJotsByArea($sArea){
+        $CNF = &$this->_oConfig->CNF;
+
+        $sGroupBy = $sJoin = $sWhere = $sFields = '';
+        $iProfileId = bx_get_logged_profile_id();
+        switch($sArea){
+            case BX_MSG_TALK_TYPE_MR:
+                $sUrl = BxDolProfile::getInstance($iProfileId)->getUrl();
+                $sJoin = "LEFT JOIN `{$CNF['TABLE_JOT_REACTIONS']}` as `r` ON `m`.`{$CNF['FIELD_MESSAGE_ID']}` = `r`.`{$CNF['FIELD_REACT_JOT_ID']}`";
+                $sWhere = "AND ((`r`.`{$CNF['FIELD_REACT_JOT_ID']}` IS NOT NULL AND `m`.`{$CNF['FIELD_MESSAGE_AUTHOR']}`= '{$iProfileId}') OR `m`.`{$CNF['FIELD_MESSAGE']}` LIKE '\"%" . '/' . bx_ltrim_str($sUrl, BX_DOL_URL_ROOT) . "\"')";
+                break;
+            case BX_MSG_TALK_TYPE_THREADS:
+                break;
+            case BX_MSG_TALK_TYPE_SAVED:
+                $sJoin = "INNER JOIN `{$CNF['TABLE_SAVED_JOTS']}` as `s` ON `s`.`{$CNF['FSJ_ID']}` = `m`.`{$CNF['FIELD_MESSAGE_ID']}`";
+                $sWhere = "AND `s`.`{$CNF['FSJ_ID']}` IS NOT NULL";
+                break;
+            case BX_MSG_TALK_TYPE_REPLIES:
+                $sJoin = "LEFT JOIN `{$CNF['TABLE_MESSAGES']}` as `r` ON `r`.`{$CNF['FIELD_MESSAGE_ID']}` = `m`.`{$CNF['FIELD_MESSAGE_REPLY']}`";
+                $sWhere = "AND `m`.`{$CNF['FIELD_MESSAGE_REPLY']}` <> 0 AND `r`.`{$CNF['FIELD_MESSAGE_AUTHOR']}`={$iProfileId}";
+        }
+
+        return [$sJoin, $sWhere, $sFields, $sGroupBy];
+    }
 
     public function getUnreadMessages($iProfileId, $iLotId, $mixedLimit = 10){
         $sWhere = "WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :lot_id";
@@ -818,12 +871,22 @@ class BxMessengerDb extends BxBaseModGeneralDb
         return $bIdOnly ? $iLotId : $this -> getRow("SELECT * FROM `{$this->CNF['TABLE_ENTRIES']}` 
 						WHERE `{$this->CNF['FIELD_ID']}` = :lot LIMIT 1", array('lot' => $iLotId));
     }
-
+    
     public function getLotByJotPairs(&$aJotsList){
         $aJotsList = array_map('intval', $aJotsList);
         return !empty($aJotsList) ? $this -> getAll("SELECT `{$this->CNF['FIELD_MESSAGE_FK']}`, `{$this->CNF['FIELD_MESSAGE_ID']}` 
                                                                FROM `{$this->CNF['TABLE_MESSAGES']}` 
                                                                WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` IN (" . implode(',', $aJotsList) . ")") : false;
+    }
+	
+    /**
+	* Get lot id by parent id 
+	*@param int $iJotId jot id	
+	*@return mixed lot id or lot info in array
+	*/
+    public function getLotByParentId($iParentId){        
+        return $this -> getRow("SELECT * FROM `{$this->CNF['TABLE_ENTRIES']}`
+						WHERE `{$this->CNF['FIELD_PARENT_JOT']}`=:id LIMIT 1", array('id' => $iParentId));
     }
 
 	/**
@@ -935,7 +998,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 		return $this -> getRow($sQuery);
 	}
 	
-	public function getUnreadJotsMessagesCount($iProfileId, $iLotId){
+	public function getUnreadJotsMessagesCount($iProfileId, $iLotId, $iParentId = 0){
 		if (!(int)$iLotId)
 		    return false;
 		
@@ -1044,46 +1107,57 @@ class BxMessengerDb extends BxBaseModGeneralDb
                                                         WHERE `{$this->CNF['FIELD_NEW_PROFILE']}`=:profile                                        
                                                      ", array('profile' => $iProfileId));
 	}
-		
+
     public function searchMessage($sParam, $iProfileId = 0, $iLotId = 0){
-	   $aResult = array();
-	    if (!$sParam)
-	       return $aResult;
+        $aResult = array();
+        if (!$sParam)
+            return $aResult;
 
-	   $aParams = preg_split('/[\s]/', $sParam, -1, PREG_SPLIT_NO_EMPTY);
-	   $sCriteria = implode('%', $aParams);
-       $aWhere = array('criteria' => "%{$sCriteria}%");
+        $aParams = preg_split('/[\s]/', $sParam, -1, PREG_SPLIT_NO_EMPTY);
+        $sCriteria = implode('%', $aParams);
+        $aWhere = array('criteria' => "%{$sCriteria}%");
 
-		if ($iLotId){
+        if ($iLotId){
             $sWhere = " AND `j`.`{$this->CNF['FIELD_MESSAGE_FK']}`=:id";
             $aWhere['id'] = (int)$iLotId;
         }
 
-		if ($iProfileId){
+        if ($iProfileId){
             $sWhere = " AND (`l`.`{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP '(^|,){$iProfileId}(,|$)' OR `l`.`{$this->CNF['FIELD_AUTHOR']}`=:profile)";
             $aWhere['profile'] = (int)$iProfileId;
-		}
+        }
 
-       return $this->getPairs("SELECT `j`.`{$this->CNF['FIELD_MESSAGE_ID']}`, `j`.`{$this->CNF['FIELD_MESSAGE_FK']}`
+        return $this->getPairs("SELECT `j`.`{$this->CNF['FIELD_MESSAGE_ID']}`, `j`.`{$this->CNF['FIELD_MESSAGE_FK']}`
 			 FROM `{$this->CNF['TABLE_MESSAGES']}` as `j`
 			 RIGHT JOIN `{$this->CNF['TABLE_ENTRIES']}` as `l` on `l`.`{$this->CNF['FIELD_ID']}` = `j`.`{$this->CNF['FIELD_MESSAGE_FK']}` 
              WHERE `j`.`{$this->CNF['FIELD_MESSAGE']}` LIKE :criteria {$sWhere}", $this->CNF['FIELD_MESSAGE_ID'], $this->CNF['FIELD_MESSAGE_FK'], $aWhere);
-	}
+    }
 	/**
 	* Get all member's lots
 	*@param int $iProfileId
 	*@param array $aParams filter params
 	*@return array list of lots
 	*/
-	public function getMyLots($iProfileId, &$aParams = array())
-	{
-        $sJoin = $sWhere = '';
+    public function getMyLots($iProfileId, $aParams = array())
+    {
+        $sOrAddon = $sJoin = $sWhere = '';
         $aSWhere = array();
         $aWhere = array('profile' => (int)$iProfileId, 'parts' => '(^|,)' . (int)$iProfileId . '(,|$)');
+
+        // talks groups
+        if (isset($aParams['group']) && (int)$aParams['group']) {
+            $aSWhere[] = " `g`.`{$this->CNF['FMGL_GROUP_ID']}`=:group_id ";
+            $aWhere['group_id'] = (int)$aParams['group'];
+
+            $sOrAddon = " OR `l`.`{$this->CNF['FIELD_TYPE']}` = " . BX_IM_TYPE_PUBLIC;
+        }
+
+        //if threads
+        if (isset($aParams['threads']))
+            $aSWhere[] = " `l`.`{$this->CNF['FIELD_PARENT_JOT']}` !=0 ";
+
         $sParam = isset($aParams['term']) && $aParams['term'] ? $aParams['term'] : '';
-        
-        if ($sParam)
-        {
+        if ($sParam) {
             $aParamWhere = [];
             if ($this->_oConfig->isSearchCriteria(BX_SEARCH_CRITERIA_TITLES)) {
                 $aParamWhere[] = "`l`.`{$this->CNF['FIELD_TITLE']}` LIKE :title";
@@ -1099,7 +1173,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
                     if (!empty($aRegexp)) {
                         $aWhere['part_search'] = implode('|', $aRegexp);
-                        $aParamWhere[]= "`{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP :part_search";
+                        $aParamWhere[] = "`{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP :part_search";
                     }
                 }
             }
@@ -1118,65 +1192,87 @@ class BxMessengerDb extends BxBaseModGeneralDb
                 return false;
         }
 
-        $iType = isset($aParams['type']) ? (int)$aParams['type'] : '';
-		if ($iType)
-		{
-			$aSWhere[] = " `l`.`{$this->CNF['FIELD_TYPE']}` = :type ";
-			$aWhere['type'] = $iType;
-		}
+        if ($this->_oConfig->isSearchCriteria(BX_SEARCH_CRITERIA_CONTENT)) {
+            $aSelectedLots = $this->searchMessage($sParam, $iProfileId);
+            if (!empty($aSelectedLots)) {
+                $aParamWhere[] = "`l`.`{$this->CNF['FIELD_ID']}` IN (" . implode(',', array_unique($aSelectedLots)) . ")";
+                $aParams['jots_list'] = $aSelectedLots;
+            }
+        }
+
+        if (!empty($aParamWhere))
+            $aSWhere[] = '(' . implode(' OR ', $aParamWhere) . ')';
+
+
+        if (isset($aParams['type']) && $aParams['type']) {
+            if (is_numeric($aParams['type'])) {
+                $aSWhere[] = " `l`.`{$this->CNF['FIELD_TYPE']}` = :type AND `l`.`{$this->CNF['FIELD_PARENT_JOT']}` = 0 ";
+                $aWhere['type'] = (int)$aParams['type'];
+            } else if (is_array($aParams['type'])) {
+                $aSWhere[] = " `l`.`{$this->CNF['FIELD_TYPE']}` IN (" . implode(',', $aParams['type']) . ")  AND `l`.`{$this->CNF['FIELD_PARENT_JOT']}` = 0 ";
+            }
+        }
 
         $bStar = isset($aParams['star']) && $aParams['star'] === true;
-		if ($bStar)
-		{
-			$sJoin .= "INNER JOIN `{$this->CNF['TABLE_USERS_INFO']}` as `u` ON `u`.`{$this->CNF['FIELD_INFO_LOT_ID']}` = `l`.`{$this->CNF['FIELD_ID']}` AND `u`.`{$this->CNF['FIELD_INFO_USER_ID']}`=:profile";
-			$aSWhere[] = "`u`.`{$this->CNF['FIELD_INFO_STAR']}` = 1";
-		}
+        if ($bStar) {
+            $sJoin .= "INNER JOIN `{$this->CNF['TABLE_USERS_INFO']}` as `u` ON `u`.`{$this->CNF['FIELD_INFO_LOT_ID']}` = `l`.`{$this->CNF['FIELD_ID']}` AND `u`.`{$this->CNF['FIELD_INFO_USER_ID']}`=:profile";
+            $aSWhere[] = "`u`.`{$this->CNF['FIELD_INFO_STAR']}` = 1";
+        }
 
-        if(isset($aParams['visibility'])){
+        if (isset($aParams['visibility'])) {
             if ($aParams['visibility'] !== BX_MSG_VISIBILITY_ALL) {
                 $aWhere['visibility'] = $aParams['visibility'];
                 $aSWhere[] = " `l`.`{$this->CNF['FIELD_VISIBILITY']}` = :visibility";
             }
-        }
-        else
-        {
+        } else {
             $aSWhere[] = " `l`.`{$this->CNF['FIELD_VISIBILITY']}` = :visibility";
             $aWhere['visibility'] = BX_MSG_VISIBILITY_VISIBLE;
         }
 
+        $sFields = $sHaving = '';
         $iLastLot = isset($aParams['last_lot']) ? (int)$aParams['last_lot'] : 0;
         if ($iLastLot) {
             $aWhere['last_lot'] = $iLastLot;
             $aSWhere[] = "`l`.`{$this->CNF['FIELD_ID']}` < :last_lot";
         }
 
-		if (!empty($aSWhere))
-			$sWhere = ' AND ' . implode(' AND ', $aSWhere);
+        $iLot = isset($aParams['lot']) && (int)$aParams['lot'] ? (int)$aParams['lot'] : 0;
+        if ($iLot) {
+            $aWhere['lot'] = $iLot;
+            $aSWhere[] = "`l`.`{$this->CNF['FIELD_ID']}` = :lot";
+        }
 
-       $aWhere['start'] = isset($aParams['start']) ? (int)$aParams['start'] : 0;
-       $aWhere['per_page'] = isset($aParams['per_page']) ? (int)$aParams['per_page'] : (int)$this->CNF['MAX_LOTS_NUMBER'];
-       $sLimit = "LIMIT :start, :per_page";
+        if (!empty($aSWhere))
+            $sWhere = ' AND ' . implode(' AND ', $aSWhere);
 
-       $bShowLeft = isset($aParams['left']);
-       $sLeft = "";
-       if ($bShowLeft)
-           $sLeft = "SQL_CALC_FOUND_ROWS";
+        $aWhere['start'] = isset($aParams['start']) ? (int)$aParams['start'] : 0;
+        $aWhere['per_page'] = isset($aParams['per_page']) ? (int)$aParams['per_page'] : (int)$this->CNF['MAX_LOTS_NUMBER'];
+        $sLimit = "LIMIT :start, :per_page";
 
-       $aResult = $this-> getAll("SELECT 
-                                             {$sLeft}
+        $bShowLeft = isset($aParams['left']);
+        $sLeft = "";
+        if ($bShowLeft)
+            $sLeft = "SQL_CALC_FOUND_ROWS";
+
+        $aResult = $this->getAll("SELECT 
+                                            {$sLeft}
+                                            {$sFields}   
                                             `l`.*,
+                                             IF (`g`.`{$this->CNF['FMGL_GROUP_ID']}` IS NOT NULL, `g`.`{$this->CNF['FMGL_GROUP_ID']}`, 0) as `{$this->CNF['FMGL_GROUP_ID']}`,
                                              IF (`l`.`{$this->CNF['FIELD_UPDATED']}` = 0, `l`.`{$this->CNF['FIELD_ADDED']}`, `l`.`{$this->CNF['FIELD_UPDATED']}`) as `order` 
                                              FROM `{$this->CNF['TABLE_ENTRIES']}` as `l`
-                                             {$sJoin}
-                                             WHERE (`l`.`{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP :parts OR `l`.`{$this->CNF['FIELD_AUTHOR']}`=:profile) {$sWhere}
+                                             LEFT JOIN `{$this->CNF['TABLE_GROUPS_LOTS']}` as `g` ON `g`.`{$this->CNF['FMGL_LOT_ID']}` = `l`.`{$this->CNF['FIELD_ID']}`
+                                             {$sJoin}                                             
+                                             WHERE (`l`.`{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP :parts OR `l`.`{$this->CNF['FIELD_AUTHOR']}`=:profile {$sOrAddon}) {$sWhere}
+                                             {$sHaving}
                                              ORDER BY `order` DESC
-                                            {$sLimit}", $aWhere);
+                                         {$sLimit}", $aWhere);
 
-       if ($bShowLeft)
-           $aParams['left'] = (int)$this->getOne("SELECT FOUND_ROWS()") - $aWhere['start'];
+        if ($bShowLeft)
+            $aParams['left'] = (int)$this->getOne("SELECT FOUND_ROWS()") - $aWhere['start'];
 
-       return $aResult;
-	}
+        return $aResult;
+    }
 	
 	/**
 	* Check if the title of the lot type must contain link
@@ -1240,15 +1336,15 @@ class BxMessengerDb extends BxBaseModGeneralDb
                                            WHERE FIND_IN_SET(:profile, `{$this->CNF['FIELD_PARTICIPANTS']}`) AND `type`=:type", array_merge($aWhere, ['type' => BX_IM_TYPE_PRIVATE]));
 
 		$aLots = $this->getAll("SELECT * 
-            FROM `{$this->CNF['TABLE_ENTRIES']}` 
-            WHERE FIND_IN_SET(:profile, `{$this->CNF['FIELD_PARTICIPANTS']}`)", $aWhere);
+			FROM `{$this->CNF['TABLE_ENTRIES']}` 
+			WHERE FIND_IN_SET(:profile, `{$this->CNF['FIELD_PARTICIPANTS']}`)", $aWhere);
 
         if (empty($aLots))
-            return $bResult;
+				return $bResult;
 
         foreach ($aLots as &$aLot) {
             $bResult &= $this->removeParticipant($aLot[$this->CNF['FIELD_ID']], $iProfileId);
-        }
+		}
 
 		
 		return $bResult;
@@ -1262,7 +1358,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	*@return int affected rows
 	*/
 
-	public function addAttachment($iJotId, $aAttachments, $mixedType = false){
+    public function addAttachment($iJotId, $aAttachments, $mixedType = false){
         $iJotId = (int)$iJotId;
         if (!$iJotId || !($aJotInfo = $this -> getJotById($iJotId)) || empty($aAttachments))
             return false;
@@ -1272,7 +1368,6 @@ class BxMessengerDb extends BxBaseModGeneralDb
                 $aAttachments = array($mixedType => $aAttachments);
             else
                 $aAttachments = @unserialize($aJotInfo[$this->CNF['FIELD_MESSAGE_AT']]) + array($mixedType => $aAttachments);
-
         }
 
         $sQuery = $this->prepare("UPDATE `{$this->CNF['TABLE_MESSAGES']}` 
@@ -1318,42 +1413,49 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	*@param string $sType attachment type
 	*@return int original attachment Id
 	*/
-	public function hasAttachment($iJotId, $sType = BX_ATT_TYPE_REPOST){
-		$aValues = $this->getRow("SELECT
+    public function hasAttachment($iJotId, $sType = BX_ATT_TYPE_REPOST){
+        $aValues = $this->getRow("SELECT
 									`{$this->CNF['FIELD_MESSAGE_AT']}`, 
                                     `{$this->CNF['FIELD_MESSAGE_AT_TYPE']}`
 									FROM `{$this->CNF['TABLE_MESSAGES']}` 
 									WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = :id", array('id' => $iJotId));
 
-		if (!isset($aValues[$this->CNF['FIELD_MESSAGE_AT']]))
-		    return false;
+        if (!isset($aValues[$this->CNF['FIELD_MESSAGE_AT']]))
+            return false;
 
-		if ($aValues[$this->CNF['FIELD_MESSAGE_AT_TYPE']]) {
-	        if ($aValues[$this->CNF['FIELD_MESSAGE_AT_TYPE']] == $sType && (int)$aValues[$this->CNF['FIELD_MESSAGE_AT']] && $aValues[$this->CNF['FIELD_MESSAGE_AT']] !== $iJotId)
+        if ($aValues[$this->CNF['FIELD_MESSAGE_AT_TYPE']]) {
+            if ($aValues[$this->CNF['FIELD_MESSAGE_AT_TYPE']] == $sType && (int)$aValues[$this->CNF['FIELD_MESSAGE_AT']] && $aValues[$this->CNF['FIELD_MESSAGE_AT']] !== $iJotId)
                 return (int)$aValues[$this->CNF['FIELD_MESSAGE_AT']];
 
             return false;
         }
 
         $mixedResult = @unserialize($aValues[$this->CNF['FIELD_MESSAGE_AT']]);
-		if (is_array($mixedResult)) {
+        if (is_array($mixedResult)) {
             if (isset($mixedResult[$sType]) && (int)$mixedResult[$sType] && (int)$mixedResult[$sType] != $iJotId)
                 return (int)$mixedResult[$sType];
         }
 		
-		return false;
-	}
+        return false;
+    }
 	
 	public function updateFiles($iJotId, $mixedValues){
 	    $sQuery = $this->prepare("UPDATE `{$this->CNF['OBJECT_STORAGE']}` SET " . $this->arrayToSQL($mixedValues) . " WHERE `{$this->CNF['FIELD_ST_ID']}` = ?", $iJotId);
 		return $this -> query($sQuery);
 	}
 	
-	public function getJotFiles($iJot, $bCount = false){
-		return !$bCount ?
-                        $this->getAll("SELECT * FROM `{$this->CNF['OBJECT_STORAGE']}` WHERE `{$this->CNF['FIELD_ST_JOT']}` = :id", array('id' => $iJot)) :
-                        $this->getOne("SELECT COUNT(*) FROM `{$this->CNF['OBJECT_STORAGE']}` WHERE `{$this->CNF['FIELD_ST_JOT']}` = :id", array('id' => $iJot));
-	}
+    public function getJotFiles($iJot, $bCount = false, $iProfileId = 0){
+        $sProfileWhere = '';
+        if ((int)$iProfileId)
+            $sProfileWhere = "AND `t`.`{$this->CNF['FJMT_USER_ID']}`=" . (int)$iProfileId;
+
+        return !$bCount ?
+            $this->getAll("SELECT `f`.*, IF (`t`.`{$this->CNF['FJMT_COLLAPSED']}` IS NULL, 0, 1) as `{$this->CNF['FJMT_COLLAPSED']}` 
+                                        FROM `{$this->CNF['OBJECT_STORAGE']}` as `f` 
+                                        LEFT JOIN `{$this->CNF['TABLE_JOTS_MEDIA_TRACKER']}` as `t` ON `f`.`{$this->CNF['FIELD_ST_ID']}`=`t`.`{$this->CNF['FJMT_FILE_ID']}` {$sProfileWhere} 
+                                        WHERE `{$this->CNF['FIELD_ST_JOT']}` = :id", array('id' => $iJot)) :
+                                        $this->getOne("SELECT COUNT(*) FROM `{$this->CNF['OBJECT_STORAGE']}` WHERE `{$this->CNF['FIELD_ST_JOT']}` = :id", array('id' => $iJot));
+    }
 	
 	private function removeFilesByJotId($iJotId){
 		 $aFiles = $this -> getJotFiles($iJotId);
@@ -1362,11 +1464,52 @@ class BxMessengerDb extends BxBaseModGeneralDb
 		 
 		 $oStorage = BxDolStorage::getObjectInstance($this->CNF['OBJECT_STORAGE']);
 		 $bResult = true;
-		 foreach($aFiles as &$aFile)
-			$bResult &= $oStorage -> deleteFile($aFile[$this->CNF['FIELD_ST_ID']], $aFile[$this->CNF['FIELD_ST_AUTHOR']]);
+		 foreach($aFiles as &$aFile) {
+             $bResult &= $oStorage->deleteFile($aFile[$this->CNF['FIELD_ST_ID']], $aFile[$this->CNF['FIELD_ST_AUTHOR']]);
+             $this->removeMediaTracker($aFile[$this->CNF['FIELD_ST_ID']]);
+         }
 		  
 		  return $bResult;
 	}
+
+    public function removeFileFromJot($iJotId, $iFileId){
+        $aJotInfo = $this->getJotById($iJotId);
+        $aAttachment = $aFiles = [];
+        if ($aJotInfo[$this->CNF['FIELD_MESSAGE_AT_TYPE']] === BX_ATT_TYPE_FILES) {
+            $aFiles = explode(',', $aJotInfo[$this->CNF['FIELD_MESSAGE_AT']]);
+        } else
+            if (!$aJotInfo[$this->CNF['FIELD_MESSAGE_AT_TYPE']] && isset($aJotInfo[$this->CNF['FIELD_MESSAGE_AT']])) {
+                $aAttachment = @unserialize($aJotInfo[$this->CNF['FIELD_MESSAGE_AT']]);
+                if (isset($aAttachment[BX_ATT_TYPE_FILES])){
+                    $mixedFiles = $aAttachment[BX_ATT_TYPE_FILES];
+                    if (is_string($mixedFiles))
+                        $aFiles = explode(',', $mixedFiles);
+                    else if (is_array($mixedFiles))
+                        $aFiles = $mixedFiles;
+                } else
+                    return false;
+            }
+
+        $oStorage = BxDolStorage::getObjectInstance($this->CNF['OBJECT_STORAGE']);
+        $aFile = $oStorage -> getFile($iFileId);
+        $sFileName = $aFile[$this->CNF['FIELD_ST_NAME']];
+
+        if (!empty($aFiles))
+            $aFiles = array_filter($aFiles, function($sValue) use ($sFileName){
+               return $sValue !== $sFileName;
+            });
+        else
+            return false;
+
+        $aAttachment[BX_ATT_TYPE_FILES] = $aFiles;
+        $sQuery = $this->prepare("UPDATE `{$this->CNF['TABLE_MESSAGES']}` 
+												SET  
+													 `{$this->CNF['FIELD_MESSAGE_AT_TYPE']}` = '',
+													 `{$this->CNF['FIELD_MESSAGE_AT']}` = ?
+												WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = ?", @serialize($aAttachment), $iJotId);
+
+        return $this -> query($sQuery);
+    }
 	
 	public function isFileVendor($iFileId, $iProfileId){
 		$oStorage = BxDolStorage::getObjectInstance($this->CNF['OBJECT_STORAGE']);
@@ -1482,7 +1625,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
     }
 
     public function getLotFilesCount($iLot){
-        return $this->getOne("SELECT COUNT(*)
+        return (int)$this->getOne("SELECT COUNT(*)
                                          FROM `{$this->CNF['OBJECT_STORAGE']}` as `s`
                                          LEFT JOIN `{$this->CNF['TABLE_MESSAGES']}` as `j` ON `s`.`{$this->CNF['FIELD_ST_JOT']}` = `j`.`{$this->CNF['FIELD_MESSAGE_ID']}`
                                          LEFT JOIN `{$this->CNF['TABLE_ENTRIES']}` as `l` ON `l`.`{$this->CNF['FIELD_ID']}` = `j`.`{$this->CNF['FIELD_MESSAGE_FK']}` 
@@ -1791,7 +1934,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
     function addJotReaction($iJotId, $iProfileId, $aEmoji){
         $CNF = &$this->_oConfig->CNF;
-        return $this->query("REPLACE INTO `{$CNF['TABLE_JOR_REACTIONS']}` 
+        return $this->query("REPLACE INTO `{$CNF['TABLE_JOT_REACTIONS']}` 
                                         SET 
                                             `{$CNF['FIELD_REACT_JOT_ID']}` = :jot_id,
                                             `{$CNF['FIELD_REACT_NATIVE']}` = :native,
@@ -1808,7 +1951,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
     function deleteReaction($iJotId, $iProfileId, $sEmoji){
         $CNF = &$this->_oConfig->CNF;
-        return $this->query("DELETE FROM `{$CNF['TABLE_JOR_REACTIONS']}` 
+        return $this->query("DELETE FROM `{$CNF['TABLE_JOT_REACTIONS']}` 
                                         WHERE 
                                             `{$CNF['FIELD_REACT_JOT_ID']}` = :jot_id AND 
                                             `{$CNF['FIELD_REACT_PROFILE_ID']}` = :profile_id AND 
@@ -1822,7 +1965,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
     function deleteJotReactions($iJotId){
         $CNF = &$this->_oConfig->CNF;
-        return $this->query("DELETE FROM `{$CNF['TABLE_JOR_REACTIONS']}` 
+        return $this->query("DELETE FROM `{$CNF['TABLE_JOT_REACTIONS']}` 
                                         WHERE 
                                             `{$CNF['FIELD_REACT_JOT_ID']}` = :jot_id
                                         ", array(
@@ -1834,7 +1977,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
         $CNF = &$this->_oConfig->CNF;
         if ($sAction === BX_JOT_REACTION_ADD) {
            $sNative = $this->getOne("SELECT `{$CNF['FIELD_REACT_NATIVE']}` 
-                                                FROM `{$CNF['TABLE_JOR_REACTIONS']}` 
+                                                FROM `{$CNF['TABLE_JOT_REACTIONS']}` 
                                                 WHERE `{$CNF['FIELD_REACT_JOT_ID']}` = :jot_id LIMIT 1", array( 'jot_id' => $iJotId ));
             return $this-> addJotReaction($iJotId, $iProfileId, array('native' => $sNative, 'id' => $sEmojiId));
         }
@@ -1844,7 +1987,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
     function getJotReactions($iJotId){
         $CNF = &$this->_oConfig->CNF;
-        return $this->getAll("SELECT * FROM `{$CNF['TABLE_JOR_REACTIONS']}` 
+        return $this->getAll("SELECT * FROM `{$CNF['TABLE_JOT_REACTIONS']}` 
                                         WHERE 
                                             `{$CNF['FIELD_REACT_JOT_ID']}` = :jot_id
                                         ORDER BY `{$CNF['FIELD_REACT_ADDED']}`", array( 'jot_id' => $iJotId ));
@@ -2038,7 +2181,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
             return false;
 
         return $sField && isset($mixedOptions[$sField]) ?
-                    ( $sField !== $this->CNF['FLS_ICON'] ? @unserialize($mixedOptions[$sField]) : (int)$mixedOptions[$sField] ) : $mixedOptions;
+            ( $sField !== $this->CNF['FLS_ICON'] ? @unserialize($mixedOptions[$sField]) : (int)$mixedOptions[$sField] ) : $mixedOptions;
     }
 
     function getLotAttachmentType($sName){
@@ -2056,7 +2199,340 @@ class BxMessengerDb extends BxBaseModGeneralDb
                                             SET 
                                                 `{$this->CNF['FLSE_NAME']}`=:name, 
                                                 `{$this->CNF['FLAT_SERVICE']}`=:service",
-                                       array('name' => $aData['name'], 'service' => $sService));
+            array('name' => $aData['name'], 'service' => $sService));
+    }
+
+    function getGroup($iGroupId){
+        return $this->getRow("SELECT * FROM `{$this->CNF['TABLE_GROUPS']}` WHERE `{$this->CNF['FMG_ID']}`=:id LIMIT 1", array('id' => $iGroupId));
+    }
+
+    function addGroup($iProfileId, $aParams){
+        $aGroup = array();
+        if (isset($aParams[$this->CNF['FMG_ID']]))
+            $aGroup = $this->getGroup($aParams[$this->CNF['FMG_ID']]);
+
+        if (empty($aGroup))
+           return $this->query("INSERT INTO `{$this->CNF['TABLE_GROUPS']}` 
+                                                 SET `{$this->CNF['FMG_NAME']}` = :name, 
+                                                     `{$this->CNF['FMG_PRIVACY']}` = :privacy,
+                                                     `{$this->CNF['FMG_AUTHOR']}` = :author,
+                                                     `{$this->CNF['FMG_DESC']}` = :desc,
+                                                     `{$this->CNF['FMG_ADDED']}` = UNIX_TIMESTAMP()",
+                                                 array('name' => $aParams[$this->CNF['FMG_NAME']],
+                                                       'author' => $iProfileId,
+                                                       'desc' => $aParams[$this->CNF['FMG_DESC']],
+                                                       'privacy' => $aParams[$this->CNF['FMG_PRIVACY']]));
+
+
+        return $this->query("UPDATE `{$this->CNF['TABLE_GROUPS']}`
+                                                 SET `{$this->CNF['FMG_NAME']}` = :name, 
+                                                     `{$this->CNF['FMG_PRIVACY']}` = :privacy, 
+                                                     `{$this->CNF['FMG_DESC']}` = :desc
+                                       WHERE  `{$this->CNF['FMG_ID']}`=:id",
+                            array('name' => $aParams[$this->CNF['FMG_NAME']], 'desc' => $aParams[$this->CNF['FMG_DESC']], 'privacy' => $aParams[$this->CNF['FMG_PRIVACY']], 'id' => $aParams[$this->CNF['FMG_ID']]));
+    }
+
+    function getGroups($iProfileId = 0){
+        if ($iProfileId)
+            return $this->getAll("SELECT * FROM `{$this->CNF['TABLE_GROUPS']}` WHERE  `{$this->CNF['FMG_AUTHOR']}`=:profile", array('author' => $iProfileId));
+
+        return $this->getAll("SELECT * FROM `{$this->CNF['TABLE_GROUPS']}` ORDER BY {$this->CNF['FMG_NAME']}", array('author' => $iProfileId));
+    }
+
+    function addLotToGroup($iLotId, $iGroupId){
+        return $this->query("REPLACE INTO `{$this->CNF['TABLE_GROUPS_LOTS']}` 
+                                               SET `{$this->CNF['FMGL_LOT_ID']}`=:lot_id,
+                                                   `{$this->CNF['FMGL_GROUP_ID']}`=:group_id", array('group_id' => $iGroupId, 'lot_id' => $iLotId));
+    }
+
+    function saveJotItem($iJotId, $iProfileId){
+        return $this->query("REPLACE INTO `{$this->CNF['TABLE_SAVED_JOTS']}` 
+                                               SET  `{$this->CNF['FSJ_ID']}`=:jot_id,
+                                                    `{$this->CNF['FSJ_PROFILE_ID']}`=:profile_id", array('jot_id' => $iJotId, 'profile_id' => $iProfileId));
+    }
+
+    function deleteSavedJotItems($iJotId = 0, $iProfileId = 0){
+        if ($iJotId && $iProfileId)
+            return $this->query("DELETE FROM `{$this->CNF['TABLE_SAVED_JOTS']}` 
+                                           WHERE `{$this->CNF['FSJ_ID']}`=:jot_id AND `{$this->CNF['FSJ_PROFILE_ID']}`=:profile_id",
+                                           array('jot_id' => $iJotId, 'profile_id' => $iProfileId));
+
+        if ($iJotId)
+            $this->query("DELETE FROM `{$this->CNF['TABLE_SAVED_JOTS']}` 
+                                    WHERE `{$this->CNF['FSJ_ID']}`=:jot_id",
+                                    array('jot_id' => $iJotId));
+
+        return $iProfileId ? $this->query("DELETE FROM `{$this->CNF['TABLE_SAVED_JOTS']}` 
+                                           WHERE `{$this->CNF['FSJ_PROFILE_ID']}`=:profile_id",
+                array('profile_id' => $iProfileId)) : false;
+    }
+
+    function getSavedJots($iProfileId){
+        return $this->getAllWithKey("SELECT `m`.* FROM `{$this->CNF['TABLE_SAVED_JOTS']}` as `s`
+                                           LEFT JOIN `{$this->CNF['TABLE_MESSAGES']}` as `m` ON `s`.`{$this->CNF['FSJ_ID']}` = `m`.`{$this->CNF['FIELD_ID']}` 
+                                           FROM `{$this->CNF['FSJ_PROFILE_ID']}`=:profile_id", $this->CNF['FIELD_ID'], array('profile_id' => $iProfileId));
+    }
+
+    function getSavedJotInLots($iProfileId, $aParams){
+
+        $aWhere['start'] = isset($aParams['start']) ? (int)$aParams['start'] : 0;
+        $aWhere['per_page'] = isset($aParams['per_page']) ? (int)$aParams['per_page'] : (int)$this->CNF['MAX_LOTS_NUMBER'];
+        $sLimit = "LIMIT :start, :per_page";
+
+        return $this->getAll("SELECT `m`.`{$this->CNF['FIELD_MESSAGE_FK']}`,`l`.* FROM `{$this->CNF['TABLE_SAVED_JOTS']}` as `s`
+                                        LEFT JOIN `{$this->CNF['TABLE_MESSAGES']}` as `m` ON `s`.`{$this->CNF['FSJ_ID']}` = `m`.`{$this->CNF['FIELD_ID']}`
+                                        LEFT JOIN `{$this->CNF['TABLE_ENTRIES']}` as `l` ON `l`.`{$this->CNF['FIELD_ID']}` = `m`.`{$this->CNF['FIELD_MESSAGE_FK']}`
+                                        WHERE `{$this->CNF['FSJ_PROFILE_ID']}`=:profile_id 
+                                        GROUP BY `m`.`{$this->CNF['FIELD_MESSAGE_FK']}`
+                                        {$sLimit}", ['profile_id' => $iProfileId] + $aWhere);
+    }
+
+    public function getJotReplies($iLotId, $bCount = false){
+        $aWhere = array('id' => $iLotId);
+
+        if ($bCount)
+            return $this->getOne("SELECT COUNT(*) FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}`=:id", $aWhere);
+
+        return $this->getAll("SELECT * FROM `{$this->CNF['TABLE_MESSAGES']}` 
+                                WHERE `{$this->CNF['FIELD_MESSAGE_FK']}`=:id 
+                                ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}`
+                                ", $aWhere);
+    }
+
+   function getReactionsMentionsLots($iProfileId, $aParams){
+        $CNF = &$this->_oConfig->CNF;
+
+       $aWhere['start'] = isset($aParams['start']) ? (int)$aParams['start'] : 0;
+       $aWhere['per_page'] = isset($aParams['per_page']) ? (int)$aParams['per_page'] : (int)$this->CNF['MAX_LOTS_NUMBER'];
+       $sLimit = "LIMIT :start, :per_page";
+
+       $sUrl = BxDolProfile::getInstance($iProfileId)->getUrl();
+       $aWhere['parts'] = '(^|,)' . (int)$iProfileId . '(,|$)';
+
+       return $this->getAll("SELECT `m`.`{$CNF['FIELD_MESSAGE_FK']}`, `l`.* 
+               FROM `{$CNF['TABLE_MESSAGES']}` as `m`
+               LEFT JOIN `{$CNF['TABLE_ENTRIES']}` as `l` ON `l`.`{$CNF['FIELD_ID']}` = `m`.`{$CNF['FIELD_MESSAGE_FK']}`
+               LEFT JOIN `{$CNF['TABLE_JOT_REACTIONS']}` as `r` ON `m`.`{$CNF['FIELD_MESSAGE_ID']}` = `r`.`{$CNF['FIELD_REACT_JOT_ID']}`
+               WHERE ((`r`.`{$CNF['FIELD_REACT_JOT_ID']}` IS NOT NULL AND `m`.`{$CNF['FIELD_MESSAGE_AUTHOR']}`=:profile_id ) 
+                            OR `m`.`{$CNF['FIELD_MESSAGE']}` LIKE '\"%" . '/' . bx_ltrim_str($sUrl, BX_DOL_URL_ROOT) . "\"' ) AND 
+                            (`l`.`{$CNF['FIELD_PARTICIPANTS']}` REGEXP :parts OR `l`.`{$CNF['FIELD_AUTHOR']}`=:profile_id)
+                                    GROUP BY `m`.`{$CNF['FIELD_MESSAGE_FK']}`
+                                    {$sLimit}", ['profile_id' => $iProfileId] + $aWhere);
+   }
+
+    function getLotsWithReplies($iProfileId, $aParams = []){
+        $CNF = &$this->_oConfig->CNF;
+
+        $aWhere['start'] = isset($aParams['start']) ? (int)$aParams['start'] : 0;
+        $aWhere['per_page'] = isset($aParams['per_page']) ? (int)$aParams['per_page'] : (int)$this->CNF['MAX_LOTS_NUMBER'];
+        $sLimit = "LIMIT :start, :per_page";
+        return $this->getAll("SELECT `m`.`{$CNF['FIELD_MESSAGE_FK']}`, `l`.*
+                                    FROM `{$this->CNF['TABLE_MESSAGES']}` as `m` 
+                                    LEFT JOIN `{$this->CNF['TABLE_ENTRIES']}` as `l` ON `l`.`{$this->CNF['FIELD_ID']}` = `m`.`{$this->CNF['FIELD_MESSAGE_FK']}`
+                                    LEFT JOIN `{$CNF['TABLE_MESSAGES']}` as `r` ON `r`.`{$CNF['FIELD_MESSAGE_ID']}` = `m`.`{$CNF['FIELD_MESSAGE_REPLY']}`
+                                    WHERE `r`.`{$CNF['FIELD_MESSAGE_AUTHOR']}`=:profile_id AND `m`.`{$CNF['FIELD_MESSAGE_REPLY']}` <> 0
+                                    GROUP BY `m`.`{$CNF['FIELD_MESSAGE_FK']}`
+                                    {$sLimit}", ['profile_id' => $iProfileId] + $aWhere);
+    }
+
+   function registerGroup($sUrl, $iLotId, $bForce = false){
+	    parse_str($sUrl, $aUrl);
+		if (!empty($aUrl) && isset($aUrl['i'])) {
+            $oPage = BxDolPage::getObjectInstanceByModuleAndURI(BX_IM_EMPTY_URL, $aUrl['i']);
+
+            if (!$oPage && !$bForce)
+                return false;
+
+            $sModule = '';
+            $sTitle = _t('_bx_messenger_page_unknown');
+            $iAuthor = $iProfileId = 0;
+            $iPrivacy = BX_DOL_PG_ALL;
+            if ($oPage && ($aPageInfo = $oPage->getObject()) && ($sModule = $oPage->getModule()) && ($oModule = BxDolModule::getInstance($sModule))) {
+                $CNF = &$oModule->_oConfig->CNF;
+                $sTitle = _t($aPageInfo['title']);
+                $iAuthor = $aPageInfo['author'];
+                if (isset($aUrl['id']) && !empty($oModule) && ($aResult = bx_srv($sModule, 'get_info', array($aUrl['id'], false)))) {                    
+                    $sTitle = $aResult[$CNF['FIELD_TITLE']];
+                    $iAuthor = $aResult[$CNF['FIELD_AUTHOR']];
+                    $iProfileId = isset($aResult['profile_id']) ? $aResult['profile_id'] : 0;
+                    $iPrivacy = isset($aResult[$CNF['FIELD_ALLOW_VIEW_TO']]);
+                }
+            }
+
+            if ($this->query("INSERT INTO `{$this->CNF['TABLE_GROUPS']}`
+                                                 SET `{$this->CNF['FMG_NAME']}` = :name, 
+                                                     `{$this->CNF['FMG_PRIVACY']}` = :privacy,
+                                                     `{$this->CNF['FMG_AUTHOR']}` = :author,
+                                                     `{$this->CNF['FMG_URL']}` = :url,
+                                                     `{$this->CNF['FMG_MODULE']}` = :module,
+                                                     `{$this->CNF['FMG_PROFILE_ID']}` =:profile_id,
+                                                     `{$this->CNF['FMG_ADDED']}` = UNIX_TIMESTAMP()",
+                    array('name' => $sTitle,
+                        'author' => $iAuthor,
+                        'url' => $sUrl,
+                        'module' => in_array($sModule, $this->CNF['ADD-TO-PAGES-AREA'][BX_MSG_TALK_TYPE_PAGES]) ? BX_MSG_TALK_TYPE_PAGES : $sModule,
+                        'profile_id' => $iProfileId,
+                        'privacy' => $iPrivacy)))
+
+                    return $this->addLotToGroup($iLotId, $this->lastId());
+            }
+
+
+		return false;
+   }
+
+   function getMyLotsByGroups($iProfileId, $bCount = false){
+       $aWhere = array('profile' => (int)$iProfileId, 'parts' => '(^|,)' . (int)$iProfileId . '(,|$)');
+
+       if ($bCount)
+           $sCount = "SQL_CALC_FOUND_ROWS";
+
+       $aGroups = $this-> getAll("SELECT 
+                                            `l`.*, `g`.`{$this->CNF['FMG_PROFILE_ID']}`,`g`.`{$this->CNF['FMG_MODULE']}`, `g`.`{$this->CNF['FMG_NAME']}`, `gl`.`{$this->CNF['FMGL_GROUP_ID']}`, 
+                                             IF (`l`.`{$this->CNF['FIELD_UPDATED']}` = 0, `l`.`{$this->CNF['FIELD_ADDED']}`, `l`.`{$this->CNF['FIELD_UPDATED']}`) as `order`,
+                                             IF (`l`.`{$this->CNF['FIELD_URL']}` = '', `g`.`{$this->CNF['FMG_URL']}`, `l`.`{$this->CNF['FIELD_URL']}`) as `gurl`,
+                                             `un`.`{$this->CNF['FIELD_NEW_UNREAD']}` as `unread`
+                                             FROM `{$this->CNF['TABLE_ENTRIES']}` as `l`                                                 
+                                             LEFT JOIN `{$this->CNF['TABLE_NEW_MESSAGES']}` as `un` ON `l`.`{$this->CNF['FIELD_ID']}` = `un`.`{$this->CNF['FIELD_NEW_LOT']}` AND `un`.`{$this->CNF['FIELD_NEW_PROFILE']}`=:profile 
+                                             LEFT JOIN `{$this->CNF['TABLE_GROUPS_LOTS']}` as `gl` ON `gl`.`{$this->CNF['FMGL_LOT_ID']}` = `l`.`{$this->CNF['FIELD_ID']}`
+                                             LEFT JOIN `{$this->CNF['TABLE_GROUPS']}` as `g` ON `g`.`{$this->CNF['FMG_ID']}` = `gl`.`{$this->CNF['FMGL_GROUP_ID']}`
+                                             WHERE (`l`.`{$this->CNF['FIELD_PARTICIPANTS']}` REGEXP :parts OR `l`.`{$this->CNF['FIELD_AUTHOR']}`=:profile) AND `gl`.`{$this->CNF['FMGL_GROUP_ID']}` IS NOT NULL
+                                             ORDER BY `g`.`{$this->CNF['FMG_MODULE']}`", $aWhere);
+
+      // print_r($aGroups);
+       $aResult = array();
+	   $sModule = '';
+       foreach($aGroups as &$aGroup){
+           if (!isset($aGroup[$this->CNF['FMG_MODULE']]))
+               continue;
+
+           if ($aGroup[$this->CNF['FMG_MODULE']] != $sModule)
+			   $sModule = $aGroup[$this->CNF['FMG_MODULE']];
+
+		   if (!isset($aResult[$sModule][$aGroup[$this->CNF['FMGL_GROUP_ID']]])){
+				$aResult[$sModule][$aGroup[$this->CNF['FMGL_GROUP_ID']]] =[
+					$this->CNF['FMG_NAME'] => $aGroup[$this->CNF['FMG_NAME']],
+					$this->CNF['FMG_ID'] => $aGroup[$this->CNF['FMG_PROFILE_ID']], // group profile id of the module
+                    $this->CNF['FMGL_GROUP_ID'] => $aGroup[$this->CNF['FMGL_GROUP_ID']],
+                    $this->CNF['FMG_URL'] => $aGroup['gurl']
+				];
+		   }
+
+		   // fill each groups with existed talks in it group
+		   $aResult[$sModule][$aGroup[$this->CNF['FMGL_GROUP_ID']]][$this->CNF['GROUPS_ITEMS_FIELD']][] = [
+				$this->CNF['FIELD_ADDED'] => $aGroup[$this->CNF['FIELD_ADDED']],
+				$this->CNF['FIELD_AUTHOR'] => $aGroup[$this->CNF['FIELD_AUTHOR']],
+				$this->CNF['FIELD_TITLE'] => $aGroup[$this->CNF['FIELD_TITLE']],
+				$this->CNF['FIELD_PARTICIPANTS'] => $aGroup[$this->CNF['FIELD_PARTICIPANTS']],
+				$this->CNF['FIELD_ID'] => $aGroup[$this->CNF['FIELD_ID']],
+				$this->CNF['FMG_URL'] => $aGroup[$this->CNF['FIELD_URL']]
+				//$this->CNF['FMG_PROFILE_ID'] => $aGroup[$this->CNF['FMG_PROFILE_ID']],
+		   ];
+       }
+
+	   return $aResult;
+   }
+   
+   function getGroupIdByLotId($iLotId){
+	    return $this->getOne("SELECT `{$this->CNF['FMGL_GROUP_ID']}` 
+							FROM `{$this->CNF['TABLE_GROUPS_LOTS']}`								
+							WHERE `{$this->CNF['FMGL_LOT_ID']}`=:id", array('id' => $iLotId));
+   }
+   
+   function getTalksByGroupId($iGroupId){
+	    return $this->getAllWithKey("SELECT `l`.* 
+								            FROM `{$this->CNF['TABLE_GROUPS_LOTS']}` as `gl` 
+								            LEFT JOIN `{$this->CNF['TABLE_ENTRIES']}` as `l` ON `gl`.`{$this->CNF['FMGL_LOT_ID']}` = `l`.`{$this->CNF['FIELD_ID']}`
+								            WHERE `gl`.`{$this->CNF['FMGL_GROUP_ID']}`=:id AND `l`.`id` IS NOT NULL
+								            ", $this->CNF['FIELD_ID'], array('id' => $iGroupId));
+   }
+
+   function getGroupById($iGroupId){
+        return $this->getRow("SELECT *  
+							FROM `{$this->CNF['TABLE_GROUPS']}`								
+							WHERE `{$this->CNF['FMG_ID']}`=:id LIMIT 1", array('id' => $iGroupId));
+   }
+
+    function getGroupByUrl($sUrl){
+        return $this->getRow("SELECT *  
+                                                        FROM `{$this->CNF['TABLE_GROUPS']}`								
+                                                        WHERE `{$this->CNF['FMG_URL']}`=:url LIMIT 1", array('url' => $sUrl));
+    }
+
+   function getLotType($iLotId){
+       $aInfo = $this->getLotInfoById($iLotId);
+
+       if (empty($aInfo))
+           return false;
+
+       if ($aInfo[$this->CNF['FMGL_GROUP_ID']]){
+           $aGroupInfo = $this->getGroup($aInfo[$this->CNF['FMGL_GROUP_ID']]);
+           return [
+                     'group_id' => $aInfo[$this->CNF['FMGL_GROUP_ID']],
+                     'type' => BX_MSG_TALK_TYPE_GROUPS,
+                     'groups_type' => $aGroupInfo[$this->CNF['FMG_MODULE']]
+                  ];
+       }
+
+       if ((int)$aInfo[$this->CNF['FIELD_PARENT_JOT']])
+           return [ 'type' => BX_MSG_TALK_TYPE_THREADS ];
+
+       if ($aInfo[$this->CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
+           return [ 'type' => BX_MSG_TALK_TYPE_DIRECT ];
+
+       return false;
+   }
+
+   function getUnreadMessagesStat($iProfileId){
+       $aItems = $this->getLotsWithUnreadMessages($iProfileId);
+
+       $aResult = [];
+       if (empty($aItems))
+           return $aResult;
+
+       foreach($aItems as $iLotId => $iCount){
+           if (!($aType = $this->getLotType($iLotId)))
+               continue;
+
+           if (isset($aType['group_id']))
+               $aResult['groups'][$aType['groups_type']][$aType['group_id']][$iLotId] = $iCount;
+           else
+               $aResult[$aType['type']][$iLotId] = $iCount;
+       }
+
+       return array_merge($aResult, [BX_MSG_TALK_TYPE_INBOX => count($aItems)]);
+   }
+
+   function addMediaTrack($iFileId, $iProfileId){
+       return $this->query("REPLACE INTO `{$this->CNF['TABLE_JOTS_MEDIA_TRACKER']}`					
+							       SET `{$this->CNF['FJMT_FILE_ID']}`=:id, 
+                                       `{$this->CNF['FJMT_USER_ID']}`=:user_id", ['id' => $iFileId, 'user_id' => $iProfileId]);
+   }
+
+    function isFileCollapsed($iFileId, $iProfileId){
+        return $this->getOne("SELECT COUNT(*) FROM `{$this->CNF['TABLE_JOTS_MEDIA_TRACKER']}`					
+							        WHERE `{$this->CNF['FJMT_FILE_ID']}`=:id AND `{$this->CNF['FJMT_USER_ID']}`=:user_id",
+                                    ['id' => $iFileId, 'user_id' => $iProfileId]);
+    }
+
+    function removeMediaTracker($iFileId=0, $iProfileId=0){
+       if (!$iFileId && !$iProfileId)
+           return false;
+
+       $aWhereParams = $aWhere = [];
+       if ($iFileId) {
+           $aWhere[] = "`{$this->CNF['FJMT_FILE_ID']}`=:id";
+           $aWhereParams['id'] = $iFileId;
+       }
+
+        if ($iProfileId) {
+           $aWhere[] = "`{$this->CNF['FJMT_USER_ID']}`=:user_id";
+           $aWhereParams['user_id'] = $iProfileId;
+        }
+
+        $sWhere = implode(' AND ', $aWhere);
+        return $this->query("DELETE FROM `{$this->CNF['TABLE_JOTS_MEDIA_TRACKER']}`					
+							       WHERE {$sWhere}", $aWhereParams);
     }
 }
 

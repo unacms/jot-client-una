@@ -1,5 +1,5 @@
 .bx-messenger-info-section-block {
-    @apply overflow-hidden h-full flex flex-col;
+    @apply overflow-hidden h-full;
 }
 
 .bx-messenger-info-section-block-content {

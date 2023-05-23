@@ -22,7 +22,6 @@
     @apply truncate;
 }
 
-/*.bx-messenger-block .bx-db-header i,*/
 .bx-messenger-block-menu-align-right i
 {
     @apply text-[1.25rem] leading-6;

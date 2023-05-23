@@ -18,3 +18,11 @@
 .bx-messenger-table-wrapper {
     @apply min-h-[30rem] flex h-full w-full relative flex-col bg-inherit;
 }
+
+#bx-messenger-files-uploader {
+    @apply max-w-[80%];
+}
+
+#lot-settings .bx-popup-close-wrapper {
+    @apply hidden;
+}

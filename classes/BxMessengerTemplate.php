@@ -542,50 +542,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 		return $sCode;
 	}
 
-	/*function getEditTalkArea($iProfileId, $iLotId = BX_IM_EMPTY, $aProfiles = array(), $bAllowToSave = true){
-       $aParticipants = array();
-       $aParticipantsList = $iLotId ? $this->_oDb->getParticipantsList($iLotId, true, $iProfileId) : $aProfiles;
-       foreach ($aParticipantsList as $iParticipant)
-            if ($oProfile = $this->getObjectUser($iParticipant)) {
-                $sThumb = $oProfile->getThumb();
-                $bThumb = stripos($sThumb, 'no-picture') === FALSE;
-                $sDisplayName = $oProfile->getDisplayName();
-
-                $aParticipants[] = array(
-                    'thumb' => $oProfile->getThumb(),
-                    'name' => $oProfile->getDisplayName(),
-                    'id' => $oProfile->id(),
-                    'bx_if:avatars' => array(
-                        'condition' => $bThumb,
-                        'content' => array(
-                            'name' => $sDisplayName,
-                            'thumb' => $sThumb,
-                        )
-                    ),
-                    'bx_if:letters' => array(
-                        'condition' => !$bThumb,
-                        'content' => array(
-                            'color' => implode(', ', BxDolTemplate::getColorCode($iParticipant, 1.0)),
-                            'letter' => mb_substr($sDisplayName, 0, 1)
-                        )
-                    )
-                );
-       }
-
-	   $aVars = array(
-                    'bx_repeat:participants_list' => $aParticipants,
-                    'bx_if:edit_mode' =>
-                        array(
-                            'condition' => $bAllowToSave,
-                            'content' => array(
-                                'lot' => $iLotId,
-                            )
-                        ),
-       );
-
-	   return $this->parseHtmlByName('talk_edit_participants_list.html', $aVars);
-    }*/
-
     function getProfileItem($iProfileId){
         $oProfile = $this -> getObjectUser($iProfileId);
 
@@ -2229,7 +2185,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             'attachment' => isset($aAttachment[BX_ATT_GROUPS_ATTACH]) ? $aAttachment[BX_ATT_GROUPS_ATTACH] : ''
 		);
 		
-		return $this -> parseHtmlByName('hidden_jot.html',  $aVars);
+		return $this -> parseHtmlByName('hidden-jot.html',  $aVars);
 	}
 
 	/**
@@ -2566,15 +2522,9 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
 	public function getNavGroupsMenu($iProfileId){
         $CNF = $this->_oConfig->CNF;
-        //$oPrivacy = BxDolPrivacy::getObjectInstance($CNF['OBJECT_PRIVACY_GROUPS']);
 
         $aGroupsList = $this->_oDb->getMyLotsByGroups($iProfileId);
         $aResultGroups = array();
-
-        /*$aResultGroups['bx_repeat:groups'][0] = array(
-            'module' => _t('_bx_messenger_left_menu_item_pages'),
-            'module_type' => 'pages',
-        );*/
 
         $i = 0;
         foreach($aGroupsList as $sModule => $aGroups){
@@ -2597,39 +2547,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
         return $this -> parseHtmlByName('nav-groups-menu.html', $aResultGroups);
     }
-	
-    /*
-		In case if we need to create special groups with privacy
-	
-	public function getNavGroupsMenu($iProfileId){
-        $CNF = $this->_oConfig->CNF;
-        $oPrivacy = BxDolPrivacy::getObjectInstance($CNF['OBJECT_PRIVACY_GROUPS']);
-
-		$aGroups = $this->_oDb->getGroups();
-        $aResultGroups = array();
-        foreach($aGroups as &$aGroup){
-            if (!($oPrivacy->check($aGroup[$CNF['FMG_ID']], $iProfileId) || $aGroup[$CNF['FMG_AUTHOR']] == $iProfileId))
-                continue;
-
-            $aResultGroups[] = array(
-                'id' => $aGroup[$CNF['FMG_ID']],
-                'title' => $aGroup[$CNF['FMG_NAME']],
-                'js_code' => $CNF['JSMessengerLib']
-            );
-        }
-
-        $bAllowCreateGroups = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_GROUPS, $iProfileId);
-        $this->addJs('messenger-public-lib.js');
-        return $this -> parseHtmlByName('nav-groups-menu.html', array(
-            'bx_if:groups' => array(
-                'condition' => $bAllowCreateGroups === true,
-                'content' => array(
-                    'js_code' => $CNF['JSMessengerLib']
-                )
-            ),
-            'bx_repeat:groups' => $aResultGroups
-        ));
-    }*/
 
     public function getLeftMainMenu($iProfileId){
         $CNF = &$this->_oConfig->CNF;
@@ -2716,166 +2633,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
         return BxTemplFunctions::getInstance()->popupBox('groups-form', _t('_bx_messenger_groups_create_form_title'), $sContent);
     }
-
-    /*function getJotView($iProfileId, $iJotId){
-        $CNF = &$this->_oConfig->CNF;
-        $aJot = $this->_oDb->getJotById($iJotId);
-        $iLotId = (int)$aJot[$CNF['FIELD_MESSAGE_FK']];
-        $oProfile = $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);
-        $iJot = $aJot[$CNF['FIELD_MESSAGE_ID']];
-
-        $aVars = array();
-        if ($oProfile) {
-            $sReply = $sAttachment = $sMessage = '';
-            $bIsTrash = (int)$aJot[$CNF['FIELD_MESSAGE_TRASH']];
-            $iIsVC = (int)$aJot[$CNF['FIELD_MESSAGE_VIDEOC']];
-            $bIsLotAuthor = $this->_oDb->isAuthor($iLotId, $iProfileId);
-            $isAllowedDelete = $this->_oDb->isAllowedToDeleteJot($aJot[$CNF['FIELD_MESSAGE_ID']], $iProfileId, $aJot[$CNF['FIELD_MESSAGE_AUTHOR']], $aJot[$CNF['FIELD_MESSAGE_FK']]);
-
-            if ($bIsTrash || ($iIsVC && !$aJot[$CNF['FIELD_MESSAGE']]))
-                $sMessage = $this->getMessageIcons($aJot[$CNF['FIELD_MESSAGE_ID']], $bIsTrash ? 'delete' : 'vc', isAdmin() || $bIsLotAuthor);
-            else {
-                $sMessage = $this->_oConfig->bx_linkify($aJot[$CNF['FIELD_MESSAGE']]);
-                if (!empty($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']])){
-                    if ($aJot[$CNF['FIELD_MESSAGE_AT_TYPE']] !== BX_ATT_TYPE_REPLY)
-                        $sAttachment = $this->getAttachment($aJot);
-                    else
-                        $sReply = $this->getAttachment($aJot);
-                }
-            }
-
-            $sActionIcon = '';
-            $sDisplayName = $oProfile->getDisplayName();
-            if (!$bIsTrash) {
-                if ($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']])
-                    $sActionIcon = $this->parseHtmlByName('edit_icon.html',
-                        array(
-                            'edit' => _t('_bx_messenger_edit_by',
-                                bx_process_output($aJot[$CNF['FIELD_MESSAGE_LAST_EDIT']], BX_DATA_DATETIME_TS),
-                                $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']])->getDisplayName()),
-                        )
-                    );
-                else
-                    if ($iIsVC && $aJot[$CNF['FIELD_MESSAGE']]) {
-                        $aJVCItem = $this->_oDb->getJVCItem($iIsVC);
-                        $sActionIcon = $this->parseHtmlByName('vc_icon.html',
-                            array(
-                                'info' => _t('_bx_messenger_jitsi_vc_into_title', $sDisplayName->getDisplayName(), bx_process_output($aJVCItem[$CNF['FJVCT_START']], BX_DATA_DATETIME_TS))
-                            )
-                        );
-                    }
-            }
-
-            $sThumb = $oProfile->getThumb();
-            $bThumb = stripos($sThumb, 'no-picture') === FALSE;
-
-            $sReactions = $this->getJotReactions($iJot);
-            $aVars['bx_repeat:jots'][] = array(
-                'bx_if:time-separator' => array(
-                    'condition' => false,
-                    'content' => array(
-                        'date' => '',
-                    )
-                ),
-                'new' => 0,
-                'id' => $aJot[$CNF['FIELD_MESSAGE_ID']],
-                'my' => (int)$iProfileId === (int)$aJot[$CNF['FIELD_MESSAGE_AUTHOR']] ? 1 : 0,
-                'bx_if:show_author' => array(
-                    'condition' => true,
-                    'content' => array(
-                        'url' => $oProfile->getUrl(),
-                        'bx_if:avatars' => array(
-                            'condition' => true,
-                            'content' => array(
-                                'thumb' => $sThumb,
-                                'title' => $sDisplayName,
-                            )
-                        ),
-                        'bx_if:letters' => array(
-                            'condition' => !$bThumb,
-                            'content' => array(
-                                'color' => implode(', ', BxDolTemplate::getColorCode($oProfile->id(), 1.0)),
-                                'letter' => mb_substr($sDisplayName, 0, 1)
-                            )
-                        ),
-                    )
-                ),
-                'bx_if:show_title' => array(
-                    'condition' => true,
-                    'content' => array(
-                        'title' => $sDisplayName,
-                    )
-                ),
-                'message' => $sMessage,
-                'attachment' => $sAttachment,
-                'reply' => $sReply,
-                'icons' => $this->parseHtmlByName('jot-icons.html', array(
-                    'time' => bx_time_js(time(), BX_FORMAT_TIME, true),
-                    'views' => '',
-                )),
-                'view_in_chat' => '',
-                'message_class' => 'hidden',
-                'bx_if:jot_menu' => array(
-                    'condition' => false,
-                    'content' => array(
-                        'jot_menu' => $this->getJotMenuCode($iJotId)
-                    )
-                ),
-                'thread_replies' => '',//$this->getThreadReply($iJot),
-                'bx_if:show_reactions_area' => array(
-                    'condition' => !$bIsTrash,
-                    'content' => array(
-                        'bx_if:reactions' => array(
-                            'condition' => true,
-                            'content' => array(
-                                'reactions' => $sReactions,
-                                'bx_if:reactions_menu' => array(
-                                    'condition' => $iProfileId,
-                                    'content' => array(
-                                        'display' => $sReactions ? 'block' : 'none',
-                                    )
-                                ),
-                            )
-                        ),
-                        'bx_if:edit' => array(
-                            'condition' => $isAllowedDelete,
-                            'content' => array()
-                        ),
-                    )
-                ),
-                'display' => '',
-                'bx_if:blink-jot' => array(
-                    'condition' => false,
-                    'content' => array()
-                ),
-                'display_message' => '',
-                /*'edit_icon' => $aJot[$CNF['FIELD_MESSAGE_EDIT_BY']] && !$bIsTrash ?
-                    $this->parseHtmlByName('edit_icon.html',
-                        array(
-                            'edit' => _t('_bx_messenger_edit_by',
-                                bx_process_output($aJot[$CNF['FIELD_MESSAGE_LAST_EDIT']], BX_DATA_DATETIME_TS),
-                                $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']])->getDisplayName()),
-                        )
-                    ) : '',*//*
-                'action_icon' => $sActionIcon
-            );
-        }
-
-        return $this->parseHtmlByName('jots.html',  $aVars);
-	}*/
-
-    /*function getThreadsPanel($iJotId, $iProfileId){
-        $CNF = &$this->_oConfig->CNF;
-	    $aLotInfo = $this->_oDb->getLotByParentId($iJotId);
-		$iLotId = !empty($aLotInfo) ? $aLotInfo[$CNF['FIELD_ID']] : 0;		
-	    return $this->parseHtmlByName('threads-panel.html', array(
-	        'replies' => $this->_oDb->getJotReplies($iLotId, true),
-			'id' => $iJotId,
-			'main_jot' => $this->getJotView($iProfileId, $iJotId),
-            'history' => $this->getThreadsHistory($iProfileId, $iLotId),
-            'text_area' => $this->getTextArea($iProfileId, $iLotId, true)
-        ));
-    }*/
 
     function getTalksList($iLotId){
         $CNF = &$this->_oConfig->CNF;

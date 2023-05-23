@@ -31,7 +31,12 @@ function* generator(files) {
                     console.log(file + ' was removed');
             });
         else
-            return runCommand(`npm run compile${sCommand && ':' + sCommand} --FILE=${file}`);
+        {
+            if (file === 'tailwind-messenger.css')
+                return runCommand(`npm run tailwind`);
+            else
+                return runCommand(`npm run compile${sCommand ? ':' + sCommand : ''} --FILE=${file}`);
+        }
     });
 }
 

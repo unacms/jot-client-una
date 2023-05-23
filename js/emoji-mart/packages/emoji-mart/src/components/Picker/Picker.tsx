@@ -195,7 +195,13 @@ export default class Picker extends Component {
   }
 
   initTheme(theme) {
-    if (theme != 'auto') return theme
+    if (theme != 'auto')
+      return theme;
+
+    const sTheme = localStorage.getItem("theme");
+    if (sTheme !== null)
+        return sTheme == 'sun' ? 'light' : 'dark';
+
 
     if (!this.darkMedia) {
       this.darkMedia = matchMedia('(prefers-color-scheme: dark)')
@@ -824,6 +830,7 @@ export default class Picker extends Component {
           <div class="search relative flex-grow bx-messenger-emoji-picker-search">
             <input
               type="search"
+              className="bx-def-font-inputs bx-form-input-text"
               ref={this.refs.searchInput}
               placeholder={I18n.search}
               onClick={this.handleSearchClick}

@@ -77,13 +77,6 @@
     transition-all duration-150 transform-gpu;
 }
 
-/*.bx-messenger-block-history-panel.md:col-span-3 .bx-messenger-post-box-send-button > button,
-.bx-messenger-block-history-panel.col-span-3 .bx-messenger-post-box-send-button > button,
-.bx-messenger-block-history-panel.col-span-4 .bx-messenger-post-box-send-button > button,
-.bx-messenger-block-history-panel.col-span-5 .bx-messenger-post-box-send-button > button {
-    @apply hidden p-1;
-}*/
-
 .bx-messenger-block-history-panel.col-span-6 .bx-messenger-post-box-send-button > button span {
     @apply hidden;
 }

@@ -10,10 +10,10 @@ window.oMessengerEmoji = (function($){
 
            if ($(emojiComponent).is(':visible') && !$(e.target).closest(`${sendEmojiButton},${reactionButton},${jotMenu}`).length)
                $(emojiComponent).hide();
-   }};
+   }, theme: 'buk'};
 
-   const { tableWrapper } = window.oMessengerSelectors.HISTORY;
-   const { emojiPopup, emojiComponent } = window.oMessengerSelectors.EMOJI;
+   const { tableWrapper } = window.oMessengerSelectors.HISTORY,
+         { emojiPopup, emojiComponent } = window.oMessengerSelectors.EMOJI;
 
    $.fn.attacheEmoji = function(fCallback){
         const _this = this;
@@ -29,7 +29,10 @@ window.oMessengerEmoji = (function($){
            if ($(emojiComponent).length)
                return false;
 
-           if (typeof oOptions['lang'] !== 'undefined' && oOptions['lang'] !== 'en')
+           if (typeof oOptions['lang'] === 'undefined')
+               oOptions['lang'] = 'en';
+
+           if (oOptions['lang'] !== 'en')
                oPickerOptions.i18n = async () => (await fetch(`modules/boonex/messenger/js/emoji/data/i18n/${oOptions['lang']}.json`)).json();
 
            if (typeof oOptions['set'] !== 'undefined')
@@ -41,7 +44,7 @@ window.oMessengerEmoji = (function($){
                    return oOptions['onEmojiSelect'](oEmoji);
                };
 
-           $.extend(oPickerOptions, { skinTonePosition: 'none', previewPosition: oOptions['preview'] === 'undefined' || !oOptions['preview'] ? 'none' : 'bottom' });
+           $.extend(oPickerOptions, { locale: oOptions['lang'], skinTonePosition: 'none', previewPosition: oOptions['preview'] === 'undefined' || !oOptions['preview'] ? 'none' : 'bottom' });
 
            bx_get_scripts(['modules/boonex/messenger/js/emoji/emoji.min.js'], () => {
                if (oPicker === null && typeof EmojiMart !== 'undefined') {

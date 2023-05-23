@@ -4,7 +4,7 @@
   "description": "",
   "main": "tailwind.config.js",
   "scripts": {
-    "tailwind": "npm run compile --FILE=tailwind-messenger -- --content=\"../../mobile-menu-button.html,../../left-nav-menu.html,../../main.html,../../lots-briefs.html,../../../js/nav-menu.js\"",
+    "tailwind": "npm run compile:minify --FILE=tailwind-messenger.css -- --content=\"../../mobile-menu-button.html,../../left-nav-menu.html,../../main.html,../../lots-briefs.html,../../../js/nav-menu.js\"",
     "compile": "npx tailwindcss -i ./components/%npm_config_file% -o ../%npm_config_file%",
     "compile:minify": "npx tailwindcss -i ./components/%npm_config_file% -o ../%npm_config_file% --minify",
     "build": "node compile.js ./components",

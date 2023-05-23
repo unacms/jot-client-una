@@ -43,10 +43,11 @@
                 talkItem: '.bx-messenger-jots-snip',
                 talkItemInfo: '.bx-messenger-jots-snip-info',
                 talkItemBubble: '.bx-messenger-jots-snip-info-bubble',
-                talksListItems: '.bx-messenger-items-list .bx-messenger-jots-snip',
+                talksListItems: '{talksList} .bx-messenger-jots-snip',
                 panel: 'panel',
                 active: 'active',
                 unreadLot: 'unread-lot',
+                talkStatus:'.bx-messenger-status',
                 searchCriteria: '#bx-messenger-filter-talks',
                 searchInput: '#bx-messenger-search-block',
                 inboxAreaTitle: '#bx-messenger-inbox-area-title',
@@ -87,7 +88,8 @@
                 sendButton: '.bx-messenger-post-box-send-button > a,.bx-messenger-post-box-send-button > button',
                 replyArea: '.bx-messenger-reply-area',
                 replyAreaMessage: '.bx-messenger-reply-area-message',
-                sendAreaActionsButtons: '.bx-messenger-post-box-send-actions'
+                sendAreaActionsButtons: '.bx-messenger-post-box-send-actions',
+                textAreaDisabled: 'bx-messenger-post-box-disabled'
             };
 
             this.HISTORY_INFO = {
@@ -115,7 +117,8 @@
                 jotAvatar: '.bx-messenger-jots-avatars',
                 jotAreaInfo: '.bx-messenger-jots-info',
                 jotMessageBody: '.bx-messenger-jots-message-body',
-                jotDelete:'bx-messenger-jots-message-deleted'
+                jotDeleted:'.bx-messenger-jots-message-deleted',
+                jotHidden:'.bx-messenger-hidden-jot'
             };
 
             this.ATTACHMENTS = {

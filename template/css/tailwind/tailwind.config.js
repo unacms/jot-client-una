@@ -1,7 +1,6 @@
 module.exports = {
-  content: ['../../*.html', '../../../js/*.js'],
-  //presets: [require('../../../../../../plugins_public/tailwind/js/tailwind.config.js')],
-  safelist: ['md:col-span-2', 'md:col-span-3', 'md:col-span-4', 'md:col-span-5'],
+  presets: [require('../../../../../../plugins_public/tailwind/js/tailwind.config.js')],
+  safelist: ['md:col-span-3'],
   theme: {
       extend: {
           colors: {
@@ -16,7 +15,4 @@ module.exports = {
           }
       },
   },
-  plugins: [
-    require('@tailwindcss/typography'),
-  ],
 }

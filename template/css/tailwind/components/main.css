@@ -240,10 +240,6 @@ div.bx-messenger-uploading-form-buttons{
     margin: 0.5rem;
 }
 
-#bx-messenger-send-area-plus {
-    display: none;
-}
-
 .bx-messenger-options-buttons {
     display: flex;
     justify-content: space-between;

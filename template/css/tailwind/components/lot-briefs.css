@@ -26,24 +26,25 @@
     @apply bg-blue-600 hover:bg-blue-600;
 }
 
-.bx-messenger-jots-snip.active .bx-messenger-jots-snip-title .title {
-    @apply text-white;
-}
-
-.bx-messenger-jots-snip.active .bx-messenger-preview-lot {
-    @apply text-gray-200;
-}
-
-.bx-messenger-jots-snip.active .bx-messenger-preview-lot {
-    @apply text-gray-200;
-}
-
 .bx-messenger-jots-snip .bx-messenger-jots-snip-info {
     @apply text-gray-600 dark:text-gray-400 w-full space-x-1 space-x-reverse flex items-center text-xs;
 }
 
-.bx-messenger-jots-snip.active .bx-messenger-jots-snip-info {
+.bx-messenger-jots-snip.active .bx-messenger-jots-snip-title .title,
+.bx-messenger-jots-snip.active .bx-messenger-jots-snip-info{
     @apply text-white;
+}
+
+.bx-messenger-jots-snip.active .bx-messenger-preview-lot {
+    @apply text-gray-200;
+}
+
+.bx-messenger-jots-snip.active .bx-messenger-jots-snip-info-bubble {
+    @apply bg-white/95;
+}
+
+.bx-messenger-jots-snip.unread-lot .bx-messenger-jots-snip-info {
+    @apply font-bold;
 }
 
 .bx-messenger-jots-snip .bx-messenger-jots-snip-info-bubble {

@@ -4,9 +4,10 @@
 
 .bx-messenger-conversation-block
 {
-    @apply overflow-y-auto relative h-full min-h-[50px] snap-y touch-pan-y overflow-x-hidden;
+    @apply overflow-y-auto relative h-full min-h-[50px] overflow-x-hidden scroll-smooth;
     -webkit-overflow-scrolling: touch;
     scrollbar-width:none;
+    /*snap-y touch-pan-y*/
 }
 
 .bx-messenger-conversation-block-history {

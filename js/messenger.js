@@ -44,7 +44,6 @@
 		this.sSearchScrollArea = '.bx-messenger-area-scroll-search';
 		this.sSelectedJot = '.bx-messenger-blink-jot';
 		this.sTmpVideoFile = '.bx-messenger-attachment-temp-video';
-		this.sJotMessageViews = '.view';
 		this.sReactionItem = '.bx-messenger-reaction';
 		this.sReactionMenu = '.bx-messenger-reactions-menu';
 		this.sBottomGroupsArea = '.bx-messenger-attachment-group';
@@ -1648,18 +1647,14 @@
 	oMessenger.prototype.selectLotEmit = function(oBlock){
 		const { active, talkItemBubble, unreadLot, talkItemInfo } = window.oMessengerSelectors.TALKS_LIST;
 
-		oBlock.addClass(active)
+		oBlock
+			.addClass(active)
+			.removeClass(unreadLot)
 			.siblings()
 			.removeClass(active)
 			.end()
 			.find(talkItemBubble)
 			.addClass('hidden');
-			/*.find(talkItemInfo)
-			.removeClass(unreadLot);
-			.find('> div')
-			.removeClass('bx-def-font-semibold')
-			.find('div')
-			.removeClass('bx-def-font-extrabold')*/;
 	}
 	
 	/**
@@ -1674,7 +1669,7 @@
 
 		let iUnreadLotsCount = oNewLots.length;
 
-		if (iUnreadLotsCount === 1 && iLot === iCurrentLot && (!this.isMobile()))
+		if (iUnreadLotsCount === 1 && iLot === iCurrentLot && (!oMUtils.isMobile()))
 			iUnreadLotsCount = 0;
 
 		this.notifyNewUnreadChats(iUnreadLotsCount);
@@ -2396,19 +2391,17 @@
 	oMessenger.prototype.upLotsPosition = function(oObject, bSilentMode = false){
 		const _this = this,
 			{ lot , addon, lot_id } = oObject,
-			{  talksListItems, talksList, topItem, talkItem } = window.oMessengerSelectors.TALKS_LIST;
+			{  talksListItems, talksList, topItem, talkItem } = window.oMessengerSelectors.TALKS_LIST,
+			{  msgContainer } = window.oMessengerSelectors.SYSTEM;
 
 		if (this.iThreadId)
 			return;
 
-		let	oLot = $('div[data-lot=' + lot + ']');
-		let	oNewLot = undefined;
+		let	oLot = $('[data-lot=' + lot + ']');
 		if (addon === 'remove_lot' && oLot.length) {
 			oLot.fadeOut().remove();
 			if ($(talksListItems).length)
 				$(talksListItems).first().click();
-			/*else
-				_this.createLot();*/
 
 			return;
 		}
@@ -2419,14 +2412,12 @@
 		$.get('modules/?r=messenger/update_lot_brief', { lot_id: lot },
 				function({ html, code, muted, params })
 				{
-					let	oLot = $('[data-lot=' + lot + ']');
 					if (+code)
 						return ;
 
 					if (typeof params !== 'undefined' && lot !== _this.oSettings.lot){
 						const { type, groups_type, group_id } = params;
 						if ( type !== _this.oSettings.area_type){
-							//_this.updateNotification( lot, params );
 							$(_this).updateMenuBubbles( lot, params );
 
 							if (_this.oSettings.area_type !== 'inbox')
@@ -2436,18 +2427,17 @@
 							if (_this.oSettings.area_type === 'groups' && type === 'groups'){
 								if ($(`li[data-group-id="${group_id}"]`).closest(`li.bx-menu-item-${groups_type}`).length)
 									$(_this).updateMenuBubbles( lot, params );
-									//_this.updateNotification(lot, params);
 
 								if ( +group_id !== +_this.oSettings.group_id )
 									return;
 							}
 					}
 
-					const sHtml = html.replace(new RegExp(_this.sJotUrl + '\\d+', 'i'), _t('_bx_messenger_repost_message'));
-					oNewLot = $(sHtml).css('display', 'flex');
+					const sHtml = html.replace(new RegExp(_this.sJotUrl + '\\d+', 'i'), _t('_bx_messenger_repost_message')),
+						oNewLot = $(sHtml).css('display', 'flex');
 
-					if ($('.bx-msg-box-container', talksList).length)
-						$('.bx-msg-box-container', talksList).remove();
+					if ($(msgContainer, talksList).length)
+						$(msgContainer, talksList).remove();
 
 						const sFunc = () =>	{
 												const oUpdatedLot = $(oNewLot).bxMsgTime().fadeIn('slow');
@@ -2458,7 +2448,7 @@
 													$('> ul', talksList)
 														.prepend(oUpdatedLot);
 
-												_this.oMenu.toggleMenuItem(`${talkItem}[data-lot="${lot}"]`);
+												//_this.oMenu.toggleMenuItem(`${talkItem}[data-lot="${lot}"]`);
 												_this.updatePageIcon();
 
 											};
@@ -2471,7 +2461,6 @@
 								sFunc();
 
 					_this.setUsersStatuses(oLot);
-
 					if (typeof addon === 'undefined' || typeof addon === 'object') /* only for new messages */
 					{
 						if (!bSilentMode && !muted)
@@ -2631,9 +2620,11 @@
 		}
 
 		if (sEffect !== 'slow') {
-			$(talkBlock).scrollTop(iPosition);
-			if (typeof fCallback === 'function')
-				fCallback ();
+			setTimeout(() => {
+				$(talkBlock).scrollTop(iPosition);
+				if (typeof fCallback === 'function')
+					fCallback();
+			}, 0);
 		}
 		else
 			$(talkBlock).animate({
@@ -2686,7 +2677,7 @@
 	oMessenger.prototype.updateJots = function(oAction, bSilentMode = false){
 		const _this = this,
 			{ talkBlock, conversationBody } = window.oMessengerSelectors.HISTORY,
-			{ talkListJotSelector, jotMain, jotMessage } = window.oMessengerSelectors.JOT,
+			{ talkListJotSelector, jotMain, jotMessage, jotMessageView } = window.oMessengerSelectors.JOT,
 			{ addon, position, action, last_viewed_jot, callback, jot_id } = oAction;
 
 		let sAction = typeof addon === 'string' ? addon : (action !== 'msg' ? action : 'new'),
@@ -2722,7 +2713,7 @@
 				break;
 			case 'new':
 				iRequestJot = (typeof addon === 'object' && typeof addon.jot_id !== 'undefined' ? addon.jot_id : 0);
-				if (!$(talkListJotSelector).length)
+				if (!oObjects.length)
 					sAction = 'all';
 
 			default:
@@ -2785,16 +2776,16 @@
 							    oContent
 									.filter(jotMain)
 									.each(
-										function () {
+										function() {
 											if ($('div[data-id="' + $(this).data('id') + '"]', oList).length)
 												return;
 
-											$(`${_this.sJotMessageViews} img`, this)
-												.each(function () {
-													$(`${jotMain} ${_this.sJotMessageViews} img[data-viewer-id="${$(this).data('viewer-id')}"]`).remove()
+											$(`${jotMessageView} img`, this)
+												.each(function() {
+													$(`${jotMain} ${jotMessageView} img[data-viewer-id="${$(this).data('viewer-id')}"]`).remove()
 												})
 												.end()
-												.closest(_this.sJotMessageViews)
+												.closest(jotMessageView)
 												.fadeIn();
 
 											aContent.push($(this));
@@ -2803,7 +2794,7 @@
 							if(aContent.length) {
 								$(oList)
 									.append(aContent)
-									.waitForImages(() => _this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'fast', oObjects.last()))
+									.waitForImages(() => _this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'fast', $(conversationBody).last()))
 									.bxProcessHtml();
 
 
@@ -2825,13 +2816,13 @@
 									.bxProcessHtml()
 									.filter(jotMain)
 									.each(function(){
-										$(`${_this.sJotMessageViews} img`, this)
+										$(`${jotMessageView} img`, this)
 											.each(function(){
-												if ($(`${jotMain} ${_this.sJotMessageViews} img[data-viewer-id="${$(this).data('viewer-id')}"]`).length)
+												if ($(`${jotMain} ${jotMessageView} img[data-viewer-id="${$(this).data('viewer-id')}"]`).length)
 													$(this).remove();
 											})
 											.end()
-											.closest(_this.sJotMessageViews)
+											.closest(jotMessageView)
 											.fadeIn();
 									}))
 								.waitForImages(oParent => {
@@ -2887,10 +2878,10 @@
 							if (aUsers.length) {
     						    aUsers.each(function(){
 									let iProfileId = $(this).data('viewer-id');
-									$(`${jotMain} ${_this.sJotMessageViews} img[data-viewer-id="${iProfileId}"]`).remove();
+									$(`${jotMain} ${jotMessageView} img[data-viewer-id="${iProfileId}"]`).remove();
 								});
 
-								return $(`div[data-id="${iJotId}"] ${_this.sJotMessageViews}`, oList)
+								return $(`div[data-id="${iJotId}"] ${jotMessageView}`, oList)
 									.html(html)
 									.fadeIn();
 							}

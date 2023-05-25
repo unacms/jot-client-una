@@ -53,9 +53,6 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_lots` (
    PRIMARY KEY  (`id`)
 );
 
-INSERT INTO `bx_messenger_groups_lots` (`lot_id`, `group_id`) VALUES
-(1, 1);
-
 CREATE TABLE IF NOT EXISTS `bx_messenger_attachments` (
   `name` varchar(50) NOT NULL default '',
   `service` varchar(255) NOT NULL,
@@ -229,7 +226,8 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_groups_lots` (
     UNIQUE KEY (`lot_id`, `group_id`)
 );
 
-
+INSERT INTO `bx_messenger_groups_lots` (`lot_id`, `group_id`) VALUES
+(1, 1);
 
 CREATE TABLE IF NOT EXISTS `bx_messenger_saved_jots` (
     `jot_id` int(11) NOT NULL default 0,

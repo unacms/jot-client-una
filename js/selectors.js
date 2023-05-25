@@ -118,7 +118,8 @@
                 jotAreaInfo: '.bx-messenger-jots-info',
                 jotMessageBody: '.bx-messenger-jots-message-body',
                 jotDeleted:'.bx-messenger-jots-message-deleted',
-                jotHidden:'.bx-messenger-hidden-jot'
+                jotHidden:'.bx-messenger-hidden-jot',
+                jotMessageView: '.view'
             };
 
             this.ATTACHMENTS = {

@@ -21,26 +21,40 @@ async function runCommand(command) {
     return stdout;
 }
 
-function* generator(files) {
-    yield files.forEach((file) => {
-        if (sCommand === 'remove')
-            return fs.unlink('../' + file, function(err){
-                if (err)
-                    console.log(file + ' doesn\'t exists');
-                else
-                    console.log(file + ' was removed');
-            });
-        else
-        {
-            if (file === 'tailwind-messenger.css')
-                return runCommand(`npm run tailwind`);
+function processFile(file){
+    if (sCommand === 'remove')
+        return fs.unlink('../' + file, function(err){
+            if (err)
+                console.log(file + ' doesn\'t exists');
             else
-                return runCommand(`npm run compile${sCommand ? ':' + sCommand : ''} --FILE=${file}`);
-        }
-    });
+                console.log(file + ' was removed');
+        });
+    else
+    {
+        if (file === 'tailwind-messenger.css')
+            return runCommand(`npm run tailwind`);
+        else
+            return runCommand(`npx tailwindcss -i ./components/${file} -o ../${file} ${sCommand ? '--' + sCommand.toLowerCase() : ''}`);
+    }
 }
 
-fs.readdir(sFiles, (err, files) => {
-    const main = generator(files);
-    while(!main.next().done);
-});
+function* generator(files) {
+    yield files.forEach((file) => processFile(file));
+}
+
+try {
+    if (fs.lstatSync(sFiles).isDirectory())
+        fs.readdir(sFiles, (err, files) => {
+            const main = generator(files);
+            while (!main.next().done) ;
+        });
+}
+  catch(e)
+{
+    if(e.code === 'ENOENT'){
+        if (fs.lstatSync('./components/' + sFiles).isFile())
+            processFile(sFiles);
+    }else {
+        console.log(e.toString());
+    }
+}

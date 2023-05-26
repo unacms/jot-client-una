@@ -6,10 +6,11 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "yarn workspace emoji-mart build && yarn build:dataset",
+    "build": "yarn workspace emoji-mart build && yarn build:dataset && yarn remove:config",
     "build:dataset": "mkdirp ../emoji/data/set && cp -R ./packages/emoji-mart-data/i18n ../emoji/data/ && cp -R ./packages/emoji-mart-data/sets/14/* ../emoji/data/set/",
     "build:data": "yarn workspace @emoji-mart/data build",
-    "clear": "rm -rf ../emoji ./packages/emoji-mart/node_modules ./packages/emoji-mart/.parcel-cache ./packages/emoji-mart/package-lock.json ./packages/emoji-mart/yarn.lock ./node_modules .parcel-cache package-lock.json yarn.lock",
+    "remove:config": "rm -rf ./packages/emoji-mart/.parcel-cache ./packages/emoji-mart/package-lock.json ./packages/emoji-mart/yarn.lock .parcel-cache package-lock.json yarn.lock ./packages/emoji-mart/node_modules ./node_modules",
+    "clear": "rm -rf ../emoji && yarn remove:config",
     "check:types": "tsc",
     "prettier": "prettier --check .",
     "prettier:fix": "prettier --write .",

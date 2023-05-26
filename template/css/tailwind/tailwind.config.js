@@ -1,5 +1,5 @@
 module.exports = {
-  presets: [require('../../../../../../plugins_public/tailwind/js/tailwind.config.js')],
+  presets: [require('./parent.config.js')],
   safelist: ['md:col-span-3'],
   theme: {
       extend: {
@@ -14,8 +14,5 @@ module.exports = {
               'xs': '480px'
           }
       },
-  },
-  plugins: [
-      require('@tailwindcss/typography')
-  ]
+  }
 }

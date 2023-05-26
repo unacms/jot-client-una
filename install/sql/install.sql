@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_attachments` (
 );
 
 INSERT INTO `bx_messenger_lots` (`id`, `title`, `url`, `type`, `created`, `author`, `participants`, `class`) VALUES
-(1, '_bx_messenger_lots_class_my_members', '', , UNIX_TIMESTAMP(), 0, '', 'members');
+(1, '_bx_messenger_lots_class_my_members', '', 3, UNIX_TIMESTAMP(), 0, '', 'members');
 
 CREATE TABLE IF NOT EXISTS `bx_messenger_lots_types` (
    `id` int(11) NOT NULL auto_increment,

@@ -174,8 +174,14 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if ($this->_iJotId && ($iLotId = $this->_oDb->getLotByJotId($this->_iJotId)))
             return $this->_oTemplate->getTalkBlock($this->_iProfileId, $iLotId, $this->_iJotId);
 
-        $aLotsList = $this->_oDb->getMyLots($this->_iProfileId, array('inbox' => true));        
-        return $this->_oTemplate->getTalkBlock($this->_iProfileId, current($aLotsList)[$CNF['FIELD_ID']]);
+        $iLotId = BX_IM_EMPTY;
+        if ($aLotsList = $this->_oDb->getMyLots($this->_iProfileId, array('inbox' => true))) {
+            $aLot = current($aLotsList);
+            if (isset($aLot[$CNF['FIELD_ID']]))
+                $iLotId = $aLot[$CNF['FIELD_ID']];
+        }
+
+        return $this->_oTemplate->getTalkBlock($this->_iProfileId, $iLotId);
     }
 
     /**
@@ -675,22 +681,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
         } else
             $iLotId = $aLotInfo[$CNF['FIELD_ID']];
 
-        /*$sHeader = $this->_oTemplate->getTalkHeader($this->_iProfileId, $iLotId);
-        $sHistory = $this->_oTemplate->getHistoryArea(['profile_id' => $this->_iProfileId, 'lot' => $iLotId]);
-        $sTextArea = $this->_oTemplate->getTextArea($this->_iProfileId, $iLotId);
-        $sJotPreview = $this->_oTemplate->getJotView($this->_iProfileId, $iJotId);
-        if ($sJotPreview)
-            $sTopArea = $this->_oTemplate->getHistoryTopArea($sJotPreview);
-
-        $aVars = [
-                    'code' => 0,
-                    'lot' => $iLotId,
-                    'header' => $sHeader,
-                    'top_area'=> $sTopArea,
-                    'history' => $sHistory,
-                    'text_area' => $sTextArea
-                ];*/
-
         echoJson(['code' => 0, 'lot' => $iLotId]);
     }
 
@@ -830,49 +820,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 continue;
 
             $aProfiles[] = $aValue['value'];
-            /*if (!($oProfile = BxDolProfile::getInstance($aValue['value'])))
-                continue;*/
-
-            /*$aProfileInfo = $oProfile->getInfo();
-            $aProfileInfoDetails = BxDolService::call($aProfileInfo['type'], 'get_content_info_by_id', array($aProfileInfo['content_id']));
-            $oAccountInfo = BxDolAccount::getInstance($aProfileInfo['account_id']);
-
-            $sThumb = $oProfile->getThumb();
-            $bThumb = stripos($sThumb, 'no-picture') === FALSE;
-            $sDisplayName = $oProfile->getDisplayName();
-
-            if (!empty($aProfileInfoDetails) && !empty($oAccountInfo)) {
-                $aProfiles['bx_repeat:profiles'][] = array(
-                    'bx_if:avatars' => array(
-                        'condition' => $bThumb,
-                        'content' => array(
-                            'title' => $sDisplayName,
-                            'thumb' => $sThumb,
-                        )
-                    ),
-                    'bx_if:letters' => array(
-                        'condition' => !$bThumb,
-                        'content' => array(
-                            'color' => implode(', ', BxDolTemplate::getColorCode($aValue['value'], 1.0)),
-                            'letter' => mb_substr($sDisplayName, 0, 1)
-                        )
-                    ),
-                    'type' => _t($aProfileInfo['type']),
-                    'name' => $sDisplayName,
-                    'icon' => $bThumb ? $sThumb : '',
-                    'color' => implode(', ', BxDolTemplate::getColorCode($aValue['value'], 1.0)),
-                    'letter' => mb_substr($sDisplayName, 0, 1),
-                    'id' => $oProfile->id(),
-                    'profile_url' => $oProfile->getUrl(),
-                    'description' => _t('_bx_messenger_search_desc',
-                        bx_process_output($oAccountInfo->getInfo()['logged'], BX_DATA_DATE_TS),
-                        bx_process_output($aProfileInfoDetails['added'], BX_DATA_DATE_TS))
-                );
-            }
-        }
-
-        if (!empty($aProfiles))
-            $aResult['content'] = $this->_oTemplate->parseHtmlByName('profiles-list.html', $aProfiles);*/
         }
 
         if (!empty($aProfiles))

@@ -70,9 +70,6 @@ window.oMUtils = (function($) {
                 }, 'json');
             },
             onCreateGroup: (iGroupId) => $.post('modules/?r=messenger/get_create_group_form', { group: iGroupId }, (oData) => processJsonData(oData), 'json'),
-            /*onSelectGroup: function(oElement, iGroupId){
-                oMessenger.loadTalksList(oElement, { group: 'groups', id: iGroupId });
-            },*/
             toggleList: function(oObject){
                 const oDropDown =$(oObject).next();
                 return !oDropDown.is(':visible') ? oDropDown.fadeIn() : oDropDown.fadeOut();

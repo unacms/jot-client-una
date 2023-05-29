@@ -79,9 +79,7 @@ INSERT INTO `sys_objects_page`(`object`, `title_system`, `title`, `module`, `lay
 ('bx_messenger_main', '_bx_messenger_page_title_sys_main', '_bx_messenger_page_title_main', @sName, 5, 2147483647, 1, 'messenger', 'page.php?i=messenger', '', '', '', 0, 1, 0, 'BxMessengerPageMain', 'modules/boonex/messenger/classes/BxMessengerPageMain.php', 0);
 
 INSERT INTO `sys_pages_blocks`(`object`, `cell_id`, `module`, `title`, `designbox_id`, `visible_for_levels`, `type`, `content`, `deletable`, `copyable`, `order`) VALUES 
-('bx_messenger_main', 0, @sName, '_bx_messenger_page_inbox_block_title', 0, 2147483647, 'service', 'a:3:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:15:"get_block_inbox";s:6:"params";a:1:{i:0;s:2:"{}";}}', 0, 0, 0),
-('bx_messenger_main', 0, @sName, '_bx_messenger_page_conversation_block_title', 0, 2147483647, 'service', 'a:3:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:13:"get_block_lot";s:6:"params";a:1:{i:0;s:2:"{}";}}', 0, 0, 0),
-('bx_messenger_main', 1, @sName, '_bx_messenger_page_main_messenger_block', 0, 2147483647, 'service', 'a:3:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:23:"get_main_messenger_page";s:6:"params";a:1:{i:0;s:2:"{}";}}', 0, 0, 0);
+('bx_messenger_main', 1, @sName, '_bx_messenger_page_main_messenger_block', 0, 2147483647, 'service', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:23:"get_main_messenger_page";}', 0, 0, 0);
 
 -- PAGES: add page block to profiles modules (trigger* page objects are processed separately upon modules enable/disable)
 SET @iPBCellProfile = 2;

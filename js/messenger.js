@@ -3533,10 +3533,8 @@
 					_oMessenger.oRTWSF = undefined;
 				};
 
-			} else {
+			} else
 				console.log('Real-time frameworks was not initialized');
-				return false;
-			}
 
 			/* Init sockets settings end */
 

@@ -284,11 +284,6 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'MAX_JOTS_BY_DEFAULT' => (int)getParam($aModule['db_prefix'] . 'max_jot_number_default'),
             'MAX_JOTS_LOAD_HISTORY' => (int)getParam($aModule['db_prefix'] . 'max_jot_number_in_history'),
             'MAX_LOTS_NUMBER' => (int)getParam($aModule['db_prefix'] . 'max_lots_number'),
-            'IS_PUSH_ENABLED' => getParam($aModule['db_prefix'] . 'is_push_enabled') == 'on',
-            'PUSH_APP_ID' => getParam('sys_push_app_id') ? getParam('sys_push_app_id') : getParam($aModule['db_prefix'] . 'push_app_id'),
-            'PUSH_REST_API' => getParam('sys_push_rest_api') ? getParam('sys_push_rest_api') : getParam($aModule['db_prefix'] . 'push_rest_api'),
-            'PUSH_SAFARI_WEB_ID' => getParam('sys_push_safari_id') ? getParam('sys_push_safari_id') : getParam($aModule['db_prefix'] . 'push_safari_id'),
-            'PUSH_SHORT_NAME' => getParam('sys_push_short_name') ? getParam('sys_push_short_name') : getParam($aModule['db_prefix'] . 'push_short_name'),
             'SERVER_URL' => getParam($aModule['db_prefix'] . 'server_url'),
             'MAX_FILES_TO_UPLOAD' => (int)getParam($aModule['db_prefix'] . 'max_files_send'),
             'MAX_VIDEO_LENGTH'	=> (int)getParam($aModule['db_prefix'] . 'max_video_length_minutes'),
@@ -491,10 +486,6 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
         }
 
 	    return BxDolPermalinks::getInstance()->permalink(str_replace('{link}', $sUrl, $this->CNF['URL_TEMPLATE']));
-    }
-
-    public function isOneSignalEnabled(){
-	    return $this->CNF['IS_PUSH_ENABLED'] && $this->CNF['PUSH_APP_ID'] && $this->CNF['PUSH_REST_API'];
     }
 
     public function getGiphyGifs($sAction = 'trending', $sValue = '', $iStart = 0){

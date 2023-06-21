@@ -33,9 +33,6 @@
 	<string name="_bx_messenger_menu_notifications_item_title"><![CDATA[Болталка]]></string>
 	<string name="_bx_messenger_name_place_holder"><![CDATA[Напишите имя тут...]]></string>
 	<string name="_bx_messenger_typing_message"><![CDATA[пишет сообщение...]]></string>
-	<string name="_bx_messenger_is_push_enabled"><![CDATA[Активировать OneSignal пуш нотификацию(Использовать настройки сайта для пуш нотификации, если они заданы)]]></string>
-	<string name="_bx_messenger_push_app_id"><![CDATA[OneSignal App ID]]></string>
-	<string name="_bx_messenger_push_rest_api"><![CDATA[REST API Key]]></string>
 	<string name="_bx_messenger_linked_title"><![CDATA[Страница: {0}]]></string>
 	<string name="_bx_messenger_lots_type_public"><![CDATA[Общие]]></string>
 	<string name="_bx_messenger_lots_type_private"><![CDATA[Личные]]></string>
@@ -70,8 +67,6 @@
 	<string name="_bx_messenger_menu_new_chat_action_title"><![CDATA[Сообщение]]></string>
 	<string name="_bx_messenger_home_page_all_members_block"><![CDATA[Кричалка]]></string>
 	<string name="_bx_messenger_friends_page_all_friends_block"><![CDATA[Разговор друзей]]></string>
-	<string name="_bx_messenger_push_short_name"><![CDATA[Короткое имя (требуется только если у вас https сайт. Оно должно совпадать с поддоменом, введёным, в настройках пуш оповещений на OneSignal)]]></string>
-	<string name="_bx_messenger_push_safari_id"><![CDATA[Apple Safari Web ID в натрокйах Web Push]]></string>
 	<string name="_bx_messenger_notification_request"><![CDATA[Вы не хотели бы получать оповещение о новых сообщениях?]]></string>
 	<string name="_bx_messenger_notification_request_yes"><![CDATA[Да]]></string>
 	<string name="_bx_messenger_notification_request_no"><![CDATA[Нет, спасибо]]></string>

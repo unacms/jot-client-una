@@ -593,7 +593,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         $sContent = '';
         $sProfilesList = $this->getProfilesListWithDesign($iLotId, $mixedProfiles);
         if ($this->_oConfig->CNF['SHOW-FRIENDS'] && ($aFriends = $this->getFriendsList()))
-          $sContent = $this->getFriendsList();//$this->parseHtmlByName('profiles-list.html', $aFriends);
+          $sContent = $this->parseHtmlByName('profiles-list.html', $aFriends);
         else
           $sContent = MsgBox(_t('_bx_messenger_empty_users_list'));
 
@@ -693,7 +693,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 		{
             $aVars = array();
 		    $aParticipantsList = $this -> _oDb -> getParticipantsList($aLot[$CNF['FIELD_ID']], true, $iProfileId);
-			
 			$iParticipantsCount = count($aParticipantsList);
 			$aParticipantsList = $iParticipantsCount ? array_slice($aParticipantsList, 0, $CNF['PARAM_ICONS_NUMBER']) : array($iProfileId);
 
@@ -745,8 +744,10 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         'content' => array()
                     )
                 );
-            } else {
-                $oAuthor = $this -> getObjectUser($aLot[$CNF['FIELD_AUTHOR']]);
+            }
+            else
+            {
+                $oAuthor = $iParticipantsCount == 1 ? $this->getObjectUser(current($aParticipantsList)) : $this->getObjectUser($aLot[$CNF['FIELD_AUTHOR']]);
                 $sThumb = $oAuthor->getThumb();
                 $bThumb = stripos($sThumb, 'no-picture') === FALSE;
                 $sTitle = $oAuthor->getDisplayName();
@@ -771,7 +772,9 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
 			$aNickNames = array();
             $oProfile = null;
-			foreach($aParticipantsList as $iParticipant){
+
+            $aLastAnsweredParticipants = $this->_oDb->getLatestJotsAuthors($aLot[$CNF['FIELD_ID']]);
+			foreach($aLastAnsweredParticipants as $iParticipant){
 				$oProfile = $this -> getObjectUser($iParticipant);
                 if ($oProfile) {
                     $sThumb = $oProfile->getThumb();
@@ -859,20 +862,14 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         $sMessage = _t('_bx_messenger_lots_menu_video_conf_start');
                 }
 
-				//$aVars[$CNF['FIELD_MESSAGE']] = $sMessage;
 				if ($oSender = $this -> getObjectUser($aLatestJots[$CNF['FIELD_MESSAGE_AUTHOR']]))
 				{
 					$aVars['sender_username'] = $oSender -> id() == $iProfileId ? _t('_bx_messenger_you_username_title') : $oSender -> getDisplayName();
-                   // $aVars['talk_type'] = $aVars['sender_username'];
-					//$aVars['sender_username'] .= ':';
                     $sModuleIcon = $sModuleIcon ? $sModuleIcon : $oSender -> getIcon();
 				}
 				
 				$iTime = bx_is_api() ? $aLatestJots[$CNF['FIELD_MESSAGE_ADDED']] : bx_time_js($aLatestJots[$CNF['FIELD_MESSAGE_ADDED']], BX_FORMAT_DATE);
 			}
-
-            //if ($bIsGroupTalk && $sGroupName)
-                //$aVars[$CNF['FIELD_MESSAGE']] = $sGroupName;
 
 			$iUnreadJotsCount = $this->_oDb->getNewJots($iProfileId, $aLot[$CNF['FIELD_ID']], true);
 
@@ -1410,16 +1407,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 ))
             )),
 			'jot_template' => $this->getMembersJotTemplate($iProfileId),
-			'jot_url' => $this->_oConfig->getRepostUrl(),
-			'bx_if:onsignal' => array(
-										'condition'	=> $bIsPushEnabled,
-										'content' => array(
-											'one_signal_api' => $CNF['PUSH_APP_ID'],
-											'short_name' => $CNF['PUSH_SHORT_NAME'],
-											'safari_key' => $CNF['PUSH_SAFARI_WEB_ID'],
-											'jot_chat_page_url' => BxDolPermalinks::getInstance()->permalink($CNF['URL_HOME'])
-										)
-									)
+			'jot_url' => $this->_oConfig->getRepostUrl()
 		);
 
         // init files Uploader
@@ -1435,23 +1423,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
               'number_of_files' => (int)$this->_oConfig->CNF['MAX_FILES_TO_UPLOAD'],
               'is_block_version' => +$bBlockVersion
             ));
-        }
-
-
-		if ($bIsPushEnabled) {
-		    if(class_exists('BxDolPush', false) && method_exists('BxDolPush', 'getTags')){
-                $aTags = BxDolPush::getTags($iProfileId);
-		        $aPushTags = array(
-                    'email' => $aTags['email'],
-                    'email_hash' => $aTags['email_hash'],
-                    'push_tags_encoded' => json_encode($aTags));
-            } else
-                $aPushTags = array('email' => '', 'email_hash' => '', 'push_tags_encoded' => json_encode(array('user' => $iProfileId)));
-
-            unset($aPushTags['email']);
-            unset($aPushTags['email_hash']);
-            unset($aPushTags['email_hash']);
-            $aVars['bx_if:onsignal']['content'] = array_merge($aVars['bx_if:onsignal']['content'], $aPushTags);
         }
 
 		return $this -> parseHtmlByName('config.html', $aVars);

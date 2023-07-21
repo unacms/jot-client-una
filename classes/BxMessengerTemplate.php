@@ -266,7 +266,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	    $CNF = &$this->_oConfig->CNF;
 
         $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_JOT_MENU']);
-        //$oMenu->setContentId($iJotId);
+        $oMenu->setContentId($iJotId);
 
         foreach($CNF['JOT-MENU-TO-SHOW'] as &$sName)
             $aItems['bx_repeat:items'][] = $oMenu->getMenuItemByName($sName);
@@ -1342,7 +1342,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             $iGroupId = (int)$aLotInfo[$CNF['FMGL_GROUP_ID']] ? (int)$aLotInfo[$CNF['FMGL_GROUP_ID']] : 0;
         };
 
-        $bIsPushEnabled = (int)$iProfileId && $this->_oConfig->isOneSignalEnabled() && !getParam('sys_push_app_id');
         $aUnreadJotsInfo = $this->_oDb->getNewJots($iProfileId, $iLotId);
 
         $iUnreadJotsNumber = $iLastUnreadJot = 0;

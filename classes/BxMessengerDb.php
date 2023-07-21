@@ -892,7 +892,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	/**
 	* Get the latest posted jot(message)
 	*@param int $iLotId lot id
-	*@param int $iProfileId if not specified the just latest jot of any member
+	*@param int $iProfileId if not specified then just latest jot of any member
 	*@param boolean $bNotTrash don't show trash message
 	*@return array with jot info
 	*/
@@ -915,6 +915,24 @@ class BxMessengerDb extends BxBaseModGeneralDb
 			ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}` DESC
 			LIMIT 1", $aWhere);
 	}
+
+    public function getLatestJotsAuthors($iLotId, $iExcludeProfileId = 0, $iLimit = 3){
+        $sWhere = '';
+        $aWhere = ['lot' => $iLotId, 'limit' => $iLimit];
+
+        if ($iExcludeProfileId)
+        {
+            $sWhere = " AND `{$this->CNF['FIELD_MESSAGE_ID']}` != :profile";
+            $aWhere['profile'] = (int)$iExcludeProfileId;
+        }
+
+        return $this -> getPairs("SELECT `{$this->CNF['FIELD_MESSAGE_AUTHOR']}`, MAX(`{$this->CNF['FIELD_MESSAGE_ADDED']}`) as `{$this->CNF['FIELD_MESSAGE_ADDED']}`
+			FROM `{$this->CNF['TABLE_MESSAGES']}`
+			WHERE  `{$this->CNF['FIELD_MESSAGE_FK']}` = :lot {$sWhere}
+            GROUP BY `{$this->CNF['FIELD_MESSAGE_AUTHOR']}`   
+			ORDER BY `{$this->CNF['FIELD_MESSAGE_ADDED']}` DESC
+			LIMIT :limit", $this->CNF['FIELD_MESSAGE_ADDED'], $this->CNF['FIELD_MESSAGE_AUTHOR'], $aWhere);
+    }
 	
 	/**
 	* Get jot(message) by id
@@ -1669,7 +1687,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
         if (!$iProfileId)
             $iProfileId = bx_get_logged_profile_id();
 
-        $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_MESSAGES, $iProfileId);
+        $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_DELETE_MESSAGES, $iProfileId);
         if ($mixedResult === true)
             return true;
 
@@ -1684,6 +1702,23 @@ class BxMessengerDb extends BxBaseModGeneralDb
             $bIsLotAuthor = $iLotAuthorId == $iProfileId;
 
         return ($this->CNF['ALLOW_TO_REMOVE_MESSAGE'] && $iJotAuthor == $iProfileId) || ($this->CNF['ALLOW_TO_MODERATE_MESSAGE_FOR_AUTHORS'] && $bIsLotAuthor);
+    }
+
+
+    public function isAllowedToEditJot($iJotId, $iProfileId){
+       if (!$iJotId || !($aJot = $this->getJotById($iJotId)))
+            return false;
+
+        $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_EDIT_MESSAGES, $iProfileId);
+        if ($mixedResult === true)
+            return true;
+
+        $iJotAuthor = $aJot[$this->CNF['FIELD_MESSAGE_AUTHOR']];
+
+        $iLotId = $aJot[$this->CNF['FIELD_MESSAGE_FK']];
+        $bIsLotAuthor = $this->isAuthor($iLotId, $iProfileId);
+
+        return ($this->CNF['ALLOW_TO_REMOVE_MESSAGE'] && +$iJotAuthor === +$iProfileId) || ($this->CNF['ALLOW_TO_MODERATE_MESSAGE_FOR_AUTHORS'] && $bIsLotAuthor);
     }
 
     function createJVC($iLotId, $iProfileId){

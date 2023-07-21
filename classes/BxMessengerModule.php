@@ -44,7 +44,8 @@ define('BX_MSG_NTFS_MESSAGE', 'message');
 define('BX_MSG_NTFS_MENTION', 'mention');
 
 // Membership actions
-define('BX_MSG_ACTION_ADMINISTRATE_MESSAGES', 'administrate_messages');
+define('BX_MSG_ACTION_EDIT_MESSAGES', 'edit_messages');
+define('BX_MSG_ACTION_DELETE_MESSAGES', 'delete_messages');
 define('BX_MSG_ACTION_CREATE_TALKS', 'create_talks');
 define('BX_MSG_ACTION_ADMINISTRATE_TALKS', 'administrate_talks');
 define('BX_MSG_ACTION_SEND_MESSAGE', 'send_messages');
@@ -1542,7 +1543,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $aResult = array('code' => 1);
         $aJotInfo = $this->_oDb->getJotById($iJotId);
 
-        $mixedResult = $this->_oDb->isAllowedToDeleteJot($iJotId, $this->_iProfileId);
+        $mixedResult = $this->oDb->isAllowedToEditJot($iJotId, $this->_iProfileId);
         if (empty($aJotInfo) || $mixedResult !== true)
             return echoJson($aResult);
 
@@ -1558,7 +1559,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             return echoJson($aResult);
 
         $sMessage = preg_replace(array('/\<p>\<br[^>]*>\<\/p>/i', '/\<p>/i', '/\<\/p>/i'), array("<br/>", "", "<br/>"), bx_get('message'));
-        $mixedResult = $this->_oDb->isAllowedToDeleteJot($iJotId, $this->_iProfileId);
+        $mixedResult = $this->_oDb->isAllowedToEditJot($iJotId, $this->_iProfileId);
         if ($mixedResult !== true)
             return echoJson($aResult);
 

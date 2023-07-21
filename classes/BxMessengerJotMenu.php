@@ -66,6 +66,7 @@ class BxMessengerJotMenu extends BxTemplMenuCustom
         $iJotId = !empty($aInfo) ? (int)$aInfo[$CNF['FIELD_MESSAGE_ID']] : 0;
 
         $bAllowToDelete = $oModule->_oDb->isAllowedToDeleteJot($iJotId, $iProfileId, $iJotAuthor);
+        $bAllowToEdit = $oModule->_oDb->isAllowedToEditJot($iJotId, $iProfileId);
         $bVC = !empty($aJot) ? (int)$aJot[$CNF['FIELD_MESSAGE_VIDEOC']] : false;
 
         $aLotMenuSettings = $this->_oModule->_oDb->getLotSettings($this->_iContentId, $CNF['FLS_SETTINGS']);
@@ -74,15 +75,11 @@ class BxMessengerJotMenu extends BxTemplMenuCustom
 
         switch ($a['name']) {
             case 'edit':
-                if ($bVC)
-                    return false;
+                return !$bVC && $bAllowToEdit;
             case 'remove':
-                if (!$bAllowToDelete)
-                    return false;
-                break;
+                return $bAllowToDelete;
             case 'thread':
                 return $oModule->_oDb->isAuthor($this->_iContentId, $iProfileId) || ($oModule->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $iProfileId) === true);
-
         }
 
         return true;

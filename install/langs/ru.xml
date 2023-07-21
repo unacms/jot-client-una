@@ -238,7 +238,6 @@
 	<string name="_bx_messenger_txt_subobject_added_message"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> послал {subentry_sample}]]></string>
 	<string name="_bx_messenger_txt_subobject_added_mention"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> упомянул вас в {subentry_sample}]]></string>
 	<string name="_bx_messenger_date_time_today"><![CDATA[Сегодня]]></string>
-	<string name="_bx_messenger_acl_action_administrate_messages"><![CDATA[Модерировать сообщения (редактировать/удалять)]]></string>
 	<string name="_bx_messenger_acl_action_create_talks"><![CDATA[Создавать разговоры]]></string>
 	<string name="_bx_messenger_acl_action_administrate_talks"><![CDATA[Модерировать разговоры (редактировать/удалять)]]></string>
 	<string name="_bx_messenger_acl_action_send_messages"><![CDATA[Оправлять сообщения]]></string>
@@ -307,4 +306,6 @@
 	<string name="_bx_messenger_txt_sample_email_push"><![CDATA[прислал(а) {0}]]></string>
 	<string name="_bx_messenger_lot_parts_empty"><![CDATA[Пожалуйста укажите хотя бы одного участника разговора!]]></string>
 	<string name="_bx_messenger_dont_update_title"><![CDATA[Не обновлять заголовок страницы при поступлении новых сообщений]]></string>
+	<string name="_bx_messenger_acl_action_edit_messages"><![CDATA[Редактировать сообщения]]></string>
+	<string name="_bx_messenger_acl_action_delete_messages"><![CDATA[Удалять сообщения]]></string>
 </resources>

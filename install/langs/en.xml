@@ -236,7 +236,6 @@
 	<string name="_bx_messenger_txt_subobject_added_message"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> sent a {subentry_sample}]]></string>
 	<string name="_bx_messenger_txt_subobject_added_mention"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> mentioned you in a {subentry_sample}]]></string>
 	<string name="_bx_messenger_date_time_today"><![CDATA[Today]]></string>
-	<string name="_bx_messenger_acl_action_administrate_messages"><![CDATA[Administrate messages (edit/delete)]]></string>
 	<string name="_bx_messenger_acl_action_create_talks"><![CDATA[Create talks]]></string>
 	<string name="_bx_messenger_acl_action_administrate_talks"><![CDATA[Administrate talks (remove/edit)]]></string>
 	<string name="_bx_messenger_acl_action_send_messages"><![CDATA[Send messages]]></string>
@@ -342,4 +341,6 @@
 	<string name="_bx_messenger_txt_sample_email_push"><![CDATA[sent {0}]]></string>
 	<string name="_bx_messenger_lot_parts_empty"><![CDATA[Please select at least one user to communicate with!]]></string>
 	<string name="_bx_messenger_dont_update_title"><![CDATA[Don't update page title when new messages income]]></string>
+	<string name="_bx_messenger_acl_action_edit_messages"><![CDATA[Edit messages]]></string>
+	<string name="_bx_messenger_acl_action_delete_messages"><![CDATA[Delete messages]]></string>
 </resources>

@@ -140,8 +140,12 @@ INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`,
 SET @iIdActionSendMessage = LAST_INSERT_ID();
 
 INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`, `Desc`, `Countable`, `DisabledForLevels`) VALUES
-(@sName, 'administrate messages', NULL, '_bx_messenger_acl_action_administrate_messages', '', 1, 0);
-SET @iIdActionAdminMessages = LAST_INSERT_ID();
+(@sName, 'edit messages', NULL, '_bx_messenger_acl_action_edit_messages', '', 1, 0);
+SET @iIdActionEditMessages = LAST_INSERT_ID();
+
+INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`, `Desc`, `Countable`, `DisabledForLevels`) VALUES
+(@sName, 'delete messages', NULL, '_bx_messenger_acl_action_delete_messages', '', 1, 0);
+SET @iIdActionDeleteMessages = LAST_INSERT_ID();
 
 INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`, `Desc`, `Countable`, `DisabledForLevels`) VALUES
 (@sName, 'administrate talks', NULL, '_bx_messenger_acl_action_administrate_talks', '', 1, 0);
@@ -213,10 +217,12 @@ INSERT INTO `sys_acl_matrix` (`IDLevel`, `IDAction`) VALUES
 (@iModerator, @iIdActionSendMessage),
 (@iAdministrator, @iIdActionSendMessage),
 (@iPremium, @iIdActionSendMessage),
--- administration messages
-(@iModerator, @iIdActionAdminMessages),
-(@iAdministrator, @iIdActionAdminMessages),
--- administration messages
+-- administration messages edit/delete
+(@iModerator, @iIdActionEditMessages),
+(@iAdministrator, @iIdActionEditMessages),
+(@iModerator, @iIdActionDeleteMessages),
+(@iAdministrator, @iIdActionDeleteMessages),
+-- administration talks
 (@iModerator, @iIdActionAdminTalks),
 (@iAdministrator, @iIdActionAdminTalks),
 -- send files

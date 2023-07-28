@@ -4,10 +4,9 @@
 
 .bx-messenger-conversation-block
 {
-    @apply overflow-y-auto relative h-full min-h-[50px] overflow-x-hidden scroll-smooth;
+    @apply overflow-y-auto relative h-full min-h-[50px] overflow-x-hidden; /* scroll-smooth snap-y touch-pan-y */
     -webkit-overflow-scrolling: touch;
     scrollbar-width:none;
-    /*snap-y touch-pan-y*/
 }
 
 .bx-messenger-conversation-block-history {
@@ -43,60 +42,9 @@
     @apply mr-1 ml-1.5;
 }
 
-/* Popup scroll down arrow area begin */
-.bx-messenger-area-scroll
-{
-    @apply w-8 h-8 rounded-[1.5rem] absolute bottom-[0.5rem] right-4 hidden;
-}
-
-.bx-messenger-area-scroll .bx-messenger-history-arrow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
-
-.bx-messenger-area-scroll i {
-    font-size: 1.5rem;
-    line-height: 2rem;
-}
-
-.bx-messenger-area-scroll .bx-def-unit-alert {
-    top: -1rem;
-    right: initial;
-    border-radius: 1.5rem;
-}
-
-.bx-messenger-area-scroll div
-{
-    display:flex;
-    font-weight:bold;
-    align-items:center;
-    text-align:center;
-    text-overflow:ellipsis;
-    background-color: rgba(74,144,226,0.8);
-    margin-left: 0.5rem;
-    margin-right: 0.5rem;
-    border-radius: 0.25rem;
-    height: 1.5rem;
-    color: white;
-}
-
-.bx-messenger-area-scroll div > span
-{
-    flex:1 1 auto;
-    position:relative;
-}
-/* Popup scroll down arrow area begin */
-
 #bx-messenger-info-area
 {
-    width:100%;
-    overflow:hidden;
-    position:absolute;
-    bottom:0px;
-    display:none;
-    padding:0.3rem;
+    @apply w-full overflow-hidden absolute bottom-0 hidden p-1;
 }
 
 #bx-messenger-info-area .bx-messenger-conversations-typing:before
@@ -109,12 +57,12 @@
 
 #bx-messenger-info-area .bx-messenger-info-area-connecting
 {
-    display:none;
+    @apply hidden;
 }
 
 #bx-messenger-info-area .bx-messenger-info-area-connecting span
 {
-    margin-left:0.3rem;
+    @apply ml-1;
 }
 
 #bx-messenger-info-area .bx-messenger-info-area-connecting:before

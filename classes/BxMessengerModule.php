@@ -1543,7 +1543,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $aResult = array('code' => 1);
         $aJotInfo = $this->_oDb->getJotById($iJotId);
 
-        $mixedResult = $this->oDb->isAllowedToEditJot($iJotId, $this->_iProfileId);
+        $mixedResult = $this->_oDb->isAllowedToEditJot($iJotId, $this->_iProfileId);
         if (empty($aJotInfo) || $mixedResult !== true)
             return echoJson($aResult);
 

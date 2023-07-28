@@ -16,7 +16,8 @@
     @apply hidden;
 }
 
-.bx-messenger-post-box .ql-container {
+.bx-messenger-post-box .ql-container,
+.bx-messenger-post-box .ql-editor {
     @apply min-h-[3rem];
 }
 

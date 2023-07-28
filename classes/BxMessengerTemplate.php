@@ -47,6 +47,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         'tailwind-messenger.css',
                         'create-list.css',
                         'attachment.css',
+                        'scroll-elements.css',
                         '3rd-libs.css'
 					 );
 

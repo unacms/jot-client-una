@@ -1156,7 +1156,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	*@param array $aParams filter params
 	*@return array list of lots
 	*/
-    public function getMyLots($iProfileId, $aParams = array())
+    public function getMyLots($iProfileId, &$aParams = [])
     {
         $sOrAddon = $sJoin = $sWhere = '';
         $aSWhere = array();

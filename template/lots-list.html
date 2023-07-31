@@ -12,16 +12,18 @@
 				<bx_text:_bx_messenger_list_area_inbox />
 			</div>
 			<div id="bx-messenger-search-block" class="bx-messenger-talks-list-header-search-area">
-				<!--<div class="bx-messenger-talks-list-header-search-area-icon">
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-						<path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
-					</svg>
-				</div> -->
 				<input id="bx-messenger-filter-talks"
 					   name="filter-talks"
 					   onInput="oMessenger.searchByItems(this.value);"
 					   class="bx-def-font-inputs bx-form-input-text" placeholder="<bx_text:_bx_messenger_title_search />"
-					   type="search">
+					   type="search" />
+				<div class="bx-messenger-talks-list-header-search-area-icon">
+					<a href="javascript:void(0);" onclick="oMessenger.clearSearch()">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+						</svg>
+					</a>
+				</div>
 			</div>
 			<a href="javascript:void(0)" onclick="oMessenger.toggleFilterTalks()" class="bx-messenger-talks-list-header-menu-item">
 				<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">

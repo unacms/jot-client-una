@@ -806,12 +806,11 @@
 	oMessenger.prototype.searchByItems = function(mixedOption, sText){
 		const _this = this,
 			iFilterType	= typeof mixedOption == 'function' || mixedOption === undefined ? this.iFilterType : mixedOption,
-			{ talksList } = window.oMessengerSelectors.TALKS_LIST,
-			searchFunction = function()
-							{
+			{ talksList, searchCloseIcon } = window.oMessengerSelectors.TALKS_LIST,
+			searchFunction = () => {
 								_this.iTimer = setTimeout(() => bx_loading($(talksList), true), 1000);
 								$.get('modules/?r=messenger/search', { param:sText || '', type:iFilterType, starred: +_this.iStarredTalks },
-										function({ code, html, jots_list })
+										function({ code, html, search_list })
 										{
 											clearTimeout(_this.iTimer);
 
@@ -820,8 +819,8 @@
 												window.location.reload();
 											else
 											{
-												_this.aSearchJotsList = typeof jots_list !== 'undefined' ? jots_list : null;
-												_this.showSearchPopup(_this.oSettings.lot);
+												_this.aSearchJotsList = typeof search_list !== 'undefined' ? search_list : null;
+												_this.showSearchCounter(_this.oSettings.lot);
 
 												const fCallback = () => typeof mixedOption === 'function' && mixedOption();
 												if (!parseInt(code)) {
@@ -836,12 +835,19 @@
 												else
 													fCallback();
 											}
+
+											if (sText && sText.length)
+												$(searchCloseIcon).show();
+											else
+												$(searchCloseIcon).hide();
+
 										}, 'json');
 							};
 
+
 		if ((typeof mixedOption !== 'function' && mixedOption) || typeof sText !== 'undefined'){
 			clearTimeout(_this.iTimer);	
-			this.iTimer = setTimeout(searchFunction, _this.iRunSearchInterval);	
+			this.iTimer = setTimeout(searchFunction, _this.iRunSearchInterval);
 		}
 		else
 			searchFunction();
@@ -1788,7 +1794,7 @@
 		return;
     };
 
-	oMessenger.prototype.showSearchPopup = function(iLotId, bFirst = false){
+	oMessenger.prototype.showSearchCounter = function(iLotId){
 		const _this = this,
 			 { searchCriteria } = window.oMessengerSelectors.TALKS_LIST,
 			 { searchItems } = window.oMessengerSelectors.HISTORY,
@@ -1799,30 +1805,12 @@
 			return false;
 		}
 
-		let iCounter = 0, iLotIndex = null;
+		let iCounter = 0;
 		if ($(searchCriteria).val().length && _this.aSearchJotsList !== null){
-			if (Object.keys(_this.aSearchJotsList).length) {
-				Object.keys(_this.aSearchJotsList).map((iIndex) => {
-					if (+iLotId === +_this.aSearchJotsList[iIndex]) {
-						if (!iLotIndex) {
-							iJotId = iIndex;
-							iLotIndex = iIndex;
-						}
-						iCounter++;
-					}
-				});
-
-				if (iCounter >= 1)
-					--iCounter;
+			if (typeof _this.aSearchJotsList[iLotId] !== 'undefined'){
+				const { list } = _this.aSearchJotsList[iLotId] || {};
+				iCounter = list?.length;
 			}
-			else
-				_this.aSearchJotsList = null;
-
-			if (bFirst)
-				return iLotIndex;
-
-			if (iLotIndex)
-				delete _this.aSearchJotsList[iLotIndex];
 		}
 
 		if (iCounter)
@@ -1962,7 +1950,7 @@
 					if (_this.oEditor && !oMUtils.isMobile())
 						setTimeout(() => _this.oEditor.focus(), 1000);
 
-					_this.showSearchPopup(iLotId);
+					_this.showSearchCounter(iLotId);
 
 				/* ----  End ---- */
 				}
@@ -3718,9 +3706,18 @@
 		},
 		onNextSearch: function (){
 			const iLotId = _oMessenger.oSettings.lot,
-				 { jotMain } = window.oMessengerSelectors.JOT,
-				  iLeftJotId =  _oMessenger.aSearchJotsList && Object.keys(_oMessenger.aSearchJotsList).length ?
-				  Object.keys(_oMessenger.aSearchJotsList).find( iJotId => +_oMessenger.aSearchJotsList[iJotId] === +iLotId ) : 0 ;
+				 { jotMain } = window.oMessengerSelectors.JOT;
+
+			let iLeftJotId = 0;
+			if (typeof _oMessenger.aSearchJotsList[iLotId] !== 'undefined'){
+				const { list, current } = _oMessenger.aSearchJotsList[iLotId];
+				if (typeof current === 'undefined' || (current === list.length - 1))
+					_oMessenger.aSearchJotsList[iLotId].current = 0;
+				else
+					_oMessenger.aSearchJotsList[iLotId].current++;
+
+				iLeftJotId = list[current || 0];
+			}
 
 			if (iLeftJotId) {
 				const oPrevJot = $(`${jotMain}[data-id="${iLeftJotId}"]`);
@@ -3728,10 +3725,10 @@
 					_oMessenger.updateScrollPosition('center', 'fast', oPrevJot.addClass(_oMessenger.sSelectedJot.substr(1)));
 				else
 					_oMessenger.jumpToJot(iLeftJotId, () => {
-						$(`${jotMain}[data-id="${iLeftJotId}"]`).addClass(_oMessenger.sSelectedJot.substr(1))
+						$(`${jotMain}[data-id="${iLeftJotId}"]`).addClass(_oMessenger.sSelectedJot.substr(1));
 					});
 
-				_oMessenger.showSearchPopup(iLotId);
+				_oMessenger.showSearchCounter(iLotId);
 			}
 
 			return this;
@@ -4420,6 +4417,13 @@
 
 			if  (!lot)
 				 history.back();
+		},
+		clearSearch: () => {
+			const { searchCriteria, searchCloseIcon } = window.oMessengerSelectors.TALKS_LIST;
+			$(searchCriteria).val('');
+			$(searchCloseIcon).hide();
+			_oMessenger.searchByItems('');
+			_oMessenger.aSearchJotsList = null;
 		}
 	}
 })(jQuery);

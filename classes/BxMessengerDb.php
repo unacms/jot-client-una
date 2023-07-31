@@ -1154,9 +1154,10 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	* Get all member's lots
 	*@param int $iProfileId
 	*@param array $aParams filter params
+	*@param array $aReturn may contain special values from search function
 	*@return array list of lots
 	*/
-    public function getMyLots($iProfileId, &$aParams = [])
+    public function getMyLots($iProfileId, $aParams = [], &$aReturn = [])
     {
         $sOrAddon = $sJoin = $sWhere = '';
         $aSWhere = array();
@@ -1200,7 +1201,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
                 $aSelectedLots = $this->searchMessage($sParam, $iProfileId);
                 if (!empty($aSelectedLots)) {
                     $aParamWhere[] = "`l`.`{$this->CNF['FIELD_ID']}` IN (" . implode(',', array_unique($aSelectedLots)) . ")";
-                    $aParams['jots_list'] = $aSelectedLots;
+                    $aReturn['jots_list'] = $aSelectedLots;
                 }
             }
 
@@ -1210,17 +1211,8 @@ class BxMessengerDb extends BxBaseModGeneralDb
                 return false;
         }
 
-        if ($this->_oConfig->isSearchCriteria(BX_SEARCH_CRITERIA_CONTENT)) {
-            $aSelectedLots = $this->searchMessage($sParam, $iProfileId);
-            if (!empty($aSelectedLots)) {
-                $aParamWhere[] = "`l`.`{$this->CNF['FIELD_ID']}` IN (" . implode(',', array_unique($aSelectedLots)) . ")";
-                $aParams['jots_list'] = $aSelectedLots;
-            }
-        }
-
         if (!empty($aParamWhere))
             $aSWhere[] = '(' . implode(' OR ', $aParamWhere) . ')';
-
 
         if (isset($aParams['type']) && $aParams['type']) {
             if (is_numeric($aParams['type'])) {
@@ -1287,7 +1279,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
                                          {$sLimit}", $aWhere);
 
         if ($bShowLeft)
-            $aParams['left'] = (int)$this->getOne("SELECT FOUND_ROWS()") - $aWhere['start'];
+            $aReturn['left'] = (int)$this->getOne("SELECT FOUND_ROWS()") - $aWhere['start'];
 
         return $aResult;
     }

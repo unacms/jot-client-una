@@ -129,7 +129,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     $iLotId = BX_IM_EMPTY;
                 }
             } else {
-                $aLotsList = $this->_oDb->getMyLots($this->_iProfileId, array('inbox' => true));
+                $aLotsList = $this->_oDb->getMyLots($this->_iProfileId, ['inbox' => true]);
                 $iLotId = !empty($aLotsList) ? current($aLotsList)[$this->_oConfig->CNF['FIELD_ID']] : 0;
             }
         }
@@ -163,7 +163,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
             }
             else
             {
-                //$aExistedTalk = $this->_oDb->getLotByUrlAndParticipantsList(BX_IM_EMPTY_URL, array($iViewedProfileId, $this->_iProfileId));
                 $aExistedTalk = $this->_oDb->getLotsByParticipantsList(array($iViewedProfileId, $this->_iProfileId), BX_IM_TYPE_PRIVATE);
                 if (!empty($aExistedTalk))
                     return $this->_oTemplate->getTalkBlock($this->_iProfileId, $aExistedTalk[$CNF['FIELD_ID']]);
@@ -176,7 +175,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             return $this->_oTemplate->getTalkBlock($this->_iProfileId, $iLotId, $this->_iJotId);
 
         $iLotId = BX_IM_EMPTY;
-        if ($aLotsList = $this->_oDb->getMyLots($this->_iProfileId, array('inbox' => true))) {
+        if ($aLotsList = $this->_oDb->getMyLots($this->_iProfileId, ['inbox' => true])) {
             $aLot = current($aLotsList);
             if (isset($aLot[$CNF['FIELD_ID']]))
                 $iLotId = $aLot[$CNF['FIELD_ID']];
@@ -840,15 +839,20 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $sParam = bx_get('param');
         $iStarred = bx_get('starred');
 
-        $aResult = array('code' => 0);
-        $aParams = array('term' => $sParam, 'star' => (bool)$iStarred);
-        $aMyLots = $this->_oDb->getMyLots($this->_iUserId, $aParams);
+        $aResult = ['code' => 0];
+        $aParams = ['term' => $sParam, 'star' => (bool)$iStarred];
+
+        $aFoundConvos = [];
+        $aMyLots = $this->_oDb->getMyLots($this->_iProfileId, $aParams, $aFoundConvos);
         if (empty($aMyLots))
             $sContent = $sParam ? MsgBox(_t('_bx_messenger_txt_msg_no_results')) : $this->_oTemplate->getFriendsList($sParam);
         {
-            $sContent = $this->_oTemplate->getLotsPreview($this->_iUserId, $aMyLots);
-            if (isset($aParams['jots_list']) && is_array($aParams['jots_list']))
-                $aResult['jots_list'] = $aParams['jots_list'];
+            $sContent = $this->_oTemplate->getLotsPreview($this->_iProfileId, $aMyLots);
+            if (!empty($aFoundConvos['jots_list'])) {
+                foreach($aFoundConvos['jots_list'] as $iJot => $iConvo){
+                    $aResult['search_list'][$iConvo]['list'][] = $iJot;
+                }
+            }
         }
 
         $aResult['html'] = $sContent;

@@ -50,6 +50,7 @@
                 talkStatus:'.bx-messenger-status',
                 searchCriteria: '#bx-messenger-filter-talks',
                 searchInput: '#bx-messenger-search-block',
+                searchCloseIcon: '.bx-messenger-talks-list-header-search-area-icon',
                 inboxAreaTitle: '#bx-messenger-inbox-area-title',
                 talkTitle: '#bx-messenger-talk-title',
                 menuButton: '.bx-messenger-talks-list-header-menu',

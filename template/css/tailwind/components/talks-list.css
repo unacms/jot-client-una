@@ -36,7 +36,11 @@
 }
 
 .bx-messenger-talks-list-header-search-area-icon {
-    @apply absolute right-1 pl-3 flex items-center top-2 right-2 hidden;
+    @apply absolute right-1 pl-3 flex items-center top-2 right-2 hidden opacity-0;
+}
+
+.bx-artificer .bx-messenger-talks-list-header-search-area-icon {
+    @apply opacity-100;
 }
 
 .bx-messenger-talks-list-header-search-area-icon svg {

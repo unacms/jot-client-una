@@ -33,16 +33,11 @@
 		this.sSendAreaActions = '.bx-messenger-post-box-send-actions';
 		this.sSendAreaActionsButtons = '.bx-messenger-post-box-send-actions-items';
 		this.sReactionsArea = '.bx-messenger-jot-reactions';
-		this.sHiddenJot = '.bx-messenger-hidden-jot'; //r
-		this.sDeletedJot = '.bx-messenger-jots-message-deleted'; //r
 		this.sMediaATArea = ['.bx-messenger-attachment-file-videos', '.bx-messenger-attachment-file-audio'];
 		this.sVideoAttachment = '.bx-messenger-attachment-file-videos';
 		this.sAudioAttachment = '.bx-messenger-attachment-file-audio';
 		this.sFileAttachment = '.bx-messenger-attachment-file';
 		this.sFilesUploadAreaOnForm = '.bx-messenger-upload-area';
-		this.sScrollArea = '.bx-messenger-area-scroll';
-		this.sSearchScrollArea = '.bx-messenger-area-scroll-search';
-		this.sSelectedJot = '.bx-messenger-blink-jot';
 		this.sTmpVideoFile = '.bx-messenger-attachment-temp-video';
 		this.sReactionItem = '.bx-messenger-reaction';
 		this.sReactionMenu = '.bx-messenger-reactions-menu';
@@ -273,7 +268,7 @@
 	};
 
 	oMessenger.prototype.setScrollBarWidth = function() {
-		const { talkBlock } = window.oMessengerSelectors.HISTORY;
+		const { talkBlock, mainScrollArea, scrollAreaItem } = window.oMessengerSelectors.HISTORY;
 		this.iScrollbarWidth = $(talkBlock).prop('offsetWidth') - $(talkBlock).prop('clientWidth');
 
 		if (!$(talkBlock).prop('clientWidth'))
@@ -283,12 +278,12 @@
 		$(this.sDateNavigator).width($(talkBlock).prop('clientWidth'));
 
 		if (this.iScrollbarWidth)
-			$(this.sScrollArea).css('right', `calc( ${this.iScrollbarWidth}px + 0.5rem )`);
+			$(`${mainScrollArea},${scrollAreaItem}`).css('right', `calc( ${this.iScrollbarWidth}px + 0.5rem )`);
 	}
 
 	oMessenger.prototype.initScrollArea = function() {
 		const _this = this,
-			 { talkBlock } = window.oMessengerSelectors.HISTORY,
+			 { talkBlock, mainScrollArea } = window.oMessengerSelectors.HISTORY,
 			 { talkListJotSelector } = window.oMessengerSelectors.JOT;
 
 		let iBottomScreenPos = $(talkBlock).scrollTop() + $(talkBlock).innerHeight();
@@ -353,9 +348,9 @@
 				bStartLoading = false;
 
 			if (iScrollPosition > $(talkListJotSelector).last().height() || iCounterValue)
-				$(_this.sScrollArea).fadeIn();
+				$(mainScrollArea).fadeIn();
 			else
-				$(_this.sScrollArea).fadeOut();
+				$(mainScrollArea).fadeOut();
 
 			if ((isBottomPosition || isTopPosition)){
 				if (!bStartLoading) {
@@ -1323,13 +1318,13 @@
 	
 	oMessenger.prototype.jumpToJot = function(iJumpJotId, fCallback){
 		const iJotId = iJumpJotId ? iJumpJotId : this.iReplyId,
-			 { jotMain } = window.oMessengerSelectors.JOT,
+			 { jotMain, selectedJot } = window.oMessengerSelectors.JOT,
 			  _this = this;
 
 		if (iJotId){
 			const oJot = $(`${jotMain}[data-id="${iJotId}"]`);
 			if (oJot.length)
-				this.updateScrollPosition('center', undefined, oJot, () => oJot.addClass(_this.sSelectedJot.substr(1)));
+				this.updateScrollPosition('center', undefined, oJot, () => oJot.addClass(selectedJot.substr(1)));
 			else 
 			{
 				this.iSelectedJot = iJotId;
@@ -1738,7 +1733,7 @@
 
     oMessenger.prototype.updateCounters = function(iNumber, bForceUpdate = false){
 		const { talkItem } = window.oMessengerSelectors.TALKS_LIST,
-			  { talkBlock } = window.oMessengerSelectors.HISTORY,
+			  { talkBlock, mainScrollArea } = window.oMessengerSelectors.HISTORY,
 			  { talkListJotSelector } = window.oMessengerSelectors.JOT
 				iCounter = bForceUpdate ? iNumber : +$(this.sUnreadJotsCounter).text(),
 				{ lot, area_type, group_id } = this.oSettings;
@@ -1758,7 +1753,7 @@
 				const iScrollPosition = $(talkBlock).prop('scrollHeight') - $(talkBlock).prop('clientHeight') - $(talkBlock).scrollTop();
 				const iHeight = $(talkListJotSelector).last().height();
 				if (iScrollPosition <= iHeight)
-					$(this.sScrollArea).fadeOut();
+					$(mainScrollArea).fadeOut();
 			}
 		}
 
@@ -1797,8 +1792,8 @@
 	oMessenger.prototype.showSearchCounter = function(iLotId){
 		const _this = this,
 			 { searchCriteria } = window.oMessengerSelectors.TALKS_LIST,
-			 { searchItems } = window.oMessengerSelectors.HISTORY,
-			 oObject = $(_this.sSearchScrollArea);
+			 { searchItems, searchScrollArea } = window.oMessengerSelectors.HISTORY,
+			 oObject = $(searchScrollArea);
 
 		if (!$(searchCriteria).val().length) {
 			oObject.find(searchItems).text(0).end().fadeOut();
@@ -1840,7 +1835,7 @@
 	 */
 	oMessenger.prototype.loadTalk = function(iLotId, iJotId, fCallback = null, bMarkAsRead = false){
 		const _this = this,
-			{ mainTalkBlock, messengerHistoryBlock, createTalkArea, tableWrapper, conversationBlockHistory, historyColumn, talkBlock, conversationBody } = window.oMessengerSelectors.HISTORY,
+			{ mainTalkBlock, messengerHistoryBlock, createTalkArea, tableWrapper, conversationBlockHistory, historyColumn, talkBlock, conversationBody, selectedJot } = window.oMessengerSelectors.HISTORY,
 			{ talksListItems, talkItem } = window.oMessengerSelectors.TALKS_LIST,
 			{ textArea } = window.oMessengerSelectors.TEXT_AREA,
 			{ groupsPanel } = window.oMessengerSelectors.TALK_BLOCK,
@@ -1939,7 +1934,7 @@
 					//_this.blockSendMessages();
 
 					if (+$(talkListJotSelector).last().data('new')) {
-						if (!_this.iLastUnreadJot || $(_this.sSelectedJot, conversationBody).nextAll(jotMain).length < _this.iMaxHistory/2)
+						if (!_this.iLastUnreadJot || $(selectedJot, conversationBody).nextAll(jotMain).length < _this.iMaxHistory/2)
 						_this.broadcastView($(talkListJotSelector).last().data('id'));
 					}
 
@@ -3226,12 +3221,13 @@
 
 	oMessenger.prototype.setPositionOnSelectedJot = function(fCallback){
 		const _this = this,
-			{ conversationBody } = window.oMessengerSelectors.HISTORY;
+			{ conversationBody, mainScrollArea } = window.oMessengerSelectors.HISTORY,
+			{ selectedJot } = window.oMessengerSelectors.JOT;
 
-		if ($(_this.sSelectedJot, conversationBody).length)
-			_this.updateScrollPosition('center', 'fast', $(_this.sSelectedJot, conversationBody),
+		if ($(selectedJot, conversationBody).length)
+			_this.updateScrollPosition('center', 'fast', $(selectedJot, conversationBody),
 				function(){
-					$(_this.sScrollArea).fadeIn('slow', () => {
+					$(mainScrollArea).fadeIn('slow', () => {
 						if (typeof fCallback === 'function')
 							fCallback();
 					});
@@ -3706,7 +3702,7 @@
 		},
 		onNextSearch: function (){
 			const iLotId = _oMessenger.oSettings.lot,
-				 { jotMain } = window.oMessengerSelectors.JOT;
+				 { jotMain, selectedJot } = window.oMessengerSelectors.JOT;
 
 			let iLeftJotId = 0;
 			if (typeof _oMessenger.aSearchJotsList[iLotId] !== 'undefined'){
@@ -3722,10 +3718,10 @@
 			if (iLeftJotId) {
 				const oPrevJot = $(`${jotMain}[data-id="${iLeftJotId}"]`);
 				if (oPrevJot.length)
-					_oMessenger.updateScrollPosition('center', 'fast', oPrevJot.addClass(_oMessenger.sSelectedJot.substr(1)));
+					_oMessenger.updateScrollPosition('center', 'fast', oPrevJot.addClass(selectedJot.substr(1)));
 				else
 					_oMessenger.jumpToJot(iLeftJotId, () => {
-						$(`${jotMain}[data-id="${iLeftJotId}"]`).addClass(_oMessenger.sSelectedJot.substr(1));
+						$(`${jotMain}[data-id="${iLeftJotId}"]`).addClass(selectedJot.substr(1));
 					});
 
 				_oMessenger.showSearchCounter(iLotId);

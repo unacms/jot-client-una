@@ -31,7 +31,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         'emoji.css',
                         'messenger-phone.css',
                         'quill.bubble.css',
-                        'menu.css',
+                        'menu-accordion.css',
                         'lot-briefs.css',
                         'text-area.css',
                         'menu-column.css',

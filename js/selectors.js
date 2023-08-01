@@ -26,7 +26,10 @@
                 conversationBlockHistory: '.bx-messenger-conversation-block-history',
                 backButton: '.bx-messenger-history-block-header-menu-back',
                 messengerHistoryBlock: '.bx-messenger-block',
-                uploaderAreaPlaceholderPrefix: 'bx-messenger-uploading-placeholder'
+                uploaderAreaPlaceholderPrefix: 'bx-messenger-uploading-placeholder',
+                mainScrollArea: '.bx-messenger-area-scroll',
+                searchScrollArea: '.bx-messenger-area-scroll-search',
+                scrollAreaItem: '.bx-messenger-area-scroll-item',
             };
 
             this.TALK_BLOCK = {
@@ -120,7 +123,8 @@
                 jotMessageBody: '.bx-messenger-jots-message-body',
                 jotDeleted:'.bx-messenger-jots-message-deleted',
                 jotHidden:'.bx-messenger-hidden-jot',
-                jotMessageView: '.view'
+                jotMessageView: '.view',
+                selectedJot: '.bx-messenger-blink-jot'
             };
 
             this.ATTACHMENTS = {

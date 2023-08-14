@@ -2908,7 +2908,14 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
     private function prepareMessageToDb($sMessage)
     {
-        return $sMessage ? preg_replace(array('/\<p>\<br[^>]*>\<\/p>/i', '/\<p>/i', '/\<\/p>/i', '/\<pre.*>/i'), array('<br/>', '', '<br/>', '<pre>'), $sMessage) : '';
+        $aReplacements = [
+            '/\<p>\<br[^>]*>\<\/p>/i' => '<br/>',
+            '/\<p>/i' => '',
+            '/\<\/p>/i' => '<br/>',
+            '/<pre.*>/i' => '<pre>'
+        ];
+
+        return $sMessage ? preg_replace(array_keys($aReplacements), $aReplacements, $sMessage) : '';
     }
 
     function actionGetGiphy(){

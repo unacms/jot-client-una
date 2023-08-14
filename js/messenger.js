@@ -1702,6 +1702,7 @@
 	$.fn.waitForImages = function(fCallback){
 		const aImg = $(`${_oMessenger.sGiphyImages} img, ${_oMessenger.sAttachmentImages} img`, $(this));
 		let iTotalImg = aImg.length;
+
 		const waitImgLoad = () =>
 			{
 				iTotalImg--;
@@ -1767,7 +1768,7 @@
     oMessenger.prototype.broadcastView = function(iJotId){
 		const
 			  { conversationBody } = window.oMessengerSelectors.HISTORY,
-			  { talkListJotSelector } = window.oMessengerSelectors.JOT;
+			  { talkListJotSelector } = window.oMessengerSelectors.JOT,
 			  iLastJotId = $(talkListJotSelector).last().data('id'),
 			  iJot = iLastJotId === this.iLastReadJotId ? iLastJotId : this.iLastUnreadJot,
 			  oJot = $(`[data-id="${iJot}"]`, conversationBody);
@@ -1906,7 +1907,7 @@
 						.bxMsgTime()
 						.show(
 							function(){
-								_this.setPositionOnSelectedJot(() => $(talkBlock).css('visibility', 'visible'));
+								_this.setPositionOnSelectedJot();
 								_this.updateLotSettings({
 									lot: iLotId,
 									last_unread_jot,
@@ -1917,7 +1918,14 @@
 								_this.updatePageIcon(undefined, iLotId);
 							}
 						)
-						.waitForImages(() => _this.setPositionOnSelectedJot(fCallback));
+						.waitForImages(() => {
+							_this.setPositionOnSelectedJot(() => {
+								bx_loading($(conversationBlockHistory), false);
+								$(talkBlock).css('visibility', 'visible');
+								if (typeof fCallback === 'function')
+									fCallback();
+							});
+						});
 
 					if (talks_list){
 						$(oMessengerBlock)
@@ -1948,9 +1956,9 @@
 					_this.showSearchCounter(iLotId);
 
 				/* ----  End ---- */
-				}
+				} else
+					bx_loading($(conversationBlockHistory), false);
 
-			bx_loading($(conversationBlockHistory), false);
 			_this.oMenu.toggleCreateTalkState(false);
 		}, 'json');
 	};
@@ -2190,8 +2198,10 @@
 									});
 								}
 
-								if (typeof separator !== 'undefined')
+								if (typeof separator !== 'undefined'){
 									$('[data-tmp="' + tmp_id + '"]', conversationBody).before(separator);
+									_this.updateScrollPosition('bottom');
+								}
 
 								if ((_this.oFilesUploader && oParams.files && _this.oFilesUploader.isReady()) || typeof oParams.giphy !== 'undefined')
 									_this.attacheFiles(iJotId);
@@ -2609,6 +2619,10 @@
 			case 'top':
 					if (mixedObject && typeof mixedObject[0].scrollIntoView === 'function') {
 						mixedObject[0].scrollIntoView({behavior: 'auto', block: 'start'});
+
+						if (typeof fCallback === 'function')
+							setTimeout(() => fCallback(), 200);
+
 						return;
 					}
 
@@ -2636,6 +2650,10 @@
 					const oJot = mixedObject[0];
 					if (oJot && typeof oJot.scrollIntoView === 'function') {
 						oJot.scrollIntoView({behavior: 'auto', block: 'center'});
+
+						if (typeof fCallback === 'function')
+							setTimeout(() => fCallback(), 200);
+
 						return;
 					}
 
@@ -2838,7 +2856,6 @@
 								break;
 						case 'prev':
 							$(talkBlock).animate({ opacity : 0 }, 200);
-
 							oList
 								.prepend($(html)
 									.bxProcessHtml()
@@ -2881,20 +2898,18 @@
 															_this.updateScrollPosition('bottom');
 														};
 
-								if (html.length){
+								if (html.length)
 										$('div[data-id="' + iJotId + '"] ' + jotMessage, oList)
 											.html(html)
 											.parent()
 											.linkify(true, true)
 											.find(_this.sAttachmentArea)
 											.fadeOut('slow', onRemove);
-								}
-									/*  if nothing returns, then remove html code completely */
+								/*  if nothing returns, then remove html code completely */
 								 else
 								{
 									$('div[data-id="' + iJotId + '"]', oList)
 										.fadeOut('slow', onRemove);
-
 								}
 								break;
 						case 'check_viewed':
@@ -3840,6 +3855,8 @@
 							action: 'prev',
 							position: 'bottom'
 						});
+					else
+						_oMessenger.updateScrollPosition('bottom');
 				});
 			});
 		},

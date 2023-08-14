@@ -110,10 +110,10 @@
                                                 })
                                                 .end()
                                                 .html(html)
-                                                .fadeIn('slow');
-
-                                            if (typeof fDesignCallback === 'function')
-                                                fDesignCallback();
+                                                .fadeIn('slow', () => {
+                                                    if (typeof fDesignCallback === 'function')
+                                                        fDesignCallback();
+                                                });
                                         })
                                     .unbind();
                             } else

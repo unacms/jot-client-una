@@ -429,25 +429,28 @@
 												return $.post('modules/?r=messenger/update_uploaded_files/', {
 													jot_id: uploading_jot_id,
 													files: aFiles
-												}, function ({code, message}) {
-													if (+code)
+												}, function ({ code, message }) {
+													if (+code && message)
 														bx_alert(message);
-
-													_this.broadcastMessage({
-														jot_id: uploading_jot_id,
-														addon: 'update_attachment'
-													});
-
-													_this.attacheFiles(uploading_jot_id, true, () => {
-														$(`#${_this.sUploaderAreaPrefix}-${id}`).fadeOut(function () {
-															$(this).remove();
+													else
+													{
+														_this.broadcastMessage({
+															jot_id: uploading_jot_id,
+															addon: 'update_attachment'
 														});
-													});
+
+														_this.attacheFiles(uploading_jot_id, true, () => {
+															$(`#${_this.sUploaderAreaPrefix}-${id}`).fadeOut(function () {
+																$(this).remove();
+															});
+														});
+													}
 
 													if (typeof fCallback === 'function')
 														fCallback();
 
-									delete _this.aUploaderQueue[sName];
+													delete _this.aUploaderQueue[sName];
+
 												}, 'json');
 							}
 
@@ -522,14 +525,15 @@
 
 		// when member clicks on send message icon
 		$(sendButton).on('click', () => {
-			if (_this.sendMessage(_this.oEditor.length === 1 ? '' : _this.oEditor.html())){
-				_this.oEditor.setContents([]);
-				_this.oEditor.focus();
-
+			if (_this.sendMessage(_this.oEditor.length === 1 ? '' : _this.oEditor.html(), undefined, () => {
 				if (_this.oFilesUploader)
 					_this.oFilesUploader.clean();
 
-				_this.oStorage.deleteLot(_this.oSettings.lot);
+					_this.oStorage.deleteLot(_this.oSettings.lot);
+				}))
+			{
+				_this.oEditor.setContents([]);
+				_this.oEditor.focus();
 			}
 		});
 
@@ -593,31 +597,38 @@
 							});
 					});
 
-		// check if the not finished message for the talk exists
-		const mixedStorageMessage = _this.oStorage.getLot(_this.oSettings.lot);
-		if ( typeof mixedStorageMessage === 'object'){
-			const { message, reply } = mixedStorageMessage;
-			
-			if (Array.isArray(mixedStorageMessage) && mixedStorageMessage.length){
-				_this.oEditor.setContents(mixedStorageMessage);
-				$(sendButton).fadeIn();
-			}
-			else if (Array.isArray(message) && message.length)
-			{	
-				_this.oEditor.setContents(message);
-				$(sendButton).fadeIn();
-			}
-			else if ( typeof mixedStorageMessage === 'string' && mixedStorageMessage.length)
-				_this.oEditor.setText(mixedStorageMessage);
-			
-			if (+reply){
-				_this.iReplyId = +reply;
-				_this.replyJot($(`${jotMain}[data-id="${_this.iReplyId}"]`), _this.iReplyId);
-			}
-		}
-		
+		_this.setStorageData();
 		_this.checkNotFinishedTalks();
     }
+
+   oMessenger.prototype.setStorageData = function() {
+	   const _this = this,
+		   { sendButton } = window.oMessengerSelectors.TEXT_AREA,
+		   { jotMain } = window.oMessengerSelectors.JOT;
+
+	   // check if the not finished message for the talk exists
+	   const mixedStorageMessage = _this.oStorage.getLot(_this.oSettings.lot);
+	   if ( typeof mixedStorageMessage === 'object'){
+		   const { message, reply } = mixedStorageMessage;
+
+		   if (Array.isArray(mixedStorageMessage) && mixedStorageMessage.length){
+			   _this.oEditor.setContents(mixedStorageMessage);
+			   $(sendButton).fadeIn();
+		   }
+		   else if (Array.isArray(message) && message.length)
+		   {
+			   _this.oEditor.setContents(message);
+			   $(sendButton).fadeIn();
+		   }
+		   else if ( typeof mixedStorageMessage === 'string' && mixedStorageMessage.length)
+			   _this.oEditor.setText(mixedStorageMessage);
+
+		   if (+reply){
+			   _this.iReplyId = +reply;
+			   _this.replyJot($(`${jotMain}[data-id="${_this.iReplyId}"]`), _this.iReplyId);
+		   }
+	   }
+   }
 
    oMessenger.prototype.getEmojiPopUp = function(fCallback) {
 	   const _this = this;
@@ -664,8 +675,8 @@
 
 	oMessenger.prototype.checkNotFinishedTalks = function(){
 		const { talkItem } = window.oMessengerSelectors.TALKS_LIST,
-			oLots = this.oStorage.getLots(),
-			  oLotsKeys = (oLots && Object.keys(oLots)) || [];
+			  oLots = this.oStorage.getLots(),
+		 	  oLotsKeys = (oLots && Object.keys(oLots)) || [];
 
 		$(`${talkItem} .info`).each(function(){
 			$(this).html('');
@@ -842,11 +853,12 @@
 	}
 
 	oMessenger.prototype.disableCreateList = function(action) {
-		const { conversationBlockHistory, createTalkArea } = window.oMessengerSelectors.HISTORY;
+		const { conversationBlockHistory, createTalkArea } = window.oMessengerSelectors.HISTORY,
+			  { talkTitle } = window.oMessengerSelectors.TEXT_AREA,
+			  { talk } = window.oMessengerSelectors.HISTORY;
 
 		$(createTalkArea, conversationBlockHistory).hide().remove();
-		if (oMUtils.isMobile())
-			this.oMenu.showHistoryPanel();
+		$(talkTitle).remove();
 
 		this.bCreateNew = false;
 		this.oMenu.toggleAlwaysOnTop(false);
@@ -1876,14 +1888,11 @@
 				_this.updateCounters();
 				_this.updateScrollPosition('bottom');
 
-				/*if (_this.isActiveLot(iLotId, sArea))
-					return fEmpty;*/
-
 				$(`${blockHeader}, ${talkBlock}`, historyColumn).html('');
 			}
 		}
 
-		$(createTalkArea).hide().remove();
+		_this.disableCreateList();
 
         // to change active lot ID in the same time when user click on load but not when history is loaded
 		_this.oSettings.lot = iLotId;
@@ -1952,8 +1961,6 @@
 					if (oLotBlock)
 						_this.setUsersStatuses(oLotBlock);
 
-					//_this.blockSendMessages();
-
 					if (+$(talkListJotSelector).last().data('new')) {
 						if (!_this.iLastUnreadJot || $(selectedJot, conversationBody).nextAll(jotMain).length < _this.iMaxHistory/2)
 						_this.broadcastView($(talkListJotSelector).last().data('id'));
@@ -1972,7 +1979,6 @@
 				} else
 					bx_loading($(conversationBlockHistory), false);
 
-			_this.oMenu.toggleAlwaysOnTop(false);
 		}, 'json');
 	};
 
@@ -2035,8 +2041,7 @@
 		const _this = this,
 			oParams = Object.assign({}, this.oSettings, _this.getSendAreaAttachmentsIds()),
 			msgTime = new Date(),
-			{ textArea, replyAreaMessage, replyArea } = window.oMessengerSelectors.TEXT_AREA,
-			{ talkTitle } = window.oMessengerSelectors.TALKS_LIST,
+			{ talkTitle, textArea, replyAreaMessage, replyArea } = window.oMessengerSelectors.TEXT_AREA,
 			{ conversationBody, messengerHistoryBlock, uploaderAreaPlaceholderPrefix } = window.oMessengerSelectors.HISTORY,
 			{ blockHeader, blockContainer } = window.oMessengerSelectors.SYSTEM,
 			{ threadReplies } = window.oMessengerSelectors.THREAD,
@@ -2172,9 +2177,18 @@
 																						}) {
 					switch (parseInt(code)) {
 						case 0:
-							_this.disableCreateList();
 							const iJotId = parseInt(jot_id), sTime = time || msgTime.toISOString();
+
+							_this.disableCreateList();
 							if (iJotId) {
+								if (typeof tmp_id !== 'undefined') {
+									Object.keys(_this.aUploaderQueue).map((sKey) => {
+										if (+_this.aUploaderQueue[sKey].id === +tmp_id) {
+											_this.aUploaderQueue[sKey].uploading_jot_id = jot_id;
+										}
+									});
+								}
+
 								if (typeof lot_id !== 'undefined') {
 									if (typeof header !== 'undefined')
 										$(messengerHistoryBlock)
@@ -2183,11 +2197,13 @@
 
 									_this.updateLotSettings({ lot: lot_id });
 									_this.updateTalksListArea();
-									$(talkTitle).remove();
 									if (!_this.isBlockVersion())
 										_this.upLotsPosition(_this.oSettings);
 
-									return _this.loadTalk(lot_id);
+									if (!['inbox', 'direct', 'threads'].includes(_this.oSettings.area_type))
+										return _this.loadTalksListByParam({ group : 'inbox' }, () => _this.loadTalk(lot_id));
+									else
+										return _this.loadTalk(lot_id);
 								}
 
 								if (typeof tmp_id !== 'undefined') {
@@ -2206,12 +2222,6 @@
 										.end()
 										.find('div[id^="jot-menu-"]')
 										.attr('id', `jot-menu-${jot_id}`);
-
-									Object.keys(_this.aUploaderQueue).map((sKey) => {
-										if (+_this.aUploaderQueue[sKey].id === +tmp_id) {
-											_this.aUploaderQueue[sKey].uploading_jot_id = jot_id;
-										}
-									});
 								}
 
 								if (typeof separator !== 'undefined'){
@@ -2244,6 +2254,8 @@
 								$(`[data-tmp="${oParams.tmp_id}"]`, conversationBody).remove();
 							} else
 								window.location.reload();
+
+							_this.setStorageData();
 							break;
 					}
 
@@ -3338,8 +3350,6 @@
 		$(sTopSelector, talksList)
 			.remove();
 
-		/*_this.updateCreateButton();*/
-
 		bx_loading($(talksList), true);
 		$.post('modules/?r=messenger/get_talks_list', { group, id, lot }, function ({ code, html, title}) {
 				bx_loading($(talksList), false);
@@ -4277,7 +4287,7 @@
 				pointer: {el: $(oMenu).parent()},
 				moveToDocRoot: _oMessenger.isBlockVersion(),
 				onShow: function (oEl) {
-					$(oEl).on('click', () => $(oEl).dolPopupHide());
+					$(oEl).unbind('click').click(() => { $(oEl).hide() });
 				}
 			})
 		},

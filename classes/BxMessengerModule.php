@@ -365,13 +365,10 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (!$iSender)
             $iSender = $this->_iProfileId;
 
-        if (empty($mixedData))
-            return _t('_bx_messenger_send_message_no_data');
-
         $aData = array();
         if (is_array($mixedData))
             $aData = $mixedData;
-        elseif (is_string($mixedData))
+        elseif (is_string($mixedData) && strlen($mixedData))
             $aData['message'] = $mixedData;
 
         if (empty($aData))
@@ -474,7 +471,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         // prepare participants list
         $aParticipants = $this->getParticipantsList($aParticipants, $iSender !== $this->_iProfileId);
         if (!$iLotId && empty($aParticipants) && $iType === BX_IM_TYPE_PRIVATE)
-            return _t('_bx_messenger_send_message_no_data');
+            return _t('_bx_messenger_save_part_failed');
 
 		$sMessage = $this -> prepareMessageToDb($sMessage);
 		if ($sMessage && $iType != BX_IM_TYPE_PRIVATE && $sUrl)
@@ -567,7 +564,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 	public function actionSend(){
 		$aData = &$_POST;
 		 if (!$this->isLogged())
-            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
+            return echoJson(['code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1]);
 
 		$aLastJotInfo = isset($aData['lot']) ? $this->_oDb->getLatestJot($aData['lot'], BX_IM_EMPTY, false) : [];
 		$mixedResult = $this->sendMessage($aData);
@@ -3312,8 +3309,11 @@ class BxMessengerModule extends BxBaseModGeneralModule
     function actionUpdateUploadedFiles(){
         $iJotId = bx_get('jot_id');
         $aFiles = bx_get('files');
-        if (!$this->isLogged() || !$iJotId || empty($aFiles))
-            return echoJson(array('code' => 1, 'message' => MsgBox(_t('_bx_messenger_not_logged')), 'reload' => 1));
+        if (!$this->isLogged())
+            return echoJson(['code' => 1, 'message' => MsgBox(_t('_bx_messenger_not_logged')), 'reload' => 1]);
+
+        if (!$iJotId || empty($aFiles))
+            return echoJson(['code' => 1, 'message' => MsgBox(_t('_bx_messenger_files_can_not_be_uploaded'))]);
 
         $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_SEND_MESSAGE, $this->_iProfileId);
         if ($mixedResult !== true)

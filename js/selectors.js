@@ -56,7 +56,6 @@
                 searchInput: '#bx-messenger-search-block',
                 searchCloseIcon: '.bx-messenger-talks-list-header-search-area-icon',
                 inboxAreaTitle: '#bx-messenger-inbox-area-title',
-                talkTitle: '#bx-messenger-talk-title',
                 menuButton: '.bx-messenger-talks-list-header-menu',
                 createTalkButton: '#bx-messenger-create-post-button',
             };
@@ -94,7 +93,8 @@
                 replyArea: '.bx-messenger-reply-area',
                 replyAreaMessage: '.bx-messenger-reply-area-message',
                 sendAreaActionsButtons: '.bx-messenger-post-box-send-actions',
-                textAreaDisabled: 'bx-messenger-post-box-disabled'
+                textAreaDisabled: 'bx-messenger-post-box-disabled',
+                talkTitle: '#bx-messenger-talk-title',
             };
 
             this.HISTORY_INFO = {

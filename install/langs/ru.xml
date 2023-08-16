@@ -308,4 +308,5 @@
 	<string name="_bx_messenger_dont_update_title"><![CDATA[Не обновлять заголовок страницы при поступлении новых сообщений]]></string>
 	<string name="_bx_messenger_acl_action_edit_messages"><![CDATA[Редактировать сообщения]]></string>
 	<string name="_bx_messenger_acl_action_delete_messages"><![CDATA[Удалять сообщения]]></string>
+	<string name="_bx_messenger_files_can_not_be_uploaded"><![CDATA[Файлы не могут быть добавлены в этот разговор!]]></string>
 </resources>

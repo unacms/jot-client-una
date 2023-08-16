@@ -343,4 +343,5 @@
 	<string name="_bx_messenger_dont_update_title"><![CDATA[Don't update page title when new messages income]]></string>
 	<string name="_bx_messenger_acl_action_edit_messages"><![CDATA[Edit messages]]></string>
 	<string name="_bx_messenger_acl_action_delete_messages"><![CDATA[Delete messages]]></string>
+	<string name="_bx_messenger_files_can_not_be_uploaded"><![CDATA[Files can not be uploaded to the conversation!]]></string>
 </resources>

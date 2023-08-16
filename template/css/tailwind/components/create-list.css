@@ -1,9 +1,9 @@
 .bx-messenger-create-talk-list {
-    @apply max-w-full h-full sm:mt-12 mt-1 flex flex-col;
+    @apply max-w-full h-full sm:mt-12 mt-1 flex flex-col relative;
 }
 
 .bx-messenger-create-talk-list-header {
-    @apply text-center;
+    @apply text-center p-4;
 }
 
 .bx-messenger-create-talk-list-header h2 {
@@ -11,7 +11,11 @@
 }
 
 .bx-messenger-create-talk-list-header svg {
-    @apply mx-auto md:h-12 md:w-12 h-8 w-8 text-gray-400;
+    @apply mx-auto h-8 w-8 text-gray-400;
+}
+
+.bx-messenger-create-talk-list-header .bx-messenger-create-talk-list-main-logo svg {
+    @apply md:h-12 md:w-12;
 }
 
 .bx-messenger-create-list-users {
@@ -44,8 +48,7 @@
 
 .bx-messenger-participants-list-item {
     @apply p-2 flex items-center justify-between rounded-full border-gray-200
-           dark:border-gray-800 shadow-sm text-left hover:bg-gray-100 dark:hover:bg-gray-800
-           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 border; /*border border-gray-300*/
+           dark:border-gray-800 shadow-sm text-left hover:bg-gray-100 dark:hover:bg-gray-800 border;
 }
 
 .bx-messenger-participants-info {

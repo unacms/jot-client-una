@@ -65,7 +65,4 @@
     @apply flex-shrink-0 h-12 w-12 justify-center flex items-center rounded-full text-white dark:group-hover:text-gray-200 group-hover:text-gray-700 bg-gray-500 dark:bg-gray-900;
 }
 
-#bx-messenger-create-post-button {
-    @apply hidden;
-}
 

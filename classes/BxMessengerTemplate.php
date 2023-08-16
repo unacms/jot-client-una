@@ -354,22 +354,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         ));
     }
 
-    public function getCreateTalkNewForm($iProfileId, $iLotId = 0){
-        $sHistory = $this -> parseHtmlByName('history.html', array(
-            'content' => $this->getCreateListArea(),
-            'new_msg_active' => 'none',
-            'unread_count' => 0,
-            'info' => $this -> parseHtmlByName('info-area.html', [])
-        ));
-
-        return $this -> parseHtmlByName('talk.html', array(
-            'header' => $this -> parseHtmlByName('talk-header.html', array('buttons' => '', 'menu_button' => $this -> parseHtmlByName('mobile-menu-button.html', array()), 'title' => '')),
-            'top_area'=> $this->getHistoryTopArea(),
-            'history' => $sHistory,
-            'text_area' => $this->getTextArea($iProfileId, $iLotId)
-        ));
-    }
-
 	public function getTalkHeaderForUsername($iViewer, $iProfileId, $bWrap = true){
 	    $oViewer = $this -> getObjectUser($iViewer);
         $oProfile = $this -> getObjectUser($iProfileId);
@@ -590,25 +574,21 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         return $sProfilesList;
     }
 
-    function getCreateListArea($iLotId = 0, $mixedProfiles = []){
+    function getCreateListArea($iLotId = 0, $mixedProfiles = [], $bEmptyDefaultList = false){
         $sContent = '';
-        $sProfilesList = $this->getProfilesListWithDesign($iLotId, $mixedProfiles);
-        if ($this->_oConfig->CNF['SHOW-FRIENDS'] && ($aFriends = $this->getFriendsList()))
-          $sContent = $this->parseHtmlByName('profiles-list.html', $aFriends);
-        else
-          $sContent = MsgBox(_t('_bx_messenger_empty_users_list'));
+	    if ($this->_oConfig->CNF['SHOW-FRIENDS'] && !$bEmptyDefaultList)
+            $sContent = $this->getFriendsList();
 
-	   return $this->parseHtmlByName('create-list.html', array(
-	       'items' => !$iLotId ? $sContent : '',
-           'menu_button' => $this->parseHtmlByName('mobile-menu-button.html', array()),
+       $sProfilesList = $iLotId ? $this->getProfilesListWithDesign($iLotId, $mixedProfiles) : '';
+	   return $this->parseHtmlByName('create-list.html', [
+	       'items' => $sContent,
+           'menu_button' => $this->parseHtmlByName('mobile-menu-button.html', []),
            'profiles_list' => $sProfilesList,
-           'bx_if:edit' => array(
-               'condition' => $iLotId,
-               'content' => array(
-                   'id' => $iLotId
-               )
-           )
-       ));
+           'bx_if:edit' => [
+                'condition' => $iLotId,
+                'content' => [ 'id' => $iLotId ]
+              ]
+           ]);
     }
 	/**
 	* Search friends function which shows fiends only if member have no any talks yet
@@ -616,20 +596,14 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	*@return string html code
 	*/
 	function getFriendsList($sParam = '', $bListAsArray = false){
-		$iLimit = (int)$this->_oConfig->CNF['PARAM_FRIENDS_NUM_BY_DEFAULT'] ? (int)$this->_oConfig->CNF['PARAM_FRIENDS_NUM_BY_DEFAULT'] : 5;
+		$iLimit = (int)$this->_oConfig->CNF['PARAM_FRIENDS_NUM_BY_DEFAULT'] ?? 5;
 
 		$sContent = MsgBox(_t('_Empty'));
 		if (!$this->_oConfig->CNF['SHOW-FRIENDS'])
 			return $sContent;
 
-        $aFriends = array();
-         if (!$sParam){
-             bx_import('BxDolConnection');
-            $oConnection = BxDolConnection::getObjectInstance('sys_profiles_friends');
-            if (!$oConnection || !($aFriends = $oConnection -> getConnectionsAsArray ('content', bx_get_logged_profile_id(), 0, false, 0, $iLimit + 1, BX_CONNECTIONS_ORDER_ADDED_DESC)))
-                 return $sContent;
-         }
-         else
+         $aFriends = [];
+         if ($sParam)
          {
             $aUsers = BxDolService::call('system', 'profiles_search', array($sParam, $iLimit), 'TemplServiceProfiles');
             if (empty($aUsers))
@@ -637,6 +611,13 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
             foreach($aUsers as &$aValue)
                 $aFriends[] = $aValue['value'];
+         }
+          else
+         {
+             bx_import('BxDolConnection');
+             $oConnection = BxDolConnection::getObjectInstance('sys_profiles_friends');
+             if (!$oConnection || !$aFriends = $oConnection->getConnectionsAsArray('content', bx_get_logged_profile_id(), 0, false, 0, $iLimit + 1, BX_CONNECTIONS_ORDER_ADDED_DESC))
+                 return $sContent;
          }
 
         return $this->getProfilesListPreviewForCreateTalkArea($aFriends, !$bListAsArray);
@@ -1225,10 +1206,9 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
     public function getLotsList($iProfileId){
         $CNF = &$this->_oConfig->CNF;
         $aMyLots = $this->_oDb->getMyLots($iProfileId);
+        $sContent = MsgBox(_t('_Empty'));
         if (!empty($aMyLots))
             $sContent = $this->getLotsPreview($iProfileId, $aMyLots);
-		else
-			$sContent = $this->getFriendsList();
 
         $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_ACTIONS_TALK_MENU']);
 		$aVars = [
@@ -1248,8 +1228,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         'content' => array(
                             'star_title' => bx_js_string(_t('_bx_messenger_lots_menu_star_title')),
                         )
-                    ),
-                    'hidden' => /*!empty($aMyLots) ? */'hidden' /*: ''*/
+                    )
                 ];
 
 		return  bx_is_api() ? $aVars : $this -> parseHtmlByName('lots-list.html', $aVars);

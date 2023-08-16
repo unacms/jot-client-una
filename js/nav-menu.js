@@ -189,6 +189,9 @@
         if (!this.sMode)
             this.setViewMode();
 
+        if (this.sMode !== sPhone)
+            return;
+
         if ($(menuColumn).is(':visible') && this.sMode === sPhone)
             this.toggle(menuColumn);
 
@@ -215,14 +218,12 @@
      */
     oMessengerMenu.prototype.togglePanelMode = function(bForce = null) {
         const { historyColumn } = window.oMessengerSelectors.HISTORY,
-             { panel } = window.oMessengerSelectors.TALKS_LIST,
-            oPanel = $(historyColumn);
+              { panel } = window.oMessengerSelectors.TALKS_LIST,
+               oPanel = $(historyColumn),
+               bPanelEnabled = oPanel.hasClass(panel),
+               fFunc = (bEnable) => !bEnable ? oPanel.removeClass(panel) : oPanel.addClass(panel);
 
-        if ((oPanel.hasClass(panel) && bForce === null) || bForce === false)
-            oPanel.removeClass(panel);
-        else
-            if ((!oPanel.hasClass(panel) && bForce === null) || bForce === true)
-                oPanel.addClass(panel);
+        return fFunc( bForce !== null ? bForce : !bPanelEnabled );
     }
 
     oMessengerMenu.prototype.toggleBlockPanel = function(sPanel, fCallback) {
@@ -264,39 +265,24 @@
     }
 
     oMessengerMenu.prototype.toggleAlwaysOnTopBlock = function(bForce = null) {
-        const { talksList, topItem, panel, active, talkItem } = window.oMessengerSelectors.TALKS_LIST,
-              { historyColumn, createTalkArea, conversationBody } = window.oMessengerSelectors.HISTORY,
-              oCreateTalk = $(talksList).find(topItem),
-              bIsVisible = $(historyColumn).hasClass(panel);
+        const { talksList, topItem, panel } = window.oMessengerSelectors.TALKS_LIST,
+              { historyColumn } = window.oMessengerSelectors.HISTORY,
+              oTopItem = $(talksList).find(topItem),
+              bIsVisible = $(historyColumn).hasClass(panel),
+              fFunc = (bShow) => bShow ? oTopItem.removeClass('hidden') : oTopItem.addClass('hidden');
 
-        if ((bIsVisible && bForce === null) || bForce === false) {
-            oCreateTalk.addClass('hidden');
-            $(createTalkArea).hide().remove();
-
-            this.togglePanelMode(bForce);
-            return false;
-        } else
-            if ((!bIsVisible && bForce === null) || bForce === true) {
-                if (oMUtils.isMobile())
-                    this.toggleHistoryPanel();
-
-            oCreateTalk.removeClass('hidden');
-            $(talkItem).removeClass(active);
-
-            $(conversationBody).html('');
-            this.togglePanelMode(bForce);
-        }
-
-        return true;
+        this.togglePanelMode(bForce);
+        return fFunc( bForce !== null ? bForce : !bIsVisible );
     }
 
     const _oMenu = new oMessengerMenu();
     return {
                 toggleMenuPanel: () => _oMenu.toggleMenuPanel(),
+                togglePanelMode: (bEnable = false) => _oMenu.togglePanelMode(bEnable),
                 showInfoPanel: () => _oMenu.toggleInfoPanel(),
                 showHistoryPanel: () => _oMenu.toggleHistoryPanel(),
                 toggleMenuItem: (oItem, sArea = undefined) => _oMenu.setActiveItem(oItem, sArea),
-                toggleCreateTalkState: (bForce = null) => _oMenu.toggleAlwaysOnTopBlock(bForce),
+                toggleAlwaysOnTop: (bForce = null) => _oMenu.toggleAlwaysOnTopBlock(bForce),
                 toggleBlockGroupsPanel: (oItem) => _oMenu.toggleBlockGroupsPanel(oItem),
                 toggleBlockInfoPanel: (oItem) => _oMenu.toggleBlockInfoPanel(oItem),
                 isHistoryColActive: () => $(historyColumn).is(':visible'),

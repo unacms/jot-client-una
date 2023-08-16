@@ -734,22 +734,26 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
     /**
      * Loads search users area
-     * @return array with json
+     * @return array|void
      */
     public function actionLoadList(){
         if (!$this->isLogged())
-            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged'))));
+            return echoJson(['code' => 1, 'msg' => MsgBox(_t('_bx_messenger_not_logged'))]);
 
         $sAction = bx_get('action');
         $iGroupId = (int)bx_get('group_id');
         $sGroupType = bx_get('area_type');
         $iLotId = (int)bx_get('lot');
-        $iLotId = ($sAction === 'edit' ? $iLotId : 0);
-        if ($sAction === 'edit' && (!$iLotId || !$this->_oDb->isParticipant($iLotId, $this->_iProfileId)))
-            return echoJson(array('code' => 1));
+        if ($sAction === 'edit') {
+            if (!$iLotId || !($bAllowed = $this->_oDb->isAuthor($iLotId, $this->_iProfileId) || $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true))
+                return echoJson(['code' => 1]);
+        }
+          else
+              $iLotId = 0;
 
         $aProfilesList = [];
-        if ($sGroupType === BX_MSG_TALK_TYPE_GROUPS && $iGroupId) {
+        $bIsGroupedChat = $sGroupType === BX_MSG_TALK_TYPE_GROUPS && $iGroupId;
+        if ($bIsGroupedChat) {
             $aProfilesList = $this->getParticipantsListByGroupAndFilter($iGroupId);
             if (!empty($aProfilesList))
                 $aProfilesList = array_map(function($aValue){
@@ -757,7 +761,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 }, $aProfilesList);
         }
 
-        $sContent = $this->_oTemplate->getCreateListArea($iLotId, $aProfilesList);
+        $sContent = $this->_oTemplate->getCreateListArea($iLotId, $aProfilesList, $bIsGroupedChat);
         echoJson(array('code' => 0, 'content' => $sContent, 'text_area' => $this->_oTemplate->getTextArea($this->_iProfileId, $iLotId)));
     }
 
@@ -787,8 +791,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
     function actionGetUsersList(){
         $aResult = array('code' => 1);
         $sTerm = bx_get('term');
-        $iGroupId = (int)bx_get('group_id');
-        $sGroupType = bx_get('area_type');
         $iLotId = (int)bx_get('lot');
         if (!$this->isLogged())
             return echoJson($aResult);
@@ -1377,9 +1379,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $iLotId = bx_get('lot');
         $aResult = array('message' => _t('_bx_messenger_can_not_delete'), 'code' => 1);
 
-        if (!$iLotId || !($this->_oDb->isAuthor($iLotId, $this->_iUserId) || isAdmin())) {
+        $bAllowed = $this->_oDb->isAuthor($iLotId, $this->_iProfileId) || ($this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true);
+        if (!$iLotId || !$bAllowed)
             return echoJson($aResult);
-        }
 
         $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
         $CNF = &$this->_oConfig->CNF;
@@ -1894,16 +1896,15 @@ class BxMessengerModule extends BxBaseModGeneralModule
     {
         $iJotId = (int)bx_get('jot_id');
 
-		if ($iJotId)
-		{
+		if ($iJotId){
             $aJot = $this->_oDb->getJotById($iJotId);
-            if ($this->_oDb->isParticipant($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_FK']], $this->_iUserId)) {
+            if (!empty($aJot) && $this->_oDb->isParticipant($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_FK']], $this->_iProfileId)) {
                 if (($aAttachment = $this->_oTemplate->getAttachment($aJot, true, true)) && isset($aAttachment[BX_ATT_GROUPS_ATTACH]))
-                    return echoJson(array('code' => 0, 'html' => $aAttachment[BX_ATT_GROUPS_ATTACH]));
+                    return echoJson(['code' => 0, 'html' => $aAttachment[BX_ATT_GROUPS_ATTACH]]);
             }
         }
 
-        echoJson(array('code' => 1));
+        echoJson(['code' => 1]);
     }
 
     /**

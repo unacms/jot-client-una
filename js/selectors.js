@@ -18,6 +18,7 @@
             this.HISTORY = {
                 conversationBody: '.bx-messenger-conversations',
                 talkBlock: '.bx-messenger-conversation-block',
+                talkBlockWrapper: '.bx-messenger-conversation-block-wrapper',
                 historyColumn: '#bx-messenger-history-block',
                 createTalkArea: '#bx-messenger-users-creation-area',
                 tableWrapper: '.bx-messenger-table-wrapper',

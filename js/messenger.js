@@ -25,7 +25,6 @@
 		this.sEditJotAreaId = '#bx-messenger-edit-message-box';
 		this.sThreadTextArea = '#bx-messenger-thread-message-box';
 		this.sAttachmentArea = '.bx-messenger-attachment-area';
-		this.sJotAreaInfo = '.bx-messenger-jots-info'; //r
 		this.sAttachmentBlock = '.bx-messenger-attachment';
 		this.sAttachmentFiles = '.bx-messenger-attachment-files';
 		this.sGiphyImages = '.bx-messenger-static-giphy';
@@ -52,7 +51,6 @@
 		this.sActivePopup = '.bx-popup-applied:visible';
 		this.sJitsiButton = '#jitsi-button';
 		this.sJitsiJoinButton = '.bx-messenger-jots-message-vc-join-button';
-		this.sConversationBlockWrapper = '.bx-messenger-conversation-block-wrapper';
 		this.sUnreadJotsCounter = '#unread-jots-counter';
 		this.sDateNavigator = '#date-time-navigator';
 		this.sUploaderAreaPrefix = 'bx-messenger-uploading-placeholder'; //
@@ -60,12 +58,8 @@
 		this.sJotMessageReplyArea = '.bx-messenger-reply-area';
 		this.sJotMessageTitle = '.bx-messenger-jots-title';
 		this.sTextArea = '.text-area';
-		this.sTalkTitle = '#bx-messenger-talk-title';//r
 		this.sInboxTitle = '#bx-messenger-inbox-area-title';
-		this.sAlwaysTopLots = '.bx-messenger-always-top';
-		this.sCreateTalkButton = '#bx-messenger-create-post-button';
 		this.sAttachFilesButton = 'a.attachefile, button.attachefile';
-		this.sSearchCriteria = '#bx-messenger-filter-talks'; //r
 		this.sTalksListSearchBar = '.bx-messenger-participants-usernames';
 
 		//global class options
@@ -134,7 +128,6 @@
 		this.oEmojiTemplate = oOptions.templates && oOptions.templates['participants_item'];
 		this.aLoadingRequestsPool = []; // contains requests to load the talks when member clicks many talks with small delay and there is not enough time to load each talk
 
-		const _this = this;
 		$(this).on('message', () => this.beep());
 
 		this.oSettings = {
@@ -147,9 +140,8 @@
 							area_type: 'inbox'
 						};
 
-		const { mainTalkBlock } = window.oMessengerSelectors.HISTORY;
 
-		this.oThreadsEditor = null;
+		this.bCreateNew = false;
 		this.iSelectedJot = oOptions.jot_id || 0;
 		this.iLastUnreadJot = oOptions.last_unread_jot || 0;
 		this.iUnreadJotsNumber = oOptions.unread_jots || 0;
@@ -159,18 +151,20 @@
 		this.bByUrl = +oOptions.by_url;
 		this.iSelectedPersonToTalk = oOptions.selected_profile || 0;
 		this.isBlockMessenger = typeof oOptions.block_version !== 'undefined' ? oOptions.block_version : $(window.oMessengerSelectors.JOT.lotsBlock).length === 0;
+
+		const { mainTalkBlock } = window.oMessengerSelectors.HISTORY;
 		this.oFilesUploaderSettings = typeof oOptions['files_uploader'] !== 'undefined' ? $.extend(oOptions['files_uploader'], { main_object_name: mainTalkBlock }) : null;
 
 		// Real-time WebSockets framework class
 		this.oRTWSF = (oOptions && oOptions.oRTWSF) || window.oRTWSF || null;
 		
-		// main messenger menu
+		// Main Messenger menu
 		this.oMenu = null;
 
 		// text editor
 		this.quill = null;
 
-		$(window).on('popstate', () => this.initHistory());
+		$(window).on('popstate', (e) => this.updateHistory(e));
 
 		this.oNotifications = oOptions.messages || {
 			'inbox': Object.create({}),
@@ -180,11 +174,10 @@
 		};
 	}
 
-	oMessenger.prototype.initHistory = function(){
+	oMessenger.prototype.updateHistory = function(e){
 		const _this = this,
 			  { state } = this.oHistory,
-			  { lot, jot, action, type, area, menu } = state || {},
-			  { jotMain } = window.oMessengerSelectors.JOT;
+			  { lot, jot, action, type, area, menu } = state || {};
 
 		if (this.oEditor)
 			this.oEditor.blur();
@@ -204,7 +197,7 @@
 				}
 				break;
 			case 'create_list':
-				_this.createList(type);
+					_this.createList(type);
 				break;
 		}
 	}
@@ -848,34 +841,56 @@
 			searchFunction();
 	}
 
+	oMessenger.prototype.disableCreateList = function(action) {
+		const { conversationBlockHistory, createTalkArea } = window.oMessengerSelectors.HISTORY;
+
+		$(createTalkArea, conversationBlockHistory).hide().remove();
+		if (oMUtils.isMobile())
+			this.oMenu.showHistoryPanel();
+
+		this.bCreateNew = false;
+		this.oMenu.toggleAlwaysOnTop(false);
+	}
+
 	oMessenger.prototype.createList = function(action, fCallback) {
 		const { lot, area_type, group_id } = this.oSettings,
-			  { talkItem } = window.oMessengerSelectors.TALKS_LIST,
+			  { talkItem, panel } = window.oMessengerSelectors.TALKS_LIST,
 			  { textArea } = window.oMessengerSelectors.TEXT_AREA,
-			  { mainTalkBlock, tableWrapper, conversationBlockHistory } = window.oMessengerSelectors.HISTORY,
+			  { mainTalkBlock, tableWrapper, conversationBlockHistory, createTalkArea, talkBlockWrapper, historyColumn } = window.oMessengerSelectors.HISTORY,
 			  _this = this;
 
-		if (action !== 'edit' && !_this.oMenu.toggleCreateTalkState()) {
-			if (!oMUtils.isMobile())
-				$(talkItem).first().click();
+		const bIsPanel = $(historyColumn).hasClass(panel);
+		if (bIsPanel && $(createTalkArea, conversationBlockHistory).length)
 			return;
+
+		if (oMUtils.isMobile()) {
+			if (!_this.oMenu.isHistoryColActive())
+				_this.oMenu.showHistoryPanel();
 		}
+
+		_this.oMenu.toggleAlwaysOnTop();
+
+		// flag to detect if the new conversation is created
+		this.bCreateNew = action === 'new';
 
 		bx_loading($(mainTalkBlock), true);
 		$.post('modules/?r=messenger/load_list', { group_id, area_type, action, lot }, function ({
 																								   code,
 																								   content,
-																								   text_area
+																								   text_area,
+																								   msg
 																							  	 }) {
 			bx_loading($(mainTalkBlock), false);
-			if (code === 1)
-				window.location.reload();
+			if (+code && msg) {
+				bx_alert(msg);
+				return;
+			}
 
 			if (!parseInt(code)) {
-				$(conversationBlockHistory)
-					.prepend(content);
+				$(talkBlockWrapper, conversationBlockHistory)
+					.before(content);
 
-				_this.updateLotSettings({ title: '', lot: action === 'new' ? 0 : lot});
+				/*_this.updateLotSettings({ title: '', lot: action === 'new' ? 0 : lot });*/
 
 				if (text_area) {
 					if ($(textArea, mainTalkBlock).length)
@@ -908,10 +923,7 @@
 							bx_alert(message);
 						else
 						{
-							if ($(createTalkArea).length) {
-								$(createTalkArea).hide().remove();
-								return;
-							}
+							_this.disableCreateList();
 
 							if (typeof header !== 'undefined') {
 								$(mainTalkBlock)
@@ -1820,10 +1832,11 @@
 
 	oMessenger.prototype.editOnClick = function(){
 		const _this = this,
+			{ bxTitle } = window.oMessengerSelectors.SYSTEM,
 			{ messengerHistoryBlock } = window.oMessengerSelectors.HISTORY;
 
 		if (!oMUtils.isMobile())
-			$('.bx-db-title', messengerHistoryBlock).dblclick(() => _this.createList('edit'));
+			$(bxTitle, messengerHistoryBlock).dblclick(() => _this.createList('edit'));
 	}
 
 	/**
@@ -1959,7 +1972,7 @@
 				} else
 					bx_loading($(conversationBlockHistory), false);
 
-			_this.oMenu.toggleCreateTalkState(false);
+			_this.oMenu.toggleAlwaysOnTop(false);
 		}, 'json');
 	};
 
@@ -2024,7 +2037,7 @@
 			msgTime = new Date(),
 			{ textArea, replyAreaMessage, replyArea } = window.oMessengerSelectors.TEXT_AREA,
 			{ talkTitle } = window.oMessengerSelectors.TALKS_LIST,
-			{ conversationBody, messengerHistoryBlock, createTalkArea, uploaderAreaPlaceholderPrefix } = window.oMessengerSelectors.HISTORY,
+			{ conversationBody, messengerHistoryBlock, uploaderAreaPlaceholderPrefix } = window.oMessengerSelectors.HISTORY,
 			{ blockHeader, blockContainer } = window.oMessengerSelectors.SYSTEM,
 			{ threadReplies } = window.oMessengerSelectors.THREAD,
 			{ talkListJotSelector, jotMessageBody, jotMain, jotContainer, jotMessage, jotTitle, jotAvatar } = window.oMessengerSelectors.JOT;
@@ -2067,7 +2080,10 @@
 		// remove MSG (if it exists) from clean history page
 		if ($(blockContainer, conversationBody).length)
 				$(blockContainer, conversationBody).remove();
-		
+
+		if (!_this.bCreateNew)
+			_this.disableCreateList();
+
 		if (oParams.message.length > this.iMaxLength) 
 			oParams.message = oParams.message.substr(0, this.iMaxLength);
 
@@ -2111,9 +2127,11 @@
 									.html()
 									.replace('{message}', oParams.message || '');
 
+
 			// append content of the message to the history page
-			$(conversationBody)
-				.append(oUserTemplate
+			if (!_this.bCreateNew)
+				$(conversationBody)
+						.append(oUserTemplate
 									.attr('data-tmp', oParams.tmp_id)
 									.find(jotMessage)
 									.html(sContent)
@@ -2122,7 +2140,7 @@
 									.find(jotContainer)
 									.append(sUploadingArea)
 									.end()
-						);
+								);
 
 			const oLastLine = $(oUserTemplate).find('span.time').prev('p');
 			if (oLastLine.length)
@@ -2142,24 +2160,20 @@
 			_this.cleanReplayArea();
 		}
 
-		_this.updateScrollPosition('bottom');
+		if (_this.bCreateNew)
+			oParams.lot = 0;
 
-		_this.oMenu.toggleCreateTalkState(false);
+		_this.updateScrollPosition('bottom');
 		// save message to database and broadcast to all participants
 		_this.oSendPool.set( oParams.tmp_id, { 'promise': null, 'run': () => $.post('modules/?r=messenger/send', oParams, function ({
-																						jot_id,
-																						header,
-																						tmp_id,
-																						message,
-																						code,
-																						time,
-																						lot_id,
-																						separator
-																					}) {
+																						jot_id, header,
+																						tmp_id, message,
+																						code, time, lot_id, separator
+																						}) {
 					switch (parseInt(code)) {
 						case 0:
+							_this.disableCreateList();
 							const iJotId = parseInt(jot_id), sTime = time || msgTime.toISOString();
-
 							if (iJotId) {
 								if (typeof lot_id !== 'undefined') {
 									if (typeof header !== 'undefined')
@@ -2170,8 +2184,10 @@
 									_this.updateLotSettings({ lot: lot_id });
 									_this.updateTalksListArea();
 									$(talkTitle).remove();
-									$(createTalkArea).remove();
-									$(window).resize();
+									if (!_this.isBlockVersion())
+										_this.upLotsPosition(_this.oSettings);
+
+									return _this.loadTalk(lot_id);
 								}
 
 								if (typeof tmp_id !== 'undefined') {
@@ -2206,8 +2222,6 @@
 								if ((_this.oFilesUploader && oParams.files && _this.oFilesUploader.isReady()) || typeof oParams.giphy !== 'undefined')
 									_this.attacheFiles(iJotId);
 
-								/*if (!_this.isBlockVersion())
-									_this.upLotsPosition(_this.oSettings);*/
 							}
 							
 							if (_this.iThreadId && $(threadReplies).length){
@@ -2224,17 +2238,13 @@
 							}
 							break;
 
-						case 1:
+						default:
 							if (message) {
 								bx_alert(message);
 								$(`[data-tmp="${oParams.tmp_id}"]`, conversationBody).remove();
 							} else
 								window.location.reload();
 							break;
-							
-						default:
-							bx_alert(message);
-							$(conversationBody).find('[data-tmp="' + oParams.tmp_id + '"]').remove();
 					}
 
 					if (typeof fCallBack == 'function')
@@ -3327,7 +3337,9 @@
 
 		$(sTopSelector, talksList)
 			.remove();
-		_this.updateCreateButton();
+
+		/*_this.updateCreateButton();*/
+
 		bx_loading($(talksList), true);
 		$.post('modules/?r=messenger/get_talks_list', { group, id, lot }, function ({ code, html, title}) {
 				bx_loading($(talksList), false);
@@ -4119,6 +4131,7 @@
 		 *@param object oEl
 		 */
 		showStarred: function (oEl) {
+			const { searchCriteria } = window.oMessengerSelectors.TALKS_LIST;
 			if (!_oMessenger.iStarredTalks) {
 				$(oEl)
 					.addClass('active')
@@ -4131,7 +4144,7 @@
 					.removeClass('fill');
 
 			_oMessenger.iStarredTalks = !_oMessenger.iStarredTalks;
-			this.searchByItems($(_oMessenger.sSearchCriteria).val());
+			this.searchByItems($(searchCriteria).val());
 		},
 
 		removeFile: (oEl, id) => bx_confirm(_t('_bx_messenger_post_confirm_delete_file'), () => oMessengerJotMenu.removeFile(oEl, id)),
@@ -4339,19 +4352,22 @@
 			const { selectedUsersArea, existedUsersArea } = window.oMessengerSelectors.CREATE_TALK;
 
 			if (typeof oUser !== 'undefined') {
-				const iId = $(oUser).data('id'),
-					  sUser = $('.avatar', oUser).html(),
-					  sUsername = $('.username', oUser).html(),
-					  oUserObject = $(_oMessenger.sAddUserTemplate).clone(),
-					  sTemplate = oUserObject
-										 .prop('outerHTML')
-						  				 .replace(/{id}/g, iId)
-										 .replace(/{avatar}/g, sUser)
-										 .replace(/{name}/g, sUsername);
+				const iId = $(oUser).data('id');
+
+				if (!$(existedUsersArea, selectedUsersArea).find(`[data-id=${iId}]`).length) {
+					const sUser = $('.avatar', oUser).html(),
+						sUsername = $('.username', oUser).html(),
+						oUserObject = $(_oMessenger.sAddUserTemplate).clone(),
+						sTemplate = oUserObject
+							.prop('outerHTML')
+							.replace(/{id}/g, iId)
+							.replace(/{avatar}/g, sUser)
+							.replace(/{name}/g, sUsername);
 
 
-				$(existedUsersArea, selectedUsersArea)
-					.prepend($(sTemplate).append(`<input type="hidden" name="users[]" value="${iId}" />`));
+					$(existedUsersArea, selectedUsersArea)
+						.prepend($(sTemplate).append(`<input type="hidden" name="users[]" value="${iId}" />`));
+				}
 
 				$(oUser).remove();
 			}
@@ -4361,7 +4377,7 @@
 				{ talksListItems } = window.oMessengerSelectors.TALKS_LIST;
 
 			_oMessenger.oMenu.toggleMenuPanel();
-			_oMessenger.oMenu.toggleCreateTalkState(false);
+			_oMessenger.oMenu.toggleAlwaysOnTop(false);
 			_oMessenger.loadTalksListByParam(mixedGroup, () => {
 				const oLotId = $(talksListItems).first(),
 					  iLotId = oLotId && +oLotId.data('lot');
@@ -4422,14 +4438,8 @@
 			$(`input[value=${iId}]`, selectedUsersArea).remove();
 			$(oElement).remove();
 		},
-		backPage: function(){
-			const { lot } = _oMessenger.oSettings,
-				  { createTalkArea } = window.oMessengerSelectors.HISTORY;
-
-			$(createTalkArea).hide().remove();
-
-			if  (!lot)
-				 history.back();
+		closeEditForm: function(sAction){
+			_oMessenger.disableCreateList(sAction);
 		},
 		clearSearch: () => {
 			const { searchCriteria, searchCloseIcon } = window.oMessengerSelectors.TALKS_LIST;

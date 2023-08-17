@@ -668,37 +668,43 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	*/
 	function getLotsPreview($iProfileId, $aLots, $bShowTime = true){
 		$CNF = &$this->_oConfig->CNF;
+
 		$sContent = '';
 		$aContent = [];
-
 		foreach($aLots as &$aLot)
 		{
-            $aVars = array();
+            $aVars = [];
 		    $aParticipantsList = $this -> _oDb -> getParticipantsList($aLot[$CNF['FIELD_ID']], true, $iProfileId);
 			$iParticipantsCount = count($aParticipantsList);
-			$aParticipantsList = $iParticipantsCount ? array_slice($aParticipantsList, 0, $CNF['PARAM_ICONS_NUMBER']) : array($iProfileId);
+			$aParticipantsList = $iParticipantsCount ? array_slice($aParticipantsList, 0, $CNF['PARAM_ICONS_NUMBER']) : [$iProfileId];
+            $oAuthor = null;
 
             $sGroupName = $sModuleTitle = $sThumb = $sModuleIcon = '';
             $bIsGroupTalk = isset($aLot[$CNF['FMGL_GROUP_ID']]) && (int)$aLot[$CNF['FMGL_GROUP_ID']];
             if ($bIsGroupTalk) {
                 $aGroupInfo = $this->_oDb->getGroup($aLot[$CNF['FMGL_GROUP_ID']]);
-                if ($aGroupInfo[$CNF['FMG_MODULE']] !== BX_MSG_TALK_TYPE_PAGES && ($oGroupProfile = BxDolProfile::getInstance($aGroupInfo[$CNF['FMG_PROFILE_ID']]))) {
-                    $sThumb = $oGroupProfile->getIcon();
-					if (!$sThumb){
-                        if (!($sThumb = bx_srv($aGroupInfo[$CNF['FMG_MODULE']], 'get_thumb', [$oGroupProfile->getContentId()])))
-							$sThumb = BxDolModule::getInstance($aGroupInfo[$CNF['FMG_MODULE']])->_oTemplate->getImageUrl('no-picture.svg');
-					}
+                if ($aGroupInfo[$CNF['FMG_MODULE']] !== BX_MSG_TALK_TYPE_PAGES) {
+                    $oGroupProfile = BxDolProfile::getInstance($aGroupInfo[$CNF['FMG_PROFILE_ID']]);
+                    if ($oGroupProfile) {
+                        $sThumb = $oGroupProfile->getIcon();
+                        if (!$sThumb)
+                            $sThumb = bx_srv($aGroupInfo[$CNF['FMG_MODULE']], 'get_thumb', [$oGroupProfile->getContentId()]);
 
-                    $sModuleIcon = $sThumb;
-                    $sModuleTitle = _t('_' . $oGroupProfile->getModule());
-                    $aGroupItemInfo = BxDolService::call($oGroupProfile->getModule(), 'get_info', array($oGroupProfile->getContentId(), false));
-                    if (!empty($aGroupItemInfo)) {
-                        $oModule = BxDolModule::getInstance($aGroupInfo[$CNF['FMG_MODULE']]);
-                        if ($oModule->_oConfig) {
-                            $oMCNF = $oModule->_oConfig->CNF;
-                            $sGroupName = isset($aGroupItemInfo[$oMCNF['FIELD_TITLE']]) ? $aGroupItemInfo[$oMCNF['FIELD_TITLE']] : '';
+                        $sModuleTitle = _t('_' . $oGroupProfile->getModule());
+                        $aGroupItemInfo = BxDolService::call($oGroupProfile->getModule(), 'get_info', [$oGroupProfile->getContentId(), false]);
+                        if (!empty($aGroupItemInfo)) {
+                            $oModule = BxDolModule::getInstance($aGroupInfo[$CNF['FMG_MODULE']]);
+                            if ($oModule->_oConfig) {
+                                $oMCNF = $oModule->_oConfig->CNF;
+                                $sGroupName = isset($aGroupItemInfo[$oMCNF['FIELD_TITLE']]) ? $aGroupItemInfo[$oMCNF['FIELD_TITLE']] : '';
+                            }
                         }
                     }
+
+                    if (!$sThumb)
+                        $sThumb = BxDolModule::getInstance($aGroupInfo[$CNF['FMG_MODULE']])->_oTemplate->getImageUrl('no-picture.svg');
+
+                    $sModuleIcon = $sThumb;
                 } else
                 {
                     $sModuleIcon = $this->_oConfig->getPageIcon();                    
@@ -713,19 +719,19 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                     }
                 }
 
-                $aVars['bx_repeat:avatars'][] = array(
-                    'bx_if:avatars' => array(
-                        'condition' => true,
-                        'content' => array(
-                            'title' => $sModuleTitle,
-                            'thumb' => $sModuleIcon,
-                        )
-                    ),
-                    'bx_if:letters' => array(
+                $aVars['bx_repeat:avatars'][] = [
+                    'bx_if:avatars' => [
+                            'condition' => true,
+                            'content' => [
+                                'title' => $sModuleTitle,
+                                'thumb' => $sModuleIcon,
+                        ]
+                    ],
+                    'bx_if:letters' => [
                         'condition' => false,
-                        'content' => array()
-                    )
-                );
+                        'content' => []
+                    ]
+                ];
             }
             else
             {
@@ -752,9 +758,8 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 );
             }
 
-			$aNickNames = array();
-            $oProfile = null;
-
+			$aNickNames = [];
+            $aVars['bx_repeat:participants'] = [];
             $aLastAnsweredParticipants = $this->_oDb->getLatestJotsAuthors($aLot[$CNF['FIELD_ID']]);
 			foreach($aLastAnsweredParticipants as $iParticipant){
 				$oProfile = $this -> getObjectUser($iParticipant);
@@ -794,10 +799,10 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			}	
 
 			$sStatus = $sCount = '';
-			if ($iParticipantsCount <= 1 && $oProfile && !$bIsGroupTalk){
-                $sStatus = (method_exists($oProfile, 'isOnline') ? $oProfile -> isOnline() : false) ?
-					$this -> getOnlineStatus($oProfile-> id(), 1) : 
-					$this -> getOnlineStatus($oProfile-> id(), 0) ;
+			if ($iParticipantsCount <= 1 && $oAuthor && !$bIsGroupTalk){
+                $sStatus = (method_exists($oAuthor, 'isOnline') ? $oAuthor -> isOnline() : false) ?
+					$this -> getOnlineStatus($oAuthor-> id(), 1) :
+					$this -> getOnlineStatus($oAuthor-> id(), 0) ;
 			}
 			else
                 $sCount = '<div class="bx-def-label bx-def-font-middle status">' . $iParticipantsCount .'</div>';
@@ -813,8 +818,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			$aVars[$CNF['FIELD_MESSAGE']] = $aVars['sender_username'] = '';
 
             $sMessage = '';
-			if (!empty($aLatestJots))
-			{
+			if (!empty($aLatestJots)) {
                 $aAttachType = [];
                 if ($aLatestJots[$CNF['FIELD_MESSAGE_AT_TYPE']])
                     $aAttachType = array($aLatestJots[$CNF['FIELD_MESSAGE_AT_TYPE']] => $aLatestJots[$CNF['FIELD_MESSAGE_AT']]);
@@ -871,8 +875,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 ]
             ];
 
-			/*$aVars['talk_type'] = $sModuleTitle;
-			$aVars['icon'] = $sModuleIcon;*/
 			$aVars['bx_if:timer'] = array(
 												'condition' => $bShowTime,
 												'content' => array(
@@ -880,7 +882,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 													)
 												);
 			$aContent[] = $aVars;
-			
 			$sContent .= $this -> parseHtmlByName('lots-briefs.html',  $aVars);
 		}
 		

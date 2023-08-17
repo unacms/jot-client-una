@@ -70,7 +70,7 @@ div.bx-messenger-jitsi-area div[draggable] {
 
 div.bx-messenger-jots-message-vc
 {
-	@apply max-w-full text-left flex relative bg-gray-600 max-h-[1.5rem] overflow-hidden whitespace-normal rounded p-1 my-1
+	@apply max-w-full text-left flex relative bg-gray-300 dark:bg-gray-600 max-h-[1.5rem] overflow-hidden whitespace-normal rounded p-1 my-1
 	border-0 items-center justify-between space-x-0 xs:space-x-2;
 }
 
@@ -79,31 +79,19 @@ div.bx-messenger-jots-message-vc span:first-child {
 }
 
 div.bx-messenger-conference-call {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	align-content: center;
-	margin: 0.5rem;
+	@apply flex flex-col items-center content-center m-2;
 }
 
 div.bx-messenger-conference-call .bx-messenger-conference-call-buttons{
-	display: flex;
-	width: 100%;
-	align-items: center;
-	justify-content: space-evenly;
+	@apply flex w-full items-center justify-evenly;
 }
 
 div.bx-messenger-conference-call .bx-messenger-conference-call-buttons i {
-	text-align: center;
-	padding: 0.5rem;
-	line-height: 2.5rem;
-	border-radius: 1.25rem;
-	min-width: 2.5rem;
-	font-size: 1.25rem;
+	@apply text-center p-2 rounded-[1.25rem] min-w-[2.5rem] text-xl;
 }
 
 div.bx-messenger-conference-call > div {
-	margin: 1rem;
+	@apply m-4;
 }
 
 #bx-messenger-jitsi-video .resizers{

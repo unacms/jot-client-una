@@ -49,8 +49,10 @@ class BxMessengerJotMenu extends BxTemplMenuCustom
 
     protected function _isVisible ($a)
     {
+        if ($this->_iContentId && !($aInfo = $this->_oModule->_oDb->getJotById($this->_iContentId)))
+            return false;
+
         $iProfileId = bx_get_logged_profile_id();
-        $aInfo = $this->_oModule->_oDb->getJotById($this->_iContentId);
         if (!$iProfileId)
             return false;
 
@@ -66,7 +68,7 @@ class BxMessengerJotMenu extends BxTemplMenuCustom
         $iJotId = !empty($aInfo) ? (int)$aInfo[$CNF['FIELD_MESSAGE_ID']] : 0;
 
         $bAllowToDelete = $oModule->_oDb->isAllowedToDeleteJot($iJotId, $iProfileId, $iJotAuthor);
-        $bAllowToEdit = $oModule->_oDb->isAllowedToEditJot($iJotId, $iProfileId);
+        $bAllowToEdit = $oModule->_oDb->isAllowedToEditJot($iJotId, $iProfileId) || empty($aInfo);
         $bVC = !empty($aJot) ? (int)$aJot[$CNF['FIELD_MESSAGE_VIDEOC']] : false;
 
         $aLotMenuSettings = $this->_oModule->_oDb->getLotSettings($this->_iContentId, $CNF['FLS_SETTINGS']);

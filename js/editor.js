@@ -199,7 +199,7 @@
                             enter: {
                                 key: 13,
                                 shiftKey: false,
-                                handler: () => {
+                                handler: (range, context) => {
                                     if (!this.onEnter())
                                         return true;
                                 }

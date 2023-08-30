@@ -64,8 +64,12 @@
 .bx-messenger-jots-message-vc-icon,
 .bx-messenger-jots-message-edit-time
 {
-   @apply absolute right-[1.05rem] opacity-[0.4] whitespace-normal bottom-0;
+   @apply right-[0.05rem] opacity-[0.4] whitespace-normal bottom-0;
 }
+
+/*.bx-messenger-jots-message-edit-time {
+    @apply left-0;
+}*/
 
 .bx-messenger-jots-message-deleted
 {
@@ -87,7 +91,7 @@ div.bx-messenger-hidden-jot
 }
 
 .bx-messenger-message-icons {
-    @apply font-light text-xs items-center flex w-full;
+    @apply font-light text-xs items-center flex w-full relative justify-end;
 }
 
 .bx-messenger-message-icons-views {

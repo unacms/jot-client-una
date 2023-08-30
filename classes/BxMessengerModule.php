@@ -1550,24 +1550,24 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (empty($aJotInfo) || $mixedResult !== true)
             return echoJson($aResult);
 
-        $aResult = array('code' => 0, 'html' => $this->_oTemplate->getEditJotArea($iJotId));
-        echoJson($aResult);
+        echoJson(['code' => 0, 'html' => $this->_oTemplate->getEditJotArea($iJotId)]);
     }
 
     public function actionEditJot()
     {
         $iJotId = bx_get('jot');
-        $aResult = array('code' => 1);
+        $aResult = ['code' => 1];
+        $sMessageData = bx_get('message');
         if (!($aJotInfo = $this->_oDb->getJotById($iJotId)))
             return echoJson($aResult);
 
-        $sMessage = preg_replace(array('/\<p>\<br[^>]*>\<\/p>/i', '/\<p>/i', '/\<\/p>/i'), array("<br/>", "", "<br/>"), bx_get('message'));
+        $sMessage = $this->prepareMessageToDb($sMessageData);
         $mixedResult = $this->_oDb->isAllowedToEditJot($iJotId, $this->_iProfileId);
         if ($mixedResult !== true)
             return echoJson($aResult);
 
         if ($this->_oDb->editJot($iJotId, $this->_iProfileId, $sMessage)) {
-            $aResult = array('code' => 0, 'html' => $this->_oTemplate->getMessageIcons($iJotId, 'edit'));
+            $aResult = ['code' => 0, 'html' => $this->_oTemplate->getMessageIcons($iJotId, 'edit')];
             $this->onUpdateJot($aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE_FK']], $iJotId, $aJotInfo[$this->_oConfig->CNF['FIELD_MESSAGE_AUTHOR']]);
         }
 
@@ -2906,6 +2906,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
     private function prepareMessageToDb($sMessage)
     {
+        if (!$sMessage)
+            return '';
+
         $aReplacements = [
             '/\<p>\<br[^>]*>\<\/p>/i' => '<br/>',
             '/\<p>/i' => '',
@@ -2913,7 +2916,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
             '/<pre.*>/i' => '<pre>'
         ];
 
-        return $sMessage ? preg_replace(array_keys($aReplacements), $aReplacements, $sMessage) : '';
+        $sNewMessage = preg_replace(array_keys($aReplacements), $aReplacements, $sMessage);
+        return preg_replace('/(?:(?:\s*)?<br\/>)+$/', '', $sNewMessage);
     }
 
     function actionGetGiphy(){

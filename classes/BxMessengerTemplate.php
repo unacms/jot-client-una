@@ -1060,12 +1060,12 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 $sDisplayName = $oProfile->getDisplayName();
                 if (!$bIsTrash) {
                     if ($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']])
-                        $sActionIcon = $this->parseHtmlByName('edit_icon.html',
-                            array(
+                        $sActionIcon = $this->parseHtmlByName('edit-icon.html',
+                            [
                                 'edit' => _t('_bx_messenger_edit_by',
-                                    bx_process_output($aJot[$CNF['FIELD_MESSAGE_LAST_EDIT']], BX_DATA_DATETIME_TS),
-                                    $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']])->getDisplayName()),
-                            )
+                                bx_process_output($aJot[$CNF['FIELD_MESSAGE_LAST_EDIT']], BX_DATA_DATETIME_TS),
+                                $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']])->getDisplayName()),
+                            ]
                         );
                     else
                         if ($iIsVC && $aJot[$CNF['FIELD_MESSAGE']]) {
@@ -1135,7 +1135,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                     ),
                     'icons' => $sMessage ? $this->parseHtmlByName('jot-icons.html', array(
                         'edit_icon' => $aJot[$CNF['FIELD_MESSAGE_EDIT_BY']] && !$bIsTrash ?
-                            $this->parseHtmlByName('edit_icon.html',
+                            $this->parseHtmlByName('edit-icon.html',
                                 array(
                                     'edit' => _t('_bx_messenger_edit_by',
                                         bx_process_output($aJot[$CNF['FIELD_MESSAGE_LAST_EDIT']], BX_DATA_DATETIME_TS),
@@ -1175,7 +1175,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                     'view_in_chat' => in_array($sArea, $CNF['VIEW-IN-TALKS']) ?
                                         $this->parseHtmlByName('view-in-chat.html', array('lot' => $iLotId, 'jot' => $iJot)) : "",
                     'message_class' => !$sMessage ? 'hidden' : '',/*!array_key_exists(BX_ATT_TYPE_GIPHY, $aAttachments) ? BX_MSG_CLASS_ATTACHMENT : ''*/
-                    //'action_icon' => $sActionIcon
+                    /*'action_icon' => $sActionIcon*/
                 );
 
                 if ($bMarkAsRead)
@@ -1455,7 +1455,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 		{
 			case 'edit':
 				$sContent = $aJotInfo[$CNF['FIELD_MESSAGE_EDIT_BY']] ?
-								$this -> parseHtmlByName('edit_icon.html',
+								$this -> parseHtmlByName('edit-icon.html',
 									array(
 											'edit' => _t('_bx_messenger_edit_by', $sDate, $sEditorName)
 										)
@@ -1560,8 +1560,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         $isAllowedDelete = $CNF['ALLOW_TO_REMOVE_MESSAGE'] || isAdmin();
 		if ($oProfile)
 		{
-			$aJot = array();
-
+			$aJot = [];
             $sDisplayName = $oProfile->getDisplayName();
             $sThumb = $oProfile->getThumb();
             $bThumb = stripos($sThumb, 'no-picture') === FALSE;
@@ -1661,7 +1660,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 'view_in_chat' => '',
                 'message_class' => 'hidden'
 			);
-					
 			return $this -> parseHtmlByName('jots.html',  $aVars);
 		}
 		
@@ -2112,7 +2110,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	public function getEditJotArea($iJotId)
 	{
 		$aJot = $this -> _oDb -> getJotById($iJotId);
-		return $this -> parseHtmlByName('edit_jot.html', array(
+		return $this -> parseHtmlByName('edit-jot.html', array(
 			'place_holder' => _t('_bx_messenger_post_area_message'),
 			'content' => $aJot[$this->_oConfig->CNF['FIELD_MESSAGE']]
         ));

@@ -471,17 +471,19 @@
 	oMessenger.prototype.initTextArea = function(fCallback, sTextAreaSelector = null) {
 		const _this = this,
 			{ inputArea, sendButton } = window.oMessengerSelectors.TEXT_AREA,
-			{ talkListJotSelector, jotMain } = window.oMessengerSelectors.JOT;
+			{ talkListJotSelector } = window.oMessengerSelectors.JOT;
 
 		this.oEditor = this.initTextEditor({
 			selector: sTextAreaSelector || inputArea,
 			placeholder: _t('_bx_messenger_post_area_message'),
-			onEnter: () => {
+			onEnter:() => {
 				if (!(oMUtils.isMobileDevice() || oMUtils.isUnaMobileApp())) {
+					_this.updateScrollPosition('bottom');
 					$(sendButton).click();
 					return true;
 				}
 
+				_this.oEditor.focus();
 				return false;
 			},
 			onInit : function(){
@@ -534,7 +536,7 @@
 			{
 				_this.oEditor.setContents([]);
 				_this.oEditor.focus();
-			}
+			 }
 		});
 
 		_this.updateSendAreaButtons();
@@ -1208,10 +1210,10 @@
 
 	oMessenger.prototype.saveJot = function(oObject){
 		const _this = this,
-			{ jotMessageBody, jotMain, jotMessage } = window.oMessengerSelectors.JOT,
+			{ jotMessageBody, jotMain, jotMessage, jotIconsArea, jotIconsEditIcon } = window.oMessengerSelectors.JOT,
 			oJot = $(oObject).parents(jotMain),
 			iJotId = oJot.data('id') || 0,
-			sMessage = _this.oActiveEditQuill && _this.oActiveEditQuill.root.innerHTML;
+			sMessage = _this.oActiveEditQuill && _this.oActiveEditQuill.root.innerHTML.replace("<p><br></p>", "");
 
 		if (!_this.oActiveEditQuill.getText().trim().length) {
 			oJot.closest(jotMessageBody).addClass('hidden');
@@ -1234,8 +1236,10 @@
 						.html(sMessage)
 						.parent()
 						.linkify(false, true) // update attachment for the message, but don't broadcast as new message 
-						.end()
-						.append(html || '');
+						.end();
+
+					if (!$(oJot).find(jotIconsEditIcon).length)
+						$(oJot).find(jotIconsArea).prepend(html || '');
 
 					const oInfo = {
 									jot_id: iJotId,
@@ -1393,7 +1397,7 @@
 							const __this = this;
 							const oEditEditor = _this.initTextEditor({
 								selector: _this.sEditJotAreaId,
-								onEnter: () => {
+								onEnter:() => {
 									if (!(oMUtils.isMobileDevice() || oMUtils.isUnaMobileApp())) {
 										_this.saveJot($(_this.sEditJotAreaId));
 										_this.oEditor.focus();

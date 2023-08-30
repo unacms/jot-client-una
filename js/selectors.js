@@ -125,7 +125,9 @@
                 jotDeleted:'.bx-messenger-jots-message-deleted',
                 jotHidden:'.bx-messenger-hidden-jot',
                 jotMessageView: '.view',
-                selectedJot: '.bx-messenger-blink-jot'
+                selectedJot: '.bx-messenger-blink-jot',
+                jotIconsArea: '.bx-messenger-message-icons',
+                jotIconsEditIcon: '.bx-messenger-jots-message-edit-time',
             };
 
             this.ATTACHMENTS = {

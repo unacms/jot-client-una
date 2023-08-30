@@ -2881,7 +2881,6 @@
 
 								break;
 						case 'prev':
-							$(talkBlock).animate({ opacity : 0 }, 200);
 							oList
 								.prepend($(html)
 									.bxProcessHtml()
@@ -2897,13 +2896,7 @@
 											.fadeIn();
 									}))
 								.waitForImages(() => {
-									setTimeout(() => {
-											_this.updateScrollPosition('top', 'fast', oObjects.first(),
-												setTimeout(() => {
-													$(talkBlock).animate({ opacity : 1 }, 200);
-												}, 200)
-											);
-										}, 200);
+									_this.updateScrollPosition('top', 'fast', oObjects.first());
 								});
 
 							break;

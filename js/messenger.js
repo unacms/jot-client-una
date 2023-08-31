@@ -2223,6 +2223,9 @@
 										return fLoadTalksCallback();
 								}
 
+								if (!_this.isBlockVersion())
+									_this.upLotsPosition(_this.oSettings);
+
 								if (typeof tmp_id !== 'undefined') {
 									$('[data-tmp="' + tmp_id + '"]', conversationBody)
 										.data('id', jot_id)

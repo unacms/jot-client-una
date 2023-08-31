@@ -239,10 +239,8 @@
 			{ conversationBody } = window.oMessengerSelectors.HISTORY;
 
 		for (const key in this.oSettings) {
-			if (typeof oOptions[key] !== 'undefined') {
+			if (typeof oOptions[key] !== 'undefined')
 				_this.oSettings[key] = oOptions[key];
-				console.log(`${key}: ${_this.oSettings[key]}`, oOptions[key]);
-			}
 		}
 
 		this.iSelectedJot = jot || 0;
@@ -506,7 +504,11 @@
 				return true;
 			},
 			onChange: () => {
-				const { ops } = _this.oEditor.getContents();
+				const { ops } = _this.oEditor.getContents(),
+					{ lot, name, user_id } = _this.oSettings;
+
+				if (!lot || _this.bCreateNew)
+					return;
 
 				_this.updateSendAreaHeight();
 				if (_this.oEditor.length > 1){
@@ -515,18 +517,14 @@
 					 if (_this.iReplyId)
 						oJotInfo.reply = _this.iReplyId;
 
-					_this.oStorage.saveLot(_this.oSettings.lot, oJotInfo);
+					_this.oStorage.saveLot(lot, oJotInfo);
 				}
 				else
-					_this.oStorage.deleteLot(_this.oSettings.lot);
+					_this.oStorage.deleteLot(lot);
 
 				// show typing area when member post the message
 				if (_this.oRTWSF)
-					_this.oRTWSF.typing({
-						lot: _this.oSettings.lot,
-						name: _this.oSettings.name,
-						user_id: _this.oSettings.user_id
-					});
+					_this.oRTWSF.typing({ lot, name, user_id });
 		  }
 		});
 

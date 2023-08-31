@@ -339,12 +339,12 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
 	}
 	
 	/**
-	* Checks if the posted link is reporst link
+	* Checks if the posted link is repost link
 	*@param string $sUrl internal post url
 	*@return array, string url and int post id
 	*/
 	public function isJotLink($sUrl){
-		$aResult = array();
+		$aResult = [];
 		$sJotPattern = '/^'. preg_replace(array('/\./', '/\//', '/\?/'), array('\.', '\/', '\?'), $this->getRepostUrl()) . '(\d+)/i';
 		if (preg_match($sJotPattern, $sUrl, $aMatches) && intval($aMatches[1]))
 			$aResult = array('url' => $aMatches[0], 'id' => $aMatches[1]);
@@ -435,12 +435,17 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
     public function getPageIdent($sPageLink = '')
     {
         $sPageUrl = $sPageLink ? $sPageLink : $_SERVER['REQUEST_URI'];
+
         if ($sPageUrl === '/' || $sPageUrl === '/index.php')
             return 'index.php';
 
+        // check if the link is jot link, then to return base url
+        $sLinkToCheck = BX_DOL_URL_ROOT . substr($sPageUrl, 1);
+        if ($this->isJotLink($sLinkToCheck))
+            $sPageUrl = BxDolPermalinks::getInstance()->permalink($this->CNF['URL_HOME']);
+
         $sPageUrl = BxDolPermalinks::getInstance()->unpermalink(ltrim($sPageUrl, '/'));
         $sPageUrl = parse_url($sPageUrl, PHP_URL_QUERY);
-
         if (!empty($sPageUrl)) {
             parse_str($sPageUrl, $aUrl);
             if (!empty($aUrl)) {

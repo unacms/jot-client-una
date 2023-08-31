@@ -1245,9 +1245,16 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
      * @param int $iType
      * @return string html code
      */
-	public function loadConfig($iProfileId, $bBlockVersion = true, $iLotId = BX_IM_EMPTY, $iJotId = BX_IM_EMPTY, $iPersonToTalk = BX_IM_EMPTY, $iType = BX_IM_TYPE_PRIVATE){
-		$CNF = &$this->_oConfig->CNF;
+	public function loadConfig($iProfileId, $aParams){
+	    $CNF = &$this->_oConfig->CNF;
 	    $aUrlInfo = parse_url(BX_DOL_URL_ROOT);
+
+        $bBlockVersion = isset($aParams['is_block_version']) ? (bool)$aParams['is_block_version'] : true;
+        $iLotId = isset($aParams['lot']) ? (int)$aParams['lot'] :  BX_IM_EMPTY;
+        $iJotId = isset($aParams['jot']) ? (int)$aParams['jot'] : BX_IM_EMPTY;
+        $iPersonToTalk = isset($aParams['selected_profile']) ? (int)$aParams['selected_profile'] : BX_IM_EMPTY;
+        $iType =  isset($aParams['type']) ? (int)$aParams['type'] : BX_IM_TYPE_PRIVATE;
+        $sWelcomeMessage = isset($aParams['welcome']) ? strval($aParams['welcome']) : '';
 
 	    $oEmbed = BxDolEmbed::getObjectInstance();
         $sEmbedTemplate = '';
@@ -1317,7 +1324,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         $iGroupId = 0;
         if ($iLotId && ($aLotInfo = $this->_oDb->getLotInfoById($iLotId))){
             if ($aLotInfo[$CNF['FIELD_TYPE']] != BX_IM_TYPE_PRIVATE && isset($aLotInfo[$CNF['FIELD_URL']]))
-                $sUrl =  $aLotInfo[$CNF['FIELD_URL']];
+                $sUrl = $aLotInfo[$CNF['FIELD_URL']];
 
             $iType = $aLotInfo[$CNF['FIELD_TYPE']];
             $iGroupId = (int)$aLotInfo[$CNF['FMGL_GROUP_ID']] ? (int)$aLotInfo[$CNF['FMGL_GROUP_ID']] : 0;
@@ -1339,7 +1346,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
         $sJotJWT = $CNF['JOT-JWT'];
         $aUnreadJotsStat = $this->_oDb->getUnreadMessagesStat($iProfileId);
-        $aVars = array(
+        $aVars = [
 			'profile_id' => (int)$iProfileId,
             'group_id' => $iGroupId,
             'username' => $sUsername,
@@ -1364,13 +1371,13 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			'jitsi_server' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER'], 'url'),
 			'last_unread_jot' => $iLastUnreadJot,
 			'unread_jots' => $iUnreadJotsNumber,
-			//'participants_item' => $this->parseHtmlByName('participant-item.html', array()),
 			'allow_attach' => +$bAttach,
 			'messages' => count($aUnreadJotsStat) ? json_encode($aUnreadJotsStat) : 0,
 			'muted' => ($iLotId && $iProfileId ? (int)$this->_oDb->isMuted($iLotId, $iProfileId) : 0),
 			'dates_intervals_template' => $this->parseHtmlByName('date-separator.html', array('date' => '__date__')),
             'emoji_set' => $CNF['EMOJI_SET'],
             'emoji_prev' => +$CNF['EMOJI_PREVIEW'],
+            'welcome_message' => $sWelcomeMessage,
             'reaction_template' => $this->parseHtmlByName('reaction.html', array(
 			    'emoji_id' => '__emoji_id__',
 			    'on_click' => 'oMessenger.onRemoveReaction(this);',
@@ -1388,7 +1395,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             )),
 			'jot_template' => $this->getMembersJotTemplate($iProfileId),
 			'jot_url' => $this->_oConfig->getRepostUrl()
-		);
+		];
 
         // init files Uploader
         $oStorage = new BxMessengerStorage($this->_oConfig-> CNF['OBJECT_STORAGE']);

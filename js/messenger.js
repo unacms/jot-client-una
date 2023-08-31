@@ -723,7 +723,12 @@
 	oMessenger.prototype.isBlockVersion = function(){
 		return this.isBlockMessenger;
 	}
-	
+
+	oMessenger.prototype.showWelcomeMessage = function(sMessage){
+		if (sMessage.length)
+			bx_alert(sMessage);
+	}
+
 	oMessenger.prototype.removeEditArea = function(oEvent){
 		const _this = this,
 			  bEditArea = $(oEvent.target).parents(_this.sEditJotArea).length;
@@ -3687,8 +3692,9 @@
 				_oMessenger.oMenu.showHistoryPanel();
 
 			_oMessenger.oHistory.pushState({ action: 'init', lot: oOptions.lot, jot: oOptions.jot_id, area: oOptions.area_type }, null);
+			_oMessenger.showWelcomeMessage(oOptions.welcome_message);
 
-			$(_oMessenger).initMenuBubbles(oOptions.messages);
+			$.initMenuBubbles(oOptions.messages);
 		},
 
 		/**

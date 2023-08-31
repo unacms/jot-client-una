@@ -104,6 +104,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
     private $_iUserId = 0;
     private $_iJotId = 0;
     private $_isBlockMessenger = false;
+    private $_sWelcomeMessage = '';
 
     function __construct(&$aModule)
     {
@@ -122,21 +123,24 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         $iLotId = BX_IM_EMPTY;
         if (!$iProfileId) {
-            if ($this->_iJotId) {
+            if ($this->_iJotId)
                 $iLotId = $this->_oDb->getLotByJotId($this->_iJotId);
-                if ($iLotId && !$this->_oDb->isParticipant($iLotId, $this->_iProfileId)) {
+                /*if ($iLotId && !$this->_oDb->isParticipant($iLotId, $this->_iProfileId)) {
                     $this->_iJotId = BX_IM_EMPTY;
                     $iLotId = BX_IM_EMPTY;
-                }
-            } else {
+                }*/
+            else
+            {
                 $aLotsList = $this->_oDb->getMyLots($this->_iProfileId, ['inbox' => true]);
                 $iLotId = !empty($aLotsList) ? current($aLotsList)[$this->_oConfig->CNF['FIELD_ID']] : 0;
             }
         }
-				        
-		$sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, false, $iLotId, $this->_iJotId, $iProfileId);		
+
+        $sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, ['is_block_version' => false, 'lot' => $iLotId,
+                                                                      'jot'=> $this->_iJotId, 'selected_profile' => $iProfileId,
+                                                                      'welcome' => $this->_sWelcomeMessage]);
+
 		$mixedContent = $this->_oTemplate->getLotsList($this->_iProfileId, $iLotId, $iProfileId);
-		
 		return bx_is_api() ? $mixedContent : $mixedContent . $sConfig;
     }
     /**
@@ -225,7 +229,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $this->_oDb->registerGroup($sUrl, $iLotId);
         }
 
-        $sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, true, $iLotId, BX_IM_EMPTY, BX_IM_EMPTY, $iType);
+        $sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, ['lot' => $iLotId, 'type' => $iType]);
         $aHeader = $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId, true, true);
         
         $sContent = $this->_oTemplate->parseHtmlByName('talk-body.html', array(
@@ -337,7 +341,18 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
     public function actionArchive($iJotId)
     {
+        $iLotId = $this->_oDb->getLotByJotId($iJotId);
         $this->_iJotId = $iJotId;
+        if (!$iLotId){
+            $this->_sWelcomeMessage = _t('_bx_messenger_not_found_to_read');
+            $this->_iJotId = BX_IM_EMPTY;
+        }
+        else
+            if (!$this->_oDb->isParticipant($iLotId, $this->_iProfileId)) {
+                $this->_sWelcomeMessage = _t('_bx_messenger_not_allowed_to_read');
+                $this->_iJotId = BX_IM_EMPTY;
+            }
+
         $this->actionHome();
     }
 
@@ -898,9 +913,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
             return false;
 
         $CNF = &$this->_oConfig->CNF;
-        $bIsParticipant = $this->_oDb->isParticipant($iLotId, $this->_iProfileId);
         $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
-        if (!empty($aLotInfo) && !$bIsParticipant && $aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
+        if (!empty($aLotInfo) && !$this->_oDb->isParticipant($iLotId, $this->_iProfileId) && $aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
             return false;
 
         return true;
@@ -921,7 +935,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (!$this->isLogged() && !($sLoad && $iJot && $iLotId))
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
 
-        if ($iLotId && !$this->isAvailable($iLotId))
+        if (!$this->isAvailable($iLotId))
             return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_talk_is_not_allowed')));
 
         $sUrl = bx_get('url');
@@ -1458,7 +1472,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $aLotInfo = $this->_oDb->getLotInfoById($aJotInfo[$CNF['FIELD_MESSAGE_FK']]);
         if (!$bIsParticipant) {
             if ($aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
-               return echoJson(array('code' => 1, 'msg' => _t('_bx_messenger_jitsi_err_can_join_conference')));
+               return echoJson(array('code' => 1, 'msg' => _t('_bx_messenger_not_participant')));
 
             if (!empty($aLotInfo))
                 $this->_oDb->addMemberToParticipantsList($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iProfileId);
@@ -1582,7 +1596,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             return echoJson($aResult);
 
         $CNF = &$this->_oConfig->CNF;
-        if (!$this->_oDb->isParticipant($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iProfileId))
+        if (!$this->isAvailable($aJotInfo[$CNF['FIELD_MESSAGE_FK']]))
            return echoJson(array('code' => 1, 'msg' => _t('_bx_messenger_not_participant')));
 
         echoJson(array('code' => (int)!$this->_oDb->saveJotItem($iJotId, $this->_iProfileId)));
@@ -1633,15 +1647,15 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $iLotId = bx_get('lot');
 
         if (!$iLotId || !$this->_oDb->isParticipant($iLotId, $this->_iProfileId)) {
-            return echoJson(array('message' => _t('_bx_messenger_not_participant'), 'code' => 1));
+            return echoJson(['message' => _t('_bx_messenger_not_participant'), 'code' => 1]);
         }
 
         if ($this->_oDb->isAuthor($iLotId, $this->_iProfileId))
-            return echoJson(array('message' => _t('_bx_messenger_cant_leave'), 'code' => 1));
+            return echoJson(['message' => _t('_bx_messenger_cant_leave'), 'code' => 1]);
 
 
         if ($this->_oDb->leaveLot($iLotId, $this->_iProfileId))
-            return echoJson(array('message' => _t('_bx_messenger_successfully_left'), 'code' => 0));
+            return echoJson(['message' => _t('_bx_messenger_successfully_left'), 'code' => 0]);
     }
 
     /**
@@ -1652,8 +1666,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
     {
         $iLotId = bx_get('lot');
 
-        if ($iLotId) {
-            $bMuted = $this->_oDb->muteLot($iLotId, $this->_iUserId);
+        if ($iLotId && $this->isAvailable($iLotId)) {
+            $bMuted = $this->_oDb->muteLot($iLotId, $this->_iProfileId);
             return echoJson(array('code' => $bMuted, 'title' => $bMuted ? _t('_bx_messenger_lots_menu_mute_info_on') : _t('_bx_messenger_lots_menu_mute_info_off')));
         }
 
@@ -2610,7 +2624,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
     public function actionGetFilesList($iLotId)
     {
-        if (!$iLotId || !$this->_iUserId || !$this->_oDb->isParticipant($iLotId, $this->_iUserId))
+        if (!$iLotId || !$this->_iProfileId || !$this->_oDb->isParticipant($iLotId, $this->_iProfileId))
             return false;
 
         $aFiles = $this->_oDb->getLotFiles($iLotId);

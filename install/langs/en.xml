@@ -56,7 +56,7 @@
 	<string name="_bx_messenger_save_part_list"><![CDATA[Save]]></string>
 	<string name="_bx_messenger_save_part_failed"><![CDATA[Participant list can not be empty!]]></string>
 	<string name="_bx_messenger_save_part_success"><![CDATA[Participants list was successfully updated!]]></string>
-	<string name="_bx_messenger_delete_lot"><![CDATA[Are you sure you want to delete this lot?]]></string>
+	<string name="_bx_messenger_delete_lot"><![CDATA[Are you sure you want to delete "{0}" conversation?]]></string>
 	<string name="_bx_messenger_can_not_delete"><![CDATA[You can not delete this lot!]]></string>	
 	<string name="_bx_messenger_not_participant"><![CDATA[You are not a participant!]]></string>
 	<string name="_bx_messenger_successfully_left"><![CDATA[You left the talk!]]></string>	
@@ -242,7 +242,7 @@
 	<string name="_bx_messenger_acl_action_create_vc"><![CDATA[Create video conferences]]></string>
 	<string name="_bx_messenger_disable_contact_privacy"><![CDATA[Disable profiles contact privacy settings. <b>Note</b>: if you enable this option any profile be able to contact with any!]]></string>
 	<string name="_bx_messenger_allow_to_moderate_messages"><![CDATA[Allow talks' authors moderate messages (delete/edit)]]></string>
-	<string name="_bx_messenger_clear_lot"><![CDATA[Are you sure you want to delete talk's history permanently?]]></string>
+	<string name="_bx_messenger_clear_lot"><![CDATA[Are you sure you want to remove the all messages from "{0}" convo?]]></string>
 	<string name="_bx_messenger_acl_action_video_recorder"><![CDATA[Use video recording]]></string>
 	<string name="_bx_messenger_jwt_app_id"><![CDATA[JWT token App id]]></string>
 	<string name="_bx_messenger_jwt_app_secret"><![CDATA[JWT token App secret]]></string>
@@ -334,7 +334,7 @@
 	<string name="_bx_messenger_connect_friends_only"><![CDATA[Allow to create Talks only with friends]]></string>
 	<string name="_bx_messenger_talk_types_market_title"><![CDATA[Conversation with {opponent}]]></string>
 	<string name="_bx_messenger_view_in_chat"><![CDATA[View in talk]]></string>
-	<string name="_bx_messenger_are_you_sure_leave"><![CDATA[Are you sure you want to leave the talk ?]]></string>
+	<string name="_bx_messenger_are_you_sure_leave"><![CDATA[Are you sure you want to leave "{0}" ?]]></string>
 	<string name="_bx_messenger_page_unknown"><![CDATA[Unknown]]></string>
 	<string name="_bx_messenger_txt_sample_comment_reply_single"><![CDATA[reply]]></string>
 	<string name="_bx_messenger_txt_sample_comment_repost_single"><![CDATA[repost]]></string>

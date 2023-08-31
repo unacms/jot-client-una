@@ -618,9 +618,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (!$this->isLogged())
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged')), 'reload' => 1));
 
-
-        //|| $this->_oDb->getGroupIdByLotId($iLotId)
-
         $CNF = &$this->_oConfig->CNF;
         $bIsParticipant = $this->_oDb->isParticipant($iLotId, $this->_iProfileId);
         if (!($bIsParticipant || $this->_oDb->getGroupIdByLotId($iLotId))) {
@@ -634,21 +631,22 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $iUnreadLotsJots = !empty($aUnreadJots) ? (int)$aUnreadJots[$CNF['FIELD_NEW_UNREAD']] : 0;
         $iLastUnreadJot = !empty($aUnreadJots) ? (int)$aUnreadJots[$CNF['FIELD_NEW_JOT']] : 0;
 
-        $sHeader = $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId, $this->_isBlockMessenger);
+        $aHeader = $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId, $this->_isBlockMessenger, true);
         $sHistory = $this->_oTemplate->getHistoryArea(['profile_id' => $this->_iProfileId,
                                                     'lot' => $iLotId, 'jot' => ($iJotId ? $iJotId : $iLastUnreadJot), 'area' => $sAreaType],
                                                     $iUnreadLotsJots && $iUnreadLotsJots < ($CNF['MAX_JOTS_BY_DEFAULT']/2));
         $sTextArea = !in_array($sAreaType, $CNF['VIEW-IN-TALKS']) ? $this->_oTemplate->getTextArea($this->_iProfileId, $iLotId) : '';
-        $aVars = array(
+        $aVars = [
             'code' => 0,
-            'header' => $sHeader,
+            'title' => trim(html2txt($aHeader['title'])),
+            'header' => $this->_oTemplate->parseHtmlByName('talk-header.html', $aHeader),
             'history' => $sHistory,
             'text_area' => $sTextArea,
             'last_unread_jot' => $iLastUnreadJot,
             'unread_jots' => $iUnreadLotsJots,
             'muted' => (int)$this->_oDb->isMuted($iLotId, $this->_iProfileId),
             'params' => $this->_oDb->getLotType($iLotId)
-        );
+        ];
 
         if ($this->_isBlockMessenger)
             $aVars['talks_list'] = $this->_oTemplate->getTalksList($iLotId);

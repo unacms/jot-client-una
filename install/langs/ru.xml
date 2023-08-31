@@ -57,7 +57,7 @@
 	<string name="_bx_messenger_save_part_list"><![CDATA[Сохранить]]></string>
 	<string name="_bx_messenger_save_part_failed"><![CDATA[Список участников не может быть пуст!]]></string>
 	<string name="_bx_messenger_save_part_success"><![CDATA[Списко участников был успешно обновлён!]]></string>
-	<string name="_bx_messenger_delete_lot"><![CDATA[Вы уверены, что хотите удалить это разговор?]]></string>
+	<string name="_bx_messenger_delete_lot"><![CDATA[Вы уверены, что хотите удалить "{0}" разговор?]]></string>
 	<string name="_bx_messenger_can_not_delete"><![CDATA[Вы не можете удалить этот разговор!]]></string>
 	<string name="_bx_messenger_not_participant"><![CDATA[Вы не являетесь участником разговора!]]></string>
 	<string name="_bx_messenger_successfully_left"><![CDATA[Вы покинули разговор!]]></string>
@@ -245,7 +245,7 @@
 	<string name="_bx_messenger_disable_contact_privacy"><![CDATA[Отключить насктройки контакта пользователя. <b>Замечание</b>: Если вы отключите настройки любой профиль будет иметь возможность контакировать с любым другим профилем!]]></string>
 	<string name="_bx_messenger_allow_to_moderate_messages"><![CDATA[Разрешать создателям чатов модерировать сообщения]]></string>
 	<string name="_bx_messenger_clear_lot_menu"><![CDATA[Очистить историю]]></string>
-	<string name="_bx_messenger_clear_lot"><![CDATA[Вы уверено, что хотите безвозвратно удалить историю чата?]]></string>
+	<string name="_bx_messenger_clear_lot"><![CDATA[Вы уверено, что хотите безвозвратно удалить историю "{0}"?]]></string>
 	<string name="_bx_messenger_lot_menu_settings"><![CDATA[Настройки]]></string>
 	<string name="_bx_messenger_enable_joined_organizations"><![CDATA[Разрешить организациям контактировать с пользователями тлько в случае, если пользователь является участником этой организации]]></string>
 	<string name="_bx_messenger_mark_as_unread"><![CDATA[Пометить как прочитанное]]></string>
@@ -299,7 +299,7 @@
 	<string name="_bx_messenger_talk_is_not_allowed"><![CDATA[Разговор недоступен для вас!]]></string>
 	<string name="_bx_messenger_connect_friends_only"><![CDATA[Разрешить создавать разговоры только с друзьями]]></string>
 	<string name="_bx_messenger_talk_types_market_title"><![CDATA[Разговор с {opponent}]]></string>
-	<string name="_bx_messenger_are_you_sure_leave"><![CDATA[Вы уверены, что хотите покинуть этот разговор ?]]></string>
+	<string name="_bx_messenger_are_you_sure_leave"><![CDATA[Вы уверены, что хотите покинуть "{0}" ?]]></string>
 	<string name="_bx_messenger_page_unknown"><![CDATA[Неизвестная]]></string>
 	<string name="_bx_messenger_txt_sample_comment_reply_single"><![CDATA[ответ]]></string>
 	<string name="_bx_messenger_txt_sample_comment_repost_single"><![CDATA[репост]]></string>

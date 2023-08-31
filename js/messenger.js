@@ -1944,7 +1944,8 @@
 									lot: iLotId,
 									last_unread_jot,
 									unread_jots,
-									group_id: +params?.group_id || 0
+									group_id: +params?.group_id || 0,
+									title
 								});
 
 								_this.updateCounters(unread_jots, true);
@@ -3823,7 +3824,7 @@
 			return this;
 		},
 		onLeaveLot: function (iLotId) {
-			bx_confirm(_t('_bx_messenger_are_you_sure_leave') , () => _oMessenger.leaveLot(iLotId));
+			bx_confirm(_t('_bx_messenger_are_you_sure_leave', _oMessenger.oSettings.title) , () => _oMessenger.leaveLot(iLotId));
 			return this;
 		},
 		onLotSettings: function () {
@@ -3869,11 +3870,11 @@
 			return this;
 		},
 		onDeleteLot: function (iLotId) {
-			bx_confirm(_t('_bx_messenger_delete_lot') , () => _oMessenger.deleteLot(iLotId));
+			bx_confirm(_t('_bx_messenger_delete_lot', _oMessenger.oSettings.title) , () => _oMessenger.deleteLot(iLotId));
 			return this;
 		},
 		onClearLot: function (iLotId) {
-			bx_confirm(_t('_bx_messenger_clear_lot') , () => _oMessenger.clearLot(iLotId));
+			bx_confirm(_t('_bx_messenger_clear_lot', _oMessenger.oSettings.title) , () => _oMessenger.clearLot(iLotId));
 			return this;
 		},
 		showLotsByType: function (iType) {

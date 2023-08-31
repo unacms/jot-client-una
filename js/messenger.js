@@ -2905,6 +2905,7 @@
 						case 'prev':
 							oList
 								.prepend($(html)
+									.initAccordion()
 									.bxProcessHtml()
 									.filter(jotMain)
 									.each(function(){

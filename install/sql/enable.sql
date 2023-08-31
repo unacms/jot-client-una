@@ -14,7 +14,7 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_max_symbols_number', 64000, @iCategId, '_bx_messenger_symbols_num_option', 'digit', '', '', '', 1),
 ('bx_messenger_max_symbols_brief_jot', 145, @iCategId, '_bx_messenger_symbols_num_brief_jot', 'digit', '', '', '', 2),
 ('bx_messenger_max_jot_number_default', 20, @iCategId, '_bx_messenger_jot_number_default', 'digit', '', '', '', 3),
-('bx_messenger_max_jot_number_in_history', 10, @iCategId, '_bx_messenger_max_jot_number_in_history', 'digit', '', '', '', 4),
+('bx_messenger_max_jot_number_in_history', 30, @iCategId, '_bx_messenger_max_jot_number_in_history', 'digit', '', '', '', 4),
 ('bx_messenger_max_lots_number', 15, @iCategId, '_bx_messenger_max_max_lots_number', 'digit', '', '', '', 5),
 ('bx_messenger_server_url', '', @iCategId, '_bx_messenger_server_url', 'digit', '', '', '', 6),
 ('bx_messenger_max_files_send', 5, @iCategId, '_bx_messenger_max_files_upload', 'digit', '', '', '', 7),

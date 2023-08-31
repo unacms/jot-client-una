@@ -376,8 +376,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
     public function saveMessage($aData)
     {
         $iLotId = isset($aData['lot']) ? (int)$aData['lot'] : 0;
-        $aLotInfo = $iLotId ? $this->getLotInfoById($iLotId) : array();
-
+        $aLotInfo = $iLotId ? $this->getLotInfoById($iLotId) : [];
         if (empty($aLotInfo) && $aData['type'] == BX_IM_TYPE_PRIVATE && !$aData['title'])
             $aLotInfo = $this->findLotByParams($aData);
 

@@ -235,11 +235,16 @@
 
 	oMessenger.prototype.initLotSettings = function(oOptions){
 		const _this = this,
-			{ lot, jot, last_unread_jot, unread_jots } = oOptions || {},
+			{ lot, jot, last_unread_jot, unread_jots, title, group_id } = oOptions || {},
 			{ conversationBody } = window.oMessengerSelectors.HISTORY;
 
+		for (const key in this.oSettings) {
+			if (typeof oOptions[key] !== 'undefined') {
+				_this.oSettings[key] = oOptions[key];
+				console.log(`${key}: ${_this.oSettings[key]}`, oOptions[key]);
+			}
+		}
 
-		this.oSettings.lot = lot || 0;
 		this.iSelectedJot = jot || 0;
 		this.iLastUnreadJot = last_unread_jot || 0;
 		this.iUnreadJotsNumber = unread_jots || 0;
@@ -903,8 +908,6 @@
 			if (!parseInt(code)) {
 				$(talkBlockWrapper, conversationBlockHistory)
 					.before(content);
-
-				/*_this.updateLotSettings({ title: '', lot: action === 'new' ? 0 : lot });*/
 
 				if (text_area) {
 					if ($(textArea, mainTalkBlock).length)
@@ -1905,7 +1908,7 @@
 		$(_this.sDateNavigator).hide();
 		bx_loading($(conversationBlockHistory), true);
 		return $.post('modules/?r=messenger/load_talk', { lot_id: iLotId, jot_id: iJotId, mark_as_read: +bMarkAsRead, area_type, is_block: _this.isBlockVersion() },
-			function({ title, history, header, code, unread_jots, last_unread_jot, text_area, muted, talks_list })
+			function({ title, history, header, code, unread_jots, last_unread_jot, text_area, muted, talks_list, params })
 		{
 			if (~code)
 			{
@@ -1937,7 +1940,8 @@
 								_this.updateLotSettings({
 									lot: iLotId,
 									last_unread_jot,
-									unread_jots
+									unread_jots,
+									group_id: +params?.group_id || 0
 								});
 
 								_this.updateCounters(unread_jots, true);
@@ -2169,8 +2173,15 @@
 			_this.cleanReplayArea();
 		}
 
-		if (_this.bCreateNew)
+		if (_this.bCreateNew) {
 			oParams.lot = 0;
+			const oNewSettings = { title: oParams.title || '', lot: 0 };
+			if (!['groups'].includes(_this.oSettings.area_type)) {
+				oNewSettings.group_id = 0;
+				oParams.group_id = 0;
+			}
+			_this.updateLotSettings(oNewSettings);
+		}
 
 		_this.updateScrollPosition('bottom');
 		// save message to database and broadcast to all participants
@@ -2199,15 +2210,19 @@
 											.find(blockHeader)
 											.replaceWith(header);
 
-									_this.updateLotSettings({ lot: lot_id });
+									_this.updateLotSettings({ lot: +lot_id });
 									_this.updateTalksListArea();
-									if (!_this.isBlockVersion())
-										_this.upLotsPosition(_this.oSettings);
 
-									if (!['inbox', 'direct', 'threads'].includes(_this.oSettings.area_type))
-										return _this.loadTalksListByParam({ group : 'inbox' }, () => _this.loadTalk(lot_id));
+									const fLoadTalksCallback = () => _this.loadTalk(lot_id, undefined, () => {
+																												if (!_this.isBlockVersion())
+																													_this.upLotsPosition(_this.oSettings);
+																											 });
+
+
+									if (!['inbox', 'direct', 'groups'].includes(_this.oSettings.area_type))
+										return _this.loadTalksListByParam({ group : 'direct' }, fLoadTalksCallback);
 									else
-										return _this.loadTalk(lot_id);
+										return fLoadTalksCallback();
 								}
 
 								if (typeof tmp_id !== 'undefined') {
@@ -3283,7 +3298,7 @@
 
 		if (!bUpdate) {
 			oLotObject = $(talksListItems).last();
-			oParams = { count : $(talksListItems).length, /*lot: oLotObject.data('lot'),*/ group: _this.oSettings.area_type };
+			oParams = { count : $(talksListItems).length, group: _this.oSettings.area_type };
 		}
 
 		bx_loading(oLotObject, true);
@@ -4350,10 +4365,10 @@
 			_this.iTimer = setTimeout(fExecute, _this.iRunSearchInterval);
 		},
 		createList: function(action = 'new', fCallback){
-			const { lot, area_type, group } = _oMessenger.oSettings;
+			const { lot, area_type } = _oMessenger.oSettings;
 
 			_oMessenger.createList(action, fCallback);
-			_oMessenger.oHistory.pushState({ action: 'create_list', type: action, lot, area: area_type, group }, null);
+			_oMessenger.oHistory.pushState({ action: 'create_list', type: action, lot, area: area_type }, null);
 		},
 		onSelectUser: function(oUser){
 			const { selectedUsersArea, existedUsersArea } = window.oMessengerSelectors.CREATE_TALK;

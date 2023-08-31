@@ -480,7 +480,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if ($sClass === BX_MSG_TALK_CLASS_MARKET)
             $sUrl = $this->_oConfig->getPageIdent($sUrl);
 
-        $aResult = array();
+        $aResult = [];
         if (($sMessage || !empty($aFiles) || !empty($aGiphy) || !empty($aAttachments)) && ($iId = $this->_oDb->saveMessage(
             array(
                     'message' => $sMessage,
@@ -529,17 +529,14 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 }
 
                 if (!empty($aUploadingFilesNames))
-                    $aAttachments[BX_ATT_TYPE_FILES_UPLOADING] = $aUploadingFilesNames;//implode(',', $aUploadingFilesNames);
+                    $aAttachments[BX_ATT_TYPE_FILES_UPLOADING] = $aUploadingFilesNames;
 
                 if (!empty($aCompleteFilesNames))
-                    $aAttachments[BX_ATT_TYPE_FILES] = $aCompleteFilesNames;//implode(',', $aCompleteFilesNames);
+                    $aAttachments[BX_ATT_TYPE_FILES] = $aCompleteFilesNames;
             }
 
             if (is_array($aGiphy) && !empty($aGiphy))
                 $aAttachments[BX_ATT_TYPE_GIPHY] = current($aGiphy);
-
-            /*if ($iReply)
-                $aAttachments[BX_ATT_TYPE_REPLY] = $iReply;*/
 
             if ($iReply)
                 $this->_oDb->updateJot($iId, $CNF['FIELD_MESSAGE_REPLY'], $iReply);
@@ -579,7 +576,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 if (($iCurrent - $iTimer) > $CNF['DATE-SHIFT'])
                     $mixedResult['separator'] = $this->_oTemplate->getDateSeparator($iCurrent);
             }
-
 		} else 
 			return echoJson(array('code' => 1, 'message' => $mixedResult));
 		
@@ -789,6 +785,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $aResult = array('code' => 1);
         $sTerm = bx_get('term');
         $iLotId = (int)bx_get('lot');
+        $sAreaType = bx_get('area_type');
         if (!$this->isLogged())
             return echoJson($aResult);
 
@@ -801,7 +798,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             return echoJson($aResult);
 
         $mixedUsers = false;
-        if ($iLotId && ($iGroupId = $this->_oDb->getGroupIdByLotId($iLotId))){
+        if ($iLotId && $sAreaType === 'groups' && ($iGroupId = $this->_oDb->getGroupIdByLotId($iLotId))){
             $mixedUsers = $this->getParticipantsListByGroupAndFilter($iGroupId, $sTerm);
             if (is_array($mixedUsers))
                 $mixedUsers = array_filter($mixedUsers, function($aValue) use ($aExcept){

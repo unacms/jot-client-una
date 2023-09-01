@@ -3696,7 +3696,7 @@
 			_oMessenger.oHistory.pushState({ action: 'init', lot: oOptions.lot, jot: oOptions.jot_id, area: oOptions.area_type }, null);
 			_oMessenger.showWelcomeMessage(oOptions.welcome_message);
 
-			$.initMenuBubbles(oOptions.messages);
+			$(_oMessenger).initMenuBubbles(oOptions.messages);
 		},
 
 		/**

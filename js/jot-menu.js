@@ -1,7 +1,7 @@
 ;window.oMessengerJotMenu = (function($) {
     const { jotContainer, moreIcon, menuSelector, jotMain, jotWrapper, jotIcons, jotAvatar, jotMessageTitle, jotAreaInfo, jotMessage, jotMessageBody } = window.oMessengerSelectors.JOT,
         { conversationBody } = window.oMessengerSelectors.HISTORY,
-        { attachmentWrappers, attachmentArea } = window.oMessengerSelectors.ATTACHMENTS,
+        { attachmentWrappers, attachmentArea, attachmentFileWrapper } = window.oMessengerSelectors.ATTACHMENTS,
         { dateIntervalsSelector } = window.oMessengerSelectors.DATE_SEPARATOR;
 
     /**
@@ -144,7 +144,7 @@
                             });
                     else
                         $(oEl)
-                            .parents(attachmentWrappers)
+                            .parents(`${attachmentWrappers},${attachmentFileWrapper}`)
                             .fadeOut('slow', function(){
                                     $(this).remove();
                             });

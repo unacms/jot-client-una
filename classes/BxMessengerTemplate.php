@@ -299,9 +299,9 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         ],
                       ];
 
-        $aVars = array();
+        $aVars = [];
         foreach ($aMenuItems as &$aItem) {
-            if (isset($aItem['permissions']) && $aItem['permissions'] === true && !$bAllowedDelete)
+            if (isset($aItem['permissions']) && !$bAllowedDelete)
                 continue;
 
             $aVars['bx_repeat:menu'][] = $aItem;
@@ -316,10 +316,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
      *@param boolean $bIsDeleteAllowed is the vendor of the file
      *@return string html
      */
-    public function deleteFileCode($iFileId, $bIsDeleteAllowed = false){
-        if (!$bIsDeleteAllowed)
-            return '';
-
+    public function getFileMenu($iFileId, $bIsDeleteAllowed = false){
         return $this -> getFileMenuCode($iFileId, $bIsDeleteAllowed);
     }
 
@@ -1805,13 +1802,11 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
     /**
 		 * Returns attachment according jot's attachment type
 		 * @param array $aJot jot info
-		 * @param bool $bMenu show menu in attached items
 		 * @param bool $bIsDynamicallyLoad true when message is dynamically loaded to the history
          * @param bool $bImplode implode attachments types to the groups to show in history
-		 * @return string html code
+		 * @return array/bool html code
 	 */
-    function getAttachment($aJot, $bMenu = true, $bIsDynamicallyLoad = false, $bImplode = true){
-		$sHTML = '';
+    function getAttachment($aJot, $bIsDynamicallyLoad = false, $bImplode = true){
 		$iViewer = bx_get_logged_profile_id();
 		$CNF = &$this -> _oConfig -> CNF;
 
@@ -1888,7 +1883,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 										'url' => $sPhotoThumb ? $sPhotoThumb : $sFileUrl,
 										'id' => $aFile[$CNF['FIELD_ST_ID']],
 										'name' => $aFile[$CNF['FIELD_ST_NAME']],
-										'delete_code' => $bMenu ? $this -> deleteFileCode($aFile[$CNF['FIELD_ST_ID']], $isAllowedDelete) : ''
+										'file_menu' => $this -> getFileMenu($aFile[$CNF['FIELD_ST_ID']], $isAllowedDelete)
 									);
 								}
 							    elseif ($isVideo)
@@ -1905,7 +1900,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 									    'file_name' => $aFile[$CNF['FIELD_ST_NAME']],
 										'id' => $aFile[$CNF['FIELD_ST_ID']],
 										'video' => $this -> getVideoFilesToPlay($aFile),
-										'delete_code' => $bMenu ? $this -> deleteFileCode($aFile[$CNF['FIELD_ST_ID']], $isAllowedDelete) : ''
+										'file_menu' => $this -> getFileMenu($aFile[$CNF['FIELD_ST_ID']], $isAllowedDelete)
 									);
 
 								}
@@ -1931,29 +1926,30 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                                                 'loading_img' => BxDolTemplate::getInstance()->getImageUrl('video-na.png')
                                             )
                                         ),
-                                        'delete_code' => $bMenu ? $this -> deleteFileCode($aFile[$CNF['FIELD_ST_ID']], $isAllowedDelete) : ''
+                                        'file_menu' => $this -> getFileMenu($aFile[$CNF['FIELD_ST_ID']], $isAllowedDelete)
 									);
 								}
 								else
 									$aItems['bx_repeat:files'][] = array(
-																			'file' => $this -> parseHtmlByName('a_file.html', 
-																															  array(
-																																		'file' => $this -> parseHtmlByName('file.html',
-                                                                                                                                            array(
-																																					'type' => $oStorage -> getFontIconNameByFileName($aFile[$CNF['FIELD_ST_NAME']]),
-																																					'name' => $aFile[$CNF['FIELD_ST_NAME']],
-																																					'file_type' => $aFile[$CNF['FIELD_ST_TYPE']],
-                                                                                                                                                    'bx_if:time' => array(
-                                                                                                                                                        'condition' => !$aJot[$CNF['FIELD_MESSAGE']],
-                                                                                                                                                        'content' => array(
-                                                                                                                                                        'time' => bx_time_js($aFile[$CNF['FIELD_ST_ADDED']]),
-                                                                                                                                                        )
-                                                                                                                                                    )
-																																		)),
-																																		'id' => $aFile[$CNF['FIELD_MESSAGE_ID']],
-																																		'url' => BX_DOL_URL_ROOT																																	
-																																	)),
-																			'delete_code' => $bMenu ? $this -> deleteFileCode($aFile[$CNF['FIELD_MESSAGE_ID']], $isAllowedDelete) : ''
+																			'file' => $this -> parseHtmlByName('a-file.html',
+																															  [
+																																'file' => $this -> parseHtmlByName('file.html',
+                                                                                                                                   [
+																																			'type' => $oStorage -> getFontIconNameByFileName($aFile[$CNF['FIELD_ST_NAME']]),
+																																			'name' => $aFile[$CNF['FIELD_ST_NAME']],
+																																			'file_type' => $aFile[$CNF['FIELD_ST_TYPE']],
+                                                                                                                                            'bx_if:time' => [
+                                                                                                                                                'condition' => !$aJot[$CNF['FIELD_MESSAGE']],
+                                                                                                                                                'content' => [
+                                                                                                                                                'time' => bx_time_js($aFile[$CNF['FIELD_ST_ADDED']]),
+                                                                                                                                                ]
+                                                                                                                                            ]
+																																    ]),
+                                                                                                                                    'id' => $aFile[$CNF['FIELD_MESSAGE_ID']],
+                                                                                                                                    'name' => $aFile[$CNF['FIELD_ST_NAME']],
+                                                                                                                                    'url' => BX_DOL_URL_ROOT
+																															    ]),
+																			'file_menu' => $this -> getFileMenu($aFile[$CNF['FIELD_MESSAGE_ID']], $isAllowedDelete)
 																		);								
 						}
 
@@ -2033,15 +2029,16 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         }
 
 
-         return $this -> parseHtmlByName('a_file.html', array(
-																'file' => $this -> parseHtmlByName('file.html', array(
-																			'type' => $oStorage -> getFontIconNameByFileName($aFile[$CNF['FIELD_ST_NAME']]),
-																			'name' => $aFile[$CNF['FIELD_ST_NAME']],
-																			'file_type' => $aFile[$CNF['FIELD_ST_TYPE']],																		
-																		)),
-																'id' => $aFile[$CNF['FIELD_MESSAGE_ID']],
-																'url' => BX_DOL_URL_ROOT
-															));
+         return $this -> parseHtmlByName('a-file.html', [
+                                                                    'file' => $this -> parseHtmlByName('file.html', [
+                                                                        'type' => $oStorage -> getFontIconNameByFileName($aFile[$CNF['FIELD_ST_NAME']]),
+                                                                        'name' => $aFile[$CNF['FIELD_ST_NAME']],
+                                                                        'file_type' => $aFile[$CNF['FIELD_ST_TYPE']],
+                                                                    ]),
+                                                                    'id' => $aFile[$CNF['FIELD_MESSAGE_ID']],
+                                                                    'url' => BX_DOL_URL_ROOT,
+                                                                    'name' => $aFile[$CNF['FIELD_ST_NAME']],
+															   ]);
     }
 
 	/**
@@ -2067,7 +2064,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 		
 	$sMessage = '';
         if (isset($aJot[$CNF['FIELD_MESSAGE_AT']]) && $aJot[$CNF['FIELD_MESSAGE_AT']]) {
-            $aAttachment = $this->getAttachment($aJot, false);
+            $aAttachment = $this->getAttachment($aJot);
             if (isset($aAttachment[BX_ATT_GROUPS_ATTACH]))
                 $sMessage = $aJot[$CNF['FIELD_MESSAGE']] . $aAttachment[BX_ATT_GROUPS_ATTACH];
         }

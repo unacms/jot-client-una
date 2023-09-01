@@ -136,6 +136,7 @@
                 attPrefixSelector: 'bx-messenger-attachment-file-',
                 attachmentWrappers: '.bx-messenger-media-wrapper',
                 attachmentArea: '.bx-messenger-attachment-area',
+                attachmentFileWrapper: '.bx-messenger-attachment-file-wrapper'
             };
 
             this.CREATE_TALK = {

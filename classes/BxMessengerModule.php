@@ -1615,8 +1615,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
         $aFile = $oStorage->getFile($iFileId);
 
-        $bIsAllowedToDelete = $this->_oDb->isAllowedToDeleteJot($aFile[$this->_oConfig->CNF['FIELD_ST_JOT']], $this->_iProfileId);
-        if (!$bIsAllowedToDelete && !isAdmin())
+        $bIsAllowedToDelete = $this->_oDb->isAllowedToDeleteJot($aFile[$CNF['FIELD_ST_JOT']], $this->_iProfileId);
+        if (!$bIsAllowedToDelete)
             return echoJson($aResult);
 
         $aJotInfo = $this->_oDb->getJotById($aFile[$CNF['FIELD_ST_JOT']]);
@@ -1905,7 +1905,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 		if ($iJotId){
             $aJot = $this->_oDb->getJotById($iJotId);
             if (!empty($aJot) && $this->_oDb->isParticipant($aJot[$this->_oConfig->CNF['FIELD_MESSAGE_FK']], $this->_iProfileId)) {
-                if (($aAttachment = $this->_oTemplate->getAttachment($aJot, true, true)) && isset($aAttachment[BX_ATT_GROUPS_ATTACH]))
+                if (($aAttachment = $this->_oTemplate->getAttachment($aJot, true)) && isset($aAttachment[BX_ATT_GROUPS_ATTACH]))
                     return echoJson(['code' => 0, 'html' => $aAttachment[BX_ATT_GROUPS_ATTACH]]);
             }
         }
@@ -2902,7 +2902,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $aJots = array();
         foreach ($aJotsList as &$aJot) {
             $aAuthor = BxDolProfile::getInstance($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);
-            $aAttachments = $this->_oTemplate->getAttachment($aJot, true);
+            $aAttachments = $this->_oTemplate->getAttachment($aJot);
             $aJots[] = array_merge($aJot, array(
                 'thumb' => $aAuthor->getThumb(),
                 'name' => $aAuthor->getDisplayName(),

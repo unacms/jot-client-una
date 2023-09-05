@@ -51,7 +51,6 @@
 		this.sActivePopup = '.bx-popup-applied:visible';
 		this.sJitsiButton = '#jitsi-button';
 		this.sJitsiJoinButton = '.bx-messenger-jots-message-vc-join-button';
-		this.sUnreadJotsCounter = '#unread-jots-counter';
 		this.sDateNavigator = '#date-time-navigator';
 		this.sUploaderAreaPrefix = 'bx-messenger-uploading-placeholder'; //
 		this.sJotMessageReply = '.bx-messenger-reply-area-message';
@@ -166,12 +165,12 @@
 
 		$(window).on('popstate', (e) => this.updateHistory(e));
 
-		this.oNotifications = oOptions.messages || {
-			'inbox': Object.create({}),
+		this.oNotifications = Object.assign({
+			'inbox': 0,
 			'threads': Object.create({}),
 			'direct': Object.create({}),
 			'groups': Object.create({})
-		};
+		}, oOptions.messages || {});
 	}
 
 	oMessenger.prototype.updateHistory = function(e){
@@ -279,12 +278,12 @@
 
 	oMessenger.prototype.initScrollArea = function() {
 		const _this = this,
-			 { talkBlock, mainScrollArea } = window.oMessengerSelectors.HISTORY,
+			 { talkBlock, mainScrollArea, unreadJotsCounter } = window.oMessengerSelectors.HISTORY,
 			 { talkListJotSelector } = window.oMessengerSelectors.JOT;
 
 		let iBottomScreenPos = $(talkBlock).scrollTop() + $(talkBlock).innerHeight();
 		let bStartLoading = !(_this.iLastUnreadJot || _this.iSelectedJot);
-		let iCounterValue = +$(_this.sUnreadJotsCounter).text();
+		let iCounterValue = +$(unreadJotsCounter).text();
 		let iUpdateCounter = null;
 		let iPrevScrollHeight = null;
 
@@ -309,7 +308,7 @@
 			}
 
 			iBottomScreenPos = $(talkBlock).scrollTop() + $(talkBlock).innerHeight();
-			iCounterValue = +$(_this.sUnreadJotsCounter).text();
+			iCounterValue = +$(unreadJotsCounter).text();
 			if (_this.iLastUnreadJot) {
 				$(talkListJotSelector).each(function () {
 					const iId = +$(this).data('id');
@@ -321,9 +320,9 @@
 
 					if (iId > _this.iLastUnreadJot && iJotBottomPos <= iBottomScreenPos) {
 						_this.iLastReadJotId = iId;
-						$(_this.sUnreadJotsCounter).text(--iCounterValue);
+						$(unreadJotsCounter).text(--iCounterValue);
 						if (!iCounterValue)
-							$(_this.sUnreadJotsCounter).hide();
+							$(unreadJotsCounter).hide();
 
 						clearTimeout(iUpdateCounter);
 					}
@@ -1768,21 +1767,18 @@
 
     oMessenger.prototype.updateCounters = function(iNumber, bForceUpdate = false){
 		const { talkItem } = window.oMessengerSelectors.TALKS_LIST,
-			  { talkBlock, mainScrollArea } = window.oMessengerSelectors.HISTORY,
+			  { talkBlock, mainScrollArea, unreadJotsCounter } = window.oMessengerSelectors.HISTORY,
 			  { talkListJotSelector } = window.oMessengerSelectors.JOT
-				iCounter = bForceUpdate ? iNumber : +$(this.sUnreadJotsCounter).text(),
-				{ lot, area_type, group_id } = this.oSettings;
+			  iCounter = bForceUpdate ? iNumber : +$(unreadJotsCounter).text(),
+			  { lot, area_type, group_id } = this.oSettings;
 
 		if (!iCounter)
-		{
-			$(this.sUnreadJotsCounter).hide();
-			$(this).updateMenuBubbles(lot, { type:  area_type,  group_id }, false);
-		}
+			$(unreadJotsCounter).hide();
 
 		if (bForceUpdate) {
-			$(this.sUnreadJotsCounter).text(iCounter);
+			$(unreadJotsCounter).text(iCounter);
 			if (iCounter)
-				$(this.sUnreadJotsCounter).show();
+				$(unreadJotsCounter).show();
 			else
 			{
 				const iScrollPosition = $(talkBlock).prop('scrollHeight') - $(talkBlock).prop('clientHeight') - $(talkBlock).scrollTop();
@@ -1794,8 +1790,9 @@
 
 		this.iUnreadJotsNumber = iCounter;
 
-		if (!$(this.sUnreadJotsCounter).is(':visible')) {
+		if (!$(unreadJotsCounter).is(':visible')) {
 			$(this).updateMenuBubbles(lot, { type:  area_type,  group_id }, false);
+			this.selectLotEmit($(`[data-lot="${lot}"]${talkItem}`));
 		}
 	}
 
@@ -1895,9 +1892,8 @@
 					if (!_this.oMenu.isHistoryColActive())
 						_this.oMenu.showHistoryPanel();
 				}
-				_this.updateCounters();
-				_this.updateScrollPosition('bottom');
 
+				_this.updateScrollPosition('bottom');
 				$(`${blockHeader}, ${talkBlock}`, historyColumn).html('');
 			}
 		}
@@ -2449,9 +2445,9 @@
 	*/
 	oMessenger.prototype.upLotsPosition = function(oObject, bSilentMode = false){
 		const _this = this,
-			{ lot , addon, lot_id } = oObject,
-			{  talksListItems, talksList, topItem, talkItem } = window.oMessengerSelectors.TALKS_LIST,
-			{  msgContainer } = window.oMessengerSelectors.SYSTEM;
+			{ lot, addon } = oObject,
+			{ talksListItems, talksList, topItem, talkItem } = window.oMessengerSelectors.TALKS_LIST,
+			{ msgContainer } = window.oMessengerSelectors.SYSTEM;
 
 		if (this.iThreadId)
 			return;
@@ -2474,22 +2470,16 @@
 					if (+code)
 						return ;
 
-					if (typeof params !== 'undefined' && lot !== _this.oSettings.lot){
-						const { type, groups_type, group_id } = params;
-						if ( type !== _this.oSettings.area_type){
-							$(_this).updateMenuBubbles( lot, params );
+					if (typeof params !== 'undefined' && lot !== _this.oSettings.lot) {
+						$(_this).updateMenuBubbles(lot, params);
 
-							if (_this.oSettings.area_type !== 'inbox')
-								return;
-						}
+						const { type, group_id } = params,
+							  { area_type } = _this.oSettings;
+						if ( type !== area_type && area_type !== 'inbox')
+							return;
 						else
-							if (_this.oSettings.area_type === 'groups' && type === 'groups'){
-								if ($(`li[data-group-id="${group_id}"]`).closest(`li.bx-menu-item-${groups_type}`).length)
-									$(_this).updateMenuBubbles( lot, params );
-
-								if ( +group_id !== +_this.oSettings.group_id )
-									return;
-							}
+							if (area_type === 'groups' && type === 'groups' && +group_id !== +_this.oSettings.group_id)
+							return;
 					}
 
 					const sHtml = html.replace(new RegExp(_this.sJotUrl + '\\d+', 'i'), _t('_bx_messenger_repost_message')),
@@ -3788,8 +3778,9 @@
 			return this;
 		},
 		onScrollDown: function () {
-			const { iUnreadJotsNumber, iMaxHistory, iSelectedJot, sUnreadJotsCounter, oSettings: { lot }, iScrollDownPositionJotId } = _oMessenger,
-				{ talkListJotSelector } = window.oMessengerSelectors.JOT;
+			const { iUnreadJotsNumber, iMaxHistory, iSelectedJot, oSettings: { lot }, iScrollDownPositionJotId } = _oMessenger,
+				{ talkListJotSelector } = window.oMessengerSelectors.JOT,
+				{ unreadJotsCounter } = window.oMessengerSelectors.HISTORY;
 
 			if (iScrollDownPositionJotId) {
 				const oPrevJot = $(`${jotMain}[data-id="${iScrollDownPositionJotId}"]`);
@@ -3809,7 +3800,7 @@
 				const iLastJotId = $(talkListJotSelector).last().data('id');
 				_oMessenger.loadJotsForLot(lot, iLastJotId);
 
-				$(sUnreadJotsCounter)
+				$(unreadJotsCounter)
 					.text('')
 					.hide();
 			}
@@ -3978,7 +3969,6 @@
 		onMessage: function (oData) {
 			const bSilent = _oMessenger.oSettings.user_id === oData.user_id || (oData.type === 'vc' && oData.vc !== 'start');
 			try {
-				
 				if (!_oMessenger.isBlockVersion()) {
 					_oMessenger.upLotsPosition(oData, bSilent);
 				}

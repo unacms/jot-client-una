@@ -1,31 +1,31 @@
 ;(function($){
     const sMenuId = 'data-group-id',
-          sCountSelector = '.bx-menu-addon-cnt',
-          sParentsGroupSelector = 'data-talks-type';
+          sParentsGroupSelector = 'data-talks-type',
+          { menuAddonCounter } = window.oMessengerSelectors.SYSTEM;
 
     let oMenuBubbleStructure = null;
 
     $.fn.extend({
-        updateMenuBubbles: function(iLoId, mixedMode, bInc = true) {
-            const { oNotifications } = this.get(0);
-            if (oMenuBubbleStructure === null)
-                oMenuBubbleStructure = oNotifications;
+        updateMenuBubbles: function(iLotId, mixedMode, bAdd = true) {
+            const { oNotifications } = this.get(0),
+                sLotId = iLotId.toString();
+            if (oMenuBubbleStructure === null || !iLotId)
+                return;
 
-            //console.log('----- запуск обновления меню  -----', oNotifications, iLoId, mixedMode, oMenuBubbleStructure, bInc);
+            if (bAdd)
+                return executeAction(mixedMode, 'add', sLotId);
 
-            updateStorageData(iLoId, mixedMode, bInc)
+            performAction('delete', sLotId);
         },
         initMenuBubbles: function(){
             const { oNotifications } = this.get(0),
                 { collapsableArea, chevronUpIcon, addonWrapper } = window.oMessengerSelectors.MENU_AREA;
 
-            //console.log('----- инициализируем баблы меню -----', oNotifications);
-
             if (oMenuBubbleStructure === null)
                 oMenuBubbleStructure = oNotifications;
 
             const fFunc = function(){
-                if (+$(sCountSelector, this).html())
+                if (+$(menuAddonCounter, this).html())
                     $(addonWrapper, this).removeClass('hidden');
             };
 
@@ -38,10 +38,106 @@
         }
     });
 
-    function updateNavMenuBubbles(sType, sSubGroup){
-         let iCounter = 0;
+    function updateInbox(bInc = true){
+        let iInbox = +oMenuBubbleStructure['inbox'];
+        if (iInbox > 0 && !bInc)
+            iInbox--;
 
-        //console.log('-----обновляем сами баблы ----', sType, sSubGroup);
+        if (bInc)
+            iInbox++;
+
+        oMenuBubbleStructure['inbox'] = iInbox;
+    }
+
+    function executeAction(oType, sAction, iConvoId){
+        const { type, groups_type, group_id } = oType;
+
+        try {
+                switch(sAction){
+                    case 'delete':
+                            if (typeof groups_type !== 'undefined') {
+                                delete oMenuBubbleStructure[type][groups_type][group_id][iConvoId];
+
+                                if (!Object.keys(oMenuBubbleStructure[type][groups_type][group_id]).length){
+                                    delete oMenuBubbleStructure[type][groups_type][group_id];
+
+                                    if (!Object.keys(oMenuBubbleStructure[type][groups_type]).length)
+                                        delete oMenuBubbleStructure[type][groups_type][group_id];
+
+                                    if (!Object.keys(oMenuBubbleStructure[type]).length)
+                                        delete oMenuBubbleStructure[type];
+                                }
+                            } else
+                                delete oMenuBubbleStructure[type][iConvoId];
+
+                            updateInbox(false);
+                        break;
+                    case 'add':
+                        let bExecute = false;
+                        if ( typeof groups_type !== 'undefined' ) {
+                            if (typeof oMenuBubbleStructure[type][groups_type] === 'undefined') {
+                                oMenuBubbleStructure[type][groups_type] = {[group_id]: {[iConvoId]: 1}};
+                                bExecute = true;
+                            }
+                            else
+                              if (typeof oMenuBubbleStructure[type][groups_type][group_id] === 'undefined') {
+                                  oMenuBubbleStructure[type][groups_type][group_id] = {[iConvoId]: 1};
+                                  bExecute = true;
+                              }
+                              else
+                                if (typeof oMenuBubbleStructure[type][groups_type][group_id][iConvoId] === 'undefined') {
+                                    oMenuBubbleStructure[type][groups_type][group_id][iConvoId] = 1;
+                                    bExecute = true;
+                                }
+                        } else
+                            if ( typeof oMenuBubbleStructure[type][iConvoId] === 'undefined' ) {
+                                oMenuBubbleStructure[type][iConvoId] = 1;
+                                bExecute = true;
+                            }
+
+                        if (bExecute)
+                            updateInbox();
+                }
+
+        } catch (e) {
+            console.log('error counter update', e);
+        }
+
+        updateNavMenuBubbles(type, groups_type);
+    }
+
+    function performAction(sAction, iConvoId){
+        for (const sType in oMenuBubbleStructure){
+            if (sType === 'inbox')
+                continue;
+
+            if (sType === 'groups'){
+                const oGroups = oMenuBubbleStructure[sType];
+                for(const sGroup in oGroups){
+                    for(const iGroupId in oGroups[sGroup]){
+                        const aConvos = Object.keys(oGroups[sGroup][iGroupId]);
+
+                        if (~aConvos.indexOf(iConvoId)){
+                            return executeAction({ type:  sType, groups_type: sGroup, group_id: iGroupId}, sAction, iConvoId);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                const oItems = oMenuBubbleStructure[sType],
+                     aConvosList = Object.keys(oItems);
+
+                if (~aConvosList.indexOf(iConvoId))
+                    return executeAction({ type:  sType }, sAction, iConvoId);
+
+            }
+        }
+
+    }
+
+    function updateNavMenuBubbles(sType, sSubGroup){
+        let iCounter = 0;
 
         if (sType === 'groups' && typeof sSubGroup === 'string') {
             if (typeof oMenuBubbleStructure[sType][sSubGroup] !== 'undefined'){
@@ -49,9 +145,8 @@
                 const oTalkObject = $(`[${sParentsGroupSelector}="${sSubGroup}"]`),
                       fFunc = (oGroups, iGroupId) => {
                             let iCounter = oGroups[iGroupId] ? Object.keys(oGroups[iGroupId]).length : 0,
-                                oGroup = $(`[${sMenuId}="${iGroupId}"] ${sCountSelector}`);
+                                oGroup = $(`[${sMenuId}="${iGroupId}"] ${menuAddonCounter}`);
 
-                        //console.log('------ обновляем баблы для груповых разговоров конерктной круппы-----', sType, sSubGroup, oGroups[iGroupId], iCounter);
                         oGroup.html(iCounter);
                         if (!iCounter)
                             oGroup.parent().addClass('hidden');
@@ -60,12 +155,10 @@
                       };
 
                 oTalkObject.html(iMainCounter);
-                /*if (!iMainCounter)
+                if (!iMainCounter)
                     oTalkObject.parent().addClass('hidden');
                 else
-                    oTalkObject.parent().removeClass('hidden');*/
-
-                //console.log('------ обновляем баблы для груповых разговоров конертного модуля -----', sType, sSubGroup);
+                    oTalkObject.parent().removeClass('hidden');
 
                 const oGroupItems = oMenuBubbleStructure[sType][sSubGroup];
                 if (!Object.keys(oGroupItems).length)
@@ -81,8 +174,6 @@
         else
         {
             let oTalkType = $(`[${sParentsGroupSelector}="${sType}"]`);
-
-            //console.log('------ обновляем баблы для простых менюбез вложенностей -----', sType, iCounter);
             iCounter = +Object.keys(oMenuBubbleStructure[sType]).length;
             oTalkType.html(iCounter);
             if (!iCounter)
@@ -94,113 +185,11 @@
                     .parent()
                     .removeClass('hidden');
         }
-    }
 
-    function updateStorageData(iLoId, mixedMode, bInc = true){
-        const { type, groups_type, group_id } = mixedMode || {};
-
-       // console.log('---- обновлеяем данные массива -----', oMenuBubbleStructure, iLoId, mixedMode);
-        if (typeof oMenuBubbleStructure[type] === 'undefined') {
-            if (iLoId) {
-                Object.keys(oMenuBubbleStructure).some(function (sGroup) {
-                   // console.log('---- смотрим содержание меню ---', sGroup);
-                    if (sGroup === 'groups') {
-                        return Object.keys(oMenuBubbleStructure[sGroup]).some((sSubGroup) => {
-                            //console.log('---- смотрим содержание меню в модуле группы ---', sGroup, sSubGroup);
-                            return Object.keys(oMenuBubbleStructure[sGroup][sSubGroup]).some((iGroupId) => {
-                                //console.log('---- смотрим содержание меню в конкретной группе в модуле группы ---', sGroup, sSubGroup, iGroupId);
-                                return Object.keys(oMenuBubbleStructure[sGroup][sSubGroup][iGroupId]).some((iGroupLotId) => {
-                                    //console.log('---- меняем знаечения для конкретного разговора ---', iGroupLotId);
-
-                                    if (+iGroupLotId === +iLoId) {
-                                        delete oMenuBubbleStructure[sGroup][sSubGroup][iGroupId][iLoId];
-                                        if (!Object.keys(oMenuBubbleStructure[sGroup][sSubGroup][iGroupId]).length)
-                                            delete oMenuBubbleStructure[sGroup][sSubGroup][iGroupId];
-
-                                        return updateNavMenuBubbles(sGroup, sSubGroup);
-                                    }
-
-                                    return;
-                                })
-                            });
-                        });
-                    } else {
-                        return Object.keys(oMenuBubbleStructure[sGroup]).some((iId) => {
-                            //console.log('---- обновлеяем значения для простых меню, не групповых -----', sGroup, iId, iLoId);
-                            if (+iId === +iLoId) {
-                                delete oMenuBubbleStructure[sGroup][iId];
-                                return updateNavMenuBubbles(sGroup);
-                            }
-                        });
-                    }
-                });
-            }
-
-            return;
-        }
-
-        //console.log('---- обновляем структуру если нет id разговора или пустая структура данных  ---');
-
-        if (!bInc){
-            let sGroupType = groups_type;
-            if (type !== 'groups') {
-                if (typeof oMenuBubbleStructure[type][iLoId] !== 'undefined')
-                    delete oMenuBubbleStructure[type][iLoId];
-            }
-            else
-            {
-                let bFound = false;
-                Object.keys(oMenuBubbleStructure[type]).some(function (sGroup) {
-                    return Object.keys(oMenuBubbleStructure[type][sGroup]).some((iGroupId) => {
-                        if (+iGroupId === +group_id && typeof oMenuBubbleStructure[type][sGroup][iGroupId][iLoId] !== 'undefined') {
-                            delete oMenuBubbleStructure[type][sGroup][iGroupId][iLoId];
-                            bFound = true;
-                            if (!sGroupType)
-                                sGroupType = sGroup;
-
-                            if (!Object.keys(oMenuBubbleStructure[type][sGroup][iGroupId]).length)
-                                delete oMenuBubbleStructure[type][sGroup][iGroupId];
-
-                            return true;
-                        }
-                    });
-                    if (bFound)
-                        return;
-                });
-            }
-
-            return updateNavMenuBubbles(type, sGroupType);
-        }
+        const oIndex = $(`[${sParentsGroupSelector}="inbox"]`).html(oMenuBubbleStructure['inbox']);
+        if (+oMenuBubbleStructure['inbox'])
+            oIndex.parent().removeClass('hidden');
         else
-        {
-            if (type === 'groups') {
-                if (oMenuBubbleStructure[type][groups_type] !== undefined) {
-                    if (oMenuBubbleStructure[type][groups_type][group_id] !== undefined) {
-                        if (oMenuBubbleStructure[type][groups_type][group_id][iLoId] !== undefined) {
-                            if (bInc)
-                                oMenuBubbleStructure[type][groups_type][group_id][iLoId] += 1;
-                            else
-                                delete oMenuBubbleStructure[type][groups_type][group_id][iLoId];
-                        }
-                        else
-                            oMenuBubbleStructure[type][groups_type][group_id] = Object.assign({}, oMenuBubbleStructure[type][groups_type][group_id], { [iLoId]: 1 });
-                    }
-                    else
-                        oMenuBubbleStructure[type][groups_type] = Object.assign({}, oMenuBubbleStructure[type][groups_type], { [group_id]: { [iLoId]: 1 }});
-                }
-                else
-                    oMenuBubbleStructure[type][groups_type] = { [group_id]: {[iLoId]: 1 }};
-            }
-            else
-            {
-                if (oMenuBubbleStructure[type][iLoId] !== undefined)
-                    oMenuBubbleStructure[type][iLoId] += 1;
-                else
-                    oMenuBubbleStructure[type] = Object.assign({}, oMenuBubbleStructure[type], {[iLoId]: 1});
-            }
-        }
-
-        //console.log('------- результат данных после обновления массива -------', oMenuBubbleStructure);
-        updateNavMenuBubbles(type, groups_type);
+            oIndex.parent().addClass('hidden');
     }
 })(jQuery);

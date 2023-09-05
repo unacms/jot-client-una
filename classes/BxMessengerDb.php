@@ -2521,9 +2521,9 @@ class BxMessengerDb extends BxBaseModGeneralDb
                continue;
 
            if (isset($aType['group_id']))
-               $aResult['groups'][$aType['groups_type']][$aType['group_id']][$iLotId] = $iCount;
+               $aResult['groups'][$aType['groups_type']][$aType['group_id']][$iLotId] = +$iCount;
            else
-               $aResult[$aType['type']][$iLotId] = $iCount;
+               $aResult[$aType['type']][$iLotId] = +$iCount;
        }
 
        return array_merge($aResult, [BX_MSG_TALK_TYPE_INBOX => count($aItems)]);

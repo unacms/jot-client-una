@@ -1171,8 +1171,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                     'display_message' => '',
                     'view_in_chat' => in_array($sArea, $CNF['VIEW-IN-TALKS']) ?
                                         $this->parseHtmlByName('view-in-chat.html', array('lot' => $iLotId, 'jot' => $iJot)) : "",
-                    'message_class' => !$sMessage ? 'hidden' : '',/*!array_key_exists(BX_ATT_TYPE_GIPHY, $aAttachments) ? BX_MSG_CLASS_ATTACHMENT : ''*/
-                    /*'action_icon' => $sActionIcon*/
+                    'message_class' => !$sMessage ? 'hidden' : '',
                 );
 
                 if ($bMarkAsRead)

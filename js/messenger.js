@@ -537,7 +537,10 @@
 				}))
 			{
 				_this.oEditor.setContents([]);
-				_this.oEditor.focus();
+				if (!(oMUtils.isMobileDevice() || oMUtils.isUnaMobileApp()))
+					_this.oEditor.focus();
+				else
+					_this.oEditor.blur();
 			 }
 		});
 
@@ -2470,7 +2473,8 @@
 						return ;
 
 					if (typeof params !== 'undefined' && lot !== _this.oSettings.lot) {
-						$(_this).updateMenuBubbles(lot, params);
+						if (!bSilentMode)
+							$(_this).updateMenuBubbles(lot, params);
 
 						const { type, group_id } = params,
 							  { area_type } = _this.oSettings;

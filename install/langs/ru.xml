@@ -311,4 +311,5 @@
 	<string name="_bx_messenger_files_can_not_be_uploaded"><![CDATA[Файлы не могут быть добавлены в этот разговор!]]></string>
 	<string name="_bx_messenger_not_allowed_to_read"><![CDATA[Вы не можете прочитать сообщение, так как не являетесь участником разговора!]]></string>
 	<string name="_bx_messenger_not_found_to_read"><![CDATA[Разговор с сообщением не был найден, пожалуйста уточните ссылку!]]></string>
+	<string name="_bx_messenger_menu_jot_title"><![CDATA[Меню сообщения]]></string>
 </resources>

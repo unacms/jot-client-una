@@ -1,5 +1,5 @@
 ;window.oMessengerJotMenu = (function($) {
-    const { jotContainer, moreIcon, menuSelector, jotMain, jotWrapper, jotIcons, jotAvatar, jotMessageTitle, jotAreaInfo, jotMessage, jotMessageBody } = window.oMessengerSelectors.JOT,
+    const { jotContainer, jotMenu, moreIcon, menuSelector, jotMain, jotWrapper, jotIcons, jotAvatar, jotMessageTitle, jotAreaInfo, jotMessage, jotMessageBody } = window.oMessengerSelectors.JOT,
         { conversationBody } = window.oMessengerSelectors.HISTORY,
         { attachmentWrappers, attachmentArea, attachmentFileWrapper } = window.oMessengerSelectors.ATTACHMENTS,
         { dateIntervalsSelector } = window.oMessengerSelectors.DATE_SEPARATOR;
@@ -14,7 +14,7 @@
 
         $(`${jotContainer} ${moreIcon}`, this).each(function(){
              $(this).on('click', function() {
-                     const oMenu = $(this).next('div');
+                     const oMenu = $(this).closest(jotMenu).find('[id^="jot-menu-"]');
                      if (oMenu.is(':visible'))
                          return;
 

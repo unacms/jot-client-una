@@ -2,17 +2,8 @@
    @apply group-hover:opacity-100 opacity-0 text-sm flex-dynamic ml-4 whitespace-nowrap flex items-center;
 }
 
-/*.bx-messenger-jots-actions-list i,
-.bx-messenger-jot-menu > span > i {
-   @apply hover:text-gray-900 dark:text-gray-300 dark:hover:text-white cursor-pointer p-1 text-base;
-   @apply hover:border-gray-200/50 dark:hover:border-gray-700/50;
-   @apply hover:bg-gray-200/50 dark:hover:bg-gray-700/50;
-   @apply border border-transparent;
-   @apply rounded-md;
-}*/
-
-.bx-messenger-jot-hover-menu i,
-.bx-messenger-jot-hover-menu svg{
+.bx-messenger-jot-hover-menu .bx-messenger-jot-menu-line i,
+.bx-messenger-jot-hover-menu .bx-messenger-jot-menu-line svg{
    @apply hover:text-gray-900 dark:text-gray-300 dark:hover:text-white cursor-pointer p-1 text-base;
    @apply hover:border-gray-200/50 dark:hover:border-gray-700/50;
    @apply hover:bg-gray-200/50 dark:hover:bg-gray-700/50;

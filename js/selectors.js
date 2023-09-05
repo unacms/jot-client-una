@@ -8,6 +8,7 @@
                 msgContainer: '.bx-msg-box-container',
                 bxMain: '.bx-main',
                 bxTitle: '.bx-db-title',
+                menuAddonCounter : '.bx-menu-addon-cnt'
             };
 
             this.MAIN_PAGE = {
@@ -31,6 +32,7 @@
                 mainScrollArea: '.bx-messenger-area-scroll',
                 searchScrollArea: '.bx-messenger-area-scroll-search',
                 scrollAreaItem: '.bx-messenger-area-scroll-item',
+                unreadJotsCounter: '#unread-jots-counter'
             };
 
             this.TALK_BLOCK = {
@@ -113,6 +115,7 @@
                 moreIcon: '.bx-messenger-jot-menu-more',
                 jotWrapper: '.bx-messenger-jots-message-wrapper',
                 jotMenu: '.bx-messenger-jot-menu',
+                jotLineMenu: '.bx-messenger-jot-menu-line',
                 menuSelector: 'div[id^="jot-menu-"]',
                 lotsBlock: '.bx-messenger-block-lots',
                 jotMain: '.bx-messenger-jots',

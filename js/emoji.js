@@ -6,9 +6,9 @@
 window.oMessengerEmoji = (function($){
    const oPickerOptions = { onEmojiSelect: console.log, onClickOutside: function(e){
        const { emojiComponent, sendEmojiButton, reactionButton } = window.oMessengerSelectors.EMOJI,
-             { jotMenu } = window.oMessengerSelectors.JOT;
+             { jotLineMenu } = window.oMessengerSelectors.JOT;
 
-           if ($(emojiComponent).is(':visible') && !$(e.target).closest(`${sendEmojiButton},${reactionButton},${jotMenu}`).length)
+           if ($(emojiComponent).is(':visible') && !$(e.target).closest(`${sendEmojiButton},${reactionButton},${jotLineMenu}`).length)
                $(emojiComponent).hide();
    }, theme: 'buk'};
 

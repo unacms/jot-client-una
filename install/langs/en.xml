@@ -347,4 +347,5 @@
 	<string name="_bx_messenger_not_allowed_to_read"><![CDATA[You can not read this message, because you are not a participant of the talk!]]></string>
 	<string name="_bx_messenger_not_found_to_read"><![CDATA[Talks with the message was not found, please specify the url!]]></string>
 	<string name="_bx_messenger_menu_jot_title"><![CDATA[Message's menu]]></string>
+	<string name="_bx_messenger_share_jot"><![CDATA[Copy link]]></string>
 </resources>

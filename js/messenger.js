@@ -2218,7 +2218,6 @@
 																													_this.upLotsPosition(_this.oSettings);
 																											 });
 
-
 									if (!['inbox', 'direct', 'groups'].includes(_this.oSettings.area_type))
 										return _this.loadTalksListByParam({ group : 'direct' }, fLoadTalksCallback);
 									else
@@ -2503,11 +2502,11 @@
 												_this.updatePageIcon();
 
 											};
-						if (oLot.length)
-							oLot.fadeOut('slow', () => {
-														 oLot.remove();
+						if ($(`[data-lot='${lot}']`).length)
+							$(`[data-lot='${lot}']`).fadeOut('slow', () => {
+														$(`[data-lot='${lot}']`).remove();
 														 sFunc();
-													   });
+													 });
 							else
 								sFunc();
 
@@ -3968,7 +3967,8 @@
 		},
 		onMessage: function (oData) {
 			const bSilent = _oMessenger.oSettings.user_id === oData.user_id || (oData.type === 'vc' && oData.vc !== 'start');
-			try {
+			try
+			{
 				if (!_oMessenger.isBlockVersion()) {
 					_oMessenger.upLotsPosition(oData, bSilent);
 				}

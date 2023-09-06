@@ -56,7 +56,7 @@
 	<string name="_bx_messenger_lots_class_my_members"><![CDATA[Кричалка]]></string>
 	<string name="_bx_messenger_save_part_list"><![CDATA[Сохранить]]></string>
 	<string name="_bx_messenger_save_part_failed"><![CDATA[Список участников не может быть пуст!]]></string>
-	<string name="_bx_messenger_save_part_success"><![CDATA[Списко участников был успешно обновлён!]]></string>
+	<string name="_bx_messenger_save_part_success"><![CDATA[Список участников был успешно обновлён!]]></string>
 	<string name="_bx_messenger_delete_lot"><![CDATA[Вы уверены, что хотите удалить "{0}" разговор?]]></string>
 	<string name="_bx_messenger_can_not_delete"><![CDATA[Вы не можете удалить этот разговор!]]></string>
 	<string name="_bx_messenger_not_participant"><![CDATA[Вы не являетесь участником разговора!]]></string>
@@ -120,7 +120,7 @@
 	<string name="_bx_messenger_send_record_button"><![CDATA[Отправить]]></string>
 	<string name="_bx_messenger_send_recorded_video"><![CDATA[Отправить записанное видео]]></string>
 	<string name="_bx_messenger_video_rec"><![CDATA[запись]]></string>
-	<string name="_bx_messenger_send_message_no_video"><![CDATA[Нет видо файла для отправки!]]></string>
+	<string name="_bx_messenger_send_message_no_video"><![CDATA[Нет видео файла для отправки!]]></string>
 	<string name="_bx_messenger_close_video_confirm"><![CDATA[Если вы закроете окно, записанный видео файл будет потерян. Продолжить?]]></string>
 	<string name="_bx_messenger_max_video_file_size"><![CDATA[Максимальная длина видео файла для записи в минутах]]></string>
 	<string name="_bx_messenger_max_video_file_exceeds"><![CDATA[Извините, максимально разрешённая длина для видео файла {0} мин. превышена!]]></string>
@@ -133,15 +133,15 @@
 	<string name="_bx_messenger_message"><![CDATA[Сообщение]]></string>
 	<string name="_bx_ntfs_alert_action_got_jot_ntfs_personal"><![CDATA[Новое сообщение в болталке]]></string>
 	<string name="_bx_messenger_txt_sample_comment_single"><![CDATA[сообщение - <b>{0}</b> в]]></string>
-	<string name="_bx_messenger_txt_sample_comment_file_single"><![CDATA[сообщене с <b>{0} файлом(и) </b> в]]></string>
+	<string name="_bx_messenger_txt_sample_comment_file_single"><![CDATA[сообщение с <b>{0} файлом(и) </b> в]]></string>
 	<string name="_bx_messenger_max_ntfs_number"><![CDATA[Максимальное количество оповещений от одного участника в одном разговоре в течении часа]]></string>
 	<string name="_bx_messenger_max_parts_views"><![CDATA[Разрешать показывать просмотры сообщений в разговорах не превышающих указанное количество пользователей]]></string>
 	<string name="_bx_messenger_allow_to_remove_messages"><![CDATA[Разрешать пользователям модерировать собственные сообщения]]></string>
 	<string name="_bx_messenger_remove_messages_immediately"><![CDATA[Удалять сообщения сразу, без подтверждения администратора]]></string>
 	<string name="_bx_messenger_lots_menu_media"><![CDATA[Файлы]]></string>
 	<string name="_bx_messenger_no_permissions"><![CDATA[Вы не можете просматривать содержимое вкладки]]></string>
-	<string name="_bx_messenger_use_embedly"><![CDATA[Преобразовывать сcылки в сообщениях, использую выбранный Embeds провайдер]]></string>
-    <string name="_bx_messenger_giphy_api_key"><![CDATA[Giphy Api Key. Еслим вы хотите подключить возможность использовать GIFs анимацию в сообщениях, вам нужно зарегистрироваться и получить Api Key тут https://developers.giphy.com/dashboard/?create=true]]></string>
+	<string name="_bx_messenger_use_embedly"><![CDATA[Преобразовывать ссылки в сообщениях, использую выбранный Embeds провайдер]]></string>
+    <string name="_bx_messenger_giphy_api_key"><![CDATA[Giphy Api Key. Если Вы хотите подключить возможность использовать GIFs анимацию в сообщениях, вам нужно зарегистрироваться и получить Api Key тут https://developers.giphy.com/dashboard/?create=true]]></string>
     <string name="_bx_messenger_giphy_type"><![CDATA[Использовать выбранный тип для анимации: GIFs или Стикеры (Стикеры это GIFs с прозрачным фотом)]]></string>
     <string name="_bx_messenger_giphy_content_rating"><![CDATA[Рейтинг контента. Более подробно читать тут https://developers.giphy.com/docs/optional-settings#rating]]></string>
     <string name="_bx_messenger_giphy_limit"><![CDATA[Отображать указанное количество картинок в блоке]]></string>
@@ -217,7 +217,7 @@
 	<string name="_bx_messenger_jitsi_remote_user"><![CDATA[Участник]]></string>
 	<string name="_bx_messenger_lot_parts_error"><![CDATA[Разговор с таким же списком участников уже существует.]]></string>
 	<string name="_bx_messenger_jitsi_err_cant_type_use"><![CDATA[Извините, видео конференции для вас недоступны.]]></string>
-	<string name="_bx_messenger_file_is_too_large_error"><![CDATA[Файл иммет слишком большой размер!]]></string>
+	<string name="_bx_messenger_file_is_too_large_error"><![CDATA[Файл имеет слишком большой размер!]]></string>
 	<string name="_bx_messenger_file_is_too_large_error_details"><![CDATA[Максимально допустимый размер файла {filesize}]]></string>
 	<string name="_bx_messenger_file_type_is_not_allowed"><![CDATA[Загрузка файлов данного формата запрещена!]]></string>
 	<string name="_bx_messenger_jitsi_mobile_warning"><![CDATA[Для того что бы сделать видео сигнал более стабильным и надёжным, вам необходимо подключиться через наше мибильное приложение (его можно скачать в app store) или через оригинальное приложение Jitsi. Продолжить с использованием Jitsi App?]]></string>
@@ -229,7 +229,7 @@
 	<string name="_bx_messenger_push_vc_bx_organizations_message_title"><![CDATA[Видео Конференция]]></string>
 	<string name="_bx_messenger_public_vc_bx_organizations_message"><![CDATA[{0} конференция началась]]></string>
 	<string name="_bx_messenger_push_vc_bx_persons_message_title"><![CDATA[Персональный видео звонок]]></string>
-	<string name="_bx_messenger_public_vc_bx_persons_message"><![CDATA[Вдео звонок от {0}]]></string>
+	<string name="_bx_messenger_public_vc_bx_persons_message"><![CDATA[Видео звонок от {0}]]></string>
 	<string name="_bx_messenger_use_mentions"><![CDATA[Включить упоминания в соощениях]]></string>
 	<string name="_bx_messenger_loading"><![CDATA[загрузка...]]></string>
 	<string name="_bx_messenger_notification_subject_message"><![CDATA[Сообщение от {0}]]></string>
@@ -242,12 +242,10 @@
 	<string name="_bx_messenger_acl_action_administrate_talks"><![CDATA[Модерировать разговоры (редактировать/удалять)]]></string>
 	<string name="_bx_messenger_acl_action_send_messages"><![CDATA[Оправлять сообщения]]></string>
 	<string name="_bx_messenger_acl_action_create_vc"><![CDATA[Создавать видео конференции]]></string>
-	<string name="_bx_messenger_disable_contact_privacy"><![CDATA[Отключить насктройки контакта пользователя. <b>Замечание</b>: Если вы отключите настройки любой профиль будет иметь возможность контакировать с любым другим профилем!]]></string>
-	<string name="_bx_messenger_allow_to_moderate_messages"><![CDATA[Разрешать создателям чатов модерировать сообщения]]></string>
-	<string name="_bx_messenger_clear_lot_menu"><![CDATA[Очистить историю]]></string>
-	<string name="_bx_messenger_clear_lot"><![CDATA[Вы уверено, что хотите безвозвратно удалить историю "{0}"?]]></string>
-	<string name="_bx_messenger_lot_menu_settings"><![CDATA[Настройки]]></string>
-	<string name="_bx_messenger_enable_joined_organizations"><![CDATA[Разрешить организациям контактировать с пользователями тлько в случае, если пользователь является участником этой организации]]></string>
+	<string name="_bx_messenger_disable_contact_privacy"><![CDATA[Отключить настройки контакта пользователя. <b>Замечание</b>: Если вы отключите настройки любой профиль будет иметь возможность контактировать с любым другим профилем!]]></string>
+	<string name="_bx_messenger_allow_to_moderate_messages"><![CDATA[Разрешать создателям чатов модерировать сообщения]]></string>	
+	<string name="_bx_messenger_clear_lot"><![CDATA[Вы уверено, что хотите безвозвратно удалить историю "{0}"?]]></string>	
+	<string name="_bx_messenger_enable_joined_organizations"><![CDATA[Разрешить организациям контактировать с пользователями только в случае, если пользователь является участником этой организации]]></string>
 	<string name="_bx_messenger_mark_as_unread"><![CDATA[Пометить как прочитанное]]></string>
 	<string name="_bx_messenger_menu_item_title_video_call"><![CDATA[Видео звонок]]></string>
 	<string name="_bx_messenger_menu_item_title_star"><![CDATA[Отметить чат как важный]]></string>
@@ -272,7 +270,7 @@
 	<string name="_bx_messenger_nav_menu_item_title_reply"><![CDATA[Ответы]]></string>
 	<string name="_bx_messenger_nav_menu_item_title_mr"><![CDATA[Реакции и Упоминания]]></string>
 	<string name="_bx_messenger_menu_item_title_parent_lot"><![CDATA[Open original message]]></string>
-	<string name="_bx_messenger_jot_server_jwt"><![CDATA[Jot Server's JWT token secret word ( leave it empty if don't want to use JWT tokens for Jot Server)]]></string>
+	<string name="_bx_messenger_jot_server_jwt"><![CDATA[Jot Server JWT token <b>секретное слово</b>. Такое же слово вам необходимо добавить в <b>config.json</b> вашего Jot Server (оставьте поле пустым, если не хотите использовать JWT tokens для Jot Server)]]></string>
 	<string name="_bx_messenger_nav_menu_title_view"><![CDATA[Main menu]]></string>
 	<string name="_bx_messenger_groups_menu_title_view"><![CDATA[Groups Menu]]></string>
 	<string name="_bx_messenger_menu_title_view"><![CDATA[Menu заголовка разговора]]></string>
@@ -313,4 +311,32 @@
 	<string name="_bx_messenger_not_found_to_read"><![CDATA[Разговор с сообщением не был найден, пожалуйста уточните ссылку!]]></string>
 	<string name="_bx_messenger_menu_jot_title"><![CDATA[Меню сообщения]]></string>
 	<string name="_bx_messenger_share_jot"><![CDATA[Копировать ссылку]]></string>
+	<string name="_bx_messenger_left_menu_groups_item_create_group"><![CDATA[Создать группу]]></string>
+	<string name="_bx_messenger_empty_users_list"><![CDATA[Профайлы не найдены]]></string>
+	<string name="_bx_messenger_users_creation_new_message"><![CDATA[Новое сообщение...]]></string>
+	<string name="_bx_messenger_groups_name"><![CDATA[Название]]></string>
+	<string name="_bx_messenger_groups_name_info"><![CDATA[Название группы доступное только для участников]]></string>
+	<string name="_bx_messenger_groups_desc"><![CDATA[Описание]]></string>
+	<string name="_bx_messenger_groups_desc_info"><![CDATA[Опишите группу, это поможет пользователям найти её]]></string>
+	<string name="_bx_messenger_groups_privacy"><![CDATA[Членства]]></string>
+	<string name="_bx_messenger_groups_privacy_info"><![CDATA[Группы будет видна только отмеченным членствам]]></string>
+	<string name="_bx_messenger_groups_create_form_title"><![CDATA[Создать группу]]></string>
+	<string name="_bx_messenger_groups_edit_form_title"><![CDATA[Редактировать Группу]]></string>
+	<string name="_bx_messenger_form_entry_input_allow_view_groups_to"><![CDATA[Разрешить показывать группу]]></string>
+	<string name="_bx_messenger_nothing_has_been_saved"><![CDATA[Данные не сохранены!]]></string>
+	<string name="_bx_messenger_threads_title"><![CDATA[Связанные разговоры]]></string>
+	<string name="_bx_messenger_nothing_found"><![CDATA[Ничего не найдено]]></string>
+	<string name="_bx_messenger_jot_replies"><![CDATA[Ответы]]></string>
+	<string name="_bx_messenger_view_replies"><![CDATA[Посмотреть ответы]]></string>
+	<string name="_bx_messenger_menu_item_title_group_list"><![CDATA[Список разговоров]]></string>
+	<string name="_bx_messenger_groups_talks_title"><![CDATA[Список разговоров]]></string>
+	<string name="_bx_messenger_list_area_inbox"><![CDATA[Сообщения]]></string>
+	<string name="_bx_messenger_text_area_topic_title"><![CDATA[Заголовок]]></string>
+	<string name="_bx_messenger_left_menu_item_direct_messages"><![CDATA[Разговоры]]></string>
+	<string name="_bx_messenger_left_menu_item_threads"><![CDATA[Связанные разговоры]]></string>
+	<string name="_bx_messenger_left_menu_item_pages"><![CDATA[Страницы]]></string>
+	<string name="_bx_messenger_nav_menu_item_title_replies"><![CDATA[Ответы]]></string>
+	<string name="_bx_messenger_lots_menu_clear"><![CDATA[Очистить историю]]></string>
+	<string name="_bx_messenger_lots_menu_settings"><![CDATA[Настройки]]></string>
+	<string name="_bx_messenger_view_in_chat"><![CDATA[Посмотреть внутри разговора]]></string>
 </resources>

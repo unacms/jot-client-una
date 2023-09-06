@@ -26,6 +26,7 @@ DELETE FROM `sys_objects_live_updates` WHERE `name` IN ('bx_messenger_new_messag
 DELETE `sys_acl_actions`, `sys_acl_matrix`
 FROM `sys_acl_actions`, `sys_acl_matrix`
 WHERE `sys_acl_matrix`.`IDAction` = `sys_acl_actions`.`ID` AND `sys_acl_actions`.`Module` = @sName;
+
 DELETE FROM `sys_acl_actions` WHERE `Module` = @sName;
 
 -- MENU

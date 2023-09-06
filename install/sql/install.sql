@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_jots` (
    `last_edit` int(11) NOT NULL default '0',
    `edit_by` int(11) unsigned NOT NULL default '0',
    `trash` tinyint(1) unsigned NOT NULL default 0,
-   `parent` int(11) unsigned NOT NULL default 0,
    `vc` int(11) NOT NULL default 0,
    `reply` int(11) NOT NULL default 0,
    PRIMARY KEY (`id`),

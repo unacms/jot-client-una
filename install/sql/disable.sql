@@ -7,9 +7,6 @@ DELETE FROM `sys_options` WHERE `category_id` = @iCategId;
 DELETE FROM `sys_options_categories` WHERE `type_id` = @iTypeId;
 DELETE FROM `sys_options_types` WHERE `id` = @iTypeId;
 
--- MENU
-DELETE FROM `sys_menu_items` WHERE `module` = @sName;
-
 -- PAGES
 DELETE FROM `sys_objects_page` WHERE `module` = @sName;
 DELETE FROM `sys_pages_blocks` WHERE `module` = @sName OR `object` = 'bx_messenger_main';

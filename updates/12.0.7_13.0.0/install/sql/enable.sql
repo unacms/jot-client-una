@@ -42,7 +42,7 @@ INSERT INTO `sys_acl_matrix` (`IDLevel`, `IDAction`) VALUES
 (@iAdministrator, @iIdActionDeleteMessages);
 
 --- Menu objects
-DELETE FROM `sys_menu_items` WHERE `module` =  @sName;
+DELETE FROM `sys_menu_items` WHERE `module` =  @sName AND `name` NOT IN ('notifications-messenger', 'messenger', 'public-vc-messenger');
 DELETE FROM `sys_objects_menu` WHERE `module` =  @sName;
 DELETE FROM `sys_menu_sets` WHERE `module` =  @sName;
 

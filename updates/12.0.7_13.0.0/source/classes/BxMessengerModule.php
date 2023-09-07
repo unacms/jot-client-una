@@ -3630,7 +3630,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
     function servicePublicToPages(){
         $CNF = &$this->_oConfig->CNF;
         $aLots = $this->_oDb->getAll("SELECT * FROM `{$CNF['TABLE_ENTRIES']}`
-                                               WHERE `{$CNF['FIELD_TYPE']}`=:type", array('type' => BX_IM_TYPE_PUBLIC));
+                                               WHERE `{$CNF['FIELD_TYPE']}`!=:type AND `{$CNF['FIELD_URL']}` != ''", array('type' => BX_IM_TYPE_PRIVATE));
         foreach($aLots as &$aLot){
             $iGroupId = $this->_oDb->getGroupIdByLotId($aLot[$CNF['FIELD_ID']]);
             if ($iGroupId)

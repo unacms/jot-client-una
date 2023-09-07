@@ -2491,9 +2491,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
    }
 
     function getGroupByUrl($sUrl){
-        return $this->getRow("SELECT *  
-                                                        FROM `{$this->CNF['TABLE_GROUPS']}`								
-                                                        WHERE `{$this->CNF['FMG_URL']}`=:url LIMIT 1", array('url' => $sUrl));
+        return $this->getRow("SELECT * FROM `{$this->CNF['TABLE_GROUPS']}` WHERE `{$this->CNF['FMG_URL']}`=:url LIMIT 1", array('url' => $sUrl));
     }
 
    function getLotType($iLotId){

@@ -14,5 +14,8 @@ module.exports = {
               'xs': '480px'
           }
       },
-  }
+  },
+  /*blocklist: [ 'hidden', 'text-white', 'font-semibold', 'align-middle', 'align-top', 'flex-col', 'flex-nowrap', 'items-start', 'items-center',
+               'justify-center', 'justify-between', 'resize', 'visible', 'block', 'inline-block', 'flex', 'flex-grow', 'self-center', 'truncate',
+               'h-min', 'text-ellipsis', 'rounded-full', 'overflow-hidden' ]*/
 }

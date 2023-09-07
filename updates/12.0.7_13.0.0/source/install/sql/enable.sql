@@ -310,7 +310,7 @@ INSERT INTO `sys_objects_form` (`object`, `module`, `title`, `action`, `form_att
 INSERT INTO `sys_form_displays` (`display_name`, `module`, `object`, `title`) VALUES
 ('bx_messenger_send', @sName, 'bx_messenger_send', '_bx_messenger_neo_app_form_display_send_message');
 
-INSERT INTO `sys_form_inputs` (`object`, `module`, `name`, `value`, `values`, `checked`, `type`, `caption_system`, `caption`, `info`, `help`, `required`, `unique`, `collapsed`, `html`, `privacy`, `rateable`, `attrs`, `attrs_tr`, `attrs_wrapper`, `checker_func`, `checker_params`, `checker_error`, `db_pass`, `db_params`, `editable`, `deletable`) VALUES
+INSERT INTO `sys_form_inputs` (``object`, `module`, `name`, `value`, `values`, `checked`, `type`, `caption_system`, `caption`, `info`, `help`, `required`, `unique`, `collapsed`, `html`, `privacy`, `rateable`, `attrs`, `attrs_tr`, `attrs_wrapper`, `checker_func`, `checker_params`, `checker_error`, `db_pass`, `db_params`, `editable`, `deletable`) VALUES
 ('bx_messenger_send', @sName, 'submit', '_bx_messenger_neo_app_form_input_submit', '', 0, 'submit', '_bx_messenger_neo_app_form_input_caption_submit', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', '', '', 0, 0),
 ('bx_messenger_send', @sName, 'cancel', '_bx_messenger_neo_app_form_input_cancel', '', 0, 'button', '_bx_messenger_neo_app_form_input_caption_cancel', '', '', '', 0, 0, 0, 0, 0, '', 'a:1:{s:5:"class";s:22:"bx-def-margin-sec-left";}', '', '', '', '', '', '', '', 0, 0),
 ('bx_messenger_send', @sName, 'controls', '', 'submit,cancel', 0, 'input_set', '', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', '', '', 0, 0),

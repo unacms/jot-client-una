@@ -687,6 +687,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         if (!$sThumb)
                             $sThumb = bx_srv($aGroupInfo[$CNF['FMG_MODULE']], 'get_thumb', [$oGroupProfile->getContentId()]);
 
+                        $aVars['author_module'] = $sModule = $oGroupProfile->getModule();
                         $sModuleTitle = _t('_' . $oGroupProfile->getModule());
                         $aGroupItemInfo = BxDolService::call($oGroupProfile->getModule(), 'get_info', [$oGroupProfile->getContentId(), false]);
                         if (!empty($aGroupItemInfo)) {
@@ -707,6 +708,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                     $sModuleIcon = $this->_oConfig->getPageIcon();                    
                     $sThumb = $sModuleIcon;
 
+                    $aVars['author_module'] = 'bx_pages';
                     $sModuleTitle = _t('_bx_messenger_pages');
                     $aUrl = array();
                     parse_str($aGroupInfo[$CNF['FMG_URL']], $aUrl);
@@ -810,9 +812,14 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			$aVars['status'] = $sStatus;
 
 			$aLatestJots = $this -> _oDb -> getLatestJot($aLot[$CNF['FIELD_ID']]);
-
-			$iTime = bx_is_api() ? $aLot[$CNF['FIELD_ADDED']] : bx_time_js($aLot[$CNF['FIELD_ADDED']], BX_FORMAT_DATE);
 			$aVars[$CNF['FIELD_MESSAGE']] = $aVars['sender_username'] = '';
+
+            $iTime = bx_time_js($aLot[$CNF['FIELD_ADDED']], BX_FORMAT_DATE);
+            if (bx_is_api()) {
+                $iTime = $aLot[$CNF['FIELD_ADDED']];
+            }
+
+            $aVars[$CNF['FIELD_AUTHOR']] = $aLot[$CNF['FIELD_AUTHOR']];
 
             $sMessage = '';
 			if (!empty($aLatestJots)) {

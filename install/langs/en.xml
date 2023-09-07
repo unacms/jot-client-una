@@ -348,4 +348,18 @@
 	<string name="_bx_messenger_not_found_to_read"><![CDATA[Talks with the message was not found, please specify the url!]]></string>
 	<string name="_bx_messenger_menu_jot_title"><![CDATA[Message's menu]]></string>
 	<string name="_bx_messenger_share_jot"><![CDATA[Copy link]]></string>
+	<string name="_bx_messenger_neo_app_form"><![CDATA[Messenger text area from]]></string>
+	<string name="_bx_messenger_neo_app_form"><![CDATA[Send Message From]]></string>
+	<string name="_bx_messenger_neo_app_form_display_send_message"><![CDATA[Send Message]]></string>
+	<string name="_bx_messenger_neo_app_form_input_submit"><![CDATA[Submit]]></string>
+	<string name="_bx_messenger_neo_app_form_input_caption_submit"><![CDATA[Send]]></string>
+	<string name="_bx_messenger_neo_app_form_input_cancel"><![CDATA[Cancel]]></string>
+	<string name="_bx_messenger_neo_app_form_input_caption_cancel"><![CDATA[Cancel]]></string>
+	<string name="_sys_form_entry_input_sys_cf"><![CDATA[Token]]></string>
+	<string name="_sys_form_entry_input_cf"><![CDATA[Token]]></string>
+	<string name="_sys_uploader_html5_title"><![CDATA[Uploader]]></string>
+	<string name="_bx_messenger_neo_app_form_input_caption_files"><![CDATA[File]]></string>
+	<string name="_bx_messenger_neo_app_form_input_caption_message"><![CDATA[Message]]></string>
+	<string name="_bx_messenger_neo_app_form_input_caption_parent_id"><![CDATA[Parent ID]]></string>
+	<string name="_bx_messenger_neo_app_form_input_caption_message_id"><![CDATA[Message ID]]></string>
 </resources>

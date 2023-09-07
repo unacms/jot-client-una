@@ -380,6 +380,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (!$iSender)
             $iSender = $this->_iProfileId;
 
+        if (empty($mixedData))
+            return _t('_bx_messenger_send_message_no_data');
+
         $aData = array();
         if (is_array($mixedData))
             $aData = $mixedData;
@@ -517,6 +520,19 @@ class BxMessengerModule extends BxBaseModGeneralModule
 		    if (!empty($aFiles)) {
                 $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
                 $aUploadingFilesNames = $aCompleteFilesNames = array();
+
+                if (bx_is_api()){
+                    if (is_array($aFiles))
+                        foreach($aFiles as &$iFileId){
+                            if ($aFile = $oStorage -> getFile($iFileId)) {
+                                $aCompleteFilesNames[] = $aFile[$CNF['FIELD_ST_NAME']];
+                                $this->_oDb->updateFiles($iFileId, array(
+                                    $CNF['FIELD_ST_JOT'] => $iId,
+                                ));
+                                $oStorage->afterUploadCleanup($iFileId, $this->_iProfileId);
+                            }
+                        }
+                } else
                 foreach ($aFiles as &$aFile) {
                     if (!(int)$aFile['complete']) {
                         $aUploadingFilesNames[] = $aFile['realname'];
@@ -2940,23 +2956,19 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return echoJson(array('code' => 1, 'message' => MsgBox(_t('_bx_messenger_giphy_gifs_nothing_found'))));
     }
 
-    function actionGetTalksList(){
-        $mixedGroup = bx_get('group');
-        $iId = (int)bx_get('id');
-        $iLotId = (int)bx_get('lot');
-        $CNF = &$this->_oConfig->CNF;
-        if (!$this->isLogged())
-            return echoJson(array(
-                                    'code' => 1,
-                                    'reload' => 1
-                            ));
+    function serviceGetTalksList($aOptions = []){
+        $mixedGroup = isset($aOptions['group']) ? $aOptions['group'] : '';
+        $iId = isset($aOptions['id']) ? (int)$aOptions['id'] : 0;
+        $iLotId = isset($aOptions['lot']) ? (int)$aOptions['lot'] : 0;
+        $aParams = ['start' => isset($aOptions['count']) ? (int)$aOptions['count'] : 0, 'lot' => $iLotId];
 
+        $CNF = &$this->_oConfig->CNF;
         $aLotInfo = $iLotId ? $this->_oDb->getLotInfoById($iLotId) : [];
         if (!empty($aLotInfo) && ($aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_PRIVATE && !$this->_oDb->isParticipant($aLotInfo[$CNF['FIELD_ID']], $this->_iProfileId)))
-            return echoJson(array('code' => 1, 'message' => '_bx_messenger_not_participant'));
+            return ['code' => 1, 'message' => _t('_bx_messenger_not_participant')];
 
-        $aParams = array('start' => (int)bx_get('count'), 'lot' => $iLotId);
         $sTitle = _t('_bx_messenger_nav_menu_item_title_' . ( $mixedGroup ? $mixedGroup : 'inbox' ));
+        $aLotsList = [];
 		switch($mixedGroup){
             case BX_MSG_TALK_TYPE_THREADS:
 				$aParams['threads'] = true;
@@ -2965,7 +2977,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 			case 'public':
 				$aParams['type'] = array(BX_IM_TYPE_SETS, BX_IM_TYPE_PUBLIC);
 				$aLotsList = $this->_oDb->getMyLots($this->_iProfileId, $aParams);
-				break;	
+                break;
             case BX_MSG_TALK_TYPE_FILES:
                 break;
             case BX_MSG_TALK_TYPE_MR:
@@ -2993,6 +3005,27 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 $aLotsList = $this->_oDb->getMyLots($this->_iProfileId, array_merge($aParams, ['inbox' => true]));
         }
 
+        $bNext = false;
+        if (isset($aParams['per_page']) && count($aLotsList) === (int)$aParams['per_page'])
+            $bNext = true;
+        else if (count($aLotsList) === $CNF['MAX_LOTS_NUMBER'])
+            $bNext = true;
+
+        return ['title' => $sTitle, 'list' => $aLotsList, 'code' => 0, 'next' => $bNext];
+    }
+    
+    function actionGetTalksList(){
+        if (!$this->isLogged())
+            return echoJson(['code' => 1, 'reload' => 1]);
+
+        $aParams = ['group' => bx_get('group'), 'id' => (int)bx_get('id'), 'count' => (int)bx_get('count'), 'lot' => (int)bx_get('lot')];
+        $aData = $this->serviceGetTalksList($aParams);
+        if (isset($aData['code']) && (int)$aData['code'])
+            return echoJson(['code' => 1, 'msg' => $aData['message']]);
+
+        $sTitle = isset($aData['title']) ? $aData['title'] : '';
+        $aLotsList = isset($aData['list']) ? $aData['list'] : [];
+
         if (!empty($aLotsList)) {
             $sContent = $this->_oTemplate->getLotsPreview($this->_iProfileId, $aLotsList);
             return echoJson(array(
@@ -3002,7 +3035,15 @@ class BxMessengerModule extends BxBaseModGeneralModule
             ));
         }
 
-        return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_txt_msg_no_results')), 'title' => _t($sTitle)));
+        return echoJson(['code' => 1, 'html' => MsgBox(_t('_bx_messenger_txt_msg_no_results')), 'title' => _t($sTitle)]);
+    }
+
+    public function actionGetTopMenuItems(){
+        $CNF = &$this->_oConfig->CNF;
+
+        $oLeftMainMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_NAV_LEFT_MENU']);
+        $oLeftGroupsMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_GROUPS_MENU']);
+        return ['top' => $oLeftMainMenu->getMenuItems(), 'groups' => $oLeftGroupsMenu->getMenuItems()];
     }
 
     public function serviceGetLotStat($mixedLotId = ''){
@@ -3524,10 +3565,10 @@ class BxMessengerModule extends BxBaseModGeneralModule
     function actionMediaAccordion(){
         $bShown = (bool)bx_get('hidden');
         $iFileId = (int)bx_get('id');
-        $oStorage = BxDolStorage::getObjectInstance($this->_oConfig->CNF['OBJECT_STORAGE']);
         if (!$this->isLogged() || !$iFileId)
             return false;
 
+        $oStorage = BxDolStorage::getObjectInstance($this->_oConfig->CNF['OBJECT_STORAGE']);
         if (!($aFile = $oStorage->getFile($iFileId)))
             return false;
 
@@ -3541,10 +3582,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $this->_oDb->removeMediaTracker($iFileId, $this->_iProfileId);
     }
 
-    function actionConvertToReply(){
-        if (!isAdmin())
-            return false;
-
+    function serviceConvertToReply(){
        $CNF = &$this->_oConfig->CNF;
        $aJots = $this->_oDb->getAll("SELECT * FROM `{$CNF['TABLE_MESSAGES']}` 
                                      WHERE `{$CNF['FIELD_MESSAGE_AT_TYPE']}`=:type OR `{$CNF['FIELD_MESSAGE_AT']}` LIKE '%\"reply\"%'", array('type' => BX_ATT_TYPE_REPLY));
@@ -3561,10 +3599,35 @@ class BxMessengerModule extends BxBaseModGeneralModule
        }
     }
 
-    function actionPublicToPages(){
-        if (!isAdmin())
-            return false;
+    function actionUpdateMemberships(){
+        $aMembershipLevels = BxDolAcl::getInstance()->getMemberships();
+        $iActionId = BxDolAcl::getInstance()->getMembershipActionId('administrate messages', $this->getName());
 
+        $iActionEditId = BxDolAcl::getInstance()->getMembershipActionId('edit messages', $this->getName());
+        $iActionDeleteId = BxDolAcl::getInstance()->getMembershipActionId('delete messages', $this->getName());
+
+        if (!($iActionId && $iActionEditId && $iActionDeleteId) || empty($aMembershipLevels)){
+            echo 'nothing to return';
+            return true;
+        }
+
+        foreach($aMembershipLevels as $iMembershipId => $sMembership){
+            $aAction = BxDolAclQuery::getInstance()->getAction($iMembershipId, $iActionId);
+            $aActionEdit = BxDolAclQuery::getInstance()->getAction($iMembershipId, $iActionEditId);
+            $aActionDelete = BxDolAclQuery::getInstance()->getAction($iMembershipId, $iActionDeleteId);
+
+            if (is_null($aAction['id']) || !is_null($aActionEdit['id']) || !is_null($aActionDelete['id']))
+                continue;
+
+            $this->_oDb->query("INSERT INTO `sys_acl_matrix` SET `IDLevel`=:level, `IDAction`=:action", array( 'level' => $iMembershipId, 'action' => $iActionDeleteId));
+            $this->_oDb->query("INSERT INTO `sys_acl_matrix` SET `IDLevel`=:level, `IDAction`=:action", array( 'level' => $iMembershipId, 'action' => $iActionEditId));
+            $this->_oDb->query("DELETE FROM `sys_acl_matrix` WHERE `IDLevel`=:level AND `IDAction`=:action", array( 'level' => $iMembershipId, 'action' => $iActionId));
+        }
+
+        return true;
+    }
+
+    function servicePublicToPages(){
         $CNF = &$this->_oConfig->CNF;
         $aLots = $this->_oDb->getAll("SELECT * FROM `{$CNF['TABLE_ENTRIES']}`
                                                WHERE `{$CNF['FIELD_TYPE']}`=:type", array('type' => BX_IM_TYPE_PUBLIC));
@@ -3587,6 +3650,231 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 $this->_oDb->addLotToGroup($aLot[$CNF['FIELD_ID']], $aGroup[$CNF['FMG_ID']]);
 
         }
+    }
+
+    public function serviceGetSafeServices()
+    {
+        return array (
+            'GetConvosList' => '',
+            'GetConvoMessages' => '',
+            'GetSendForm' => '',
+            'RemoveConvo' => '',
+            'SubmitMessage' => '',
+            'GetMessengerMenu' => '',
+            'serviceGetConvoItem' => ''
+        );
+    }
+
+    public function serviceGetConvoItem($sParams)
+    {
+        $aOptions = json_decode($sParams, true);
+
+        $aResult = array('code' => 1);
+        if (!isset($aOptions['id']) || !($aLotInfo = $this->_oDb->getLotInfoById($aOptions['id'])))
+            return $aResult;
+
+        $iLotId = $aOptions['id'];
+        if (!$this->_oDb->isParticipant($iLotId, $this->_iProfileId))
+            return ['code' => 1, _t('_bx_messenger_not_participant')];
+
+        $CNF = $this->_oConfig->CNF;
+        return array_merge($aLotInfo, ['author_data' => BxDolProfile::getInstance()->getData($aLotInfo[$CNF['FIELD_AUTHOR']])]);
+    }
+
+    public function serviceGetMessengerMenu(){
+        $CNF = &$this->_oConfig->CNF;
+        $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_NAV_LEFT_MENU']);
+        return $oMenu->getMenuItems();
+    }
+
+    function serviceRemoveConvo($sParams = ''){
+        $aOptions = json_decode($sParams, true);
+
+        $iJotId = isset($aOptions['jot_id']) ? (int)$aOptions['jot_id'] : 0;
+        if (!$iJotId)
+            return [];
+
+        return $this->serviceDeleteJot($iJotId, true);
+    }
+
+    function serviceGetConvosList($sParams = ''){
+        $aOptions = json_decode($sParams, true);
+        $aData = $this->serviceGetTalksList($aOptions);
+
+        $aList = $aData['list'];
+        if (isset($aData['code']) && !(int)$aData['code'] && !empty($aData['list']))
+            $aList = $this->_oTemplate->getLotsPreview($this->_iProfileId, $aData['list']);
+
+        $CNF = &$this->_oConfig->CNF;
+
+        $aResult = [];
+        if (!empty($aList)){
+            foreach($aList as &$aItem){
+                $sImageUrl = bx_api_get_relative_url($aItem['bx_if:user']['content']['icon']);
+                $aResult[] = [
+                  'author_data' => (int)$aItem[$CNF['FIELD_AUTHOR']] ? BxDolProfile::getInstance()->getData($aItem[$CNF['FIELD_AUTHOR']]) : [
+                      'id' => 0,
+                      'display_type' => 'unit',
+                      'display_name' => $aItem['bx_if:user']['content']['talk_type'],
+                      'url' => $sImageUrl,
+                      'url_avatar' => $sImageUrl,
+                      'module' => isset($aItem['author_module']) ? $aItem['author_module'] : 'bx_pages',
+                  ],
+                   'title' => $aItem[$CNF['FIELD_TITLE']],
+                   'message' => $aItem['bx_if:user']['content']['message'],
+                   'date' => $aItem['bx_if:timer']['content']['time'],
+                   'id' => $aItem[$CNF['FIELD_ID']],
+                   'total_messages' => $this->_oDb->getJotsNumber($aItem[$CNF['FIELD_ID']], 0)
+                ];
+            }
+        }
+        
+        return $aResult;
+    }
+
+    public function serviceGetConvoMessages($sParams)
+    {
+        $aOptions = json_decode($sParams, true);
+
+        $CNF = &$this->_oConfig->CNF;
+        $iJot = isset($aOptions['jot']) ? (int)$aOptions['jot'] : 0;
+        $iLotId = isset($aOptions['lot']) ? (int)$aOptions['lot'] : 0;
+        $sLoad = isset($aOptions['load']) ? $aOptions['load'] : 'prev';
+        $sArea = isset($aOptions['area_type']) ? $aOptions['area_type'] : 'index';
+
+        if ($iLotId && !$this->isAvailable($iLotId))
+            return ['code' => 1, 'message' => _t('_bx_messenger_talk_is_not_allowed')];
+
+        $sUrl = isset($aOptions['url']) ? $aOptions['url'] : '';
+        if ($sUrl)
+            $sUrl = $this->getPreparedUrl($sUrl);
+
+        $isFocused = (bool)bx_get('focus');
+        $iRequestedJot = (int)bx_get('req_jot');
+        $iLastViewedJot = (int)bx_get('last_viewed_jot');
+        $bUpdateHistory = true;
+        $mixedContent = '';
+        $iUnreadJotsNumber = 0;
+        $iLastUnreadJotId = 0;
+        $bAttach = true;
+        $bRemoveSeparator = false;
+        switch ($sLoad) {
+            case 'new':
+                if (!$iJot) {
+                    $iJot = $this->_oDb->getFirstUnreadJot($this->_iProfileId, $iLotId);
+                    if ($iJot)
+                        $iJot = $this->_oDb->getPrevJot($iLotId, $iJot);
+                    else {
+                        $aLatestJot = $this->_oDb->getLatestJot($iLotId);
+                        $iJot = !empty($aLatestJot) ? (int)$aLatestJot[$CNF['FIELD_MESSAGE_ID']] : 0;
+                    }
+                }
+
+                if ($iRequestedJot) {
+                    if ($this->_oDb->getJotsNumber($iLotId, $iJot, $iRequestedJot) >= $CNF['MAX_JOTS_LOAD_HISTORY'])
+                        $bUpdateHistory = false;
+                    else if ($isFocused)
+                        $this->_oDb->readMessage($iRequestedJot, $this->_iProfileId);
+                }
+
+                if ($iLastViewedJot && $bUpdateHistory && $isFocused) {
+                    $this->_oDb->readMessage($iLastViewedJot, $this->_iProfileId);
+                }
+
+            case 'prev':
+                $aOptions = [
+                    'lot_id' => $iLotId,
+                    'url' => $sUrl,
+                    'start' => $iJot,
+                    'load' => $sLoad,
+                    'limit' => $CNF['MAX_JOTS_BY_DEFAULT'],
+                    'views' => true,
+                    'dynamic' => true,
+                    'area' => $sArea
+                ];
+
+                $iLastUnreadJotId = $iUnreadJotsNumber = 0;
+                $aUnreadInfo = $this->_oDb->getNewJots($this->_iProfileId, $iLotId);
+                if (!empty($aUnreadInfo)) {
+                    $iLastUnreadJotId = (int)$aUnreadInfo[$CNF['FIELD_NEW_JOT']];
+                    $iUnreadJotsNumber = (int)$aUnreadInfo[$CNF['FIELD_NEW_UNREAD']];
+                }
+
+                $mixedContent = $this->_oTemplate->getJotsOfLot($this->_iProfileId, $aOptions);
+                break;
+        }
+
+        $aResult = [];
+        if (is_array($mixedContent) && $mixedContent){
+            $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_JOT_MENU']);
+
+            $oStorage = new BxMessengerStorage($CNF['OBJECT_STORAGE']);
+            $oImagesTranscoder = BxDolTranscoderImage::getObjectInstance($CNF['OBJECT_IMAGES_TRANSCODER_PREVIEW']);
+
+            foreach($mixedContent as &$aJot) {
+                $iJotId = $aJot[$CNF['FIELD_MESSAGE_ID']];
+                $aReactions = $this->_oDb->getJotReactions($iJotId);
+
+                $aFiles = [];
+                if ($mixedFiles = $this->_oDb->getJotFiles($iJotId))
+                    foreach($mixedFiles as &$aFile) {
+                        if ($oStorage->isImageFile($aFile[$CNF['FIELD_ST_TYPE']]))
+                            $aFiles[] = ['src' => $oImagesTranscoder->getFileUrl((int)$aFile[$CNF['FIELD_ST_ID']]), 'name' => $aFile[$CNF['FIELD_ST_NAME']]];
+                    }
+
+                $aResult[] = array_merge($aJot, [
+                    'author_data' => BxDolProfile::getInstance()->getData($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]),
+                    $CNF['FIELD_MESSAGE'] => strip_tags($aJot[$CNF['FIELD_MESSAGE']]),
+                    'reactions' => array_map(function($aItem) use ($CNF){
+                        return ['name' => $this->_oConfig->convertApp2Emoji($aItem[$CNF['FIELD_REACT_EMOJI_ID']]),
+                                'user_id' => BxDolProfile::getInstance()->getData($aItem[$CNF['FIELD_REACT_PROFILE_ID']]),
+                                'count' => 1];
+                    }, $aReactions),
+                    'menu' => $oMenu->getMenuItems(),
+                    'files' => $aFiles
+                ]);
+            }
+        }
+
+        return [
+            'code' => 0,
+            'jots' => $aResult,
+            'unread_jots' => $iUnreadJotsNumber,
+            'last_unread_jot' => $iLastUnreadJotId
+        ];
+    }
+
+    public function serviceGetSendForm($sParams = ''){
+        if (!$this->isLogged())
+            return ['code' => 1, 'msg' => _t('_bx_messenger_not_logged')];
+
+        $CNF = &$this->_oConfig->CNF;
+        $aForm = BxBaseFormView::getObjectInstance($CNF['OBJECT_API_FORM_NAME'], $CNF['OBJECT_API_FORM_NAME']);
+
+        if ($aForm->isSubmittedAndValid()){
+            $aOptions = json_decode($sParams, true);
+            $aData = ['lot' => $aOptions['id'], 'message' => bx_get('message')];
+
+            $aLotInfo = $this->_oDb->getLotInfoById($aOptions['id']);
+            if (empty($aLotInfo) || !$this->isLogged() || ($aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_PRIVATE && !$this->_oDb->isParticipant($aLotInfo[$CNF['FIELD_ID']], $this->_iProfileId)))
+                return ['code' => 1, 'msg' => _t('_bx_messenger_not_participant')];
+
+            $mixedFiles = bx_get('files');
+            if (!empty($mixedFiles))
+                $aData['files'] = explode(',', $mixedFiles);
+
+            return $this->sendMessage($aData);
+        }
+
+        return $aForm->getCodeAPI();
+    }
+
+    public function checkAllowedDeleteAnyEntryForProfile ($isPerformAction = false, $iProfileId = false){
+        return true;
+    }
+
+    public function checkAllowedEditAnyEntryForProfile ($isPerformAction = false, $iProfileId = false){
+        return true;
     }
 }
 

@@ -217,6 +217,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
                 ),
             ),
             'URL_IDENT_PARAMS' => array('i','id','profile_id'),
+            'EMOJI_APPS' => ['+1' => 'like'],
             'TITLE_CONSTANTS' => array('opponent'),
 			'GROUPS_ITEMS_FIELD' => 'items',
 
@@ -239,6 +240,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
 
              // objects
             'OBJECT_STORAGE' => 'bx_messenger_files',
+            'OBJECT_API_FORM_NAME' => 'bx_messenger_send',
             'OBJECT_PRIVACY_GROUPS' => 'bx_messenger_allow_view_groups_to',
             'OBJECT_IMAGES_TRANSCODER_GALLERY' => 'bx_messenger_photos_resized',
             'OBJECT_IMAGES_TRANSCODER_PREVIEW' => 'bx_messenger_preview',
@@ -263,7 +265,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'OBJECT_MENU_SUBMENU' => '', // main module submenu
             'OBJECT_MENU_MANAGE_TOOLS' => 'bx_messenger_menu_manage_tools', //manage menu in content administration tools
             'OBJECT_GRID' => 'bx_messenger',
-            'OBJECT_UPLOADERS' => array(),
+            'OBJECT_UPLOADERS' => array('sys_html5'),
 
             // available lot options
             'LOT_OPTIONS' => array(
@@ -635,6 +637,18 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
 
         $mixedResult = @unserialize($aJot[$this->CNF['FIELD_MESSAGE_AT']]);
         return isset($mixedResult[$sType]);
+    }
+
+    public function convertEmoji2App($sName){
+        return isset($this->CNF['EMOJI_APPS'][$sName]) ? $this->CNF['EMOJI_APPS'][$sName] : $sName;
+    }
+
+    public function convertApp2Emoji($sName){
+       $sKey = array_search($sName, $this->CNF['EMOJI_APPS']);
+       if ($sKey === false)
+           return $sName;
+
+        return $this->CNF['EMOJI_APPS'][$sKey];
     }
 }
 

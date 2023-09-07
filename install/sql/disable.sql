@@ -35,4 +35,13 @@ DELETE FROM `sys_menu_sets` WHERE `module` = @sName;
 DELETE FROM `sys_objects_menu` WHERE `module` = @sName;
 
 -- PRIVACY
-DELETE FROM `sys_objects_privacy` WHERE `object` = 'bx_messenger_allow_view_groups_to';
+--DELETE FROM `sys_objects_privacy` WHERE `object` = 'bx_messenger_allow_view_groups_to';
+
+---- NEO APP FORM
+DELETE FROM `sys_objects_form` WHERE `module` = @sName;
+DELETE FROM `sys_form_displays` WHERE `module` = @sName;
+DELETE FROM `sys_form_inputs` WHERE `module` = @sName;
+DELETE FROM `sys_form_display_inputs` WHERE `display_name` = 'bx_messenger_send';
+
+----- NEO REACTION
+DELETE FROM `sys_objects_vote` WHERE `Name` = 'bx_messenger_jot';

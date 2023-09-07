@@ -1149,6 +1149,17 @@ class BxMessengerDb extends BxBaseModGeneralDb
 			 RIGHT JOIN `{$this->CNF['TABLE_ENTRIES']}` as `l` on `l`.`{$this->CNF['FIELD_ID']}` = `j`.`{$this->CNF['FIELD_MESSAGE_FK']}` 
              WHERE `j`.`{$this->CNF['FIELD_MESSAGE']}` LIKE :criteria {$sWhere}", $this->CNF['FIELD_MESSAGE_ID'], $this->CNF['FIELD_MESSAGE_FK'], $aWhere);
     }
+
+    function getMyTalksIdList($iProfileId){
+	    if (!$iProfileId)
+	        return [];
+
+	    $sField = $this->CNF['FIELD_ID'];
+	    $aList = $this->getMyLots($iProfileId); 
+        return array_map(function($aTalk) use ($sField){
+                                                       return $aTalk[$sField];
+                                                      }, $aList);
+	}
 	/**
 	* Get all member's lots
 	*@param int $iProfileId
@@ -2559,6 +2570,120 @@ class BxMessengerDb extends BxBaseModGeneralDb
         $sWhere = implode(' AND ', $aWhere);
         return $this->query("DELETE FROM `{$this->CNF['TABLE_JOTS_MEDIA_TRACKER']}`					
 							       WHERE {$sWhere}", $aWhereParams);
+    }
+
+    public function getObjectAuthorId($iId)
+    {
+        $sQuery = $this->prepare("SELECT `{$this->CNF['FIELD_MESSAGE_AUTHOR']}` FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_ID']}` = ? LIMIT 1", $iId);
+        return (int)$this->getOne($sQuery);
+    }
+
+    public function isPerformed($iObjectId, $iAuthorId, $sEmoji)
+    {
+        $sQuery = $this->prepare("SELECT COUNT(*) 
+                                         FROM `{$this->CNF['TABLE_JOT_REACTIONS']}` 
+                                         WHERE `{$this->CNF['FIELD_REACT_JOT_ID']}` = ? AND `{$this->CNF['FIELD_REACT_PROFILE_ID']}` = ? AND 
+                                               `{$this->CNF['FIELD_REACT_EMOJI_ID']}` = ? LIMIT 1", $iObjectId, $iAuthorId, $sEmoji);
+        return (int)$this->getOne($sQuery) != 0;
+    }
+
+    public function putVote($iObjectId, $iAuthorId, $sAuthorIp, $aData, $bUndo = false)
+    {
+        $sReaction = $aData['reaction'];
+        $aReactions = BxDolFormQuery::getDataItems('sys_vote_reactions', false, BX_DATA_VALUES_ALL);
+        if(!isset($aReactions[$sReaction]))
+            return false;
+
+        if (!$aReaction = @unserialize($aReactions[$sReaction]['Data']))
+            return false;
+
+        $sQuery = "SELECT `id` FROM `{$this->CNF['TABLE_JOT_REACTIONS']}` WHERE `{$this->CNF['FIELD_REACT_JOT_ID']}` = :object_id 
+                           AND `{$this->CNF['FIELD_REACT_EMOJI_ID']}` = :reaction AND `{$this->CNF['FIELD_REACT_PROFILE_ID']}`=:author   LIMIT 1";
+        $bExists = (int)$this->getOne($sQuery, array('object_id' => $iObjectId, 'reaction' => $sReaction, 'author' => $iAuthorId)) != 0;
+
+        if($bExists && $bUndo)
+            return $this->deleteReaction($iObjectId, $iAuthorId, $aData['reaction']);
+        else
+            return $this->addJotReaction($iObjectId, $iAuthorId, ['id' => $this->_oConfig->convertApp2Emoji($aData['reaction']), 'native' => $aReaction['emoji']]);
+
+        return $this->lastId();
+    }
+
+    public function getVote($iObjectId)
+    {
+        $aReactions = BxDolFormQuery::getDataItems('sys_vote_reactions', false, BX_DATA_VALUES_ALL);
+        $aReactionsGot = $this->getPairs("SELECT COUNT(*) as `count`, `{$this->CNF['FIELD_REACT_EMOJI_ID']}` FROM `{$this->CNF['TABLE_JOT_REACTIONS']}` WHERE `{$this->CNF['FIELD_REACT_JOT_ID']}` = :object_id GROUP BY `{$this->CNF['FIELD_REACT_EMOJI_ID']}`", $this->CNF['FIELD_REACT_EMOJI_ID'], 'count', array('object_id' => $iObjectId));
+        $aResult = array();
+        foreach($aReactions as $sName => $iValue) {
+            $iCount = $iSum = 0;
+            if(!empty($aReactionsGot[$sName])) {
+                $iCount = (int)$aReactionsGot[$sName];
+                $iSum += $iCount;
+            }
+
+            $aResult['count_' . $sName] = $iCount;
+            $aResult['sum_' . $sName] = $iSum;
+            $aResult['rate_' . $sName] = $iCount != 0 ? $iSum / $iCount : 0;
+        }
+
+        $aResult['count_default'] = $iCount;
+        $aResult['sum_default'] = $iSum;
+
+        return $aResult;
+    }
+
+    public function getTrack($iObjectId, $iAuthorId)
+    {
+        return $this->getRow("SELECT *, `{$this->CNF['FIELD_REACT_EMOJI_ID']}` as `reaction` FROM `{$this->CNF['TABLE_JOT_REACTIONS']}` WHERE `{$this->CNF['FIELD_REACT_JOT_ID']}` = :object_id AND `{$this->CNF['FIELD_REACT_PROFILE_ID']}` = :author_id LIMIT 1", array(
+            'object_id' => $iObjectId,
+            'author_id' => $iAuthorId
+        ));
+    }
+
+    public function getPerformed($aParams = array())
+    {
+        $aMethod = array('name' => 'getAll', 'params' => array(0 => 'query'));
+        $aBindings = array();
+
+        $sSelectClause = '`tt`.*';
+        $sJoinClause = $sWhereClause = '';
+        $sLimitClause = isset($aParams['start']) && !empty($aParams['per_page']) ? "LIMIT " . $aParams['start'] . ", " . $aParams['per_page'] : "";
+
+        if(!empty($aParams['type']))
+            switch($aParams['type']) {
+                case 'by':
+                    $aBindings['object_id'] = $aParams['object_id'];
+
+                    $sJoinClause = "INNER JOIN `sys_profiles` AS `tp` ON `tt`.`user_id`=`tp`.`id` AND `tp`.`status`='active'";
+                    $sWhereClause = "AND `tt`.`jot_id` = :object_id";
+
+                    if(!empty($aParams['reaction'])) {
+                        $aMethod['name'] = 'getColumn';
+                        $aBindings['reaction'] = $this->_oConfig->convertApp2Emoji($aParams['reaction']);
+
+                        $sSelectClause = "`tt`.`user_id`";
+                        $sWhereClause .= " AND `tt`.`emoji_id`=:reaction";
+                    }
+                    else {
+                        $aMethod['name'] = 'getAll';
+
+                        $sSelectClause = "`tt`.`user_id`, `tt`.`emoji_id`";
+                    }
+                    break;
+            }
+
+        $aMethod['params'][0] = "SELECT " . $sSelectClause . " FROM `{$this->CNF['TABLE_JOT_REACTIONS']}` AS `tt` " . $sJoinClause . " WHERE 1 " . $sWhereClause . $sLimitClause;
+        $aMethod['params'][] = $aBindings;
+
+        return call_user_func_array(array($this, $aMethod['name']), $aMethod['params']);
+    }
+
+    /**
+     * Occurs when delete context object
+     * @param $iAuthorId context id (group,space ) and etc...
+     */
+    function deleteAuthorEntries($iAuthorId){
+        return false;
     }
 }
 

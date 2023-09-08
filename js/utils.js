@@ -35,7 +35,6 @@ window.oMUtils = (function($) {
                     url: sUrl,
                     onHide: () => $(document).trigger($.Event('hideConferenceWindow')),
                     onShow: () => $(document).trigger($.Event('showConferenceWindow')),
-                    closeElement: true,
                     closeOnOuterClick: true,
                     removeOnClose: true,
                 }, oOptions);

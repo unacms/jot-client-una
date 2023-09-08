@@ -178,8 +178,17 @@
 			  { state } = this.oHistory,
 			  { lot, jot, action, type, area, menu } = state || {};
 
+
 		if (this.oEditor)
 			this.oEditor.blur();
+
+		if (oMUtils.isMobile() && typeof _this.oMenu !== 'undefined') {
+			if (_this.oMenu.isHistoryColActive())
+				return _this.oMenu.showHistoryPanel();
+
+			if (_this.oMenu.isMenuColActive())
+				return _this.oMenu.toggleMenuPanel();
+		}
 
 		switch(action){
 			case 'init':

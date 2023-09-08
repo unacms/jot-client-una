@@ -286,6 +286,7 @@
                 toggleBlockGroupsPanel: (oItem) => _oMenu.toggleBlockGroupsPanel(oItem),
                 toggleBlockInfoPanel: (oItem) => _oMenu.toggleBlockInfoPanel(oItem),
                 isHistoryColActive: () => $(historyColumn).is(':visible'),
+                isMenuColActive: () => $(menuColumn).is(':visible'),
                 onResize:() => {
                     const sMode = _oMenu.sMode;
 

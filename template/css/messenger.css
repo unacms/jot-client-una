@@ -24,12 +24,19 @@
 	overflow: hidden;
 	position: relative;
 	padding: 0;
+	height: 100%;
+	min-height: 100%;
 }
 
 .bx-main {
   height:100vh;
   display:flex;
   flex-direction:column;
+  min-height: 100%;
+}
+
+.bx-media-phone body{
+	min-height: auto;
 }
 
 .bx-main  > div{
@@ -202,4 +209,8 @@ div.bx-messenger-border.search .star a.active
 	min-width: 1rem;
 	text-align: center;
 	justify-content: center;
+}
+
+.bx-messenger-menu-block .bx-menu-ver li span {
+	display: flex;
 }

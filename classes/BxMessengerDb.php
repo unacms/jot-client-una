@@ -2683,6 +2683,10 @@ class BxMessengerDb extends BxBaseModGeneralDb
     function deleteAuthorEntries($iAuthorId){
         return false;
     }
+
+    public function pruningByDate($iDate) {
+        return 0;
+    }
 }
 
 /** @} */

@@ -214,3 +214,31 @@ div.bx-messenger-border.search .star a.active
 .bx-messenger-menu-block .bx-menu-ver li span {
 	display: flex;
 }
+
+/* decorous, lucid templates corrections to make page adoptive - begin */
+
+.bx-decorous.bx-page-messenger #bx-content-wrapper #bx-content-container,
+.bx-lucid.bx-page-messenger #bx-content-wrapper #bx-content-container{
+	position: absolute;
+	width: 100%;
+}
+
+.bx-decorous.bx-page-messenger .cd-main-content-wrp,
+.bx-lucid.bx-page-messenger .cd-main-content-wrp {
+	flex: 1 1 auto;
+	height:100%;
+}
+
+.bx-lucid.bx-page-messenger .content-wrapper-wrp .content-wrapper {
+	min-height: 100%;
+}
+
+.bx-decorous.bx-page-messenger .cd-main-content,
+.bx-lucid.bx-page-messenger .cd-main-content,
+.bx-decorous.bx-page-messenger .content-wrapper-wrp,
+.bx-lucid.bx-page-messenger .content-wrapper-wrp,
+.bx-decorous.bx-page-messenger .content-wrapper-wrp .content-wrapper {
+	height: 100%;
+}
+
+/* decorous, lucid templates corrections to make page adoptive - end */

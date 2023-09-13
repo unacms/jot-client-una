@@ -15,3 +15,7 @@
 .bx-messenger-block-history-panel {
     @apply overflow-hidden;
 }
+
+.bx-messenger-block-messenger.bx-messenger-columns {
+    @apply divide-x-0;
+}

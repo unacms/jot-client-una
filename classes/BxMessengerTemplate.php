@@ -1087,7 +1087,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 $bThumb = stripos($sThumb, 'no-picture') === FALSE;
 
                 $sReactions = $this->getJotReactions($iJot);
-				$aVars['bx_repeat:jots'][] = array(
+				$aVars['bx_repeat:jots'][] = [
                     'new' => (int)($iFirstUnreadJot && $iJot >= $iFirstUnreadJot),
                     'immediately' => +$this->_oConfig->CNF['REMOVE_MESSAGE_IMMEDIATELY'],
                     'bx_if:show_author' => array(
@@ -1118,9 +1118,9 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                     ),
                     'bx_if:time-separator' => array(
                         'condition' => $bShowDateSeparator,
-                        'content' => array(
+                        'content' => [
                             'date' => $this-> getDateSeparator($aJot[$CNF['FIELD_MESSAGE_ADDED']]),
-                        )
+                        ]
                     ),
                     'bx_if:new' => array(
                         'condition' => $iPrevAuthor !== $oProfile->id(),
@@ -1179,7 +1179,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                     'view_in_chat' => in_array($sArea, $CNF['VIEW-IN-TALKS']) ?
                                         $this->parseHtmlByName('view-in-chat.html', array('lot' => $iLotId, 'jot' => $iJot)) : "",
                     'message_class' => !$sMessage ? 'hidden' : '',
-                );
+                ];
 
                 if ($bMarkAsRead)
                     $this->_oDb->readMessage($aJot[$CNF['FIELD_MESSAGE_ID']], $iProfileId);
@@ -1191,9 +1191,8 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         if ($bMarkAsRead)
             $this->_oDb->markNotificationAsRead($iProfileId, $iLotId);
 
-		return array(
-		                'content' => $this -> parseHtmlByName('jots.html',  $aVars),
-                        'first_jot' => $sLoad == 'prev' ? $aJots[count($aJots) - 1] : $aJots[0]);
+		return ['content' => $this -> parseHtmlByName('jots.html',  $aVars),
+                'first_jot' => $sLoad == 'prev' ? $aJots[count($aJots) - 1] : $aJots[0]];
 	}
 
 	function getDateSeparator($iDate){

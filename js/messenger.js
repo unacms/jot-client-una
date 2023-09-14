@@ -2864,7 +2864,7 @@
 								if (!html.length)
 									return ;
 
-							    const oContent = $(html).initJotIcons(),
+							    const oContent = $(html).initJotIcons().initAccordion().bxProcessHtml(),
 									  aContent = [];
 
 							    oContent
@@ -2883,14 +2883,13 @@
 												.fadeIn();
 
 											aContent.push($(this));
-										});
+										})
+									.end();
 
 							if(aContent.length) {
 								$(oList)
-									.append(aContent)
-									.waitForImages(() => _this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'fast', $(conversationBody).last()))
-									.initAccordion()
-									.bxProcessHtml();
+									.append(oContent)
+									.waitForImages(() => _this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'fast', $(conversationBody).last()));
 
 
 								if ((_this.isBlockVersion() || (oMUtils.isMobile() && _oMessenger.oMenu.isHistoryColActive())) && !bSilentMode)  /* play sound for jots only on mobile devices when chat area is active */
@@ -2908,19 +2907,20 @@
 						case 'prev':
 							oList
 								.prepend($(html)
-									.initAccordion()
-									.bxProcessHtml()
-									.filter(jotMain)
-									.each(function(){
-										$(`${jotMessageView} img`, this)
+											.initAccordion()
+											.bxProcessHtml()
+											.filter(jotMain)
 											.each(function(){
-												if ($(`${jotMain} ${jotMessageView} img[data-viewer-id="${$(this).data('viewer-id')}"]`).length)
-													$(this).remove();
+												$(`${jotMessageView} img`, this)
+													.each(function(){
+														if ($(`${jotMain} ${jotMessageView} img[data-viewer-id="${$(this).data('viewer-id')}"]`).length)
+															$(this).remove();
+													})
+													.end()
+													.closest(jotMessageView)
+													.fadeIn();
 											})
-											.end()
-											.closest(jotMessageView)
-											.fadeIn();
-									}))
+											.end())
 								.waitForImages(() => {
 									_this.updateScrollPosition('top', 'fast', oObjects.first());
 								});

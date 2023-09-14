@@ -3456,11 +3456,14 @@
 		});
 
 		$(window).resize();
-
 		_this.setPositionOnSelectedJot(fCallback);
 
 		$(talksList).initLazyLoading((oObject, bFlag) => _this.loadTalksList(oObject, bFlag));
+
 		_this.updatePageIcon();
+
+		// this module class is missed when you open messenger page using not direct menu link.
+		$('body').addClass("bx-page-messenger");
 	};
 
 	oMessenger.prototype.initGiphy = function(sSelector = '') {

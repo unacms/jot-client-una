@@ -2889,6 +2889,7 @@
 								$(oList)
 									.append(aContent)
 									.waitForImages(() => _this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'fast', $(conversationBody).last()))
+									.initAccordion()
 									.bxProcessHtml();
 
 

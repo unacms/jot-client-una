@@ -78,6 +78,7 @@
     transition-all duration-150 transform-gpu;
 }
 
+.bx-messenger-block-messenger .bx-messenger-block-history-panel .bx-messenger-post-box-send-button > button span,
 .bx-messenger-block-history-panel.col-span-6 .bx-messenger-post-box-send-button > button span {
     @apply hidden;
 }

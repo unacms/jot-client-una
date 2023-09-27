@@ -256,16 +256,15 @@ class BxMessengerModule extends BxBaseModGeneralModule
     }
 
     public function serviceGetMainMessengerPage(){
+        if(bx_is_api())
+            return [bx_api_get_block('messenger_main_page', [])];
+
         $aData = [
             'menu' => $this->_oTemplate->getLeftMainMenu($this->_iProfileId),
             'info' => $this->_oTemplate->getInfoSection($this->_iProfileId),
             'list' => $this->serviceGetBlockInbox(),
                    'history' => $this->serviceGetBlockLot()
         ];
-
-        if(bx_is_api())
-            return [bx_api_get_block('messenger_main_page', $aData)];
-	
 
         return $this->_oTemplate->parseHtmlByName('main.html', $aData);
     }

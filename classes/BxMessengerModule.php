@@ -1443,26 +1443,31 @@ class BxMessengerModule extends BxBaseModGeneralModule
     {
         $iJotId = bx_get('jot');
         $bCompletely = (int)bx_get('completely');
-        $aJotInfo = $this->_oDb->getJotById($iJotId);
+        $aReturn = $this->serviceDeleteJot($iJotId, $bCompletely);
+        echoJson($aReturn);
+    }
 
+    public function serviceDeleteJot($iJotId, $bCompletely = false)
+    {
         $aResult = array('code' => 1);
-        $CNF = &$this->_oConfig->CNF;
+        $aJotInfo = $this->_oDb->getJotById($iJotId);
         if (empty($aJotInfo))
-            return echoJson($aResult);
+            return $aResult;
 
+        $CNF = &$this->_oConfig->CNF;
         $bIsAllowedToDelete = $this->_oDb->isAllowedToDeleteJot($iJotId, $this->_iProfileId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
         if (!$bIsAllowedToDelete)
-            return echoJson($aResult);
+            return $aResult;
 
         $bIsLotAuthor = $this->_oDb->isAuthor($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iProfileId);
         $bDelete = $bCompletely || $CNF['REMOVE_MESSAGE_IMMEDIATELY'];
-        if ($this->_oDb->deleteJot($iJotId, $this->_iUserId, $bDelete)){
+        if ($this->_oDb->deleteJot($iJotId, $this->_iProfileId, $bDelete)){
             if ($bDelete)
                 $this->onDeleteJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iJotId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
             $aResult = array('code' => 0, 'html' => !$bCompletely ? $this->_oTemplate->getMessageIcons($iJotId, 'delete', $bIsLotAuthor || isAdmin()) : '');
         }
 
-        echoJson($aResult);
+        return $aResult;
     }
 
     /**

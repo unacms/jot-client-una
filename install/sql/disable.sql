@@ -42,3 +42,6 @@ DELETE FROM `sys_form_display_inputs` WHERE `display_name` = 'bx_messenger_send'
 
 ----- NEO REACTION
 DELETE FROM `sys_objects_vote` WHERE `Name` = 'bx_messenger_jot';
+
+--- NEO UPLODAERS
+DELETE FROM `sys_objects_uploader` WHERE `object` = 'bx_messenger_html5';

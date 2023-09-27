@@ -335,6 +335,9 @@ INSERT INTO `sys_form_display_inputs` (`display_name`, `input_name`, `visible_fo
 ('bx_messenger_send', 'send', 2147483647, 1, 1);
 
 ---- NEO REACTIONS
+INSERT INTO `sys_objects_vote` (`Name`, `Module`, `TableMain`, `TableTrack`, `PostTimeout`, `MinValue`, `MaxValue`, `Pruning`, `IsUndo`, `IsOn`, `TriggerTable`, `TriggerFieldId`, `TriggerFieldAuthor`, `TriggerFieldRate`, `TriggerFieldRateCount`, `ClassName`, `ClassFile`) VALUES
+('bx_messenger_jot', @sName, 'bx_messenger_jot_reactions', 'bx_messenger_jot_reactions', 604800, 1, 1, 31536000, 1, 1, 'bx_messenger_jots', 'id', 'user_id', 'rrate', 'rvotes', 'BxMessengerJotReactions', 'modules/boonex/messenger/classes/BxMessengerJotReactions.php');
 
-INSERT INTO `sys_objects_vote` (`Name`, `TableMain`, `TableTrack`, `PostTimeout`, `MinValue`, `MaxValue`, `Pruning`, `IsUndo`, `IsOn`, `TriggerTable`, `TriggerFieldId`, `TriggerFieldAuthor`, `TriggerFieldRate`, `TriggerFieldRateCount`, `ClassName`, `ClassFile`) VALUES
-('bx_messenger_jot', 'bx_messenger_jot_reactions', 'bx_messenger_jot_reactions', 604800, 1, 1, 31536000, 1, 1, 'bx_messenger_jots', 'id', 'user_id', 'rrate', 'rvotes', 'BxMessengerJotReactions', 'modules/boonex/messenger/classes/BxMessengerJotReactions.php');
+--- UPLOADERS
+INSERT INTO `sys_objects_uploader` (`object`, `active`, `override_class_name`, `override_class_file`) VALUES
+('bx_messenger_html5', 1, 'BxTemplCmtsUploaderHTML5', '');

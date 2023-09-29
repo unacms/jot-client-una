@@ -3658,15 +3658,16 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
     public function serviceGetSafeServices()
     {
-        return array (
+        return [
             'GetConvosList' => '',
             'GetConvoMessages' => '',
             'GetSendForm' => '',
             'RemoveConvo' => '',
             'SubmitMessage' => '',
             'GetMessengerMenu' => '',
-            'serviceGetConvoItem' => ''
-        );
+            'GetConvoItem' => '',
+            'GetBlockContactsMessenger' => ''
+        ];
     }
 
     public function serviceGetConvoItem($sParams)
@@ -3733,6 +3734,45 @@ class BxMessengerModule extends BxBaseModGeneralModule
             }
         }
         
+        return $aResult;
+    }
+
+    public function serviceGetConvoMessage($sParams){
+        $aOptions = json_decode($sParams, true);
+
+        $CNF = &$this->_oConfig->CNF;
+        $iJotId = $aOptions['id'];
+        $aJotInfo = $this->_oDb->getJotById($iJotId);
+        $aResult = [];
+        if (empty($aJotInfo) || !$this->isAvailable($aJotInfo[$CNF['FIELD_MESSAGE_FK']]))
+            return $aResult;
+
+
+        $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_JOT_MENU']);
+        $oStorage = new BxMessengerStorage($CNF['OBJECT_STORAGE']);
+        $oImagesTranscoder = BxDolTranscoderImage::getObjectInstance($CNF['OBJECT_IMAGES_TRANSCODER_PREVIEW']);
+
+        $aReactions = $this->_oDb->getJotReactions($iJotId);
+        $aFiles = [];
+        if ($mixedFiles = $this->_oDb->getJotFiles($iJotId))
+            foreach($mixedFiles as &$aFile) {
+                if ($oStorage->isImageFile($aFile[$CNF['FIELD_ST_TYPE']]))
+                    $aFiles[] = ['src' => $oImagesTranscoder->getFileUrl((int)$aFile[$CNF['FIELD_ST_ID']]), 'name' => $aFile[$CNF['FIELD_ST_NAME']]];
+            }
+
+        $aResult[] = array_merge($aJotInfo, [
+            'author_data' => BxDolProfile::getInstance()->getData($aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]),
+            $CNF['FIELD_MESSAGE'] => strip_tags($aJotInfo[$CNF['FIELD_MESSAGE']]),
+            'reactions' => array_map(function($aItem) use ($CNF){
+                return ['name' => $this->_oConfig->convertApp2Emoji($aItem[$CNF['FIELD_REACT_EMOJI_ID']]),
+                    'user_id' => BxDolProfile::getInstance()->getData($aItem[$CNF['FIELD_REACT_PROFILE_ID']]),
+                    'count' => 1];
+            }, $aReactions),
+            'menu' => $oMenu->getMenuItems(),
+            'files' => $aFiles
+        ]);
+
+
         return $aResult;
     }
 
@@ -3846,6 +3886,14 @@ class BxMessengerModule extends BxBaseModGeneralModule
             'unread_jots' => $iUnreadJotsNumber,
             'last_unread_jot' => $iLastUnreadJotId
         ];
+    }
+
+    function serviceGetBlockContactsMessenger($sParams = ''){
+        if (!$this->isLogged())
+            return ['code' => 1, 'msg' => _t('_bx_messenger_not_logged')];
+
+        $aOptions = json_decode($sParams, true);
+        return [ $this->_oTemplate->getContacts($this->_iProfileId, $aOptions) ];
     }
 
     public function serviceGetSendForm($sParams = ''){

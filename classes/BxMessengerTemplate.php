@@ -2629,6 +2629,62 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             'replies' => $iReplies
         )) : '';
     }
+
+    function getContacts($iProfileId){
+        $aLotsList = $this->_oDb->getMyLots($iProfileId, ['type' => BX_IM_TYPE_PRIVATE]);
+        if (empty($aLotsList))
+            return [];
+
+        $CNF = &$this->_oConfig->CNF;
+        $aVars = $aResult = $aContacts = [];
+        foreach($aLotsList as &$aItem){
+            $aList = explode(',', $aItem[$CNF['FIELD_PARTICIPANTS']]);
+            if (!empty($aList)) {
+                foreach ($aList as &$iPart) {
+                    if ($iPart === $iProfileId || array_key_exists($iPart, $aContacts))
+                        continue;
+
+                    $aContacts[$iPart] = BxDolProfile::getInstance($iPart)->isOnline();
+                }
+            }
+
+            if (count($aContacts) >= $CNF['PARAM_CONTACTS_NUM_BY_DEFAULT'])
+                break;
+        }
+
+        foreach($aContacts as $iProfileId => $iStatus) {
+            $oProfile = BxDolProfile::getInstance($iProfileId);
+            if (bx_is_api())
+                $aResult[] = $oProfile->getData($iProfileId);
+            else
+            {
+                $sThumb = $oProfile->getThumb();
+                $bThumb = stripos($sThumb, 'no-picture') === FALSE;
+                $sTitle = $oProfile->getDisplayName();
+                $aVars['bx_repeat:contacts'][] = [
+                    'status' => $this->getOnlineStatus($iProfileId, $iStatus),
+                    'url' => $oProfile->getUrl(),
+                    'displyname' => $oProfile->getDisplayName(),
+                    'bx_if:avatars' => [
+                        'condition' => $bThumb,
+                        'content' => [
+                            'title' => $sTitle,
+                            'thumb' => $sThumb,
+                        ]
+                    ],
+                    'bx_if:letters' => [
+                        'condition' => !$bThumb,
+                        'content' => [
+                            'color' => implode(', ', BxDolTemplate::getColorCode($iProfileId, 1.0)),
+                            'letter' => mb_substr($sTitle, 0, 1)
+                        ]
+                    ],
+                ];
+            }
+        }
+
+        return bx_is_api() ? ['profiles' => $aResult] : $this->parseHtmlByName('contacts-block.html', $aVars);
+    }
 }
 
 /** @} */

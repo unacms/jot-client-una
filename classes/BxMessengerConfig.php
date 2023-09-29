@@ -191,6 +191,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'STAR_ICON' => 'star',
             'BELL_ICON_OFF' => 'bell-slash',
             'PARAM_FRIENDS_NUM_BY_DEFAULT' => 10,
+            'PARAM_CONTACTS_NUM_BY_DEFAULT' => 15,
             'PARAM_NTFS_INTERVAL' => 1, /* INTERVAL IN HOURS*/
             'PARAM_MESSAGES_INTERVAL' => 1, /* INTERVAL IN MINUTE*/
             'PARAM_SEARCH_DEFAULT_USERS' => (int)getParam($aModule['db_prefix'] . 'max_drop_down_select'),

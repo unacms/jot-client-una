@@ -86,6 +86,10 @@ INSERT INTO `sys_pages_blocks` (`object`, `cell_id`, `module`, `title`, `designb
 INSERT INTO `sys_pages_blocks` (`object`, `cell_id`, `module`, `title`, `designbox_id`, `tabs`, `visible_for_levels`, `type`, `content`, `deletable`, `copyable`, `order`, `active`) VALUES
 ('', 0, @sName, '_bx_messenger_page_block_title_messenger', 11, 1, 2147483647, 'service', 'a:3:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:19:"get_block_messenger";s:6:"params";a:1:{i:0;s:6:"{type}";}}', 1, 1, 0, 0);
 
+-- PAGE: service my contacts block
+INSERT INTO `sys_pages_blocks` (`object`, `cell_id`, `module`, `title`, `designbox_id`, `tabs`, `visible_for_levels`, `type`, `content`, `deletable`, `copyable`, `order`, `active`) VALUES
+('', 0, @sName, '_bx_messenger_page_block_contacts_title', 11, 1, 2147483647, 'service', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:28:"get_block_contacts_messenger";}}', 1, 1, 0, 0);
+
 -- PAGES: add page block on home
 SET @iPBCellHome = 1;
 SET @iPBOrderHome = (SELECT IFNULL(MAX(`order`), 0) FROM `sys_pages_blocks` WHERE `object` = 'sys_home' AND `cell_id` = @iPBCellHome ORDER BY `order` DESC LIMIT 1);
@@ -341,3 +345,4 @@ INSERT INTO `sys_objects_vote` (`Name`, `Module`, `TableMain`, `TableTrack`, `Po
 --- UPLOADERS
 INSERT INTO `sys_objects_uploader` (`object`, `active`, `override_class_name`, `override_class_file`) VALUES
 ('bx_messenger_html5', 1, 'BxTemplCmtsUploaderHTML5', '');
+

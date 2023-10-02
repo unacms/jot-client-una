@@ -339,5 +339,20 @@
 	<string name="_bx_messenger_lots_menu_clear"><![CDATA[Очистить историю]]></string>
 	<string name="_bx_messenger_lots_menu_settings"><![CDATA[Настройки]]></string>
 	<string name="_bx_messenger_view_in_chat"><![CDATA[Посмотреть внутри разговора]]></string>
-	<string name="_bx_messenger_page_block_contacts_title"><![CDATA[Контакты]]></string>
+	<string 
+name="_bx_messenger_neo_app_form"><![CDATA[Форма для отправки сообщений]]></string>
+	<string name="_bx_messenger_neo_app_form"><![CDATA[Форма для отправки сообщений]]></string>
+	<string name="_bx_messenger_neo_app_form_display_send_message"><![CDATA[Отправить сообщение]]></string>
+	<string name="_bx_messenger_neo_app_form_input_submit"><![CDATA[Отправить]]></string>
+	<string name="_bx_messenger_neo_app_form_input_caption_submit"><![CDATA[Отправить]]></string>
+	<string name="_bx_messenger_neo_app_form_input_cancel"><![CDATA[Отменить]]></string>
+	<string name="_bx_messenger_neo_app_form_input_caption_cancel"><![CDATA[Отменить]]></string>
+	<string name="_sys_form_entry_input_sys_cf"><![CDATA[Token]]></string>
+	<string name="_sys_form_entry_input_cf"><![CDATA[Token]]></string>
+	<string name="_sys_uploader_html5_title"><![CDATA[Загрузчик]]></string>
+	<string name="_bx_messenger_neo_app_form_input_caption_files"><![CDATA[Файл]]></string>
+	<string name="_bx_messenger_neo_app_form_input_caption_message"><![CDATA[Сообщение]]></string>
+	<string name="_bx_messenger_neo_app_form_input_caption_parent_id"><![CDATA[ID родителя]]></string>
+	<string name="_bx_messenger_neo_app_form_input_caption_message_id"><![CDATA[ID сообщения]]></string>
+        <string name="_bx_messenger_page_block_contacts_title"><![CDATA[Контакты]]></string>
 </resources>

@@ -3888,12 +3888,14 @@ class BxMessengerModule extends BxBaseModGeneralModule
         ];
     }
 
-    function serviceGetBlockContactsMessenger($sParams = ''){
+    function serviceGetBlockContactsMessenger($mixedParams = ''){
         if (!$this->isLogged())
             return ['code' => 1, 'msg' => _t('_bx_messenger_not_logged')];
 
-        $aOptions = json_decode($sParams, true);
-        return [ $this->_oTemplate->getContacts($this->_iProfileId, $aOptions) ];
+        $aParams  = bx_is_api() ? json_decode($mixedParams, true) : $mixedParams;
+        $mixedResult = $this->_oTemplate->getContacts($this->_iProfileId, $aParams);
+
+        return bx_is_api() ? [bx_api_get_block('get_block_contacts_messenger', $mixedResult)] : $mixedResult;
     }
 
     public function serviceGetSendForm($sParams = ''){

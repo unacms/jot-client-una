@@ -2683,7 +2683,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             }
         }
 
-        return bx_is_api() ? ['profiles' => $aResult] : $this->parseHtmlByName('contacts-block.html', $aVars);
+        return bx_is_api() ? $aResult : $this->parseHtmlByName('contacts-block.html', $aVars);
     }
 }
 

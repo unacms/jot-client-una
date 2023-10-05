@@ -2258,7 +2258,7 @@
 								}
 
 								if (typeof separator !== 'undefined'){
-									$('[data-tmp="' + tmp_id + '"]', conversationBody).before(separator);
+									$('[data-tmp="' + tmp_id + '"]', conversationBody).before($(separator).bxTime());
 									_this.updateScrollPosition('bottom');
 								}
 

@@ -280,8 +280,8 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'SEARCH-CRITERIA' => array('titles', 'participants', 'content'),
             'VIEW-IN-TALKS' => array(BX_MSG_TALK_TYPE_MR, BX_MSG_TALK_TYPE_REPLIES, BX_MSG_TALK_TYPE_SAVED),
             //options
-            'DATE-SEPARATOR-FORMAT-Y' => 'M j, Y, G:i',
-            'DATE-SEPARATOR-FORMAT' => 'M j, G:i',
+            'DATE-SEPARATOR-FORMAT-Y' => 'MMM D, Y, H:mm',
+            'DATE-SEPARATOR-FORMAT' => 'MMM D, H:mm',
             'DATE-SHIFT' => 300, // time period to show date separator
             'MAX_SEND_SYMBOLS'	=> (int)getParam($aModule['db_prefix'] . 'max_symbols_number'),
             'MAX_PREV_JOTS_SYMBOLS' => (int)getParam($aModule['db_prefix'] . 'max_symbols_brief_jot'),
@@ -590,9 +590,9 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
         return $oTranscoder->getFileUrl($iIdIcon);
     }
 
-    function getTalksBriefsTime($iUnixTimestamp){
-        $sDateUTC = bx_time_utc ($iUnixTimestamp);
-        return '<time datetime="' . $sDateUTC . '" data-bx-format="y" data-bx-autoformat="' . getParam('sys_format_timeago') . '">' . $sDateUTC . '</time>';
+    function getSeparatorTime($iUnixTimestamp, $sFormat){
+        $sDateUTC = bx_time_utc($iUnixTimestamp);
+        return '<time datetime="' . $sDateUTC . '" data-bx-format="' . $sFormat . '">' . $sDateUTC . '</time>';
     }
 
     public function isValidToUpload($sFileName){

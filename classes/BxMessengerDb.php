@@ -650,7 +650,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 		$sParticipants = $this -> getOne("SELECT `{$this->CNF['FIELD_PARTICIPANTS']}` FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = :value", array('value' => $iLotId));
 		
 		if (!$sParticipants) 
-				return array();
+			return [];
 		
 		$aParticipants = explode(',', $sParticipants);
 		if ($bExcludeProfile && ($iId = array_search($bExcludeProfile, $aParticipants)) !== FALSE)
@@ -1094,7 +1094,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
         if ($iJotId) {
            $iLotId = $iLotId ? $iLotId : $this->getLotByJotId($iJotId);
            $aNewJotInfo = $this->getNewJots($iProfileId, $iLotId);
-           if (empty($aNewJotInfo) || (!empty($aNewJotInfo) && (int)$aNewJotInfo[$this->CNF['FIELD_NEW_JOT']] > (int)$iJotId))
+           if (empty($aNewJotInfo) || ((int)$aNewJotInfo[$this->CNF['FIELD_NEW_JOT']] > (int)$iJotId))
                 return false;
 
            $iCount = (int)$this->getOne("SELECT COUNT(*) FROM `{$this->CNF['TABLE_MESSAGES']}`

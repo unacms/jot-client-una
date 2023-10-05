@@ -87,7 +87,25 @@ class BxMessengerJotMenu extends BxTemplMenuCustom
         return true;
     }
 
+    public function getMenuItems ()
+    {
+        $aItems = parent::getMenuItems();
+
+        $CNF = &$this->_oModule->_oConfig->CNF;
+        $oModule = &$this->_oModule;
+        if (!empty($this->_aContentInfo))
+        $aItems[] = [
+            "name" => "time-info",
+            "class" => " px-4 pt-2 text-sm ",
+            "item" => $oModule->_oConfig->getSeparatorTime($this->_aContentInfo[$CNF['FIELD_MESSAGE_ADDED']])
+        ];
+
+        return $aItems;
+    }
+
     public function getCode(){
+
+
         return $this->_oTemplate->parseHtmlByName('popup_trans.html', [
             'id' => "jot-menu-" . genRndPwd(8, false),
             'wrapper_class' => 'bx-popup-menu',

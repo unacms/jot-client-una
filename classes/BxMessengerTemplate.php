@@ -1196,9 +1196,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	}
 
 	function getDateSeparator($iDate){
-	    $CNF = &$this->_oConfig->CNF;
-	    $sFormat = date('Y', $iDate) != date('Y') ? $CNF['DATE-SEPARATOR-FORMAT-Y'] : $CNF['DATE-SEPARATOR-FORMAT'];
-	    return $this->parseHtmlByName('date-separator.html', array('date' => $this->_oConfig->getSeparatorTime($iDate, $sFormat)));
+	    return $this->parseHtmlByName('date-separator.html', array('date' => $this->_oConfig->getSeparatorTime($iDate)));
     }
 
     /**

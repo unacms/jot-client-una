@@ -590,8 +590,9 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
         return $oTranscoder->getFileUrl($iIdIcon);
     }
 
-    function getSeparatorTime($iUnixTimestamp, $sFormat){
+    function getSeparatorTime($iUnixTimestamp){
         $sDateUTC = bx_time_utc($iUnixTimestamp);
+        $sFormat = date('Y', $iUnixTimestamp) != date('Y') ? $this->CNF['DATE-SEPARATOR-FORMAT-Y'] : $this->CNF['DATE-SEPARATOR-FORMAT'];
         return '<time datetime="' . $sDateUTC . '" data-bx-format="' . $sFormat . '">' . $sDateUTC . '</time>';
     }
 

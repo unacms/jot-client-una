@@ -363,4 +363,7 @@
 	<string name="_bx_messenger_neo_app_form_input_caption_parent_id"><![CDATA[Parent ID]]></string>
 	<string name="_bx_messenger_neo_app_form_input_caption_message_id"><![CDATA[Message ID]]></string>
 	<string name="_bx_messenger_page_block_contacts_title"><![CDATA[Contacts]]></string>
+	<string name="_bx_messenger_profile_title_snippet_meta"><![CDATA[Snippet Meta Info]]></string>
+	<string name="_bx_messenger_set_title_profile_snippet_meta"><![CDATA[Snippet Profile Meta for Contacts block]]></string>
+	<string name="_bx_messenger_item_title_sm_message"><![CDATA[Message]]></string>
 </resources>

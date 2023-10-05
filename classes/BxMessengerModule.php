@@ -3888,16 +3888,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
         ];
     }
 
-    function serviceGetBlockContactsMessenger($mixedParams = ''){
-        if (!$this->isLogged())
-            return ['code' => 1, 'msg' => _t('_bx_messenger_not_logged')];
-
-        $aParams  = bx_is_api() ? json_decode($mixedParams, true) : $mixedParams;
-        $mixedResult = $this->_oTemplate->getContacts($this->_iProfileId, $aParams);
-
-        return bx_is_api() ? [bx_api_get_block('get_block_contacts_messenger', $mixedResult)] : $mixedResult;
-    }
-
     public function serviceGetSendForm($sParams = ''){
         if (!$this->isLogged())
             return ['code' => 1, 'msg' => _t('_bx_messenger_not_logged')];
@@ -3930,6 +3920,79 @@ class BxMessengerModule extends BxBaseModGeneralModule
     public function checkAllowedEditAnyEntryForProfile ($isPerformAction = false, $iProfileId = false){
         return true;
     }
+
+    public function unitAPI($iProfileId, $aParams = [])
+    {
+        $CNF = &$this->_oConfig->CNF;
+
+        $oProfile = BxDolProfile::getInstance($iProfileId);
+        if(!$oProfile)
+            return '';
+
+        $sModule = $oProfile->getModule();
+        $iContentId = $oProfile->getContentId();
+        $oModule = BxDolModule::getInstance($sModule);
+
+        $aData = $oModule->_oDb->getContentInfoById($iContentId);
+        $oPCNF = &$oModule->_oConfig->CNF;
+
+        // get profile's url
+        $sUrl = bx_absolute_url(BxDolPermalinks::getInstance()->permalink('page.php?i=' . $oPCNF['URI_VIEW_ENTRY'] . '&id=' . $iContentId));
+
+        $aResult = [
+            'id' => $iContentId,
+            'module' => $sModule,
+            'added' => $aData[$oPCNF['FIELD_ADDED']],
+            'title' => $aData[$oPCNF['FIELD_TITLE']],
+            'url' => bx_api_get_relative_url($sUrl),
+            'image' => bx_api_get_image($oPCNF['OBJECT_STORAGE'], $aData[$oPCNF['FIELD_PICTURE']]),
+            'cover' => bx_api_get_image($oPCNF['OBJECT_STORAGE'], $aData[$oPCNF['FIELD_COVER']])
+        ];
+
+        $oPrivacy = BxDolPrivacy::getObjectInstance($oPCNF['OBJECT_PRIVACY_VIEW']);
+        $bPrivacy = $oPrivacy !== false;
+
+        $sKey = 'OBJECT_MENU_SNIPPET_META';
+        if(!empty($CNF[$sKey]) && ($oMetaMenu = BxDolMenu::getObjectInstance($CNF[$sKey], $oModule->_oTemplate)) !== false) {
+            $bPublic = !$bPrivacy || $oPrivacy->check($iContentId) || $oPrivacy->isPartiallyVisible($aData[$CNF['FIELD_ALLOW_VIEW_TO']]);
+
+            $oMetaMenu->setContentModule($sModule);
+            $oMetaMenu->setContentId($iContentId);
+            $oMetaMenu->setContentPublic($bPublic);
+
+            $aResult['meta'] = $oMetaMenu->getCodeAPI();
+        }
+
+        return $aResult;
+    }
+
+    function serviceGetBlockContactsMessenger($mixedParams = []){
+        $bIsApi = bx_is_api();
+        $aParams  = $bIsApi ? bx_api_get_browse_params($mixedParams, true) : $mixedParams;
+        if($bIsApi) {
+            $aProfiles = !defined('BX_API_PAGE') ? $this->_oTemplate->getContacts($this->_iProfileId, $aParams) : [];
+
+            $aResultProfiles = [];
+            foreach($aProfiles as &$aProfile)
+                $aResultProfiles[] = $this->unitAPI($aProfile['id']);
+
+            $aData = array_merge(
+                ['data' => $aResultProfiles],
+                ['params' => [
+                    'start' => isset($aParams['start']) ? $aParams['start'] : 0,
+                    'per_page' => isset($aParams['per_page']) ? $aParams['per_page'] : 0 ]
+                ],
+                ['module' => $this->_oConfig->getName(),
+                 'unit' => 'mixed',
+                 'request_url' => '/api.php?r=' . $this->_oConfig->getName() . '/get_block_contacts_messenger/&params[]='
+                ]);
+
+            return [bx_api_get_block('browse', $aData)];
+        }
+
+        return $this->_oTemplate->getContacts($this->_iProfileId, $aParams);
+    }
+
 }
 
 /** @} */

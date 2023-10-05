@@ -2630,7 +2630,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         )) : '';
     }
 
-    function getContacts($iProfileId){
+    function getContacts($iProfileId, $aParams = []){
         $aLotsList = $this->_oDb->getMyLots($iProfileId, ['type' => BX_IM_TYPE_PRIVATE]);
         if (empty($aLotsList))
             return [];

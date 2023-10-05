@@ -346,3 +346,13 @@ INSERT INTO `sys_objects_vote` (`Name`, `Module`, `TableMain`, `TableTrack`, `Po
 INSERT INTO `sys_objects_uploader` (`object`, `active`, `override_class_name`, `override_class_file`) VALUES
 ('bx_messenger_html5', 1, 'BxTemplCmtsUploaderHTML5', '');
 
+-- MENU: custom menu for snippet meta info
+INSERT INTO `sys_objects_menu`(`object`, `title`, `set_name`, `module`, `template_id`, `deletable`, `active`, `override_class_name`, `override_class_file`) VALUES
+('bx_messenger_profile_snippet_meta', '_bx_messenger_profile_title_snippet_meta', 'bx_messenger_profile_snippet_meta', @sName, 15, 0, 1, 'BxMessengerProfileMenuSnippetMeta', 'modules/boonex/messenger/classes/BxMessengerProfileMenuSnippetMeta.php');
+
+INSERT INTO `sys_menu_sets`(`set_name`, `module`, `title`, `deletable`) VALUES
+('bx_messenger_profile_snippet_meta', @sName, '_bx_messenger_set_title_profile_snippet_meta', 0);
+
+INSERT INTO `sys_menu_items`(`set_name`, `module`, `name`, `title_system`, `title`, `link`, `onclick`, `target`, `icon`, `submenu_object`, `visible_for_levels`, `active`, `copyable`, `editable`, `order`) VALUES
+('bx_messenger_profile_snippet_meta', @sName, 'message', '_bx_messenger_item_title_sm_message', '_bx_messenger_item_title_sm_message', 'page.php?i=messenger', '', '', 'comments', '', 2147483647, 0, 0, 1, 1);
+

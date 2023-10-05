@@ -253,6 +253,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
                                                     'mp4_hd' => 'bx_messenger_videos_mp4_hd',
                                                     'webm' => 'bx_messenger_videos_webm',
                                                 ),
+            'OBJECT_MENU_SNIPPET_META' => 'bx_messenger_profile_snippet_meta',
             'OBJECT_VIEWS' => 'bx_messenger_lots',
             'OBJECT_FORM_ENTRY' => 'bx_messenger_lots',
             'OBJECT_FORM_ENTRY_DISPLAY_VIEW' => 'bx_messenger_lots',
@@ -650,6 +651,10 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
            return $sName;
 
         return $this->CNF['EMOJI_APPS'][$sKey];
+    }
+
+    public function getConnectionToFunctionCheck(){
+        return true;
     }
 }
 

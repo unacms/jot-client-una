@@ -103,6 +103,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
 {
     private $_iUserId = 0;
     private $_iJotId = 0;
+    private $_iSelectedProfileId = 0;
+    private $_iLotBySelectedProfileId = 0;
     private $_isBlockMessenger = false;
     private $_sWelcomeMessage = '';
 
@@ -117,31 +119,13 @@ class BxMessengerModule extends BxBaseModGeneralModule
      */
     public function serviceGetBlockInbox()
     {
-        $iProfileId = (int)bx_get('profile_id');
-        if (!($iProfileId && $iProfileId != (int)$this->_iProfileId && $this->onCheckContact($this->_iProfileId, $iProfileId)))
-            $iProfileId = 0;
+		$mixedContent = $this->_oTemplate->getLotsList($this->_iProfileId, $this->_iLotBySelectedProfileId);
+        if (bx_is_api())
+            return $mixedContent;
 
-        $iLotId = BX_IM_EMPTY;
-        if (!$iProfileId) {
-            if ($this->_iJotId)
-                $iLotId = $this->_oDb->getLotByJotId($this->_iJotId);
-                /*if ($iLotId && !$this->_oDb->isParticipant($iLotId, $this->_iProfileId)) {
-                    $this->_iJotId = BX_IM_EMPTY;
-                    $iLotId = BX_IM_EMPTY;
-                }*/
-            else
-            {
-                $aLotsList = $this->_oDb->getMyLots($this->_iProfileId, ['inbox' => true]);
-                $iLotId = !empty($aLotsList) ? current($aLotsList)[$this->_oConfig->CNF['FIELD_ID']] : 0;
-            }
-        }
-
-        $sConfig = $this->_oTemplate->loadConfig($this->_iProfileId, ['is_block_version' => false, 'lot' => $iLotId,
-                                                                      'jot'=> $this->_iJotId, 'selected_profile' => $iProfileId,
-                                                                      'welcome' => $this->_sWelcomeMessage]);
-
-		$mixedContent = $this->_oTemplate->getLotsList($this->_iProfileId, $iLotId, $iProfileId);
-		return bx_is_api() ? $mixedContent : $mixedContent . $sConfig;
+		return $mixedContent . $this->_oTemplate->loadConfig($this->_iProfileId, ['is_block_version' => false, 'lot' => $this->_iLotBySelectedProfileId,
+                'jot'=> $this->_iJotId, 'selected_profile' => $this->_iSelectedProfileId,
+                'welcome' => $this->_sWelcomeMessage]);
     }
     /**
      * Returns right side block for messenger page
@@ -149,31 +133,10 @@ class BxMessengerModule extends BxBaseModGeneralModule
     public function serviceGetBlockLot()
     {
         $CNF = &$this->_oConfig->CNF;
-        if ($iViewedProfileId = (int)bx_get('profile_id')) {
-            $oProfile = BxDolProfile::getInstance($iViewedProfileId);
-            $sModule = $oProfile->getModule();
-            $bIsProfile = BxDolRequest::serviceExists($sModule, 'act_as_profile') && BxDolService::call($sModule, 'act_as_profile');
-            if (BxDolRequest::serviceExists($sModule, 'is_group_profile') && BxDolService::call($sModule, 'is_group_profile') && !$bIsProfile) {
-                $aOwnerInfo = BxDolService::call($sModule, 'get_info', array($oProfile->getContentId(), false));
-                if(!empty($aOwnerInfo) && is_array($aOwnerInfo) && BxDolService::call($sModule, 'check_allowed_view_for_profile', array($aOwnerInfo)) === CHECK_ACTION_RESULT_ALLOWED) {
-                    $oModule = BxDolModule::getInstance($sModule);
-                    if ($oModule->_oConfig) {
-                        $oMCNF = $oModule->_oConfig->CNF;
-                        $sUrl = "i={$oMCNF['URI_VIEW_ENTRY']}&id=" . $oProfile->getContentId();
-                        if ($sUrl && $aTalk = $this->_oDb->getLotByUrl($sUrl))
-                            return $this->_oTemplate->getTalkBlock($this->_iProfileId, $aTalk[$CNF['FIELD_ID']]);
-                    }
-                }
-            }
-            else
-            {
-                $aExistedTalk = $this->_oDb->getLotsByParticipantsList(array($iViewedProfileId, $this->_iProfileId), BX_IM_TYPE_PRIVATE);
-                if (!empty($aExistedTalk))
-                    return $this->_oTemplate->getTalkBlock($this->_iProfileId, $aExistedTalk[$CNF['FIELD_ID']]);
-                else if ($this->onCheckContact($this->_iProfileId, $iViewedProfileId))
-                    return $this->_oTemplate->getTalkBlockByUserName($this->_iProfileId, $iViewedProfileId);
-            }
-        }
+        if ($this->_iLotBySelectedProfileId){
+            return $this->_oTemplate->getTalkBlock($this->_iProfileId, $this->_iLotBySelectedProfileId);
+        } else if ($this->_iSelectedProfileId && $this->onCheckContact($this->_iProfileId, $this->_iSelectedProfileId))
+            return $this->_oTemplate->getTalkBlockByUserName($this->_iProfileId, $this->_iSelectedProfileId);
 
         if ($this->_iJotId && ($iLotId = $this->_oDb->getLotByJotId($this->_iJotId)))
             return $this->_oTemplate->getTalkBlock($this->_iProfileId, $iLotId, $this->_iJotId);
@@ -255,15 +218,58 @@ class BxMessengerModule extends BxBaseModGeneralModule
         );
     }
 
+    private function initDefaultParams() {
+        $CNF = &$this->_oConfig->CNF;
+
+        $this->_iSelectedProfileId = (int)bx_get('profile_id');
+        if (!$this->onCheckContact($this->_iProfileId, $this->_iSelectedProfileId))
+            $this->_iSelectedProfileId = 0;
+
+        if ($this->_iSelectedProfileId) {
+            $oProfile = BxDolProfile::getInstance($this->_iSelectedProfileId);
+            $sModule = $oProfile->getModule();
+            $bIsProfile = BxDolRequest::serviceExists($sModule, 'act_as_profile') && BxDolService::call($sModule, 'act_as_profile');
+            if ($sModule && !$bIsProfile && BxDolRequest::serviceExists($sModule, 'is_group_profile') && BxDolService::call($sModule, 'is_group_profile')) {
+                $aOwnerInfo = BxDolService::call($sModule, 'get_info', array($oProfile->getContentId(), false));
+                if(!empty($aOwnerInfo) && is_array($aOwnerInfo) && BxDolService::call($sModule, 'check_allowed_view_for_profile', array($aOwnerInfo)) === CHECK_ACTION_RESULT_ALLOWED) {
+                    $oModule = BxDolModule::getInstance($sModule);
+                    if ($oModule->_oConfig) {
+                        $oMCNF = $oModule->_oConfig->CNF;
+                        $sUrl = "i={$oMCNF['URI_VIEW_ENTRY']}&id=" . $oProfile->getContentId();
+                        if ($sUrl && $aTalk = $this->_oDb->getLotByUrl($sUrl))
+                            $this->_iLotBySelectedProfileId = $aTalk[$CNF['FIELD_ID']];
+                    }
+                }
+            }
+            else
+            {
+                $aExistedTalk = $this->_oDb->getLotsByParticipantsList([$this->_iSelectedProfileId, $this->_iProfileId], BX_IM_TYPE_PRIVATE);
+                if (!empty($aExistedTalk))
+                    $this->_iLotBySelectedProfileId = $aExistedTalk[$CNF['FIELD_ID']];
+            }
+        }
+
+        if (!$this->_iLotBySelectedProfileId){
+            if ($this->_iJotId)
+                $this->_iLotBySelectedProfileId = $this->_oDb->getLotByJotId($this->_iJotId);
+            else
+            {
+                $aLotsList = $this->_oDb->getMyLots($this->_iProfileId, ['inbox' => true, 'lot' => $this->_iLotBySelectedProfileId]);
+                $this->_iLotBySelectedProfileId = !empty($aLotsList) ? current($aLotsList)[$CNF['FIELD_ID']] : 0;
+            }
+        }
+    }
+
     public function serviceGetMainMessengerPage(){
         if(bx_is_api())
             return [bx_api_get_block('messenger_main_page', [])];
 
+        $this->initDefaultParams();
         $aData = [
             'menu' => $this->_oTemplate->getLeftMainMenu($this->_iProfileId),
             'info' => $this->_oTemplate->getInfoSection($this->_iProfileId),
             'list' => $this->serviceGetBlockInbox(),
-                   'history' => $this->serviceGetBlockLot()
+            'history' => $this->serviceGetBlockLot()
         ];
 
         return $this->_oTemplate->parseHtmlByName('main.html', $aData);
@@ -1062,43 +1068,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         echoJson($aResult);
     }
-
-    /**
-     * Occurs when member wants to create new conversation(lot)
-     * @return array with json
-     */
-    /*public function actionCreateLot(){
-        if (!$this->isLogged())
-            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
-
-        $mixedResult = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_TALKS, $this->_iProfileId);
-        if ($mixedResult !== true)
-            return echoJson(array('code' => 1, 'msg' => $mixedResult));
-
-        $iProfileId = (int)bx_get('profile');
-        if ($iProfileId)
-        {
-            $aLotInfo = $this->_oDb->getLotsByParticipantsList(array($this->_iProfileId, $iProfileId), BX_IM_TYPE_PRIVATE);
-            $iLotId = empty($aLotInfo) ? BX_IM_EMPTY : $aLotInfo[$this -> _oConfig -> CNF['FIELD_ID']];
-            $sHeader = $this->_oTemplate->getTalkHeaderForUsername($this->_iProfileId, $iProfileId, false);
-        } else
-        {
-            $iLotId = (int)bx_get('lot');
-            if ($iLotId && !($this->_oDb->isAuthor($iLotId, $this->_iProfileId) || ($this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true)))
-                return echoJson(array('code' => 1, 'msg' => _t('_bx_messenger_lot_can_change_settings')));
-
-            $sHeader = $this->_oTemplate->getEditTalkArea($this->_iProfileId, $iLotId);
-        }
-
-        echoJson(
-            array(
-                'title' => _t('_bx_messenger_lots_menu_create_lot_title'),
-                'history' => $this->_oTemplate->getHistoryArea(['profile_id' => $this->_iProfileId, 'lot' => $iLotId]),
-                'header' => $sHeader,
-                'text_area' => $this->_oTemplate->getTextArea($this->_iProfileId, $iLotId),
-                'code' => 0
-            ));
-    }*/
 
     public function searchFriends($sTerm, $aProfilesList = array()){
         if (!$sTerm || !($aTerms = preg_split("/[\s,]+/", $sTerm)))

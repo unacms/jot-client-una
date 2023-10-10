@@ -463,7 +463,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
         if ($mixedType)
             $aWhere[] = "`{$this->CNF['FIELD_TYPE']}` = " . $mixedType;
 
-        $aLots = $this->getAll("SELECT * FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE " . implode(' AND ', $aWhere));
+        $aLots = $this->getAll("SELECT * FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE " . implode(' AND ', $aWhere) . " ORDER BY `{$this->CNF['FIELD_ID']}` ASC ");
         if (empty($aLots))
             return $aResult;
 
@@ -1164,7 +1164,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	* Get all member's lots
 	*@param int $iProfileId
 	*@param array $aParams filter params
-	*@param array $aReturn may contain special values from search function
+	*@param array $aReturn may contain special values for search function
 	*@return array list of lots
 	*/
     public function getMyLots($iProfileId, $aParams = [], &$aReturn = [])

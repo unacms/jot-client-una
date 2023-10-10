@@ -941,11 +941,11 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         if (!empty($aUnreadProfiles))
             $aResult = array_diff($aParticipants, $aUnreadProfiles);
         else
-            return '';
+            $aResult = $aParticipants;
 
         $aIcons = array();
         foreach($aResult as &$iProfileId) {
-            if ($iExcludeProfile && $iExcludeProfile == $iProfileId)
+            if ($iExcludeProfile && +$iExcludeProfile == +$iProfileId)
                 continue;
 
             if ($oProfile = BxDolProfile::getInstance($iProfileId))
@@ -1204,7 +1204,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
      *@param int $iProfileId logged member id
      *@return string html code
      */
-    public function getLotsList($iProfileId){
+    public function getLotsList($iProfileId, $iSelectedLotId = 0){
         $CNF = &$this->_oConfig->CNF;
         $aMyLots = $this->_oDb->getMyLots($iProfileId);
         $sContent = MsgBox(_t('_Empty'));

@@ -104,7 +104,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
     private $_iUserId = 0;
     private $_iJotId = 0;
     private $_iSelectedProfileId = 0;
-    private $_iLotBySelectedProfileId = 0;
+    private $_iSelectedConvoId = 0;
     private $_isBlockMessenger = false;
     private $_sWelcomeMessage = '';
 
@@ -119,36 +119,30 @@ class BxMessengerModule extends BxBaseModGeneralModule
      */
     public function serviceGetBlockInbox()
     {
-		$mixedContent = $this->_oTemplate->getLotsList($this->_iProfileId, $this->_iLotBySelectedProfileId);
+		$mixedContent = $this->_oTemplate->getLotsList($this->_iProfileId, $this->_iSelectedConvoId);
         if (bx_is_api())
             return $mixedContent;
 
-		return $mixedContent . $this->_oTemplate->loadConfig($this->_iProfileId, ['is_block_version' => false, 'lot' => $this->_iLotBySelectedProfileId,
-                'jot'=> $this->_iJotId, 'selected_profile' => $this->_iSelectedProfileId,
-                'welcome' => $this->_sWelcomeMessage]);
+		return $mixedContent . $this->_oTemplate->loadConfig($this->_iProfileId,
+                [
+                    'is_block_version' => false,
+                    'lot' => $this->_iSelectedConvoId,
+                    'jot'=> $this->_iJotId,
+                    'selected_profile' => $this->_iSelectedProfileId,
+                    'welcome' => $this->_sWelcomeMessage
+                ]);
     }
     /**
      * Returns right side block for messenger page
      */
     public function serviceGetBlockLot()
     {
-        $CNF = &$this->_oConfig->CNF;
-        if ($this->_iLotBySelectedProfileId){
-            return $this->_oTemplate->getTalkBlock($this->_iProfileId, $this->_iLotBySelectedProfileId);
+        if ($this->_iSelectedConvoId){
+            return $this->_oTemplate->getTalkBlock($this->_iProfileId, $this->_iSelectedConvoId, $this->_iJotId);
         } else if ($this->_iSelectedProfileId && $this->onCheckContact($this->_iProfileId, $this->_iSelectedProfileId))
             return $this->_oTemplate->getTalkBlockByUserName($this->_iProfileId, $this->_iSelectedProfileId);
 
-        if ($this->_iJotId && ($iLotId = $this->_oDb->getLotByJotId($this->_iJotId)))
-            return $this->_oTemplate->getTalkBlock($this->_iProfileId, $iLotId, $this->_iJotId);
-
-        $iLotId = BX_IM_EMPTY;
-        if ($aLotsList = $this->_oDb->getMyLots($this->_iProfileId, ['inbox' => true])) {
-            $aLot = current($aLotsList);
-            if (isset($aLot[$CNF['FIELD_ID']]))
-                $iLotId = $aLot[$CNF['FIELD_ID']];
-        }
-
-        return $this->_oTemplate->getTalkBlock($this->_iProfileId, $iLotId);
+        return $this->_oTemplate->getTalkBlock($this->_iProfileId, BX_IM_EMPTY);
     }
 
     /**
@@ -222,7 +216,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $CNF = &$this->_oConfig->CNF;
 
         $this->_iSelectedProfileId = (int)bx_get('profile_id');
-        if (!$this->onCheckContact($this->_iProfileId, $this->_iSelectedProfileId))
+        if ($this->_iSelectedProfileId && !$this->onCheckContact($this->_iProfileId, $this->_iSelectedProfileId))
             $this->_iSelectedProfileId = 0;
 
         if ($this->_iSelectedProfileId) {
@@ -237,7 +231,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                         $oMCNF = $oModule->_oConfig->CNF;
                         $sUrl = "i={$oMCNF['URI_VIEW_ENTRY']}&id=" . $oProfile->getContentId();
                         if ($sUrl && $aTalk = $this->_oDb->getLotByUrl($sUrl))
-                            $this->_iLotBySelectedProfileId = $aTalk[$CNF['FIELD_ID']];
+                            $this->_iSelectedConvoId = $aTalk[$CNF['FIELD_ID']];
                     }
                 }
             }
@@ -245,17 +239,17 @@ class BxMessengerModule extends BxBaseModGeneralModule
             {
                 $aExistedTalk = $this->_oDb->getLotsByParticipantsList([$this->_iSelectedProfileId, $this->_iProfileId], BX_IM_TYPE_PRIVATE);
                 if (!empty($aExistedTalk))
-                    $this->_iLotBySelectedProfileId = $aExistedTalk[$CNF['FIELD_ID']];
+                    $this->_iSelectedConvoId = $aExistedTalk[$CNF['FIELD_ID']];
             }
         }
-
-        if (!$this->_iLotBySelectedProfileId){
+        else
+        {
             if ($this->_iJotId)
-                $this->_iLotBySelectedProfileId = $this->_oDb->getLotByJotId($this->_iJotId);
+                $this->_iSelectedConvoId = $this->_oDb->getLotByJotId($this->_iJotId);
             else
             {
-                $aLotsList = $this->_oDb->getMyLots($this->_iProfileId, ['inbox' => true, 'lot' => $this->_iLotBySelectedProfileId]);
-                $this->_iLotBySelectedProfileId = !empty($aLotsList) ? current($aLotsList)[$CNF['FIELD_ID']] : 0;
+                $aLotsList = $this->_oDb->getMyLots($this->_iProfileId, ['inbox' => true]);
+                $this->_iSelectedConvoId = !empty($aLotsList) ? current($aLotsList)[$CNF['FIELD_ID']] : 0;
             }
         }
     }
@@ -265,6 +259,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             return [bx_api_get_block('messenger_main_page', [])];
 
         $this->initDefaultParams();
+
         $aData = [
             'menu' => $this->_oTemplate->getLeftMainMenu($this->_iProfileId),
             'info' => $this->_oTemplate->getInfoSection($this->_iProfileId),
@@ -2992,6 +2987,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
             return echoJson(['code' => 1, 'reload' => 1]);
 
         $aParams = ['group' => bx_get('group'), 'id' => (int)bx_get('id'), 'count' => (int)bx_get('count'), 'lot' => (int)bx_get('lot')];
+
+        $iExcludeConvo = (int)bx_get('exclude_convo');
         $aData = $this->serviceGetTalksList($aParams);
         if (isset($aData['code']) && (int)$aData['code'])
             return echoJson(['code' => 1, 'msg' => $aData['message']]);
@@ -3000,6 +2997,12 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $aLotsList = isset($aData['list']) ? $aData['list'] : [];
 
         if (!empty($aLotsList)) {
+           if ($iExcludeConvo) {
+               $mixedKey = array_search($iExcludeConvo, array_column($aLotsList, $this->_oConfig->CNF['FIELD_ID']));
+               if ($mixedKey !== false)
+                   unset($aLotsList[$mixedKey]);
+           }
+
             $sContent = $this->_oTemplate->getLotsPreview($this->_iProfileId, $aLotsList);
             return echoJson(array(
                 'code' => 0,

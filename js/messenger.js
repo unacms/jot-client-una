@@ -3312,6 +3312,9 @@
 			oParams = { count : $(talksListItems).length, group: _this.oSettings.area_type };
 		}
 
+		if (_this.iSelectedJot || _this.iSelectedPersonToTalk)
+			oParams.exclude_convo = _this.oSettings.lot;
+
 		bx_loading(oLotObject, true);
 		$.post('modules/?r=messenger/get_talks_list', oParams, function ({ code, html, reload, title }) {
 				bx_loading(oLotObject, false);
@@ -3456,6 +3459,7 @@
 		});
 
 		$(window).resize();
+
 		_this.setPositionOnSelectedJot(fCallback);
 
 		$(talksList).initLazyLoading((oObject, bFlag) => _this.loadTalksList(oObject, bFlag));

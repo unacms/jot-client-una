@@ -1208,8 +1208,14 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         $CNF = &$this->_oConfig->CNF;
         $aMyLots = $this->_oDb->getMyLots($iProfileId);
         $sContent = MsgBox(_t('_Empty'));
-        if (!empty($aMyLots))
+        if (!empty($aMyLots)) {
+            if ($iSelectedLotId && array_search($iSelectedLotId, array_column($aMyLots, $CNF['FIELD_ID'])) === false) {
+                $aPrependConvo = $this->_oDb->getLotInfoById($iSelectedLotId);
+                $aMyLots = array_merge([$aPrependConvo], $aMyLots);
+            }
+
             $sContent = $this->getLotsPreview($iProfileId, $aMyLots);
+        }
 
         $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_ACTIONS_TALK_MENU']);
 		$aVars = [

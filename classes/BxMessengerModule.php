@@ -3910,8 +3910,15 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $aOptions = json_decode($sParams, true);
             $aData = ['lot' => $aOptions['id'], 'message' => bx_get('message')];
 
+            $mixPayload = bx_get('payload');
+            if ($mixPayload && !$aData['lot']) {
+                $aData = array_merge($aData, json_decode(bx_get('payload'), true));
+                if (isset($aData['participants']) && !in_array($this->_iProfileId, $aData['participants']))
+                    $aData['participants'][] = $this->_iProfileId;
+            }
+
             $aLotInfo = $this->_oDb->getLotInfoById($aOptions['id']);
-            if (empty($aLotInfo) || !$this->isLogged() || ($aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_PRIVATE && !$this->_oDb->isParticipant($aLotInfo[$CNF['FIELD_ID']], $this->_iProfileId)))
+            if (!empty($aLotInfo) && ($aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_PRIVATE && !$this->_oDb->isParticipant($aLotInfo[$CNF['FIELD_ID']], $this->_iProfileId)))
                 return ['code' => 1, 'msg' => _t('_bx_messenger_not_participant')];
 
             $mixedFiles = bx_get('files');

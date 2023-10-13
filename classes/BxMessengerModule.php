@@ -3638,8 +3638,47 @@ class BxMessengerModule extends BxBaseModGeneralModule
             'SubmitMessage' => '',
             'GetMessengerMenu' => '',
             'GetConvoItem' => '',
-            'GetBlockContactsMessenger' => ''
+            'GetBlockContactsMessenger' => '',
+            'FindConvo' => '',
         ];
+    }
+
+    public function serviceFindConvo($sParams)
+    {
+        $aOptions = json_decode($sParams, true);
+
+        $aResult = ['code' => 1];
+        if (!isset($aOptions['param']))
+            return $aResult;
+
+        if ($aOptions['param']) {
+            $oProfile = null;
+            $aData = BxDolPageQuery::getSeoLink($this->_oConfig->getName(), 'messenger', ['param_name' => 'profile_id', 'uri' => $aOptions['param']]);
+            if (!empty($aData) && isset($aData['param_value']))
+                $oProfile = BxDolProfile::getInstance($aData['param_value']);
+
+            if (!$oProfile) {
+                $aPersonsData = BxDolPageQuery::getSeoLink('bx_persons', 'view-persons-profile', ['param_name' => 'id', 'uri' => $aOptions['param']]);
+                if (!empty($aPersonsData) && isset($aPersonsData['param_value']))
+                    $oProfile = BxDolProfile::getInstanceByContentAndType($aPersonsData['param_value'], 'bx_persons');
+            }
+
+            if (!$oProfile) {
+                $aOrgData = BxDolPageQuery::getSeoLink('bx_organizations', 'view-organization-profile', ['param_name' => 'id', 'uri' => $aOptions['param']]);
+                if (!empty($aOrgData) && isset($aOrgData['param_value']))
+                    $oProfile = BxDolProfile::getInstanceByContentAndType($aOrgData['param_value'], 'bx_organizations');
+            }
+
+
+            if ($oProfile) {
+                if ($aExistedTalk = $this->_oDb->getLotsByParticipantsList([$oProfile->id(), $this->_iProfileId], BX_IM_TYPE_PRIVATE))
+                    return ['convo' => $aExistedTalk];
+
+                return ['profile' => BxDolProfile::getInstance()->getData($oProfile->id())];
+            }
+        }
+
+        return [];
     }
 
     public function serviceGetConvoItem($sParams)

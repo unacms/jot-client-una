@@ -1121,7 +1121,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return $aResult;
     }
 
-    public function searchProfiles($sTerm, $aExcept = array(), $iLimit = 10){
+    public function searchProfiles($sTerm, $aExcept = array(), $iLimit = 10)
+    {
         $CNF = &$this->_oConfig->CNF;
         $aModules = BxDolService::call('system', 'get_profiles_modules', array(), 'TemplServiceProfiles');
         if (empty($aModules))
@@ -1129,9 +1130,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         if ($CNF['USE-FRIENDS-ONLY-MODE'])
             $aSearchResult = $this->searchFriends($sTerm);
-        else
-        {
-            $aModules = array_map(function($aModule){
+        else {
+            $aModules = array_map(function ($aModule) {
                 return $aModule['name'];
             }, $aModules);
 
@@ -1140,7 +1140,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $o->setCustomSearchCondition(array('keyword' => $sTerm));
             $o->setCustomCurrentCondition(array(
                 'paginate' => array(
-                    'perPage' => $iLimit/count($aModules) + 0.5
+                    'perPage' => $iLimit / count($aModules) + 0.5
                 )
             ));
 
@@ -1154,13 +1154,13 @@ class BxMessengerModule extends BxBaseModGeneralModule
            'override_list' => &$aSearchResult)
         );
 
-
-        $aUsers = array();
-        foreach($aSearchResult as $sModule => $aItems){
+        $aUsers = [];
+        if (!bx_is_api()) {
+            foreach ($aSearchResult as $sModule => $aItems) {
             $aCNF = BxDolModule::getInstance($sModule)->_oConfig->CNF;
             $sTitleField = $aCNF['FIELD_TITLE'];
             $sIdField = $aCNF['FIELD_ID'];
-            foreach($aItems as &$aItem){
+                foreach ($aItems as &$aItem) {
                 $sLabel = isset($aItem[$sTitleField]) ? $aItem[$sTitleField] : false;
                 if ($sLabel)
                     $aUsers[] = array(
@@ -1179,7 +1179,10 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $aUsers = array_filter($aUsers, function($aUsers) use ($aExcept) {
                 return !in_array($aUsers['value'], $aExcept);
             });
-
+        }
+        else
+            $aUsers = $aSearchResult;
+  
         return array_slice($aUsers, 0, $iLimit);
     }
     /**
@@ -3640,7 +3643,33 @@ class BxMessengerModule extends BxBaseModGeneralModule
             'GetConvoItem' => '',
             'GetBlockContactsMessenger' => '',
             'FindConvo' => '',
+            'SearchUsers' => '',
         ];
+    }
+
+    public function serviceSearchUsers($sParams){
+        $aOptions = json_decode($sParams, true);
+        $aResult = ['code' => 1];
+        $aUsers = [];
+        if (!$sParams || !isset($aOptions['term']))
+            return $aResult;
+
+        $aFoundProfile = $this->searchProfiles($aOptions['term'], isset($aOptions['except']) ? $aOptions['except'] : []);
+        if (!empty($aFoundProfile)){
+            foreach($aFoundProfile as &$aProfile) {
+                $oModule = BxDolModule::getInstance($aProfile['module']);
+                $oPCNF = &$oModule->_oConfig->CNF;
+                $aData = $oModule->_oDb->getContentInfoById($aProfile['id']);
+                $oProfile = BxDolProfile::getInstanceByContentAndType($aProfile['id'], $aProfile['module']);
+                $aUsers[] = array_merge($aProfile, [
+                  'id' => $oProfile->id(),
+                  'image' => bx_api_get_image($oPCNF['OBJECT_STORAGE'], $aData[$oPCNF['FIELD_PICTURE']]),
+                  'cover' => bx_api_get_image($oPCNF['OBJECT_STORAGE'], $aData[$oPCNF['FIELD_COVER']])
+                ]);
+            }
+        }
+
+        return $aUsers;
     }
 
     public function serviceFindConvo($sParams)

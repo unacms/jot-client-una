@@ -365,7 +365,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
     private function getParticipantsList($mixedParticipants, $bExcludeLogged = false)
     {
         if (empty($mixedParticipants))
-            return array();
+            return [];
 
         $aParticipants = is_array($mixedParticipants) ? $mixedParticipants : array(intval($mixedParticipants));
         if (!$bExcludeLogged && !in_array($this->_iProfileId, $aParticipants))
@@ -1296,21 +1296,11 @@ class BxMessengerModule extends BxBaseModGeneralModule
      * Updats participants list (occurs when create new lost with specified participants or update already existed list)
      * @return string with json
      */
-    public function actionSaveLotsParts()
-    {
-        if (!$this->isLogged())
-            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
 
-        $iLotId = bx_get('lot');
-        $bIsBlockVersion = +bx_get('is_block');
-        $aParticipants = $this->getParticipantsList(bx_get('participants'));
-        $aResult = array('message' => _t('_bx_messenger_save_part_failed'), 'code' => 1);
-        if (empty(bx_get('participants')))
-            return echoJson($aResult);
-
+    private function saveParticipantsList($aParticipants, $iLotId = 0, $bIsBlock = 0){
         $bCheckAction = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true;
         if ($iLotId && !($this->_oDb->isAuthor($iLotId, $this->_iProfileId) || $bCheckAction))
-            return echoJson($aResult);
+            return ['code' => 1, 'message' => _t('_bx_messenger_lot_action_not_allowed')];
 
         $CNF = &$this->_oConfig->CNF;
         if (!$iLotId){
@@ -1319,23 +1309,22 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 $CNF['FIELD_TYPE'] => BX_IM_TYPE_PRIVATE,
                 $CNF['FIELD_CLASS'] => BX_MSG_TALK_CLASS_CUSTOM,
             ));
+
             if (!empty($aLot))
                 $iLotId = $aLot[$this->_oConfig->CNF['FIELD_ID']];
         }
 
-        $oOriginalParts = array();
-        $aResult = array('message' => _t('_bx_messenger_save_part_success'), 'code' => 0);
-		if (!$iLotId)
-		{
-            $iLotId = $this->_oDb->createNewLot($this->_iProfileId, array('title' => '', 'type' => BX_IM_TYPE_PRIVATE, 'url' => BX_IM_EMPTY_URL), $this->getParticipantsList(bx_get('participants')));
+        $oOriginalParts = [];
+        $aResult = ['code' => 0, 'message' => _t('_bx_messenger_save_part_success')];
+        if (!$iLotId) {
+            $iLotId = $this->_oDb->createNewLot($this->_iProfileId, ['title' => '', 'type' => BX_IM_TYPE_PRIVATE, 'url' => BX_IM_EMPTY_URL], $aParticipants);
             $aResult['lot'] = $iLotId;
             $this->onCreateLot($iLotId);
 		}
-		else
-        {
+        else {
             $oOriginalParts = $this->_oDb->getParticipantsList($iLotId);
             if (!$this->_oDb->saveParticipantsList($iLotId, $aParticipants))
-                $aResult = array('code' => 2);
+                $aResult = ['code' => 2, 'message' => _t('_bx_messenger_lot_parts_error')];
         }
 
         $aRemoveParticipants = array_diff($oOriginalParts, $aParticipants);
@@ -1349,6 +1338,22 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $this->onRemoveParticipant($iLotId, $iPartId);
         }
 
+        return $aResult;
+    }
+
+    public function actionSaveLotsParts()
+    {
+        if (!$this->isLogged())
+            return echoJson(array('code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1));
+
+        $iLotId = bx_get('lot');
+        $bIsBlockVersion = +bx_get('is_block');
+        $aParticipants = $this->getParticipantsList(bx_get('participants'));
+        $aResult = array('message' => _t('_bx_messenger_save_part_failed'), 'code' => 1);
+        if (empty(bx_get('participants')))
+            return echoJson($aResult);
+
+        $aResult = $this->saveParticipantsList($aParticipants, $iLotId, $bIsBlockVersion);
         if ($iLotId) {
             $aHeader = $this->_oTemplate->getTalkHeader($iLotId, $this->_iProfileId, $bIsBlockVersion, true);
             $aResult['header'] = $aHeader['title'];
@@ -3644,7 +3649,44 @@ class BxMessengerModule extends BxBaseModGeneralModule
             'GetBlockContactsMessenger' => '',
             'FindConvo' => '',
             'SearchUsers' => '',
+            'SavePartsList' => '',
         ];
+    }
+
+    public function serviceSavePartsList($sParams){
+        $aOptions = json_decode($sParams, true);
+
+        $aResult = ['code' => 1];
+        if (!$sParams || !isset($aOptions['parts']))
+            return $aResult;
+
+        $aResult = $this->saveParticipantsList($aOptions['parts'], (isset($aOptions['id']) ? $aOptions['id'] : 0));
+        if (isset($aResult['lot'])) {
+            $CNF = &$this->_oConfig->CNF;
+            $aLotInfo = $this->_oDb->getLotInfoById($aResult['lot']);
+            $aItem = $this->_oTemplate->getLotsPreview($this->_iProfileId, [$aLotInfo]);            
+            if (!empty($aItem)) {
+                $aItem = current($aItem);
+                $sImageUrl = bx_api_get_relative_url($aItem['bx_if:user']['content']['icon']);
+                $aResult['convo'] = [
+                    'author_data' => (int)$aItem[$CNF['FIELD_AUTHOR']] ? BxDolProfile::getInstance()->getData($aItem[$CNF['FIELD_AUTHOR']]) : [
+                        'id' => 0,
+                        'display_type' => 'unit',
+                        'display_name' => $aItem['bx_if:user']['content']['talk_type'],
+                        'url' => $sImageUrl,
+                        'url_avatar' => $sImageUrl,
+                        'module' => isset($aItem['author_module']) ? $aItem['author_module'] : 'bx_pages',
+                    ],
+                    'title' => $aItem[$CNF['FIELD_TITLE']],
+                    'message' => $aItem['bx_if:user']['content']['message'],
+                    'date' => $aItem['bx_if:timer']['content']['time'],
+                    'id' => $aItem[$CNF['FIELD_ID']],
+                    'total_messages' => $this->_oDb->getJotsNumber($aItem[$CNF['FIELD_ID']], 0)
+                ];
+            }
+        }
+
+        return $aResult;
     }
 
     public function serviceSearchUsers($sParams){

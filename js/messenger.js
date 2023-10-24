@@ -141,6 +141,7 @@
 
 
 		this.bCreateNew = false;
+		this.bUniqueMode = !!oOptions['unique_mode'];
 		this.iSelectedJot = oOptions.jot_id || 0;
 		this.iLastUnreadJot = oOptions.last_unread_jot || 0;
 		this.iUnreadJotsNumber = oOptions.unread_jots || 0;
@@ -3671,6 +3672,7 @@
 			if (!_oMessenger.oMenu && typeof window.oNavMenu !== 'undefined')
 			{
 				_oMessenger.oMenu = window.oNavMenu;
+				_oMessenger.oMenu.setUniqueMode(_oMessenger.bUniqueMode);
 				_oMessenger.oMenu.toggleMenuItem(`${talkItem}[data-lot="${oOptions.lot}"]`);
 			}
 

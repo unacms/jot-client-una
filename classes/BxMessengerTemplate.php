@@ -1217,9 +1217,13 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             $sContent = $this->getLotsPreview($iProfileId, $aMyLots);
         }
 
+        $bSimpleMode = $this->_oConfig->CNF['USE-UNIQUE-MODE'];
+
         $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_ACTIONS_TALK_MENU']);
 		$aVars = [
                     'items' => $sContent,
+                    'custom_class_title' => $bSimpleMode ? 'hidden' : 'block',
+                    'custom_class_search' => $bSimpleMode ? 'block' : 'hidden',
                     'search_for_title' => bx_js_string(_t('_bx_messenger_search_for_lost_title')),
                     'bx_repeat:menu' => [['menu_title' => _t("_bx_messenger_lots_type_all"), 'type' => 0, 'count' => '']],
                     'star_icon' => $CNF['STAR_ICON'],
@@ -1377,6 +1381,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			'jitsi_server' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER'], 'url'),
 			'last_unread_jot' => $iLastUnreadJot,
 			'unread_jots' => $iUnreadJotsNumber,
+            'unqiue_mode' => (int)$CNF['USE-UNIQUE-MODE'],
 			'allow_attach' => +$bAttach,
 			'messages' => count($aUnreadJotsStat) ? json_encode($aUnreadJotsStat) : 0,
 			'muted' => ($iLotId && $iProfileId ? (int)$this->_oDb->isMuted($iLotId, $iProfileId) : 0),
@@ -2510,12 +2515,13 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         return $this -> parseHtmlByName('nav-groups-menu.html', $aResultGroups);
     }
 
-    public function getLeftMainMenu($iProfileId){
+    public function getLeftMainMenu(){
         $CNF = &$this->_oConfig->CNF;
 
         $oLeftMainMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_NAV_LEFT_MENU']);
         $oLeftGroupsMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_GROUPS_MENU']);
 
+        $bSimpleMode = $this->_oConfig->CNF['USE-UNIQUE-MODE'];
         return bx_is_api() ?  [
                                 'menu' => $oLeftMainMenu->getMenuItems(),
                                 'nav_groups_menu' => $oLeftGroupsMenu->getMenuItems()
@@ -2523,13 +2529,12 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                             $this -> parseHtmlByName('left-nav-menu.html', array(
                                 'menu' => $oLeftMainMenu -> getCode(),
                                 'nav_groups_menu' => $oLeftGroupsMenu -> getCode(),
-                                'js_code' => $CNF['JSMain']
+                                'js_code' => $CNF['JSMain'],
+                                'menu_width' => !$bSimpleMode ? 'xl:block xl:col-span-2': ''
                             ));
     }
 
-    public function getInfoSection($iProfileId, $sType = 'info'){
-        $CNF = &$this->_oConfig->CNF;
-
+    public function getInfoSection(){
         return $this -> parseHtmlByName('info-section.html', array(
             'info' => ''
         ));

@@ -13,23 +13,24 @@
 
     aBlockViewScheme = {
         [historyPanel]: {
-            view : 'col-span-10'
+            view: 'col-span-10'
         },
         [groupsPanel]: {
-            view : 'col-span-6',
+            view: 'col-span-6',
             columns: {
                 [historyPanel]: 'col-span-4'
             }
         },
         [infoColumn]: {
-            view : 'col-span-6',
+            view: 'col-span-6',
             columns: {
                 [historyPanel]: 'col-span-4'
             }
         },
     },
+    _this = this;
 
-    aMainViewScheme = {
+    let aMainViewScheme = {
                            [historyColumn]: {
                                [sDesktop]: { view: 'col-span-5', enabled: true },
                                [sTablet]: { view : 'col-span-6', enabled: true },
@@ -73,12 +74,63 @@
                                     }
                                 },
                             },
-                         },
-            _this = this;
+                         };
 
     function oMessengerMenu() {
         this.sMode = null;
         this.bUpdate = false;
+        this.bUniqueMode = false;
+    }
+
+    oMessengerMenu.prototype.setUniqueMode = function(bValue){
+        this.bUniqueMode = bValue;
+
+        if (this.bUniqueMode) {
+            aMainViewScheme = {
+                [historyColumn]: {
+                    [sDesktop]: { view: 'col-span-6', enabled: true },
+                    [sTablet]: { view : 'col-span-6', enabled: true },
+                    [sPhone]: { view : 'col-span-10', columns: { [listColumn]: 'hidden' }},
+                },
+                [listColumn]: {
+                    [sDesktop]: { view: 'col-span-4', enabled: true },
+                    [sTablet]: { view: 'col-span-4', enabled: true },
+                    [sPhone]: { view: 'col-span-10', enabled: true, columns: { [historyColumn]: 'hidden' }},
+                },
+                [menuColumn]: {
+                    [sDesktop]: { view: 'hidden'},
+                    [sTablet]: {
+                        view: 'col-span-3',
+                        columns: { [listColumn]: 'col-span-3', [historyColumn]: 'col-span-4' }
+                    },
+                    [sPhone]: {
+                        view: 'col-span-8', columns: { [listColumn]: 'col-span-2' }
+                    },
+                },
+                [infoColumn]: {
+                    [sDesktop]: {
+                        view: 'col-span-3',
+                        columns: {
+                            [listColumn]: 'col-span-3',
+                            [historyColumn]: 'col-span-4'
+                        }
+                    },
+                    [sTablet]: {
+                        view: 'col-span-4',
+                        columns: {
+                            [listColumn]: 'col-span-3',
+                            [historyColumn]: 'col-span-3'
+                        }
+                    },
+                    [sPhone]: {
+                        view: 'col-span-10',
+                        columns: {
+                            [historyColumn]: 'hidden'
+                        }
+                    },
+                },
+            };
+        }
     }
 
     oMessengerMenu.prototype.removeClasses = function(sSelector, sPrefix = ''){
@@ -293,6 +345,7 @@
                     _oMenu.setViewMode();
                     if (sMode !== _oMenu.sMode)
                         _oMenu.updateView(sMode);
-                }
+                },
+                setUniqueMode: (bEnable) => _oMenu.setUniqueMode(bEnable)
             };
 })(jQuery);

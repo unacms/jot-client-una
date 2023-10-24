@@ -260,11 +260,14 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         $this->initDefaultParams();
 
+        $bSimpleMode = $this->_oConfig->CNF['USE-UNIQUE-MODE'];
         $aData = [
-            'menu' => $this->_oTemplate->getLeftMainMenu($this->_iProfileId),
-            'info' => $this->_oTemplate->getInfoSection($this->_iProfileId),
+            'menu' => $this->_oTemplate->getLeftMainMenu(),
+            'info' => $this->_oTemplate->getInfoSection(),
             'list' => $this->serviceGetBlockInbox(),
-            'history' => $this->serviceGetBlockLot()
+            'history' => $this->serviceGetBlockLot(),
+            'list_width' => $bSimpleMode ? 'xl:col-span-4' : 'xl:col-span-3',
+            'history_width' => $bSimpleMode ? 'xl:col-span-6' : 'xl:col-span-5',
         ];
 
         return $this->_oTemplate->parseHtmlByName('main.html', $aData);

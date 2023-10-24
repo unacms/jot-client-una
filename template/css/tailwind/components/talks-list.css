@@ -32,7 +32,7 @@
 }
 
 .bx-messenger-talks-list-header-search-area {
-    @apply hidden w-full relative;
+    @apply w-full relative;
 }
 
 .bx-messenger-talks-list-header-search-area-icon {

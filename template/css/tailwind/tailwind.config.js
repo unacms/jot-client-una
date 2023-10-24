@@ -1,6 +1,6 @@
 module.exports = {
   presets: [require('./parent.config.js')],
-  safelist: ['md:col-span-3'],
+  safelist: ['md:col-span-3', 'xl:col-span-2', 'xl:col-span-3', 'xl:col-span-4', 'xl:col-span-5', 'xl:col-span-6', 'xl:col-span-7', 'xl:col-span-8'],
   theme: {
       extend: {
           colors: {

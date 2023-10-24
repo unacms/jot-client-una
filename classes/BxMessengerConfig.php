@@ -594,7 +594,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
     function getSeparatorTime($iUnixTimestamp){
         $sDateUTC = bx_time_utc($iUnixTimestamp);
         $sFormat = date('Y', $iUnixTimestamp) != date('Y') ? $this->CNF['DATE-SEPARATOR-FORMAT-Y'] : $this->CNF['DATE-SEPARATOR-FORMAT'];
-        return '<time datetime="' . $sDateUTC . '" data-bx-format="' . $sFormat . '">' . $sDateUTC . '</time>';
+        return '<time datetime="' . $sDateUTC . '" data-bx-autoformat="' . ( !$this->CNF['TIME-FROM-NOW'] ? 0 : getParam('sys_format_timeago')) . '" data-bx-format="' . $sFormat . '">' . $sDateUTC . '</time>';
     }
 
     public function isValidToUpload($sFileName){

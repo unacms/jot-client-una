@@ -1958,7 +1958,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                                                                                                                                             'bx_if:time' => [
                                                                                                                                                 'condition' => !$aJot[$CNF['FIELD_MESSAGE']],
                                                                                                                                                 'content' => [
-                                                                                                                                                'time' => bx_time_js($aFile[$CNF['FIELD_ST_ADDED']]),
+                                                                                                                                                'time' => bx_time_js($aFile[$CNF['FIELD_ST_ADDED']], BX_FORMAT_TIME, !$CNF['TIME-FROM-NOW']),
                                                                                                                                                 ]
                                                                                                                                             ]
 																																    ]),
@@ -2372,7 +2372,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 $bThumb = stripos($sThumb, 'no-picture') === FALSE;
                 $sDisplayName = $oOwner->getDisplayName();
                 $aFilesItems[] = array(
-                    'time' => bx_time_js($aValue[$CNF['FIELD_ST_ADDED']]),
+                    'time' => bx_time_js($aValue[$CNF['FIELD_ST_ADDED']], BX_FORMAT_TIME, !$CNF['TIME-FROM-NOW']),
                     'file' => $this->getFileContent($aValue),
                     'url' => $oOwner->getUrl(),
                     'id' => $aValue[$CNF['FIELD_ST_ID']],

@@ -423,18 +423,17 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         $sTitle = _t('_bx_messenger_page_block_title');
         if (!empty($aLotInfo))
         {
-            if (!empty($aLotInfo[$CNF['FIELD_TITLE']]))
-                $sTitle = _t($aLotInfo[$CNF['FIELD_TITLE']]);
-
             if (!$bIsBlockVersion && $this->_oDb->isLinkedTitle($aLotInfo[$CNF['FIELD_TYPE']]))
                 $sTitle = _t('_bx_messenger_linked_title', '<a href ="'. $this->_oConfig->getPageLink($aLotInfo[$CNF['FIELD_URL']]) .'">' . $sTitle . '</a>');
+            else if (!empty($aLotInfo[$CNF['FIELD_TITLE']]))
+                $sTitle = _t($aLotInfo[$CNF['FIELD_TITLE']]);
             else if ($aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
                 $sTitle = $this -> getParticipantsNames($iProfileId, $iLotId);
 
             if ($aLotInfo[$CNF['FIELD_CLASS']] === BX_MSG_TALK_CLASS_MARKET) {
                 $aParticipants = $this->_oDb->getParticipantsList($iLotId, true, $iProfileId);
                 if (count($aParticipants) == 1) {
-                    $sOpponent = BXDolProfile::getInstance(current($aParticipants))->getDisplayName();
+                    $sOpponent = BxDolProfile::getInstance(current($aParticipants))->getDisplayName();
                     $sTitle = $this->_oConfig->replaceConstant(_t('_bx_messenger_talk_types_market_title'), array('opponent' => $sOpponent));
                 }
             }
@@ -790,12 +789,16 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			if (!empty($aLot[$CNF['FIELD_TITLE']]))
 				$sTitle = _t($aLot[$CNF['FIELD_TITLE']]);
 			else
-			{ 
-				if ($iParticipantsCount > 3)
-					$sTitle = implode(', ', array_slice($aNickNames, 0, $CNF['PARAM_ICONS_NUMBER'])) . '...';
+			{
+                $aNickNamesTitles = [];
+                foreach ($aParticipantsList as &$iPartId)
+                    $aNickNamesTitles[] = $this->getObjectUser($iPartId)->getDisplayName();
+
+			    if ($iParticipantsCount > 3)
+					$sTitle = implode(', ', array_slice($aNickNamesTitles, 0, $CNF['PARAM_ICONS_NUMBER'])) . '...';
 				else
-					$sTitle = implode(', ', $aNickNames);
-			}	
+					$sTitle = implode(', ', $aNickNamesTitles);
+			}
 
 			$sStatus = $sCount = '';
 			if ($iParticipantsCount <= 1 && $oAuthor && !$bIsGroupTalk){

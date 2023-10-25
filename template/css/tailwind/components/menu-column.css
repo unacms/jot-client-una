@@ -12,6 +12,14 @@
     scrollbar-width: none;
 }
 
+.bx-messenger-nav-menu-submenu .bx-menu-item-cnt .bx-messenger-nav-menu-icon {
+    @apply flex-stat;
+}
+
+.bx-messenger-nav-menu-submenu .bx-menu-item-cnt .bx-menu-item-title {
+    @apply flex-1 truncate inline-block;
+}
+
 .bx-messenger-nav-menu-submenu li.bx-menu-subitem .bx-menu-addon{
     @apply absolute right-[0.85rem];
 }

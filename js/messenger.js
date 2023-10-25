@@ -1724,11 +1724,10 @@
 	*/
 	oMessenger.prototype.updatePageIcon = function(bEnable, iLot)
 	{
-		const { talksListItems, unreadLot } = window.oMessengerSelectors.TALKS_LIST,
-			  oNewLots = $(`.${unreadLot}`),
+		const { talksListItems } = window.oMessengerSelectors.TALKS_LIST,
 			  iCurrentLot = $(talksListItems).first().data('lot');
 
-		let iUnreadLotsCount = oNewLots.length;
+		let iUnreadLotsCount = +this.oNotifications.inbox;
 
 		if (iUnreadLotsCount === 1 && iLot === iCurrentLot && (!oMUtils.isMobile()))
 			iUnreadLotsCount = 0;

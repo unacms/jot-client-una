@@ -423,8 +423,11 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         $sTitle = _t('_bx_messenger_page_block_title');
         if (!empty($aLotInfo))
         {
+            if ($aLotInfo[$CNF['FIELD_TITLE']])
+                $sTitle = $aLotInfo[$CNF['FIELD_TITLE']];
+
             if (!$bIsBlockVersion && $this->_oDb->isLinkedTitle($aLotInfo[$CNF['FIELD_TYPE']]))
-                $sTitle = _t('_bx_messenger_linked_title', '<a href ="'. $this->_oConfig->getPageLink($aLotInfo[$CNF['FIELD_URL']]) .'">' . $sTitle . '</a>');
+                $sTitle = _t('_bx_messenger_linked_title', '<a href ="' . $this->_oConfig->getPageLink($aLotInfo[$CNF['FIELD_URL']]) . '">' . $sTitle . '</a>');
             else if (!empty($aLotInfo[$CNF['FIELD_TITLE']]))
                 $sTitle = _t($aLotInfo[$CNF['FIELD_TITLE']]);
             else if ($aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)

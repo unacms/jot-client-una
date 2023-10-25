@@ -280,7 +280,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'SEARCH-CRITERIA' => array('titles', 'participants', 'content'),
             'VIEW-IN-TALKS' => array(BX_MSG_TALK_TYPE_MR, BX_MSG_TALK_TYPE_REPLIES, BX_MSG_TALK_TYPE_SAVED),
             //options
-            'DATE-SEPARATOR-FORMAT-Y' => 'MMM D, Y, H:mm',
+            'DATE-SEPARATOR-FORMAT-Y' => 'MMM D H:mm, Y',
             'DATE-SEPARATOR-FORMAT' => 'MMM D, H:mm',
             'DATE-SHIFT' => 300, // time period to show date separator
             'MAX_SEND_SYMBOLS'	=> (int)getParam($aModule['db_prefix'] . 'max_symbols_number'),

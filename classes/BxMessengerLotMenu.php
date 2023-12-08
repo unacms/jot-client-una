@@ -90,6 +90,10 @@ class BxMessengerLotMenu extends BxBaseModTextMenu
         if (!empty($aLotMenuSettings) && in_array($a['name'], $aLotMenuSettings))
             return false;
 
+        $bAllowedEdit = $this->_oModule->_oDb->isAuthor($aLotInfo[$CNF['FIELD_ID']], $this->_iProfileId) || $this->_oModule->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true;
+        if ($aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_BROADCAST && !$bAllowedEdit)
+            return false;
+
         switch ($a['name']) {
             case 'settings':
                 if ($this->_iContentId)

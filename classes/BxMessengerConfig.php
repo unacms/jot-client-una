@@ -38,6 +38,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'TABLE_SAVED_JOTS' => $aModule['db_prefix'] . 'saved_jots',
             'TABLE_LOT_ATTACHMENTS' => $aModule['db_prefix'] . 'attachments',
             'TABLE_JOTS_MEDIA_TRACKER' => $aModule['db_prefix'] . 'jots_media_tracker',
+            'TABLE_MASS_TRACKER' => $aModule['db_prefix'] . 'mass_convo_tracker',
             'TABLE_CMTS_OBJECTS' => 'sys_objects_cmts',
             'TABLE_ENTRIES_FULLTEXT' => 'search_title',
             'TABLE_ENTRIES_COMMENTS_FULLTEXT' => 'search_fields',
@@ -119,6 +120,11 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'FJMT_FILE_ID' => 'file_id',
             'FJMT_USER_ID' => 'user_id',
             'FJMT_COLLAPSED' => 'collapsed',
+
+            // talks mass talks tracker
+            'FIELD_MASS_CONVO_ID' => 'convo_id',
+            'FIELD_MASS_USER_ID' => 'user_id',
+            'FIELD_MASS_ADDED' => 'added',
 
              // jot reactions fields
             'FIELD_REACT_JOT_ID' => 'jot_id',
@@ -256,12 +262,15 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'OBJECT_MENU_SNIPPET_META' => 'bx_messenger_profile_snippet_meta',
             'OBJECT_VIEWS' => 'bx_messenger_lots',
             'OBJECT_FORM_ENTRY' => 'bx_messenger_lots',
+            'OBJECT_FORM_FILTER' => 'bx_messenger_filter_criteria',
+            'OBJECT_FORM_FILTER_DISPLAY' => 'bx_messenger_filter_criteria',
             'OBJECT_FORM_ENTRY_DISPLAY_VIEW' => 'bx_messenger_lots',
             'OBJECT_MENU_ACTIONS_VIEW_ENTRY' => 'bx_messenger_view', // actions menu on view entry page
             'OBJECT_MENU_ACTIONS_MY_ENTRIES' => 'bx_messenger_my', // actions menu on my entries page
             'OBJECT_MENU_ACTIONS_TALK_MENU' => 'bx_messenger_lot_menu',
             'OBJECT_MENU_TALK_INFO_MENU' => 'bx_messenger_lot_info_menu',
             'OBJECT_MENU_JOT_MENU' => 'bx_messenger_jot_menu',
+            'OBJECT_MENU_CREATE_CONVO_MENU' => 'bx_messenger_create_convo_menu',
             'OBJECT_MENU_NAV_LEFT_MENU' => 'bx_messenger_nav_menu',
             'OBJECT_MENU_GROUPS_MENU' => 'bx_messenger_groups_menu',
             'OBJECT_MENU_SUBMENU' => '', // main module submenu
@@ -280,7 +289,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'SEARCH-CRITERIA' => array('titles', 'participants', 'content'),
             'VIEW-IN-TALKS' => array(BX_MSG_TALK_TYPE_MR, BX_MSG_TALK_TYPE_REPLIES, BX_MSG_TALK_TYPE_SAVED),
             //options
-            'DATE-SEPARATOR-FORMAT-Y' => 'MMM D H:mm, Y',
+            'DATE-SEPARATOR-FORMAT-Y' => 'MMM D, Y, H:mm',
             'DATE-SEPARATOR-FORMAT' => 'MMM D, H:mm',
             'DATE-SHIFT' => 300, // time period to show date separator
             'MAX_SEND_SYMBOLS'	=> (int)getParam($aModule['db_prefix'] . 'max_symbols_number'),
@@ -316,16 +325,18 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'CHECK-CONTENT-FOR-TOXIC' => getParam($aModule['db_prefix'] . 'check_toxic') == 'on',
             'TIME-FROM-NOW' => getParam($aModule['db_prefix'] . 'time_in_history') == 'on',
             'DONT-SHOW-DESC' => getParam($aModule['db_prefix'] . 'dont_show_search_desc') == 'on',
+            'USE-UNIQUE-MODE' => getParam($aModule['db_prefix'] . 'use_unique_mode') == 'on',
             'USE-FRIENDS-ONLY-MODE' => getParam($aModule['db_prefix'] . 'connect_friends_only') == 'on',
             'UPDATE-PAGE-TITLE' => getParam($aModule['db_prefix'] . 'dont_update_title') == 'on',
             'SEARCH-CRITERIA-SELECTED' => getParam($aModule['db_prefix'] . 'search_criteria'),
-            'USE-UNIQUE-MODE' => getParam($aModule['db_prefix'] . 'use_unique_mode') == 'on',
+            'BROADCAST-FIELDS' => getParam($aModule['db_prefix'] . 'broadcast_fields'),
             'JWT' => array(
               'app_id' => getParam($aModule['db_prefix'] . 'jwt_app_id'),
               'secret' => getParam($aModule['db_prefix'] . 'jwt_app_secret'),
             ),
             'JOT-JWT' =>  trim(getParam($aModule['db_prefix'] . 'jot_server_jwt')),
             'JSMain' => 'oMessenger',
+            'JSCreateConvoMenu' => 'oMessengerCreateConvo',
             'JSMessengerLib' => 'oMUtils',
         );
 
@@ -657,6 +668,40 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
 
     public function getConnectionToFunctionCheck(){
         return true;
+    }
+
+    public function getConnectionByType($sType){
+        if ($sType === 'followers')
+            return BxDolConnection::getObjectInstance('sys_profiles_subscriptions');
+
+        if ($sType === 'friends')
+            return BxDolConnection::getObjectInstance('sys_profiles_friends');
+
+        return false;
+    }
+
+    public function getSelectedNotificationMode($aNotifData){
+        $oModule = BxDolModule::getInstance('bx_notifications');
+        if (empty($aNotifData))
+            return false;
+
+        $bEmail = in_array('email', $aNotifData);
+        $bPush = in_array('push', $aNotifData);
+        $bSite = in_array('site', $aNotifData);
+
+        if ($bEmail && $bPush)
+            return BX_BASE_MOD_NTFS_SLTMODE_DISABLED;
+
+        if ($bEmail)
+            return BX_NTFS_SLTMODE_SITE_EMAIL;
+
+        if ($bPush)
+            return BX_NTFS_SLTMODE_SITE_PUSH;
+
+        if ($bSite)
+            return BX_NTFS_SLTMODE_SITE;
+
+        return BX_NTFS_SLTMODE_ABSOLUTE;
     }
 }
 

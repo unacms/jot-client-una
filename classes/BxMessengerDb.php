@@ -111,8 +111,10 @@ class BxMessengerDb extends BxBaseModGeneralDb
         $this -> query("DELETE FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = :id", array('id' => $iLotId));
         $this -> query("DELETE FROM `{$this->CNF['TABLE_LOT_SETTINGS']}` WHERE `{$this->CNF['FLS_ID']}` = :id", array('id' => $iLotId));
         $this -> query("DELETE FROM `{$this->CNF['TABLE_USERS_INFO']}` WHERE `{$this->CNF['FIELD_INFO_LOT_ID']}` = :id", array('id' => $iLotId));
-		$this -> query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id", array('id' => $iLotId));
+	$this -> query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id", array('id' => $iLotId));
+	$this -> query("DELETE FROM `{$this->CNF['TABLE_MASS_TRACKER']}` WHERE `{$this->CNF['FIELD_MASS_CONVO_ID']}` = :id", array('id' => $iLotId));
 
+        $this->removeNotifications(0, $iLotId);
 		return true;
 	}
 
@@ -1045,7 +1047,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
     function getForWhomJotIsNew($iLotId, $iJotId){
 	    if (!$iLotId && !$iJotId)
-	        return array();
+	        return [];
 
         return $this->getColumn("SELECT `{$this->CNF['FIELD_NEW_PROFILE']}` 
                                             FROM `{$this->CNF['TABLE_NEW_MESSAGES']}` 
@@ -1231,6 +1233,10 @@ class BxMessengerDb extends BxBaseModGeneralDb
             } else if (is_array($aParams['type'])) {
                 $aSWhere[] = " `l`.`{$this->CNF['FIELD_TYPE']}` IN (" . implode(',', $aParams['type']) . ")  AND `l`.`{$this->CNF['FIELD_PARENT_JOT']}` = 0 ";
             }
+        } else
+        {
+            $sJoin .= "LEFT JOIN `{$this->CNF['TABLE_MASS_TRACKER']}` as `mt` ON `mt`.`{$this->CNF['FIELD_MASS_CONVO_ID']}` = `l`.`{$this->CNF['FIELD_ID']}` AND `mt`.`{$this->CNF['FIELD_MASS_USER_ID']}`=:profile";
+            $sOrAddon = " OR `mt`.`{$this->CNF['FIELD_MASS_USER_ID']}` IS NOT NULL";
         }
 
         $bStar = isset($aParams['star']) && $aParams['star'] === true;
@@ -1349,6 +1355,8 @@ class BxMessengerDb extends BxBaseModGeneralDb
 		$bResult &= $this-> query("DELETE
 			FROM `{$this->CNF['TABLE_MESSAGES']}` 
 			WHERE `{$this->CNF['FIELD_MESSAGE_AUTHOR']}`=:profile", $aWhere);
+
+           $this -> query("DELETE FROM `{$this->CNF['TABLE_MASS_TRACKER']}` WHERE `{$this->CNF['FIELD_MASS_USER_ID']}` =:profile_id", ['id' => $iProfileId]);
 
 		if ($bTalks)
             $bResult &= (bool)$this->query("DELETE 
@@ -2072,6 +2080,14 @@ class BxMessengerDb extends BxBaseModGeneralDb
 			{$sLimit}", $aParams);
     }
 
+    public function removeNotifications($iJotId, $iConvoId = 0){
+        $sModule = $this->_oConfig->getName();
+        if ($iConvoId)
+            return $this->query("DELETE FROM `bx_notifications_events` WHERE `object_id`=:id AND `type`=:name", ['id' => $iConvoId, 'name' => $sModule]);
+
+        return $this->query("DELETE FROM `bx_notifications_events` WHERE `subobject_id`=:id AND `type`=:name", ['id' => $iJotId, 'name' => $sModule]);
+    }
+
     public function markNotificationAsRead($iRecipientId, $iLotId)
     {
         if (!$this->isModuleByName('bx_notifications'))
@@ -2686,6 +2702,69 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
     public function pruningByDate($iDate) {
         return 0;
+    }
+
+function getProfilesByCriteria($aFields){
+        if (empty($aFields))
+            return [];
+
+        $aSqlParts= ['where' => '', 'join' => ''];
+        if (isset($aFields['membership'])) {
+            $aSqlParts = BxDolAclQuery::getInstance()->getContentByLevelAsSQLPart('sys_profiles', 'id', $aFields['membership']);
+            unset($aFields['membership']);
+        }
+
+        if (!empty($aFields)){
+            $aSqlParts['join'] .= "LEFT JOIN `bx_persons_data` as `pd` ON `pd`.`id` = `sys_profiles`.`content_id` AND `sys_profiles`.`type` = 'bx_persons'";
+            foreach($aFields as $sName => $mixedValues) {
+                if (is_array($mixedValues))
+                    $aSqlParts['where'] .= " AND `pd`.`{$sName}` IN ('" . implode("','", $mixedValues) . "')";
+                else
+                {
+                    $mixedValues = bx_process_input($mixedValues);
+                    if ($sName === 'location') {
+                        $aSqlParts['join']  .= "LEFT JOIN `bx_persons_meta_locations` as `pdl` ON `pdl`.`object_id` = `pd`.`id`";
+                        $aSqlParts['where'] .= " AND `pdl`.`country` = '{$mixedValues}' ";
+                    }
+                    else
+                        $aSqlParts['where'] .= " AND `pd`.`{$sName}` = '{$mixedValues}'";
+                }
+            }
+        }
+
+        $sSql = $this->prepare("SELECT `sys_profiles`.`id` FROM `sys_profiles`" . $aSqlParts['join'] . " WHERE 1" . $aSqlParts['where']);
+        return $this->getColumn($sSql);
+    }
+
+    function createBroadcastUsers($iConvoId, &$aData){
+        $sBegin = "REPLACE INTO `{$this->CNF['TABLE_MASS_TRACKER']}` 
+                          (`{$this->CNF['FIELD_MASS_CONVO_ID']}`, `{$this->CNF['FIELD_MASS_USER_ID']}`) 
+                   VALUES ";
+
+        $bExecuted = false;
+        $aProfileChunks = array_chunk($aData, 200);
+        foreach($aProfileChunks as &$aChunk) {
+            $aValues = array_map(function($iProfileId) use ($iConvoId){
+                return "($iConvoId, $iProfileId)";
+            }, $aChunk);
+
+            if (!empty($aValues)) {
+                $sBegin . implode(",", $aValues) ;
+                $bExecuted |= (bool)$this->query($sBegin . implode(",", $aValues));
+            }
+        };
+
+        return $bExecuted;
+    }
+
+    function getBroadcastParticipants($iConvoId){
+        return $this->getColumn( "SELECT `{$this->CNF['FIELD_MASS_USER_ID']}` 
+                                            FROM `{$this->CNF['TABLE_MASS_TRACKER']}` 
+                                            WHERE `{$this->CNF['FIELD_MASS_CONVO_ID']}`=:id", ['id' => $iConvoId]);
+    }
+
+    function getNotificationsSettings($sGroup){
+        return $this->getPairs("SELECT `delivery`, `active` FROM `bx_notifications_settings` WHERE `group`=:group", 'delivery', 'active', ['group' => $sGroup]);
     }
 }
 

@@ -69,6 +69,50 @@ window.oMUtils = (function($) {
                 }, 'json');
             },
             onCreateGroup: (iGroupId) => $.post('modules/?r=messenger/get_create_group_form', { group: iGroupId }, (oData) => processJsonData(oData), 'json'),
+            getBroadcastFields: () => {
+                const { createConvoForm } = window.oMessengerSelectors.CREATE_TALK;
+                const aFields = Object.create(null);
+                $(createConvoForm).find('input:not([name="csrf_token"]),select').each(function(){
+                        const sType = $(this).prop('type'),
+                            sName = $(this).prop('name').replace(/\[\]/, '');
+
+                        switch(sType) {
+                            case "checkbox":
+                                if ($(this).is(':checked')) {
+                                    if (typeof aFields[sName] !== 'undefined')
+                                        aFields[sName].push($(this).val());
+                                    else
+                                        aFields[sName] = [$(this).val()];
+                                }
+                                break;
+                            case "text":
+                            case "hidden":
+                                if ($(this).val().length && sName.length)
+                                    aFields[sName] = $(this).val();
+                                break;
+                            default:
+                                const sInput = $(this).prop('tagName').toLowerCase();
+                                if (sInput === "select") {
+                                    if ($(this).prop('multiple')){
+                                        const aList = [];
+                                        $(this).find('option:selected').each(function(){
+                                            aList.push($(this).val());
+                                        });
+
+                                        aFields[sName] = aList;
+                                    } else
+                                        aFields[sName] = $(this).val();
+                                }
+                            }
+                        });
+
+                return aFields;
+            },
+            onCalculateProfiles: () => {
+                const aFields = window.oMUtils.getBroadcastFields();
+                if (Object.keys(aFields).length)
+                    $.post('modules/?r=messenger/calculate_profiles', { data: aFields }, (oData) => processJsonData(oData), 'json');
+            },
             toggleList: function(oObject){
                 const oDropDown =$(oObject).next();
                 return !oDropDown.is(':visible') ? oDropDown.fadeIn() : oDropDown.fadeOut();

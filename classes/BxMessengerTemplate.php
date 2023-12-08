@@ -51,7 +51,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         '3rd-libs.css'
 					 );
 
-		$aJs = array(
+		$aJs = [
 		                'primus.js',
                         'record-video.js',
 		                'editor.js',
@@ -72,8 +72,9 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         'notification-bubbles.js',
                         'jquery-ui/jquery.ui.widget.min.js',
                         'jquery-ui/jquery.ui.tooltip.min.js',
-                        'emoji.js'
-					);
+                 'emoji.js',
+                 'create-convo-menu.js'
+				];
 
 
 		if ($sMode === 'all')
@@ -573,16 +574,141 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         return $sProfilesList;
     }
 
+    public function _getBroadcastFields()
+    {
+        $CNF = &$this->_oConfig->CNF;
+
+        if(!isset($CNF['OBJECT_FORM_FILTER']))
+            return [];
+
+        $oForm = BxDolForm::getObjectInstance($CNF['OBJECT_FORM_FILTER'], $CNF['OBJECT_FORM_FILTER_DISPLAY'], $this);
+        if(!$oForm)
+            return [];
+
+        /*$aModules = BxDolService::call('system', 'get_profiles_modules', array(), 'TemplServiceProfiles');
+        if (empty($aModules))
+            return [];
+
+        $aSearchResult = [];
+        foreach($aModules as &$aModule) {
+            $sModule = $aModule['name'];
+            $aFields = BxDolRequest::serviceExists($sModule, 'get_searchable_fields') ? BxDolService::call($sModule, 'get_searchable_fields') : [];
+            if (!empty($aFields))
+                $aSearchResult = array_merge($aSearchResult, $aFields);
+        }*/
+
+        $aInputs = $oForm->aInputs;
+        //print_r($aInputs);
+
+        return $oForm->aInputs;//$aSearchResult;
+    }
+
+    /*public function getBroadcastFilterForm(){
+        $CNF = &$this->_oConfig->CNF;
+
+        $aFields = $this->_oConfig->CNF['BROADCAST-FIELDS'];
+        $aAllFields = $this->_getBroadcastFields();
+        if (empty($aFields) || empty($aAllFields))
+            return '';
+
+        $aMembershipLevels = [0 => _t('_sys_please_select')];
+        $aMembershipLevels += BxDolAcl::getInstance()->getMemberships(false, true, true, true);
+
+        $aFields = explode(',', $aFields);
+
+        $aCountries = [0 => _t('_sys_please_select')];
+        $aCountries += BxDolFormQuery::getDataItems('Country');
+
+        $aGender = [0 => _t('_sys_please_select')];
+        $aGender += BxDolFormQuery::getDataItems('Sex');
+
+        $aForm = ['form_attrs' => ['name' => 'bx-messenger-broadcast-form', 'id' => "bx-messenger-broadcast-form", 'csrf_token' => false]];
+        $aForm['inputs'] = [
+            [
+                'type' => 'hidden',
+                'value' => BX_IM_TYPE_BROADCAST,
+                'name' => 'convo_type'
+            ],
+            'filter' => [
+                'type' => 'input_set',
+                'caption' => _t('_bx_messenger_broadcast_profile_fields_title'),
+                [
+                    'type' => 'select',
+                    'caption' => _t('_bx_messenger_broadcast_field_countries'),
+                    'name' => 'countries',
+                    'values' => $aCountries
+                ],
+                [
+                    'type' => 'select',
+                    'caption' => _t('_bx_messenger_broadcast_field_membership'),
+                    'name' => 'membership',
+                    'values' => $aMembershipLevels
+                ],
+                [
+                    'type' => 'select',
+                    'caption' => _t('_bx_messenger_broadcast_field_gender'),
+                    'name' => 'gender',
+                    'values' => $aGender
+                ],
+                'attrs_wrapper' => ['class' => 'space-y-4'],
+            ],
+        ];
+
+        $aForm['inputs']['filter'][] = [
+            'type' => 'button',
+            'caption' => _t('_bx_messenger_broadcast_field_calculate'),
+            'value' => _t('_bx_messenger_broadcast_field_calculate'),
+            'name' => 'calculate',
+            'attrs' => array('class' => 'mt-4', 'onclick' => "{$CNF['JSMessengerLib']}.onCalculateProfiles();"),
+        ];
+
+        $oForm = new BxTemplFormView($aForm);
+        return $oForm -> getCode();
+    }*/
+
+
+    function getNotificationFormData(){
+        $aNotifFields = [];
+        if ($aNotifications = $this->_oDb->getNotificationsSettings($this->_oConfig->getName() . '_' . BX_MSG_NTFS_BROADCAST)) {
+            $aNotifValues = [];
+            foreach ($aNotifications as $sKey => $iValue) {
+                if ((int)$iValue)
+                    $aNotifValues[$sKey] = _t("_bx_messenger_broadcast_field_{$sKey}");
+            }
+
+            if (!empty($aNotifValues)){
+                $aNotifFields['notifications'] = [
+                    'type' => 'checkbox_set',
+                    'skip' => true,
+                    'caption' =>  _t('_bx_messenger_broadcast_field_notify'),
+                    'info' => _t('_bx_messenger_broadcast_field_notify_info'),
+                    'name' => 'notify_by',
+                    'attrs' => ['class' => 'flex items-center'],
+                    'attrs_wrapper' => ['class' => 'flex items-center'],
+                    'value' => array_keys($aNotifValues),
+                    'values' => $aNotifValues
+                ];
+            }
+        }
+
+        return $aNotifFields;
+    }
+
     function getCreateListArea($iLotId = 0, $mixedProfiles = [], $bEmptyDefaultList = false){
         $sContent = '';
+
+        $CNF = &$this->_oConfig->CNF;
 	    if ($this->_oConfig->CNF['SHOW-FRIENDS'] && !$bEmptyDefaultList)
             $sContent = $this->getFriendsList();
 
        $sProfilesList = $iLotId ? $this->getProfilesListWithDesign($iLotId, $mixedProfiles) : '';
+       $oCreateMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_CREATE_CONVO_MENU']);
+
 	   return $this->parseHtmlByName('create-list.html', [
 	       'items' => $sContent,
            'menu_button' => $this->parseHtmlByName('mobile-menu-button.html', []),
            'profiles_list' => $sProfilesList,
+           'convo_menu' => $oCreateMenu->getCode(),
            'bx_if:edit' => [
                 'condition' => $iLotId,
                 'content' => [ 'id' => $iLotId ]
@@ -1049,8 +1175,11 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
                     if ($bIsTrash || ($iIsVC && !$aJot[$CNF['FIELD_MESSAGE']]))
                         $sMessage = $this->getMessageIcons($aJot[$CNF['FIELD_MESSAGE_ID']], $bIsTrash ? 'delete' : 'vc', isAdmin() || $bIsLotAuthor);
-                    else {
+                    else
+                    {
+                        if ($aLotInfo[$CNF['FIELD_TYPE']] != BX_IM_TYPE_BROADCAST || ($aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_BROADCAST && empty($aJot[$CNF['FIELD_MESSAGE_AT']])))
                         $sMessage = $this->_oConfig->bx_linkify($aJot[$CNF['FIELD_MESSAGE']]);
+
                         if (!empty($aJot[$CNF['FIELD_MESSAGE_AT']])) {
                             $aAttachments = $this->getAttachment($aJot);
                             if (isset($aAttachments[BX_ATT_GROUPS_ATTACH]) && !empty($aAttachments[BX_ATT_GROUPS_ATTACH]))
@@ -2699,6 +2828,40 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         }
 
         return bx_is_api() ? $aResult : $this->parseHtmlByName('contacts-block.html', $aVars);
+    }
+
+    function getConnectionsForm($sType, $iProfileId){
+        $sText = MsgBox(_t("_bx_messenger_filter_criteria_on_$sType"));
+        if ($oConnection = $this->_oConfig->getConnectionByType($sType)) {
+            $sText = MsgBox(_t("_bx_messenger_filter_criteria_on_$sType"));
+            if ($iCount = $oConnection->getConnectedContentCount($iProfileId, true))
+                $sText = MsgBox(_t("_bx_messenger_filter_criteria_{$sType}_message", $iCount));
+        }
+
+        $CNF = &$this->_oConfig->CNF;
+
+        $aNotifFields = $this->getNotificationFormData();
+	    $aForm = [
+                    'form_attrs' => [
+                        'method' => 'post',
+                        'id' => $CNF['OBJECT_FORM_ENTRY'],
+                        'class' => 'space-y-4 max-h-60 overflow-y-auto'
+                    ],
+                    'inputs' => array_merge([
+                        'type' => [
+                            'type' => 'hidden',
+                            'name' => 'connection_type',
+                            'value' => $sType
+                        ],
+                        'action' => [
+                            'type' => 'custom',
+                            'content' => $sText,
+                        ]
+                    ], $aNotifFields)
+                ];
+
+        $oForm = new BxTemplFormView($aForm);
+        return $oForm -> getCode();
     }
 }
 

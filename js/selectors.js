@@ -147,7 +147,10 @@
                 existedUsersArea: '.bx-messenger-existed-users-list',
                 selectedUsersArea: '#bx-messenger-add-users',
                 foundUsersArea: '#bx-messenger-profiles-list',
-                selectedUsersListInputs: '{selectedUsersArea} input[name="users[]"]'
+                filterCriteria: '.bx-create-convo-criteria',
+                selectedUsersListInputs: '{selectedUsersArea} input[name="users[]"]',
+                filterCriteriaForm: '#bx-messenger-convo-filter-criteria',
+                createConvoForm: '#bx_messenger_lots'
             }
         };
         get(sName){

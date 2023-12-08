@@ -55,7 +55,8 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_time_in_history', '', @iCategId, '_bx_messenger_time_in_history', 'checkbox', '', '', '', 42),
 ('bx_messenger_dont_show_search_desc', '', @iCategId, '_bx_messenger_dont_show_search_desc', 'checkbox', '', '', '', 43),
 ('bx_messenger_use_unique_mode', '', @iCategId, '_bx_messenger_use_unique_mode', 'checkbox', '', '', '', 44),
-('bx_messenger_dont_update_title', '', @iCategId, '_bx_messenger_dont_update_title', 'checkbox', '', '', '', 45);
+('bx_messenger_dont_update_title', '', @iCategId, '_bx_messenger_dont_update_title', 'checkbox', '', '', '', 45),
+('bx_messenger_broadcast_fields', 'membership,gender,countries,birthday', @iCategId, '_bx_messenger_broadcast_fields', 'list', '', '', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:20:"get_broadcast_fields";}', 46);
 
 -- MENU: notifications
 SET @iMIOrder = (SELECT IFNULL(MAX(`order`), 0) FROM `sys_menu_items` WHERE `set_name` = 'sys_toolbar_member' AND `order` < 9999);
@@ -306,6 +307,23 @@ INSERT INTO `sys_menu_items`(`set_name`, `module`, `name`, `title_system`, `titl
 (CONCAT(@sName, '_jot_menu'), @sName, 'thread', '_bx_messenger_jot_menu_thread', '_bx_messenger_jot_menu_thread', 'javascript:void(0);', 'oMessenger.onReplyInThread(this);', '_self', 'comment-dots', '', 2147483647, 1, 0, 5, ''),
 (CONCAT(@sName, '_jot_menu'), @sName, 'save', '_bx_messenger_jot_menu_save', '_bx_messenger_jot_menu_save', 'javascript:void(0);', 'oMessenger.onSaveJotItem(this);', '_self', 'bookmark', '', 2147483647, 1, 0, 6, '');
 
+-- MENU: CREATE CONVO
+INSERT INTO `sys_menu_templates` (`id`, `template`, `title`, `visible`) VALUES
+(ROUND(RAND()*(9999 - 1000) + 1000), 'menu-create-convo.html', '_bx_messenger_create_convo_template_title', 1);
+SET @iTemplId = (SELECT `id` FROM `sys_menu_templates` WHERE `template`='menu-create-convo.html' AND `title`='_bx_messenger_create_convo_template_title' LIMIT 1);
+
+INSERT INTO `sys_objects_menu`(`object`, `title`, `set_name`, `module`, `template_id`, `deletable`, `active`, `override_class_name`, `override_class_file`) VALUES
+(CONCAT(@sName, '_create_convo_menu'), '_bx_messenger_create_convo_menu_title', CONCAT(@sName, '_create_convo_menu'), @sName, @iTemplId, 0, 1, 'BxMessengerCreateConvoMenu', 'modules/boonex/messenger/classes/BxMessengerCreateConvoMenu.php');
+
+INSERT INTO `sys_menu_sets`(`set_name`, `module`, `title`, `deletable`) VALUES
+(CONCAT(@sName, '_create_convo_menu'), @sName, '_bx_messenger_create_convo_menu_set_title', 0);
+
+INSERT INTO `sys_menu_items`(`set_name`, `module`, `name`, `title_system`, `title`, `link`, `onclick`, `target`, `icon`, `submenu_object`, `visible_for_levels`, `active`, `copyable`, `order`) VALUES
+(CONCAT(@sName, '_create_convo_menu'), @sName, 'standard', '_bx_messenger_create_convo_menu_standard_system', '_bx_messenger_create_convo_menu_standard', 'javascript:void(0);', '{js_object}.onSelectConvoFilter();', '_self', 'users', '', 2147483647, 1, 0, 0),
+(CONCAT(@sName, '_create_convo_menu'), @sName, 'followers', '_bx_messenger_create_convo_menu_followers_system', '_bx_messenger_create_convo_menu_followers_system', 'javascript:void(0);', '{js_object}.onSelectConvoFilter(''friends'');', '_self', 'group', '', 2147483647, 1, 0, 1),
+(CONCAT(@sName, '_create_convo_menu'), @sName, 'friends', '_bx_messenger_create_convo_menu_friends_system', '_bx_messenger_create_convo_menu_friends_system', 'javascript:void(0);', '{js_object}.onSelectConvoFilter(''friends'');', '_self', 'user-friends', '', 2147483647, 1, 0, 1),
+(CONCAT(@sName, '_create_convo_menu'), @sName, 'broadcast', '_bx_messenger_create_convo_menu_broadcast_system', '_bx_messenger_create_convo_menu_broadcast_system', 'javascript:void(0);', '{js_object}.onSelectConvoFilter(''broadcast'');', '_self', 'bullhorn', '', 2147483647, 1, 0, 2);
+
 ---- NEO APP FORM
 INSERT INTO `sys_objects_form` (`object`, `module`, `title`, `action`, `form_attrs`, `submit_name`, `table`, `key`, `uri`, `uri_title`, `params`, `deletable`, `active`, `parent_form`, `override_class_name`, `override_class_file`) VALUES
 ('bx_messenger_send', @sName, '_bx_messenger_neo_app_form', '', 'a:1:{s:7:"enctype";s:19:"multipart/form-data";}', 'submit', '', 'id', '', '', '', 0, 1, '', 'BxMessengerFormEntry', 'modules/boonex/messenger/classes/BxMessengerFormEntry.php');
@@ -356,3 +374,13 @@ INSERT INTO `sys_menu_sets`(`set_name`, `module`, `title`, `deletable`) VALUES
 INSERT INTO `sys_menu_items`(`set_name`, `module`, `name`, `title_system`, `title`, `link`, `onclick`, `target`, `icon`, `submenu_object`, `visible_for_levels`, `active`, `copyable`, `editable`, `order`) VALUES
 ('bx_messenger_profile_snippet_meta', @sName, 'message', '_bx_messenger_item_title_sm_message', '_bx_messenger_item_title_sm_message', 'page.php?i=messenger', '', '', 'comments', '', 2147483647, 0, 0, 1, 1);
 
+-- Messenger card settings
+INSERT INTO `bx_messenger_attachments` (`name`, `service`) VALUES
+('bx_messenger', 'a:3:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:18:"get_broadcast_card";s:6:"params";a:0:{}}');
+
+---- SEARCH CRITERIA FORM
+INSERT INTO `sys_objects_form` (`object`, `module`, `title`, `action`, `form_attrs`, `submit_name`, `table`, `key`, `uri`, `uri_title`, `params`, `deletable`, `active`, `parent_form`, `override_class_name`, `override_class_file`) VALUES
+('bx_messenger_filter_criteria', @sName, '_bx_messenger_filter_criteria_form', '', 'a:1:{s:7:"enctype";s:19:"multipart/form-data";}', '', '', '', '', '', '', 0, 1, '', 'BxMessengerFilterForm', 'modules/boonex/messenger/classes/BxMessengerFilterForm.php');
+
+INSERT INTO `sys_form_displays` (`display_name`, `module`, `object`, `title`) VALUES
+('bx_messenger_filter_criteria', @sName, 'bx_messenger_filter_criteria', '_bx_messenger_filter_criteria_form_display');

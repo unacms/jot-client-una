@@ -2081,18 +2081,6 @@
 			oParams.parent = _this.iThreadId;
 				
 		oParams.participants = _this.getParticipantsList();
-		if (!+_this.oSettings.lot){
-			if (!oParams.participants.length) {
-				if (+_this.iSelectedPersonToTalk) {
-				oParams.participants.push(_this.iSelectedPersonToTalk);
-				_this.iSelectedPersonToTalk = 0;
-				} else {
-					bx_alert(_t('_bx_messenger_lot_parts_empty'));
-					return ;
-				}
-			}
-			oParams.type = _this.iLotType;
-		}
 
 		oParams.message = $.trim(sMessage);
 		if (!oParams.message.length && !oParams.files.length && typeof oParams.giphy === 'undefined')
@@ -2192,6 +2180,25 @@
 				oNewSettings.group_id = 0;
 				oParams.group_id = 0;
 			}
+
+			const aBroadcastData = oMUtils.getBroadcastFields();
+			if (Object.keys(aBroadcastData).length)
+				oParams['broadcast'] = aBroadcastData;
+			else
+			if (!+_this.oSettings.lot){
+				if (!oParams.participants.length) {
+					if (+_this.iSelectedPersonToTalk) {
+						oParams.participants.push(_this.iSelectedPersonToTalk);
+						_this.iSelectedPersonToTalk = 0;
+					} else {
+						bx_alert(_t('_bx_messenger_lot_parts_empty'));
+						return ;
+					}
+				}
+
+				oParams.type = _this.iLotType;
+			}
+
 			_this.updateLotSettings(oNewSettings);
 		}
 

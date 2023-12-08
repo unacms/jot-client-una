@@ -73,7 +73,9 @@ INSERT INTO `bx_messenger_lots_types` (`id`, `name`, `show_link`) VALUES
 (2, 'private', 0),
 (3, 'sets', 0),
 (4, 'groups', 1),
-(5, 'events', 1);
+(5, 'events', 1),
+(6, 'broadcast', 0);
+
 
 CREATE TABLE IF NOT EXISTS `bx_messenger_users_info` (
     `lot_id` int(11) unsigned NOT NULL default 0,

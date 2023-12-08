@@ -243,3 +243,17 @@ div.bx-messenger-border.search .star a.active
 }
 
 /* decorous, lucid templates corrections to make page adoptive - end */
+
+.bx-messenger-broadcast-filter-area label {
+	padding-left: 0.3rem;
+	padding-bottom: 0.3rem;
+}
+
+#bx-messenger-message-box {
+	max-height: 180px;
+	overflow-y: auto;
+}
+
+.bx-messenger-create-convo-menu {
+
+}

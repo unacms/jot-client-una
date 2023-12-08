@@ -30,6 +30,7 @@ DELETE FROM `sys_acl_actions` WHERE `Module` = @sName;
 DELETE FROM `sys_menu_items` WHERE `module` = @sName;
 DELETE FROM `sys_menu_sets` WHERE `module` = @sName;
 DELETE FROM `sys_objects_menu` WHERE `module` = @sName;
+DELETE FROM `sys_menu_templates` WHERE `template`='menu-create-convo.html' AND `title`='_bx_messenger_create_convo_template_title';
 
 -- PRIVACY
 --DELETE FROM `sys_objects_privacy` WHERE `object` = 'bx_messenger_allow_view_groups_to';

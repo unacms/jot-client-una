@@ -1223,8 +1223,6 @@ class BxMessengerDb extends BxBaseModGeneralDb
                 return false;
         }
 
-        if (!empty($aParamWhere))
-            $aSWhere[] = '(' . implode(' OR ', $aParamWhere) . ')';
 
         if (isset($aParams['type']) && $aParams['type']) {
             if (is_numeric($aParams['type'])) {
@@ -1356,7 +1354,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 			FROM `{$this->CNF['TABLE_MESSAGES']}` 
 			WHERE `{$this->CNF['FIELD_MESSAGE_AUTHOR']}`=:profile", $aWhere);
 
-           $this -> query("DELETE FROM `{$this->CNF['TABLE_MASS_TRACKER']}` WHERE `{$this->CNF['FIELD_MASS_USER_ID']}` =:profile_id", ['id' => $iProfileId]);
+        $this -> query("DELETE FROM `{$this->CNF['TABLE_MASS_TRACKER']}` WHERE `{$this->CNF['FIELD_MASS_USER_ID']}` =:profile_id", ['profile_id' => $iProfileId]);
 
 		if ($bTalks)
             $bResult &= (bool)$this->query("DELETE 

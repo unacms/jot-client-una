@@ -17,7 +17,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
    private $CNF;
    function __construct(&$oConfig)
    {
-		parent::__construct($oConfig);		
+		parent::__construct($oConfig);
 		$this->CNF = &$oConfig -> CNF;
 	}
 	

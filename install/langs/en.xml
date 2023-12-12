@@ -393,7 +393,8 @@ name="_bx_ntfs_alert_action_got_broadcast_ntfs_personal"><![CDATA[Broadcast mess
 	<string name="_bx_messenger_broadcast_field_push"><![CDATA[Push]]></string>
 	<string name="_bx_messenger_broadcast_field_site"><![CDATA[Site]]></string>
 	<string name="_bx_messenger_broadcast_field_notify"><![CDATA[Notify user]]></string>
-	<string name="_bx_messenger_broadcast_field_notify_info"><![CDATA[Participants will be notified via selected ways]]></string>
+	<string name="_bx_messenger_broadcast_field_notify_info">
+<![CDATA[Participants will be notified using selected methods]]></string>
 	<string name="_bx_messenger_broadcast_field_author"><![CDATA[Author of the broadcast]]></string>
 	<string name="_bx_messenger_broadcast_field_author_info"><![CDATA[If to leave it empty, creator profile will be used as author]]></string>
 	<string name="_bx_messenger_broadcast_message_title"><![CDATA[Broadcast message]]></string>
@@ -406,4 +407,5 @@ name="_bx_ntfs_alert_action_got_broadcast_ntfs_personal"><![CDATA[Broadcast mess
 	<string name="_bx_messenger_filter_criteria_followers_message"><![CDATA[You have totally {0} followers to participate in this broadcast]]></string>
 	<string name="_bx_messenger_filter_criteria_on_friends"><![CDATA[You have no friends to create broadcast]]></string>
 	<string name="_bx_messenger_filter_criteria_on_followers"><![CDATA[You have no followers to create broadcast]]></string>
+	<string name="_bx_messenger_acl_action_create_broadcast"><![CDATA[Create broadcasts]]></string>
 </resources>

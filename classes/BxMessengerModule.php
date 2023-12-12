@@ -57,6 +57,7 @@ define('BX_MSG_ACTION_VIDEO_RECORDER', 'video_recorder');
 define('BX_MSG_ACTION_JOIN_IM_VC', 'join_personal_vc');
 define('BX_MSG_ACTION_JOIN_TALK_VC', 'join_vc');
 define('BX_MSG_ACTION_CREATE_GROUPS', 'create_groups');
+define('BX_MSG_ACTION_CREATE_BROADCASTS', 'create_broadcasts');
 
 // Lot settings
 define('BX_MSG_SETTING_MSG', 'msg'); // allow to send messages
@@ -4236,9 +4237,36 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         return $this->_oTemplate->getContacts($this->_iProfileId, $aParams);
     }
-    
+
     public function serviceGetBroadcastFields($aInputsAdd = array()) {
         return $this->_oTemplate->_getBroadcastFields();
+    }
+
+    private function getProfilesByCriteria($aData){
+        if (isset($aData['connection_type'])){
+            if ($oConnection = $this->_oConfig->getConnectionByType($aData['connection_type'])) {
+                return $oConnection->getConnectedContent($this->_iProfileId, true);
+            }
+        }
+
+        $CNF = &$this->_oConfig->CNF;
+        if (!($oForm = BxDolForm::getObjectInstance($CNF['OBJECT_FORM_FILTER'], $CNF['OBJECT_FORM_FILTER_DISPLAY'])) || empty($oForm->aInputs))
+            return false;
+
+        $aFields = [];
+        foreach($oForm->aInputs as &$aInput){
+            if (!isset($aData[$aInput['name']]) || isset($aInput['skip']) || $aInput['name'] === 'convo_type')
+                continue;
+
+            if (!empty($aInput['values']))
+                $aFields[$aInput['name']] = array_filter($aData[$aInput['name']], function($sVal) use ($aInput) {
+                    return in_array($sVal, array_keys($aInput['values']));
+                });
+            else
+                $aFields[$aInput['name']] = $aData[$aInput['name']];
+        }
+
+        return $this->_oDb->getProfilesByCriteria($aFields);
     }
 
     function actionCalculateProfiles(){

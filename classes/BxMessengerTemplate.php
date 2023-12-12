@@ -708,7 +708,12 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	       'items' => $sContent,
            'menu_button' => $this->parseHtmlByName('mobile-menu-button.html', []),
            'profiles_list' => $sProfilesList,
+           'bx_if:broadcast' => [
+               'condition' => $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_BROADCASTS) === true,
+               'content' => [
            'convo_menu' => $oCreateMenu->getCode(),
+               ],
+           ],
            'bx_if:edit' => [
                 'condition' => $iLotId,
                 'content' => [ 'id' => $iLotId ]

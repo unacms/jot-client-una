@@ -297,7 +297,7 @@ INSERT INTO `sys_menu_items`(`set_name`, `module`, `name`, `title_system`, `titl
 (CONCAT(@sName, '_lot_info_menu'), @sName, 'media', '_bx_messenger_lots_menu_media', '_bx_messenger_lots_menu_media', 'javascript:void(0);', 'oMessenger.onMedia({id});', '_self', 'photo-video', '', 2147483647, 1, 0, 3, ''),
 (CONCAT(@sName, '_lot_info_menu'), @sName, 'clear', '_bx_messenger_lots_menu_clear', '_bx_messenger_lots_menu_clear', 'javascript:void(0);', 'oMessenger.onClearLot({id});', '_self', 'trash', '', 2147483647, 1, 0, 4, ''),
 (CONCAT(@sName, '_lot_info_menu'), @sName, 'settings', '_bx_messenger_lots_menu_settings', '_bx_messenger_lots_menu_settings', 'javascript:void(0)', 'oMessenger.onLotSettings(this, ''{lot_menu_id}'')', '_self', 'cogs', '', 2147483647, 1, 0, 5, ''),
-(CONCAT(@sName, '_lot_info_menu'), @sName, 'info', '_bx_messenger_lots_menu_info', '_bx_messenger_lots_menu_info', 'javascript:void(0)', 'oMessenger.onLotInfo(this, ''{lot_menu_id}'')', '_self', 'info-circle', '', 2147483647, 1, 0, 5, '');
+(CONCAT(@sName, '_lot_info_menu'), @sName, 'info', '_bx_messenger_lots_menu_info', '_bx_messenger_lots_menu_info', 'javascript:void(0)', 'oMessenger.onLotInfo(this, ''{lot_menu_id}'')', '_self', 'info-circle', '', 2147483647, 1, 0, 6, '');
 
 -- MENU: Message menu
 INSERT INTO `sys_objects_menu`(`object`, `title`, `set_name`, `module`, `template_id`, `deletable`, `active`, `override_class_name`, `override_class_file`) VALUES

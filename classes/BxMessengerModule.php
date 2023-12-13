@@ -4318,6 +4318,18 @@ class BxMessengerModule extends BxBaseModGeneralModule
         header('Content-Type:text/javascript; charset=utf-8');
         echo(json_encode($a));
     }
+
+    function actionGetTalkInfo(){
+        $iLotId = (int)bx_get('lot_id');
+        if (!$iLotId)
+            return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_found'))));
+
+        if (!$this->isAvailable($iLotId))
+            return echoJson(array('code' => 1, 'message' => '_bx_messenger_not_participant'));
+
+        $sContent = $this->_oTemplate->getInfoBlockContent($iLotId);
+        return echoJson(array('code' => 0, 'html' => $sContent));
+    }
 }
 
 /** @} */

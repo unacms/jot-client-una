@@ -397,7 +397,24 @@
 			if (typeof (fCallback) === 'function')
 				fCallback({ total });
 		}, 'json');
+	};
 
+	oMessenger.prototype.loadTalkInfo = function(oBlock, fCallback) {
+		const { msgContainer } = window.oMessengerSelectors.SYSTEM;
+		bx_loading(oBlock, true);
+		$.get('modules/?r=messenger/get_talk_info/', {
+			lot_id: this.oSettings.lot
+		}, function ({ code, html, total }) {
+			bx_loading(oBlock, false);
+
+			if (!code && !($(msgContainer, oBlock).length && $(html).hasClass(msgContainer)))
+				$(oBlock)
+					.append(html)
+					.bxMsgTime();
+
+			if (typeof (fCallback) === 'function')
+				fCallback({ total });
+		}, 'json');
 	};
 
 	oMessenger.prototype.updateLotSettings = function(oOptions) {
@@ -3982,6 +3999,19 @@
 								}
 							)
 							);
+		},
+		onLotInfo: function () {
+			const { infoColumnContent } = window.oMessengerSelectors.INFO,
+				{ attPrefixSelector } = window.oMessengerSelectors.ATTACHMENTS;
+
+			if (!_oMessenger.isBlockVersion())
+				_oMessenger.oMenu.showInfoPanel();
+			else
+				_oMessenger.oMenu.toggleBlockInfoPanel();
+
+			// remove previous content
+			$(infoColumnContent).html('');
+			return _oMessenger.loadTalkInfo($(infoColumnContent));
 		},
 		onToggleInfoPanel: function () {
 			if (!_oMessenger.isBlockVersion())

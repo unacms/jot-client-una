@@ -394,4 +394,8 @@ name="_bx_messenger_neo_app_form"><![CDATA[Форма для отправки с
 	<string name="_bx_messenger_filter_criteria_on_friends"><![CDATA[У вас нет друзей для участия в рассылке]]></string>
 	<string name="_bx_messenger_filter_criteria_on_followers"><![CDATA[У вас нет подписчиков для участия в рассылке]]></string>
 	<string name="_bx_messenger_acl_action_create_broadcast"><![CDATA[Создать рассылку]]></string>
+
+	<string name="_bx_messenger_convo_info_participants"><![CDATA[Участники]]></string>
+	<string name="_bx_messenger_convo_info_messages"><![CDATA[Сообщения]]></string>
+	<string name="_bx_messenger_convo_info_files"><![CDATA[Файлы]]></string>
 </resources>

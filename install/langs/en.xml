@@ -408,4 +408,8 @@ name="_bx_ntfs_alert_action_got_broadcast_ntfs_personal"><![CDATA[Broadcast mess
 	<string name="_bx_messenger_filter_criteria_on_friends"><![CDATA[You have no friends to create broadcast]]></string>
 	<string name="_bx_messenger_filter_criteria_on_followers"><![CDATA[You have no followers to create broadcast]]></string>
 	<string name="_bx_messenger_acl_action_create_broadcast"><![CDATA[Create broadcasts]]></string>
+
+	<string name="_bx_messenger_convo_info_participants"><![CDATA[Participants]]></string>
+	<string name="_bx_messenger_convo_info_messages"><![CDATA[Messages]]></string>
+	<string name="_bx_messenger_convo_info_files"><![CDATA[Files]]></string>
 </resources>

@@ -48,7 +48,8 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         'create-list.css',
                         'attachment.css',
                         'scroll-elements.css',
-                        '3rd-libs.css'
+                        '3rd-libs.css',
+                        'talk-info.css'
 					 );
 
 		$aJs = [
@@ -2790,6 +2791,52 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
         $oForm = new BxTemplFormView($aForm);
         return $oForm -> getCode();
+    }
+
+    function getInfoBlockContent($iLotId){
+        if (!($aLotInfo = $this->_oDb->getLotInfoById($iLotId)))
+            return '';
+
+        $CNF = $this->_oConfig->CNF;
+        if (!($oProfile = $this->getObjectUser($aLotInfo[$CNF['FIELD_AUTHOR']])))
+            return '';
+
+        $sThumb = $oProfile->getAvatar();
+        $bThumb = stripos($sThumb, 'no-picture') === FALSE;
+        $sDisplayName = $oProfile->getDisplayName();
+        $iPartCount = count($this->_oDb->getParticipantsList($iLotId));
+        $iFilesCount = $this->_oDb->getLotFilesCount($iLotId);
+        $iMessagesCount = $this->_oDb->getJotsNumber($iLotId, 0);
+
+        $aItem = [
+          'parts' => $iPartCount,
+          'files' => $iFilesCount,
+          'messages' => $iMessagesCount,
+          'profile_url' => $oProfile->getUrl()
+        ];
+
+        $aItem = array_merge($aItem,[
+            'name' => $sDisplayName,
+            'id' => $oProfile -> id(),
+            'bx_if:avatars' => array(
+                'condition' => $bThumb,
+                'content' => array(
+                    'thumb' => $sThumb,
+                    'title' => $sDisplayName,
+                )
+            ),
+            'bx_if:letters' => array(
+                'condition' => !$bThumb,
+                'content' => array(
+                    'color' => implode(', ', BxDolTemplate::getColorCode($aLotInfo[$CNF['FIELD_AUTHOR']], 1.0)),
+                    'title' => $sDisplayName,
+                    'letter' => mb_substr($sDisplayName, 0, 1)
+                )
+            )
+        ]);
+
+
+        return $this->parseHtmlByName('talk-info.html', $aItem);
     }
 }
 

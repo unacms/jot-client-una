@@ -510,9 +510,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if ($sClass === BX_MSG_TALK_CLASS_MARKET)
             $sUrl = $this->_oConfig->getPageIdent($sUrl);
 
-        if (isset($aData[BX_MSG_TALK_TYPE_BROADCAST]))
-            $iType = BX_IM_TYPE_BROADCAST;
-
         $aResult = [];
         if (($sMessage || !empty($aFiles) || !empty($aGiphy) || !empty($aAttachments)) && ($iId = $this->_oDb->saveMessage(
             array(
@@ -532,7 +529,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             if (!$iLotId)
                 $aResult['lot_id'] = $this->_oDb->getLotByJotId($iId);
 
-            if ($iType === BX_IM_TYPE_BROADCAST && !$iLotId && (int)$aResult['lot_id'] && isset($aData[BX_MSG_TALK_TYPE_BROADCAST])) {
+            if ($iType === BX_IM_TYPE_BROADCAST && !$iLotId && (int)$aResult['lot_id']) {
                 $iAuthorId = $this->_iProfileId;
                 $iCreatedLot = (int)$aResult['lot_id'];
                 if (isset($aData[BX_MSG_TALK_TYPE_BROADCAST]['author']) && (int)$aData[BX_MSG_TALK_TYPE_BROADCAST]['author']) {
@@ -544,14 +541,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 $aBroadcastParticipants = $this->getProfilesByCriteria($aData[BX_MSG_TALK_TYPE_BROADCAST]);
                 $this->_oDb->createBroadcastUsers($iCreatedLot, $aBroadcastParticipants);
                 $this->_oDb->markAsNewJot($aBroadcastParticipants, $iCreatedLot, $iId);
-
-                /*$this->_oDb->query("REPLACE INTO `bx_messenger_lots_settings`
-                                          SET `lot_id`=:id, `actions`=:actions, `settings`=:settings",
-                    array('id' => $iLotId,
-                        'actions' => 'a:4:{i:0;s:3:"msg";i:1;s:5:"giphy";i:2;s:5:"files";i:3;s:6:"smiles";}',
-                        'settings' => 'a:4:{i:0;s:10:"video_call";i:1;s:4:"mute";i:2;s:4:"star";i:3;s:8:"settings";}'));*/
-
-                $this->_oDb->updateJot($iId, $CNF['FIELD_MESSAGE_AT'], @serialize([$this->_oConfig->getName() => (int)$iId]));
+  
+                $aAttachments[$this->_oConfig->getName()] = (int)$iId;
 
                 $aPartList = array_unique(array_merge($aParticipants, $aBroadcastParticipants), SORT_NUMERIC);
                 $sModule = $this->_oConfig->getObject('alert');
@@ -647,7 +638,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 		 if (!$this->isLogged())
             return echoJson(['code' => 1, 'message' => _t('_bx_messenger_not_logged'), 'reload' => 1]);
 
-		if (isset($aData[BX_MSG_TALK_TYPE_BROADCAST]))
+		if (isset($aData[BX_MSG_TALK_TYPE_BROADCAST]) && $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_BROADCASTS) === true)
             $aData['type'] = BX_IM_TYPE_BROADCAST;
 
 		$aLastJotInfo = isset($aData['lot']) ? $this->_oDb->getLatestJot($aData['lot'], BX_IM_EMPTY, false) : [];
@@ -2371,6 +2362,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 $aBroadcastParts = $this->_oDb->getBroadcastParticipants($iLotId);
                 $aPartList = array_unique(array_merge($aPartList, $aBroadcastParts), SORT_NUMERIC);
             }
+              else
+                return false;
         }
 
         if (empty($aPartList))

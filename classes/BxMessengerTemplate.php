@@ -24,57 +24,56 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	*@param string $sMode 
 	*/
 	public function loadCssJs($sMode = 'all'){
-	    $CNF = $this->_oConfig->CNF;
-	    $aCss = array(
-						'main.css',
-                        'video-conference.css',
-                        'emoji.css',
-                        'messenger-phone.css',
-                        'quill.bubble.css',
-                        'menu-accordion.css',
-                        'lot-briefs.css',
-                        'text-area.css',
-                        'menu-column.css',
-                        'history.css',
-                        'history-header.css',
-                        'message.css',
-                        'talk.css',
-                        'talks-list.css',
-                        'info-block.css',
-                        'time-divider.css',
-                        'message-menu.css',
-                        'giphy.css',
-                        'tailwind-messenger.css',
-                        'create-list.css',
-                        'attachment.css',
-                        'scroll-elements.css',
-                        '3rd-libs.css',
-                        'talk-info.css'
-					 );
+	    $aCss = [
+				   'main.css',
+                   'video-conference.css',
+                   'emoji.css',
+                   'messenger-phone.css',
+                   'quill.bubble.css',
+                   'menu-accordion.css',
+                   'lot-briefs.css',
+                   'text-area.css',
+                   'menu-column.css',
+                   'history.css',
+                   'history-header.css',
+                   'message.css',
+                   'talk.css',
+                   'talks-list.css',
+                   'info-block.css',
+                   'time-divider.css',
+                   'message-menu.css',
+                   'giphy.css',
+                   'tailwind-messenger.css',
+                   'create-list.css',
+                   'attachment.css',
+                   'scroll-elements.css',
+                   '3rd-libs.css',
+                   'talk-info.css'
+				];
 
 		$aJs = [
-		                'primus.js',
-                        'record-video.js',
-		                'editor.js',
-                        'storage.js',
-						'connect.js',
-						'status.js',
-                        'lazy-loading.js',
-                        'selectors.js',
-                        'jot-menu.js',
-                        'messenger.js',
-						'RecordRTC.min.js',
-						'adapter.js',
-                        'soundjs.min.js',
-                        'quill.min.js',
-                        'nav-menu.js',
-                        'utils.js',
-                        'media-accordion.js',
-                        'notification-bubbles.js',
-                        'jquery-ui/jquery.ui.widget.min.js',
-                        'jquery-ui/jquery.ui.tooltip.min.js',
-                 'emoji.js',
-                 'create-convo-menu.js'
+                    'primus.js',
+                    'record-video.js',
+                    'editor.js',
+                    'storage.js',
+                    'connect.js',
+                    'status.js',
+                    'lazy-loading.js',
+                    'selectors.js',
+                    'jot-menu.js',
+                    'messenger.js',
+                    'RecordRTC.min.js',
+                    'adapter.js',
+                    'soundjs.min.js',
+                    'quill.min.js',
+                    'nav-menu.js',
+                    'utils.js',
+                    'media-accordion.js',
+                    'notification-bubbles.js',
+                    'jquery-ui/jquery.ui.widget.min.js',
+                    'jquery-ui/jquery.ui.tooltip.min.js',
+                    'emoji.js',
+                    'create-convo-menu.js'
 				];
 
 
@@ -578,7 +577,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
     public function _getBroadcastFields()
     {
         $CNF = &$this->_oConfig->CNF;
-
         if(!isset($CNF['OBJECT_FORM_FILTER']))
             return [];
 
@@ -631,7 +629,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
            'menu_button' => $this->parseHtmlByName('mobile-menu-button.html', []),
            'profiles_list' => $sProfilesList,
            'bx_if:broadcast' => [
-                'condition' => $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_BROADCASTS) === true,
+                'condition' => $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_BROADCASTS) === true && !$iLotId,
                 'content' => [
                     'convo_menu' => $oCreateMenu->getCode(),
                 ],

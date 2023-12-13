@@ -396,7 +396,7 @@ name="_bx_ntfs_alert_action_got_broadcast_ntfs_personal"><![CDATA[Broadcast mess
 	<string name="_bx_messenger_broadcast_field_notify_info">
 <![CDATA[Participants will be notified using selected methods]]></string>
 	<string name="_bx_messenger_broadcast_field_author"><![CDATA[Author of the broadcast]]></string>
-	<string name="_bx_messenger_broadcast_field_author_info"><![CDATA[If to leave it empty, creator profile will be used as author]]></string>
+	<string name="_bx_messenger_broadcast_field_author_info"><![CDATA[If to leave it empty, creator will be used as author]]></string>
 	<string name="_bx_messenger_broadcast_message_title"><![CDATA[Broadcast message]]></string>
 	<string name="_bx_messenger_broadcast_message_body"><![CDATA[Broadcast]]></string>
 	<string name="_bx_messenger_txt_subobject_added_broadcast"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> created broadcast {subentry_sample}]]></string>

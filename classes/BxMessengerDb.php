@@ -111,8 +111,8 @@ class BxMessengerDb extends BxBaseModGeneralDb
         $this -> query("DELETE FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = :id", array('id' => $iLotId));
         $this -> query("DELETE FROM `{$this->CNF['TABLE_LOT_SETTINGS']}` WHERE `{$this->CNF['FLS_ID']}` = :id", array('id' => $iLotId));
         $this -> query("DELETE FROM `{$this->CNF['TABLE_USERS_INFO']}` WHERE `{$this->CNF['FIELD_INFO_LOT_ID']}` = :id", array('id' => $iLotId));
-	$this -> query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id", array('id' => $iLotId));
-	$this -> query("DELETE FROM `{$this->CNF['TABLE_MASS_TRACKER']}` WHERE `{$this->CNF['FIELD_MASS_CONVO_ID']}` = :id", array('id' => $iLotId));
+        $this -> query("DELETE FROM `{$this->CNF['TABLE_MESSAGES']}` WHERE `{$this->CNF['FIELD_MESSAGE_FK']}` = :id", array('id' => $iLotId));
+        $this -> query("DELETE FROM `{$this->CNF['TABLE_MASS_TRACKER']}` WHERE `{$this->CNF['FIELD_MASS_CONVO_ID']}` = :id", array('id' => $iLotId));
 
         $this->removeNotifications(0, $iLotId);
 		return true;

@@ -73,6 +73,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'FIELD_CLASS' => 'class',
             'FIELD_PARENT_JOT' => 'parent_jot',
             'FIELD_VISIBILITY' => 'visibility',
+            'FIELD_HASH' => 'hash',
 
             // storage tale
             'FIELD_ST_ID' => 'id',
@@ -668,6 +669,14 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
 
     public function getConnectionToFunctionCheck(){
         return true;
+    }
+
+    public function generateConvoHash($iId){
+        $sHash = genRndPwd(10, false);
+        if (!uriCheckUniq($sHash, $this->CNF['TABLE_ENTRIES'], $this->CNF['FIELD_HASH']))
+            $sHash = md5($iId . BX_DOL_SECRET);
+
+        return strtolower($sHash);
     }
 
     public function getConnectionByType($sType){

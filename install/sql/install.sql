@@ -49,7 +49,9 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_lots` (
    `class` varchar(20) NOT NULL default 'custom',
    `parent_jot` int(11) unsigned NOT NULL default 0,
    `visibility` tinyint(1) NOT NULL default 0,
-   PRIMARY KEY  (`id`)
+   `hash` varchar(32) NOT NULL,
+   PRIMARY KEY  (`id`),
+   UNIQUE KEY `hash` (`hash`)
 );
 
 CREATE TABLE IF NOT EXISTS `bx_messenger_attachments` (

@@ -350,13 +350,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
         if (isset($aData['thread']))
             $iAuthorId = $iProfileId;
 
-        if (isset($aData['thread']) && $aData['thread']) {
-            $aJotInfo = $this->getJotById($aData['thread']);
-            $iLotId = $this->createNewLot($iProfileId, $aData, $aParticipants);
-        }
-        else
-            $iLotId = $this->createNewLot($iAuthorId, $aData, $aParticipants);
-
+        $iLotId = $this->createNewLot($iAuthorId, $aData, $aParticipants);
         if (!$iLotId)
             return false;
 
@@ -570,7 +564,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
         $iThread = isset($aData['thread']) ? (int)$aData['thread'] : BX_ATT_TYPE_CUSTOM;
         $iVisibility = isset($aData['visibility']) ? (int)$aData['visibility'] : 0;
 
-
+        $sHash = $this->_oConfig->generateConvoHash(time());
         $mixedParticipants = !empty($aParticipants) ? implode(',', $aParticipants) : '';
 
         $sQuery = $this->prepare("INSERT INTO `{$this->CNF['TABLE_ENTRIES']}` 
@@ -582,7 +576,10 @@ class BxMessengerDb extends BxBaseModGeneralDb
 													 `{$this->CNF['FIELD_VISIBILITY']}` = ?,
 													 `{$this->CNF['FIELD_CLASS']}` = ?,
 													 `{$this->CNF['FIELD_PARENT_JOT']}` = ?,
-													 `{$this->CNF['FIELD_URL']}` = ?", $sTitle, $iType, $iProfileId, $mixedParticipants, $iVisibility, $sClass, $iThread, $sUrl);
+													 `{$this->CNF['FIELD_URL']}` = ?,
+													 `{$this->CNF['FIELD_HASH']}` = ?",
+                                                     $sTitle, $iType, $iProfileId, $mixedParticipants,
+                                                     $iVisibility, $sClass, $iThread, $sUrl, $sHash);
 
         return $this->query($sQuery) ? $this -> lastId() : false;
     }
@@ -2703,7 +2700,28 @@ class BxMessengerDb extends BxBaseModGeneralDb
         return 0;
     }
 
-function getProfilesByCriteria($aFields){
+    function updateConvoHash($iConvoId){
+        $sHash = $this->_oConfig->generateConvoHash($iConvoId);
+        return $this->query("UPDATE `{$this->CNF['TABLE_ENTRIES']}` SET `{$this->CNF['FIELD_HASH']}`=:hash 
+                                            WHERE `{$this->CNF['FIELD_ID']}`=:id ", ['hash' => $sHash, 'id' => $iConvoId]);
+    }
+
+    function updateConvoFiled($iConvoId, $sField, $mixedValue){
+        if (!$sField)
+            return false;
+
+        return $this->query("UPDATE `{$this->CNF['TABLE_ENTRIES']}` 
+                             SET `{$sField}`=:value 
+                             WHERE `{$this->CNF['FIELD_ID']}`=:id", ['value' => $mixedValue, 'id' => $iConvoId]);
+    }
+
+    function getConvoByHash($sHash, $bIdOnly = true){
+        $aConvo = $this->getRow("SELECT * FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_HASH']}`=:hash LIMIT 1", ['hash' => $sHash]);
+
+        return $bIdOnly && !empty($aConvo) ? $aConvo[$this->CNF['FIELD_ID']] : $aConvo;
+    }
+
+    function getProfilesByCriteria($aFields){
         if (empty($aFields))
             return [];
 

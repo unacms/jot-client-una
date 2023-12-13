@@ -156,6 +156,10 @@ INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`,
 SET @iIdActionAdminTalks = LAST_INSERT_ID();
 
 INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`, `Desc`, `Countable`, `DisabledForLevels`) VALUES
+(@sName, 'create broadcasts', NULL, '_bx_messenger_acl_action_create_broadcast', '', 1, 0);
+SET @iIdActionBroadcastTalks = LAST_INSERT_ID();
+
+INSERT INTO `sys_acl_actions` (`Module`, `Name`, `AdditionalParamName`, `Title`, `Desc`, `Countable`, `DisabledForLevels`) VALUES
 (@sName, 'create vc', NULL, '_bx_messenger_acl_action_create_vc', '', 1, 0);
 SET @iIdActionVCCreate = LAST_INSERT_ID();
 
@@ -229,6 +233,9 @@ INSERT INTO `sys_acl_matrix` (`IDLevel`, `IDAction`) VALUES
 -- administration talks
 (@iModerator, @iIdActionAdminTalks),
 (@iAdministrator, @iIdActionAdminTalks),
+-- create broadcast talks
+(@iModerator, @iIdActionBroadcastTalks),
+(@iAdministrator, @iIdActionBroadcastTalks),
 -- send files
 (@iStandard, @iIdActionSendFiles),
 (@iModerator, @iIdActionSendFiles),
@@ -289,7 +296,8 @@ INSERT INTO `sys_menu_items`(`set_name`, `module`, `name`, `title_system`, `titl
 (CONCAT(@sName, '_lot_info_menu'), @sName, 'leave', '_bx_messenger_lots_menu_leave', '_bx_messenger_lots_menu_leave', 'javascript:void(0);', 'oMessenger.onLeaveLot({id});', '_self', 'sign-out-alt', '', 2147483647, 1, 0, 2, ''),
 (CONCAT(@sName, '_lot_info_menu'), @sName, 'media', '_bx_messenger_lots_menu_media', '_bx_messenger_lots_menu_media', 'javascript:void(0);', 'oMessenger.onMedia({id});', '_self', 'photo-video', '', 2147483647, 1, 0, 3, ''),
 (CONCAT(@sName, '_lot_info_menu'), @sName, 'clear', '_bx_messenger_lots_menu_clear', '_bx_messenger_lots_menu_clear', 'javascript:void(0);', 'oMessenger.onClearLot({id});', '_self', 'trash', '', 2147483647, 1, 0, 4, ''),
-(CONCAT(@sName, '_lot_info_menu'), @sName, 'settings', '_bx_messenger_lots_menu_settings', '_bx_messenger_lots_menu_settings', 'javascript:void(0)', 'oMessenger.onLotSettings(this, ''{lot_menu_id}'')', '_self', 'cogs', '', 2147483647, 1, 0, 5, '');
+(CONCAT(@sName, '_lot_info_menu'), @sName, 'settings', '_bx_messenger_lots_menu_settings', '_bx_messenger_lots_menu_settings', 'javascript:void(0)', 'oMessenger.onLotSettings(this, ''{lot_menu_id}'')', '_self', 'cogs', '', 2147483647, 1, 0, 5, ''),
+(CONCAT(@sName, '_lot_info_menu'), @sName, 'info', '_bx_messenger_lots_menu_info', '_bx_messenger_lots_menu_info', 'javascript:void(0)', 'oMessenger.onLotInfo(this, ''{lot_menu_id}'')', '_self', 'info-circle', '', 2147483647, 1, 0, 5, '');
 
 -- MENU: Message menu
 INSERT INTO `sys_objects_menu`(`object`, `title`, `set_name`, `module`, `template_id`, `deletable`, `active`, `override_class_name`, `override_class_file`) VALUES
@@ -373,10 +381,6 @@ INSERT INTO `sys_menu_sets`(`set_name`, `module`, `title`, `deletable`) VALUES
 
 INSERT INTO `sys_menu_items`(`set_name`, `module`, `name`, `title_system`, `title`, `link`, `onclick`, `target`, `icon`, `submenu_object`, `visible_for_levels`, `active`, `copyable`, `editable`, `order`) VALUES
 ('bx_messenger_profile_snippet_meta', @sName, 'message', '_bx_messenger_item_title_sm_message', '_bx_messenger_item_title_sm_message', 'page.php?i=messenger', '', '', 'comments', '', 2147483647, 0, 0, 1, 1);
-
--- Messenger card settings
-INSERT INTO `bx_messenger_attachments` (`name`, `service`) VALUES
-('bx_messenger', 'a:3:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:18:"get_broadcast_card";s:6:"params";a:0:{}}');
 
 ---- SEARCH CRITERIA FORM
 INSERT INTO `sys_objects_form` (`object`, `module`, `title`, `action`, `form_attrs`, `submit_name`, `table`, `key`, `uri`, `uri_title`, `params`, `deletable`, `active`, `parent_form`, `override_class_name`, `override_class_file`) VALUES

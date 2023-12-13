@@ -2196,17 +2196,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $iType = $aLotInfo[$CNF['FIELD_TYPE']];
 
         $sTitle = _t('_bx_messenger_broadcast_message_title');
-        /*$aData = @unserialize($aJotInfo[$CNF['FIELD_MESSAGE_AT']]);
-        if (empty($aData))
-            return false;*/
-
-        /*$sType = key($aData);
-        if ($aService = $this->_oDb->getLotAttachmentType($sType)){
-            if (isset($aService['module']) && isset($aService['method']) && BxDolRequest::serviceExists($aService['module'], $aService['method'])) {
-                $sContent = BxDolService::call($aService['module'], $aService['method'], [$aEvent['subobject_id']]);
-                $aResult[BX_ATT_TYPE_CUSTOM][] = $this -> parseHtmlByName('custom-attachment.html', array('content' => $sContent));
-            }
-        }*/
 
         // replace br to spaces and truncate the line
         $sMessage = _t('_bx_messenger_broadcast_message_body');
@@ -4239,7 +4228,17 @@ class BxMessengerModule extends BxBaseModGeneralModule
     }
 
     public function serviceGetBroadcastFields($aInputsAdd = array()) {
-        return $this->_oTemplate->_getBroadcastFields();
+        $aFields = $this->_oTemplate->_getBroadcastFields();
+
+        $aResult = [];
+        foreach($aFields as $sName => $aField) {
+            if (isset($aField['skip']) || !isset($aField['caption']))
+                continue;
+
+            $aResult[$sName] = $aField['caption'];
+        }
+
+        return $aResult;
     }
 
     private function getProfilesByCriteria($aData){
@@ -4290,13 +4289,14 @@ class BxMessengerModule extends BxBaseModGeneralModule
     }
 
     function actionGetFilterCriteria(){
-        If (!$this->isLogged())
+        If (!$this->isLogged() && $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_BROADCASTS) !== true)
             return echoJson(['code' => 1]);
 
         $CNF = &$this->_oConfig->CNF;
 
         $sType = bx_get('type');
         $sHtml = '';
+
         switch($sType){
             case BX_MSG_TALK_TYPE_BROADCAST:
                 $oForm = BxDolForm::getObjectInstance($CNF['OBJECT_FORM_FILTER'], $CNF['OBJECT_FORM_FILTER_DISPLAY'], $this);

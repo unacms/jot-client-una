@@ -347,7 +347,8 @@ class BxMessengerDb extends BxBaseModGeneralDb
         $aParticipants = isset($aData['participants']) ? $aData['participants'] : array();
 
         $iAuthorId = $this->findThePageOwner($sUrl);
-        $iAuthorId = $iAuthorId ? $iAuthorId : (int)$iProfileId;
+        if (isset($aData['thread']))
+            $iAuthorId = $iProfileId;
 
         if (isset($aData['thread']) && $aData['thread']) {
             $aJotInfo = $this->getJotById($aData['thread']);
@@ -2762,6 +2763,9 @@ function getProfilesByCriteria($aFields){
     }
 
     function getNotificationsSettings($sGroup){
+        if (!$this->isModuleByName('bx_notifications'))
+            return false;
+
         return $this->getPairs("SELECT `delivery`, `active` FROM `bx_notifications_settings` WHERE `group`=:group", 'delivery', 'active', ['group' => $sGroup]);
     }
 }

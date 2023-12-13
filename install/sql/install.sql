@@ -58,6 +58,9 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_attachments` (
   PRIMARY KEY (`name`)
 );
 
+INSERT INTO `bx_messenger_attachments` (`name`, `service`) VALUES
+('bx_messenger', 'a:3:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:18:"get_broadcast_card";s:6:"params";a:0:{}}');
+
 INSERT INTO `bx_messenger_lots` (`id`, `title`, `url`, `type`, `created`, `author`, `participants`, `class`) VALUES
 (1, '_bx_messenger_lots_class_my_members', '', 3, UNIX_TIMESTAMP(), 0, '', 'members');
 
@@ -235,6 +238,12 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_saved_jots` (
     `profile_id` int(11) NOT NULL default 0,
     UNIQUE KEY `id` (`jot_id`, `profile_id`),
     KEY `profile` (`profile_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `bx_messenger_mass_convo_tracker` (
+   `convo_id` int(11) unsigned NOT NULL default 0,
+   `user_id` int(11) unsigned NOT NULL default 0,
+    PRIMARY KEY (`convo_id`, `user_id`)
 );
 
 -- STORAGES & TRANSCODERS

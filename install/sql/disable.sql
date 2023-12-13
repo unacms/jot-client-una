@@ -11,8 +11,13 @@ DELETE FROM `sys_options_types` WHERE `id` = @iTypeId;
 DELETE FROM `sys_objects_page` WHERE `module` = @sName;
 DELETE FROM `sys_pages_blocks` WHERE `module` = @sName OR `object` = 'bx_messenger_main';
 
+-- ALERTS DELETE PROFILE
+SET @iHandler := (SELECT `id` FROM `sys_alerts_handlers` WHERE `name` = 'bx_messenger' LIMIT 1);
+DELETE FROM `sys_alerts` WHERE `handler_id` = @iHandler;
+DELETE FROM `sys_alerts_handlers` WHERE `id` = @iHandler;
+
 -- ALERTS
-SET @iHandler := (SELECT `id` FROM `sys_alerts_handlers` WHERE `name` LIKE CONCAT(@sName, '%') LIMIT 1);
+SET @iHandler := (SELECT `id` FROM `sys_alerts_handlers` WHERE `name` = 'bx_messenger_actions' LIMIT 1);
 DELETE FROM `sys_alerts` WHERE `handler_id` = @iHandler;
 DELETE FROM `sys_alerts_handlers` WHERE `id` = @iHandler;
 
@@ -32,8 +37,6 @@ DELETE FROM `sys_menu_sets` WHERE `module` = @sName;
 DELETE FROM `sys_objects_menu` WHERE `module` = @sName;
 DELETE FROM `sys_menu_templates` WHERE `template`='menu-create-convo.html' AND `title`='_bx_messenger_create_convo_template_title';
 
--- PRIVACY
---DELETE FROM `sys_objects_privacy` WHERE `object` = 'bx_messenger_allow_view_groups_to';
 
 ---- NEO APP FORM
 DELETE FROM `sys_objects_form` WHERE `module` = @sName;

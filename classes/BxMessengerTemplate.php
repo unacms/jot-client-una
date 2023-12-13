@@ -585,87 +585,8 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         if(!$oForm)
             return [];
 
-        /*$aModules = BxDolService::call('system', 'get_profiles_modules', array(), 'TemplServiceProfiles');
-        if (empty($aModules))
-            return [];
-
-        $aSearchResult = [];
-        foreach($aModules as &$aModule) {
-            $sModule = $aModule['name'];
-            $aFields = BxDolRequest::serviceExists($sModule, 'get_searchable_fields') ? BxDolService::call($sModule, 'get_searchable_fields') : [];
-            if (!empty($aFields))
-                $aSearchResult = array_merge($aSearchResult, $aFields);
-        }*/
-
-        $aInputs = $oForm->aInputs;
-        //print_r($aInputs);
-
-        return $oForm->aInputs;//$aSearchResult;
+        return $oForm->aInputs;
     }
-
-    /*public function getBroadcastFilterForm(){
-        $CNF = &$this->_oConfig->CNF;
-
-        $aFields = $this->_oConfig->CNF['BROADCAST-FIELDS'];
-        $aAllFields = $this->_getBroadcastFields();
-        if (empty($aFields) || empty($aAllFields))
-            return '';
-
-        $aMembershipLevels = [0 => _t('_sys_please_select')];
-        $aMembershipLevels += BxDolAcl::getInstance()->getMemberships(false, true, true, true);
-
-        $aFields = explode(',', $aFields);
-
-        $aCountries = [0 => _t('_sys_please_select')];
-        $aCountries += BxDolFormQuery::getDataItems('Country');
-
-        $aGender = [0 => _t('_sys_please_select')];
-        $aGender += BxDolFormQuery::getDataItems('Sex');
-
-        $aForm = ['form_attrs' => ['name' => 'bx-messenger-broadcast-form', 'id' => "bx-messenger-broadcast-form", 'csrf_token' => false]];
-        $aForm['inputs'] = [
-            [
-                'type' => 'hidden',
-                'value' => BX_IM_TYPE_BROADCAST,
-                'name' => 'convo_type'
-            ],
-            'filter' => [
-                'type' => 'input_set',
-                'caption' => _t('_bx_messenger_broadcast_profile_fields_title'),
-                [
-                    'type' => 'select',
-                    'caption' => _t('_bx_messenger_broadcast_field_countries'),
-                    'name' => 'countries',
-                    'values' => $aCountries
-                ],
-                [
-                    'type' => 'select',
-                    'caption' => _t('_bx_messenger_broadcast_field_membership'),
-                    'name' => 'membership',
-                    'values' => $aMembershipLevels
-                ],
-                [
-                    'type' => 'select',
-                    'caption' => _t('_bx_messenger_broadcast_field_gender'),
-                    'name' => 'gender',
-                    'values' => $aGender
-                ],
-                'attrs_wrapper' => ['class' => 'space-y-4'],
-            ],
-        ];
-
-        $aForm['inputs']['filter'][] = [
-            'type' => 'button',
-            'caption' => _t('_bx_messenger_broadcast_field_calculate'),
-            'value' => _t('_bx_messenger_broadcast_field_calculate'),
-            'name' => 'calculate',
-            'attrs' => array('class' => 'mt-4', 'onclick' => "{$CNF['JSMessengerLib']}.onCalculateProfiles();"),
-        ];
-
-        $oForm = new BxTemplFormView($aForm);
-        return $oForm -> getCode();
-    }*/
-
 
     function getNotificationFormData(){
         $aNotifFields = [];
@@ -709,10 +630,10 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
            'menu_button' => $this->parseHtmlByName('mobile-menu-button.html', []),
            'profiles_list' => $sProfilesList,
            'bx_if:broadcast' => [
-               'condition' => $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_BROADCASTS) === true,
-               'content' => [
-           'convo_menu' => $oCreateMenu->getCode(),
-               ],
+                'condition' => $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_BROADCASTS) === true,
+                'content' => [
+                    'convo_menu' => $oCreateMenu->getCode(),
+                ],
            ],
            'bx_if:edit' => [
                 'condition' => $iLotId,
@@ -2119,7 +2040,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                     if ($sType && ($aService = $this->_oDb->getLotAttachmentType($sType)) && (int)$sValue){
                         if (isset($aService['module']) && isset($aService['method']) && BxDolRequest::serviceExists($aService['module'], $aService['method'])) {
                             $sContent = BxDolService::call($aService['module'], $aService['method'], array((int)$sValue));
-                            $aResult[BX_ATT_TYPE_CUSTOM][] = $this -> parseHtmlByName('custom_attachment.html', array('content' => $sContent));
+                            $aResult[BX_ATT_TYPE_CUSTOM][] = $this -> parseHtmlByName('custom-attachment.html', array('content' => $sContent));
                         }
                     }
             }
@@ -2674,7 +2595,9 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                             ));
     }
 
-    public function getInfoSection(){
+    public function getInfoSection($sType = 'info', $iProfileId = 0){
+        $CNF = &$this->_oConfig->CNF;
+
         return $this -> parseHtmlByName('info-section.html', array(
             'info' => ''
         ));

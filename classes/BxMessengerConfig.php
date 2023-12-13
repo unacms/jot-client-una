@@ -197,7 +197,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'STAR_ICON' => 'star',
             'BELL_ICON_OFF' => 'bell-slash',
             'PARAM_FRIENDS_NUM_BY_DEFAULT' => 10,
-            'PARAM_CONTACTS_NUM_BY_DEFAULT' => 15,
+            'PARAM_CONTACTS_NUM_BY_DEFAULT' => 5,
             'PARAM_NTFS_INTERVAL' => 1, /* INTERVAL IN HOURS*/
             'PARAM_MESSAGES_INTERVAL' => 1, /* INTERVAL IN MINUTE*/
             'PARAM_SEARCH_DEFAULT_USERS' => (int)getParam($aModule['db_prefix'] . 'max_drop_down_select'),
@@ -681,8 +681,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
     }
 
     public function getSelectedNotificationMode($aNotifData){
-        $oModule = BxDolModule::getInstance('bx_notifications');
-        if (empty($aNotifData))
+        if (empty($aNotifData) || !$oModule = BxDolModule::getInstance('bx_notifications'))
             return false;
 
         $bEmail = in_array('email', $aNotifData);

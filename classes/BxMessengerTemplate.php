@@ -2761,7 +2761,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         $sText = MsgBox(_t("_bx_messenger_filter_criteria_on_$sType"));
         if ($oConnection = $this->_oConfig->getConnectionByType($sType)) {
             $sText = MsgBox(_t("_bx_messenger_filter_criteria_on_$sType"));
-            if ($iCount = $oConnection->getConnectedContentCount($iProfileId, true))
+            if ($iCount = $oConnection->getConnectedContentCount($iProfileId, $sType === 'friends'))
                 $sText = MsgBox(_t("_bx_messenger_filter_criteria_{$sType}_message", $iCount));
         }
 
@@ -2802,7 +2802,14 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         $sThumb = $oProfile->getAvatar();
         $bThumb = stripos($sThumb, 'no-picture') === FALSE;
         $sDisplayName = $oProfile->getDisplayName();
-        $iPartCount = count($this->_oDb->getParticipantsList($iLotId));
+
+        $aPartList = $this->_oDb->getParticipantsList($iLotId);
+        if ((int)$aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_BROADCAST) {
+            $aBroadcastParts = $this->_oDb->getBroadcastParticipants($iLotId);
+            $aPartList = array_unique(array_merge($aPartList, $aBroadcastParts), SORT_NUMERIC);
+        }
+
+        $iPartCount = count($aPartList);
         $iFilesCount = $this->_oDb->getLotFilesCount($iLotId);
         $iMessagesCount = $this->_oDb->getJotsNumber($iLotId, 0);
 

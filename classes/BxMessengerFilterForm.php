@@ -27,13 +27,28 @@ class BxMessengerFilterForm extends BxBaseModGeneralFormEntry
         parent::__construct ($aCustomForm, $this->_oTemplate);
     }
 
-    private function initForm(){
+    function filteredForm(){
         $CNF = &$this->_oModule->_oConfig->CNF;
 
         if (!$CNF['BROADCAST-FIELDS'])
-            return [];
+            return false;
 
         $aFilterFields = explode(',', $CNF['BROADCAST-FIELDS']);
+        if (empty($aFilterFields))
+            return false;
+
+        foreach($CNF['BROADCAST-ALLOWED-FILTER-FIELDS'] as &$sValue){
+            if (!in_array($sValue, $aFilterFields))
+                unset($this->aInputs[$sValue]);
+        }
+
+        return true;
+    }
+
+    private function initForm(){
+        $CNF = &$this->_oModule->_oConfig->CNF;
+
+        $aFilterFields = !empty($CNF['BROADCAST-ALLOWED-FILTER-FIELDS']) ? $CNF['BROADCAST-ALLOWED-FILTER-FIELDS'] : [];
         $aForm = [];
         $aInputs['type'] = [
             'type' => 'hidden',

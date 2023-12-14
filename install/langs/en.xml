@@ -412,4 +412,7 @@ name="_bx_ntfs_alert_action_got_broadcast_ntfs_personal"><![CDATA[Broadcast mess
 	<string name="_bx_messenger_convo_info_participants"><![CDATA[Participants]]></string>
 	<string name="_bx_messenger_convo_info_messages"><![CDATA[Messages]]></string>
 	<string name="_bx_messenger_convo_info_files"><![CDATA[Files]]></string>
+	<string name="_bx_messenger_filter_criteria_form"><![CDATA[Broadcast from with criteria]]></string>
+	<string name="_bx_messenger_filter_criteria_form_display"><![CDATA[Broadcast from with criteria]]></string>
+	<string name="_bx_messenger_no_criteria_available"><![CDATA[Sorry, no criteria for filtration found!]]></string>
 </resources>

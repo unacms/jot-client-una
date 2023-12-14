@@ -3821,6 +3821,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     'id' => $aItem[$CNF['FIELD_ID']],
                     'total_messages' => $this->_oDb->getJotsNumber($aItem[$CNF['FIELD_ID']], 0)
                 ];
+
+                $aResult['lot'] = $aLotInfo[$CNF['FIELD_HASH']];
             }
         }
 
@@ -3934,7 +3936,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         $aResult = [];
         if (!empty($aList)){
-            foreach($aList as &$aItem){
+            foreach($aList as $iKey => $aItem){
                 $sImageUrl = bx_api_get_relative_url($aItem['bx_if:user']['content']['icon']);
                 $aResult[] = [
                   'author_data' => (int)$aItem[$CNF['FIELD_AUTHOR']] ? BxDolProfile::getInstance()->getData($aItem[$CNF['FIELD_AUTHOR']]) : [
@@ -3948,7 +3950,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                    'title' => $aItem[$CNF['FIELD_TITLE']],
                    'message' => $aItem['bx_if:user']['content']['message'],
                    'date' => $aItem['bx_if:timer']['content']['time'],
-                   'id' => $aItem[$CNF['FIELD_ID']],
+                   'id' => $aData['list'][$iKey][$CNF['FIELD_HASH']],
                    'total_messages' => $this->_oDb->getJotsNumber($aItem[$CNF['FIELD_ID']], 0)
                 ];
             }
@@ -4002,7 +4004,11 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         $CNF = &$this->_oConfig->CNF;
         $iJot = isset($aOptions['jot']) ? (int)$aOptions['jot'] : 0;
-        $iLotId = isset($aOptions['lot']) ? (int)$aOptions['lot'] : 0;
+
+        $iLotId = 0;
+        if (isset($aOptions['lot']) && $aOptions['lot'])
+            $iLotId = $this->_oDb->getConvoByHash($aOptions['lot']);
+
         $sLoad = isset($aOptions['load']) ? $aOptions['load'] : 'prev';
         $sArea = isset($aOptions['area_type']) ? $aOptions['area_type'] : 'index';
 
@@ -4117,7 +4123,12 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         if ($aForm->isSubmittedAndValid()){
             $aOptions = json_decode($sParams, true);
-            $aData = ['lot' => $aOptions['id'], 'message' => bx_get('message')];
+
+            $iLotId = 0;
+            if (isset($aOptions['id']) && $aOptions['id'])
+                $iLotId = $this->_oDb->getConvoByHash($aOptions['id']);
+
+            $aData = ['lot' => $iLotId, 'message' => bx_get('message')];
 
             $mixPayload = bx_get('payload');
             if ($mixPayload && !$aData['lot']) {
@@ -4126,7 +4137,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     $aData['participants'][] = $this->_iProfileId;
             }
 
-            $aLotInfo = $this->_oDb->getLotInfoById($aOptions['id']);
+            $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
             if (!empty($aLotInfo) && ($aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_PRIVATE && !$this->_oDb->isParticipant($aLotInfo[$CNF['FIELD_ID']], $this->_iProfileId)))
                 return ['code' => 1, 'msg' => _t('_bx_messenger_not_participant')];
 
@@ -4242,8 +4253,10 @@ class BxMessengerModule extends BxBaseModGeneralModule
         }
 
         $CNF = &$this->_oConfig->CNF;
-        if (!($oForm = BxDolForm::getObjectInstance($CNF['OBJECT_FORM_FILTER'], $CNF['OBJECT_FORM_FILTER_DISPLAY'])) || empty($oForm->aInputs))
+        if (!($oForm = BxDolForm::getObjectInstance($CNF['OBJECT_FORM_FILTER'], $CNF['OBJECT_FORM_FILTER_DISPLAY'], $this->_oTemplate)))
             return false;
+
+        $oForm->filteredForm();
 
         $aFields = [];
         foreach($oForm->aInputs as &$aInput){
@@ -4288,19 +4301,19 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $CNF = &$this->_oConfig->CNF;
 
         $sType = bx_get('type');
-        $sHtml = '';
-
+        $sHtml = MsgBox(_t('_bx_messenger_no_criteria_available'));
         switch($sType){
             case BX_MSG_TALK_TYPE_BROADCAST:
-                $oForm = BxDolForm::getObjectInstance($CNF['OBJECT_FORM_FILTER'], $CNF['OBJECT_FORM_FILTER_DISPLAY'], $this);
-                $sHtml = $oForm->getCode();
+                $oForm = BxDolForm::getObjectInstance($CNF['OBJECT_FORM_FILTER'], $CNF['OBJECT_FORM_FILTER_DISPLAY'], $this->_oTemplate);
+                if ($oForm->filteredForm())
+                    $sHtml = $oForm->getCode();
                 break;
             case 'followers':
             case 'friends':
                 $sHtml = $this->_oTemplate->getConnectionsForm($sType, $this->_iProfileId);
         }
 
-        echoJson(['html' => $sHtml]);
+        echoJson(['code' => 0, 'html' => $sHtml]);
     }
 
     public function actionAjaxGetRecipients ()

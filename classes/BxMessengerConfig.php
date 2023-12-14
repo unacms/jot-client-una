@@ -331,6 +331,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'UPDATE-PAGE-TITLE' => getParam($aModule['db_prefix'] . 'dont_update_title') == 'on',
             'SEARCH-CRITERIA-SELECTED' => getParam($aModule['db_prefix'] . 'search_criteria'),
             'BROADCAST-FIELDS' => getParam($aModule['db_prefix'] . 'broadcast_fields'),
+            'BROADCAST-ALLOWED-FILTER-FIELDS' => ['gender', 'location', 'birthday', 'membership'],
             'JWT' => array(
               'app_id' => getParam($aModule['db_prefix'] . 'jwt_app_id'),
               'secret' => getParam($aModule['db_prefix'] . 'jwt_app_secret'),

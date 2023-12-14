@@ -398,4 +398,7 @@ name="_bx_messenger_neo_app_form"><![CDATA[Форма для отправки с
 	<string name="_bx_messenger_convo_info_participants"><![CDATA[Участники]]></string>
 	<string name="_bx_messenger_convo_info_messages"><![CDATA[Сообщения]]></string>
 	<string name="_bx_messenger_convo_info_files"><![CDATA[Файлы]]></string>
+	<string name="_bx_messenger_filter_criteria_form"><![CDATA[Форма с критериями для массовых рассылок]]></string>
+	<string name="_bx_messenger_filter_criteria_form_display"><![CDATA[Форма с критериями для массовых рассылок]]></string>
+	<string name="_bx_messenger_no_criteria_available"><![CDATA[Критерии для фильтрации не найдены!]]></string>
 </resources>

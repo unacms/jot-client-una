@@ -347,7 +347,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
         $aParticipants = isset($aData['participants']) ? $aData['participants'] : array();
 
         $iAuthorId = $this->findThePageOwner($sUrl);
-        if (isset($aData['thread']))
+        if (isset($aData['thread']) || !$iAuthorId)
             $iAuthorId = $iProfileId;
 
         $iLotId = $this->createNewLot($iAuthorId, $aData, $aParticipants);
@@ -2722,8 +2722,17 @@ class BxMessengerDb extends BxBaseModGeneralDb
     }
 
     function getProfilesByCriteria($aFields){
-        if (empty($aFields))
+        if (empty($aFields) || !$this->CNF['BROADCAST-FIELDS'])
             return [];
+
+        $aFilterFields = explode(',', $this->CNF['BROADCAST-FIELDS']);
+        if (empty($aFilterFields))
+            return false;
+
+        foreach($aFields as $sKey => $mixedValue){
+            if (!in_array($sKey, $aFilterFields))
+                unset($aFields[$sKey]);
+        }
 
         $aSqlParts= ['where' => '', 'join' => ''];
         if (isset($aFields['membership'])) {
@@ -2734,18 +2743,17 @@ class BxMessengerDb extends BxBaseModGeneralDb
         if (!empty($aFields)){
             $aSqlParts['join'] .= "LEFT JOIN `bx_persons_data` as `pd` ON `pd`.`id` = `sys_profiles`.`content_id` AND `sys_profiles`.`type` = 'bx_persons'";
             foreach($aFields as $sName => $mixedValues) {
+                if ($sName === 'location' && !empty($mixedValues)) {
+                    $sLocation = implode("','", $mixedValues);
+                    $aSqlParts['join']  .= "LEFT JOIN `bx_persons_meta_locations` as `pdl` ON `pdl`.`object_id` = `pd`.`id`";
+                    $aSqlParts['where'] .= " AND `pdl`.`country` IN ('" . $sLocation . "')";
+                    continue;
+                }
+
                 if (is_array($mixedValues))
                     $aSqlParts['where'] .= " AND `pd`.`{$sName}` IN ('" . implode("','", $mixedValues) . "')";
                 else
-                {
-                    $mixedValues = bx_process_input($mixedValues);
-                    if ($sName === 'location') {
-                        $aSqlParts['join']  .= "LEFT JOIN `bx_persons_meta_locations` as `pdl` ON `pdl`.`object_id` = `pd`.`id`";
-                        $aSqlParts['where'] .= " AND `pdl`.`country` = '{$mixedValues}' ";
-                    }
-                    else
-                        $aSqlParts['where'] .= " AND `pd`.`{$sName}` = '{$mixedValues}'";
-                }
+                    $aSqlParts['where'] .= " AND `pd`.`{$sName}` = '{$mixedValues}'";
             }
         }
 

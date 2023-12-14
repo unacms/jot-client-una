@@ -328,7 +328,7 @@ INSERT INTO `sys_menu_sets`(`set_name`, `module`, `title`, `deletable`) VALUES
 
 INSERT INTO `sys_menu_items`(`set_name`, `module`, `name`, `title_system`, `title`, `link`, `onclick`, `target`, `icon`, `submenu_object`, `visible_for_levels`, `active`, `copyable`, `order`) VALUES
 (CONCAT(@sName, '_create_convo_menu'), @sName, 'standard', '_bx_messenger_create_convo_menu_standard_system', '_bx_messenger_create_convo_menu_standard', 'javascript:void(0);', '{js_object}.onSelectConvoFilter();', '_self', 'users', '', 2147483647, 1, 0, 0),
-(CONCAT(@sName, '_create_convo_menu'), @sName, 'followers', '_bx_messenger_create_convo_menu_followers_system', '_bx_messenger_create_convo_menu_followers_system', 'javascript:void(0);', '{js_object}.onSelectConvoFilter(''friends'');', '_self', 'group', '', 2147483647, 1, 0, 1),
+(CONCAT(@sName, '_create_convo_menu'), @sName, 'followers', '_bx_messenger_create_convo_menu_followers_system', '_bx_messenger_create_convo_menu_followers_system', 'javascript:void(0);', '{js_object}.onSelectConvoFilter(''followers'');', '_self', 'group', '', 2147483647, 1, 0, 1),
 (CONCAT(@sName, '_create_convo_menu'), @sName, 'friends', '_bx_messenger_create_convo_menu_friends_system', '_bx_messenger_create_convo_menu_friends_system', 'javascript:void(0);', '{js_object}.onSelectConvoFilter(''friends'');', '_self', 'user-friends', '', 2147483647, 1, 0, 1),
 (CONCAT(@sName, '_create_convo_menu'), @sName, 'broadcast', '_bx_messenger_create_convo_menu_broadcast_system', '_bx_messenger_create_convo_menu_broadcast_system', 'javascript:void(0);', '{js_object}.onSelectConvoFilter(''broadcast'');', '_self', 'bullhorn', '', 2147483647, 1, 0, 2);
 

@@ -541,11 +541,20 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 $aBroadcastParticipants = $this->getProfilesByCriteria($aData[BX_MSG_TALK_TYPE_BROADCAST]);
                 $this->_oDb->createBroadcastUsers($iCreatedLot, $aBroadcastParticipants);
                 $this->_oDb->markAsNewJot($aBroadcastParticipants, $iCreatedLot, $iId);
-  
-                $aAttachments[$this->_oConfig->getName()] = (int)$iId;
 
                 $aPartList = array_unique(array_merge($aParticipants, $aBroadcastParticipants), SORT_NUMERIC);
+
                 $sModule = $this->_oConfig->getObject('alert');
+                $sTemplateName = $this->_oConfig->getName();
+                bx_alert($sModule, 'broadcast_attachment_before', $iId, $aResult['lot_id'], [
+                        'id' => &$iId,
+                        'talk_id' => $aResult['lot_id'],
+                        'author' => &$iAuthorId,
+                        'template' => &$sTemplateName,
+                        'participants' => &$aPartList
+                    ]);
+
+                $aAttachments[$sTemplateName] = (int)$iId;
                 $aNotificationsType = [];
                 if (isset($aData[BX_MSG_TALK_TYPE_BROADCAST]['notify_by'])) {
                     if ($aNotifData = $aData[BX_MSG_TALK_TYPE_BROADCAST]['notify_by'])

@@ -346,7 +346,16 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'alert' => $this->_sName
 		);	   
 	}
-	
+
+	function getBroadcastAllowedFields(){
+        $aFields = $this->CNF['BROADCAST-ALLOWED-FILTER-FIELDS'];
+
+        bx_alert($this->_sName, 'broadcast_filtered_fields', 0, 0, [
+            'fields' => &$aFields
+        ]);
+
+        return !empty($aFields) && is_array($aFields) ? $aFields : [];
+    }
 	/**
 	* Returns type of the talk 
 	*@param string $sModule module uri, if messenger block was added to a special page of any module

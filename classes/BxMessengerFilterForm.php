@@ -37,7 +37,8 @@ class BxMessengerFilterForm extends BxBaseModGeneralFormEntry
         if (empty($aFilterFields))
             return false;
 
-        foreach($CNF['BROADCAST-ALLOWED-FILTER-FIELDS'] as &$sValue){
+        $aBFields = $this->_oConfig->getBroadcastAllowedFields();
+        foreach($aBFields as &$sValue){
             if (!in_array($sValue, $aFilterFields))
                 unset($this->aInputs[$sValue]);
         }
@@ -48,7 +49,7 @@ class BxMessengerFilterForm extends BxBaseModGeneralFormEntry
     private function initForm(){
         $CNF = &$this->_oModule->_oConfig->CNF;
 
-        $aFilterFields = !empty($CNF['BROADCAST-ALLOWED-FILTER-FIELDS']) ? $CNF['BROADCAST-ALLOWED-FILTER-FIELDS'] : [];
+        $aFilterFields = $this->_oModule->_oConfig->getBroadcastAllowedFields();
         $aForm = [];
         $aInputs['type'] = [
             'type' => 'hidden',

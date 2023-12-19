@@ -31,6 +31,10 @@
     @apply flex justify-center items-center text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100;
 }
 
+.bx-messenger-block-menu-align-right .bx-menu-item a.star i.star.fill{
+    @apply text-amber-600;
+}
+
 .bx-messenger-block-menu-align-right .bx-menu-item a {
     @apply bg-gray-100 dark:bg-gray-700/50 border border-transparent
            hover:border-gray-200/50 active:border-gray-300 dark:hover:border-gray-700/50 dark:active:border-gray-700

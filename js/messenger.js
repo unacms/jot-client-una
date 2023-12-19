@@ -2198,10 +2198,14 @@
 				oParams.group_id = 0;
 			}
 
+			_this.updateLotSettings(oNewSettings);
+
 			const aBroadcastData = oMUtils.getBroadcastFields();
 			if (Object.keys(aBroadcastData).length)
 				oParams['broadcast'] = aBroadcastData;
+		}
 			else
+		{
 			if (!+_this.oSettings.lot){
 				if (!oParams.participants.length) {
 					if (+_this.iSelectedPersonToTalk) {
@@ -2215,8 +2219,6 @@
 
 				oParams.type = _this.iLotType;
 			}
-
-			_this.updateLotSettings(oNewSettings);
 		}
 
 		_this.updateScrollPosition('bottom');

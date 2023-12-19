@@ -405,7 +405,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
            );
         }
 
-        return $this -> parseHtmlByName('thumb_usernames.html', $aVars);
+        return $this -> parseHtmlByName('thumb-usernames.html', $aVars);
     }
 
     /**
@@ -1445,9 +1445,9 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             'ident' => md5(BX_DOL_URL_ROOT . BX_DOL_SECRET),
 			'ip' => gethostbyname($aUrlInfo['host']),
 			'embed_template' => $sEmbedTemplate,
-			'thumb_icon' => $this->parseHtmlByName('thumb_icon.html', array()),
-			'thumb_letter' => $this->parseHtmlByName('thumb_letter.html', array()),
-			'add_user_item' => $this->parseHtmlByName('add-user-item.html', array()),
+			'thumb_icon' => $this->parseHtmlByName('thumb-icon.html', []),
+			'thumb_letter' => $this->parseHtmlByName('thumb-letter.html', []),
+			'add_user_item' => $this->parseHtmlByName('add-user-item.html', []),
 			'max_history' => (int)$CNF['MAX_JOTS_BY_DEFAULT'],
 			'jitsi_server' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER'], 'url'),
 			'last_unread_jot' => $iLastUnreadJot,

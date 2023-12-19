@@ -1107,8 +1107,19 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
                         if (!empty($aJot[$CNF['FIELD_MESSAGE_AT']])) {
                             $aAttachments = $this->getAttachment($aJot);
-                            if (isset($aAttachments[BX_ATT_GROUPS_ATTACH]) && !empty($aAttachments[BX_ATT_GROUPS_ATTACH]))
+                            if (isset($aAttachments[BX_ATT_GROUPS_ATTACH]) && !empty($aAttachments[BX_ATT_GROUPS_ATTACH])) {
                                 $sAttachment = $aAttachments[BX_ATT_GROUPS_ATTACH];
+
+                                $bIsEmpty = false;
+                                bx_alert($this->_oConfig->getObject('alert'), 'attachment_before', $iJot, $iLotId, [
+                                    'is_empty' => &$bIsEmpty
+                                ]);
+
+                                if ($bIsEmpty) {
+                                    $aVars['bx_repeat:jots'][] = $this->getEmptyMessageTemplate(['attachment' => $sAttachment, 'id' => $iJot]);
+                                    continue;
+                                }
+                            }
                         }
 
                         if (($iReplyId = (int)$aJot[$CNF['FIELD_MESSAGE_REPLY']]) && ($aReplyJot = $this->_oDb->getJotById($iReplyId))) {
@@ -2842,6 +2853,99 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
 
         return $this->parseHtmlByName('talk-info.html', $aItem);
+    }
+
+
+    private function getEmptyMessageTemplate($aData){
+        $aVars = [
+                'title' => '',
+                'url' => '',
+                'thumb' => '',
+                'display' => '',
+                'display_message' => '',
+                'id' => 0,
+                'new' => '',
+                'my' => 1,
+                'message' => '',
+                'attachment' => '',
+                'reply' => '',
+                'bx_if:show_author' => [
+                    'condition' => false,
+                    'content' => [
+                        'url' => '',
+                        'bx_if:avatars' => [
+                            'condition' => false,
+                            'content' => [
+                                'thumb' => '',
+                                'title' => '',
+                            ]
+                        ],
+                        'bx_if:letters' => array(
+                            'condition' => false,
+                            'content' => array(
+                                'color' => '',
+                                'letter' => ''
+                            )
+                        ),
+                    ]
+                ],
+                'bx_if:show_title' => array(
+                    'condition' => false,
+                    'content' => array(
+                        'title' => '',
+                    )
+                ),
+                'bx_if:jot_menu' => array(
+                    'condition' => false,
+                    'content' => array(
+                        'jot_menu' => ''
+                    )
+                ),
+                'bx_if:time-separator' => array(
+                    'condition' => false,
+                    'content' => array(
+                        'date' => '',
+                    )
+                ),
+                'thread_replies' => '',
+                'bx_if:show_reactions_area' => array(
+                    'condition' => false,
+                    'content' => array(
+                        'bx_if:reactions' => array(
+                            'condition' => false,
+                            'content' => array(
+                                'reactions' => '',
+                                'bx_if:reactions_menu' => array(
+                                    'condition' => false,
+                                    'content' => array(
+                                        'display' => 'none',
+                                    )
+                                ),
+                            )
+                        ),
+                        'bx_if:edit' => array(
+                            'condition' => false,
+                            'content'	=> array()
+                        ),
+                    )
+                ),
+                'bx_if:blink-jot' => array(
+                    'condition' => false,
+                    'content' => array()
+                ),
+                'bx_if:new' => array(
+                    'condition' => false,
+                    'content' => []
+                ),
+                'icons' => '',
+                'edit_icon' => '',
+                'reactions' => '',
+                'action_icon' => '',
+                'view_in_chat' => '',
+                'message_class' => 'hidden'
+            ];
+
+        return array_merge($aVars, $aData);
     }
 }
 

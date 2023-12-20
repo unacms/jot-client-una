@@ -2851,7 +2851,12 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             )
         ]);
 
-
+        $sContent = '';
+        bx_alert($this->_oConfig->getObject('alert'), 'talk_info_before', $iLotId, $iLotId, [
+            'content' => &$sContent
+        ]);
+        
+        $aItem['content'] = $sContent;
         return $this->parseHtmlByName('talk-info.html', $aItem);
     }
 

@@ -24,8 +24,10 @@
 
 				_this._sIdent = ident || _this._sIdent;
 				_this._sIP = ip || _this._sIP;
-				if (!server.length)
+				if (!server.length) {
+					console.log('Jot Server is not defined');
 					return;
+				}
 
 				if (_oPrimus === null)
 					_oPrimus = new Primus(server);

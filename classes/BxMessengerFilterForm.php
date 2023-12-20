@@ -103,6 +103,11 @@ class BxMessengerFilterForm extends BxBaseModGeneralFormEntry
             }
 
             $aNotifFields = $this->_oModule->_oTemplate->getNotificationFormData();
+
+            bx_alert($this->_oConfig->getObject('alert'), 'attachment_form_before', 0, 0, [
+                'inputs' => &$aInputs
+            ]);
+
             $aForm = [
                 'form_attrs' => [
                     'method' => 'post',

@@ -551,7 +551,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
                         'talk_id' => $aResult['lot_id'],
                         'author' => &$iAuthorId,
                         'template' => &$sTemplateName,
-                        'participants' => &$aPartList
+                        'participants' => &$aPartList,
+                        'data' => &$aData
                     ]);
 
                 $aAttachments[$sTemplateName] = (int)$iId;

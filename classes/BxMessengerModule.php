@@ -1435,12 +1435,11 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (!$iLotId || !$bAllowed)
             return echoJson($aResult);
 
-        $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
         $CNF = &$this->_oConfig->CNF;
-
+        $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
         if ($this->_oDb->deleteLot($iLotId)) {
-            $aResult = array('code' => 0);
-            $this->onDeleteLot($iLotId, $aLotInfo[$CNF['FIELD_AUTHOR']]);
+            $aResult = ['code' => 0];
+            $this->onDeleteLot($aLotInfo);
         }
 
         echoJson($aResult);
@@ -2422,9 +2421,16 @@ class BxMessengerModule extends BxBaseModGeneralModule
         bx_alert($this->_oConfig->getObject('alert'), 'create_lot', $iLotId, $this->_iProfileId, $this->_oDb->getLotInfoById($iLotId));
     }
 
-    public function onDeleteLot($iLotId, $iProfileId = 0)
+    public function onDeleteLot($aData)
     {
-        bx_alert($this->_oConfig->getObject('alert'), 'delete_lot', $iLotId, $this->_iUserId, array('author_id' => $iProfileId));
+        if (empty($aData))
+           return false;
+
+        $CNF = &$this->_oConfig->CNF;
+        $iAuthorId = $aData[$CNF['FIELD_AUTHOR']];
+        $iLotId = $aData[$CNF['FIELD_ID']];
+
+        bx_alert($this->_oConfig->getObject('alert'), 'delete_lot', $iLotId, $this->_iProfileId, ['author_id' => $iAuthorId]);
     }
 
     public function onAddNewParticipant($iLotId, $iParticipant, $iProfileId = 0)

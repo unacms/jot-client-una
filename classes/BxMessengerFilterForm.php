@@ -13,6 +13,8 @@ class BxMessengerFilterForm extends BxBaseModGeneralFormEntry
 {
     protected $_sModule;
     protected $_oModule;
+    protected $_oConfig;
+    protected $_oTemplate;
     protected $_sJsObject;
 
     function __construct($aCustomForm = [])

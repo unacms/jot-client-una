@@ -2722,17 +2722,8 @@ class BxMessengerDb extends BxBaseModGeneralDb
     }
 
     function getProfilesByCriteria($aFields){
-        if (empty($aFields) || !$this->CNF['BROADCAST-FIELDS'])
+        if (empty($aFields))
             return [];
-
-        $aFilterFields = explode(',', $this->CNF['BROADCAST-FIELDS']);
-        if (empty($aFilterFields))
-            return false;
-
-        foreach($aFields as $sKey => $mixedValue){
-            if (!in_array($sKey, $aFilterFields))
-                unset($aFields[$sKey]);
-        }
 
         $aSqlParts= ['where' => '', 'join' => ''];
         if (isset($aFields['membership'])) {
@@ -2756,6 +2747,11 @@ class BxMessengerDb extends BxBaseModGeneralDb
                     $aSqlParts['where'] .= " AND `pd`.`{$sName}` = '{$mixedValues}'";
             }
         }
+
+        bx_alert($this->_oConfig->getObject('alert'), 'broadcast_criteria_after', 0, 0, [
+            'fields' => $aFields,
+            'sql' => &$aSqlParts
+        ]);
 
         $sSql = $this->prepare("SELECT `sys_profiles`.`id` FROM `sys_profiles`" . $aSqlParts['join'] . " WHERE 1" . $aSqlParts['where']);
         return $this->getColumn($sSql);

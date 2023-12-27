@@ -339,8 +339,7 @@
 	<string name="_bx_messenger_lots_menu_clear"><![CDATA[Очистить историю]]></string>
 	<string name="_bx_messenger_lots_menu_settings"><![CDATA[Настройки]]></string>
 	<string name="_bx_messenger_view_in_chat"><![CDATA[Посмотреть внутри разговора]]></string>
-	<string 
-name="_bx_messenger_neo_app_form"><![CDATA[Форма для отправки сообщений]]></string>
+	<string name="_bx_messenger_neo_app_form"><![CDATA[Форма для отправки сообщений]]></string>
 	<string name="_bx_messenger_neo_app_form_display_send_message"><![CDATA[Отправить сообщение]]></string>
 	<string name="_bx_messenger_neo_app_form_input_submit"><![CDATA[Отправить]]></string>
 	<string name="_bx_messenger_neo_app_form_input_caption_submit"><![CDATA[Отправить]]></string>
@@ -401,4 +400,5 @@ name="_bx_messenger_neo_app_form"><![CDATA[Форма для отправки с
 	<string name="_bx_messenger_filter_criteria_form"><![CDATA[Форма с критериями для массовых рассылок]]></string>
 	<string name="_bx_messenger_filter_criteria_form_display"><![CDATA[Форма с критериями для массовых рассылок]]></string>
 	<string name="_bx_messenger_no_criteria_available"><![CDATA[Критерии для фильтрации не найдены!]]></string>
+	<string name="_bx_messenger_create_talk_confirm"><![CDATA[Вы уверены, что хотите создать разговор?]]></string>
 </resources>

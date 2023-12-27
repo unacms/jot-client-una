@@ -141,6 +141,8 @@
 
 
 		this.bCreateNew = false;
+		this.aTmpContent = [];
+		this.oPrevSettings = null;
 		this.bUniqueMode = !!oOptions['unique_mode'];
 		this.iSelectedJot = oOptions.jot_id || 0;
 		this.iLastUnreadJot = oOptions.last_unread_jot || 0;
@@ -560,15 +562,18 @@
 				if (_this.oFilesUploader)
 					_this.oFilesUploader.clean();
 
+					_this.oPrevSettings = null;
+					_this.aTmpContent = [];
 					_this.oStorage.deleteLot(_this.oSettings.lot);
 				}))
-			{
-				_this.oEditor.setContents([]);
-				if (!(oMUtils.isMobileDevice() || oMUtils.isUnaMobileApp()))
-					_this.oEditor.focus();
-				else
-					_this.oEditor.blur();
-			 }
+				{
+					_this.aTmpContent = _this.oEditor.getContents();
+					_this.oEditor.setContents([]);
+					if (!(oMUtils.isMobileDevice() || oMUtils.isUnaMobileApp()))
+						_this.oEditor.focus();
+					else
+						_this.oEditor.blur();
+				}
 		});
 
 		_this.updateSendAreaButtons();
@@ -893,8 +898,7 @@
 
 	oMessenger.prototype.disableCreateList = function(action) {
 		const { conversationBlockHistory, createTalkArea } = window.oMessengerSelectors.HISTORY,
-			  { talkTitle } = window.oMessengerSelectors.TEXT_AREA,
-			  { talk } = window.oMessengerSelectors.HISTORY;
+			  { talkTitle } = window.oMessengerSelectors.TEXT_AREA;
 
 		$(createTalkArea, conversationBlockHistory).hide().remove();
 		$(talkTitle).remove();
@@ -2192,13 +2196,9 @@
 
 		if (_this.bCreateNew) {
 			oParams.lot = 0;
-			const oNewSettings = { title: oParams.title || '', lot: 0 };
 			if (!['groups'].includes(_this.oSettings.area_type)) {
-				oNewSettings.group_id = 0;
 				oParams.group_id = 0;
 			}
-
-			_this.updateLotSettings(oNewSettings);
 
 			const aBroadcastData = oMUtils.getBroadcastFields();
 			if (Object.keys(aBroadcastData).length)
@@ -2310,6 +2310,17 @@
 						default:
 							if (message) {
 								bx_alert(message);
+
+								if (_this.bCreateNew) { // in case if an error occurs during talk creation
+									_this.oSendPool.delete(oParams.tmp_id);
+									_this.oEditor.setContents(_this.aTmpContent.ops);
+
+									if (_this.oPrevSettings !== null)
+										_this.updateLotSettings(_this.oPrevSettings);
+
+									return;
+								}
+
 								$(`[data-tmp="${oParams.tmp_id}"]`, conversationBody).remove();
 							} else
 								window.location.reload();
@@ -2372,11 +2383,25 @@
 			}
 		}
 
-		if (_this.oSendPool.size === 1 || (bRetry && iNewCount === 1))
-		{
+		if (_this.oSendPool.size === 1 || (bRetry && iNewCount === 1)) {
 			const oThread = _this.oSendPool.get(oParams.tmp_id);
-			if (oThread.promise === null)
-				oThread.promise = oThread.run();
+			if (oThread.promise === null) {
+				if (_this.bCreateNew)
+					bx_confirm(_t('_bx_messenger_create_talk_confirm'), () => {
+						_this.oPrevSettings = Object.assign({}, _this.oSettings);
+						_this.updateLotSettings({ title: oParams.title || '', lot: 0, group_id: oParams.group_id });
+						oThread.promise = oThread.run();
+					},
+					() =>
+					{
+						/* delete _this.aUploaderQueue[_this.oFilesUploader.name()]; */
+
+						_this.oSendPool.delete(oParams.tmp_id);
+						_this.oEditor.setContents(_this.aTmpContent.ops);
+					});
+				else
+					oThread.promise = oThread.run();
+			}
 		}
 
 		return true;

@@ -260,7 +260,8 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			'_bx_messenger_file_is_too_large_error',
             '_bx_messenger_file_is_too_large_error_details',
 			'_bx_messenger_file_type_is_not_allowed',
-            '_bx_messenger_empty_history'
+            '_bx_messenger_empty_history',
+            '_bx_messenger_create_talk_confirm'
         ));
     }
 

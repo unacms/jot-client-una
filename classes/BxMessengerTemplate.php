@@ -722,17 +722,16 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
 		$sContent = '';
 		$aContent = [];
-		foreach($aLots as &$aLot)
-		{
-            $aVars = [];
-		    $aParticipantsList = $this -> _oDb -> getParticipantsList($aLot[$CNF['FIELD_ID']], true, $iProfileId);
-			$iParticipantsCount = count($aParticipantsList);
-			$aParticipantsList = $iParticipantsCount ? array_slice($aParticipantsList, 0, $CNF['PARAM_ICONS_NUMBER']) : [$iProfileId];
-            $oAuthor = null;
+		foreach($aLots as &$aLot) {
+          $aVars = [];
+		  $aParticipantsList = $this -> _oDb -> getParticipantsList($aLot[$CNF['FIELD_ID']], true, $iProfileId);
+		  $iParticipantsCount = count($aParticipantsList);
+		  $aParticipantsList = $iParticipantsCount ? array_slice($aParticipantsList, 0, $CNF['PARAM_ICONS_NUMBER']) : [$iProfileId];
+          $oAuthor = null;
 
-            $sGroupName = $sModuleTitle = $sThumb = $sModuleIcon = '';
-            $bIsGroupTalk = isset($aLot[$CNF['FMGL_GROUP_ID']]) && (int)$aLot[$CNF['FMGL_GROUP_ID']];
-            if ($bIsGroupTalk) {
+          $sGroupName = $sModuleTitle = $sThumb = $sModuleIcon = '';
+          $bIsGroupTalk = isset($aLot[$CNF['FMGL_GROUP_ID']]) && (int)$aLot[$CNF['FMGL_GROUP_ID']];
+          if ($bIsGroupTalk) {
                 $aGroupInfo = $this->_oDb->getGroup($aLot[$CNF['FMGL_GROUP_ID']]);
                 if ($aGroupInfo[$CNF['FMG_MODULE']] !== BX_MSG_TALK_TYPE_PAGES) {
                     $oGroupProfile = BxDolProfile::getInstance($aGroupInfo[$CNF['FMG_PROFILE_ID']]);
@@ -943,6 +942,13 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 														'time' => $iTime
 													)
 												);
+
+
+            bx_alert($this->_oConfig->getObject('alert'), 'talk_preview_data', $aLot[$CNF['FIELD_ID']], $aLot[$CNF['FIELD_ID']], [
+                'vars' => &$aVars,
+                'talk' => $aLot
+            ]);
+
 			$aContent[] = $aVars;
 			$sContent .= $this -> parseHtmlByName('lots-briefs.html',  $aVars);
 		}

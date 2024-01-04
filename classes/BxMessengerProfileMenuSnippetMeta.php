@@ -25,6 +25,7 @@ class BxMessengerProfileMenuSnippetMeta extends BxBaseModProfileMenuSnippetMeta
                 'title' => _t($aItem['title']),
                 'link' => bx_api_get_relative_url($sUrl),
                 'display_type' => 'button',
+                'emulate' => true
             ]);
 
         return $this->_getMenuItem($aItem);

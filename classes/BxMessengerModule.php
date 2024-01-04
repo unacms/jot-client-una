@@ -4317,16 +4317,32 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $CNF = &$this->_oConfig->CNF;
 
         $sType = bx_get('type');
-        $sHtml = MsgBox(_t('_bx_messenger_no_criteria_available'));
+        $sHtml = '';
         switch($sType){
             case BX_MSG_TALK_TYPE_BROADCAST:
                 $oForm = BxDolForm::getObjectInstance($CNF['OBJECT_FORM_FILTER'], $CNF['OBJECT_FORM_FILTER_DISPLAY'], $this->_oTemplate);
                 if ($oForm->filteredForm())
                     $sHtml = $oForm->getCode();
+                else
+                    $sHtml = MsgBox(_t('_bx_messenger_no_criteria_available'));
+
                 break;
             case 'followers':
             case 'friends':
                 $sHtml = $this->_oTemplate->getConnectionsForm($sType, $this->_iProfileId);
+                break;
+            /*default:
+                $aForm = [
+                    'form_attrs' => [
+                        'method' => 'post',
+                        'id' => $CNF['OBJECT_FORM_ENTRY'],
+                        'class' => 'space-y-4 max-h-60 overflow-y-auto'
+                    ],
+                    'inputs' => $this->_oTemplate->getNotificationFormData()
+                ];
+
+                $oForm = new BxTemplFormView($aForm);
+                $sHtml = $oForm -> getCode();*/
         }
 
         echoJson(['code' => 0, 'html' => $sHtml]);

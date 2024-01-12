@@ -2083,6 +2083,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         $CNF = &$this->_oConfig->CNF;
         $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
+
         $aFile = $oStorage->getFile((int)$iFileId);
         if (empty($aFile)){
             echo _t('_bx_messenger_post_file_not_found');
@@ -2231,6 +2232,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
             )
         );
 
+        bx_alert($this->_oConfig->getObject('alert'), 'before_broadcast_notification', $aEvent['subobject_id'],
+                    $aEvent['object_owner_id'], ['data' => &$aResult,'talk' => $aLotInfo, 'message' => $aJotInfo]);
+
         return $aResult;
     }
     /**
@@ -2311,6 +2315,10 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 'subject' => $sSubject
             )
         );
+
+        bx_alert($this->_oConfig->getObject('alert'), 'before_message_notification', $aEvent['subobject_id'],
+            $aEvent['object_owner_id'], ['data' => &$aResult,'talk' => $aLotInfo, 'message' => $aJotInfo]);
+
 
         return $aResult;
     }

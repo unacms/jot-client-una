@@ -1124,6 +1124,10 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
                                 if ($bIsEmpty) {
                                     $aVars['bx_repeat:jots'][] = $this->getEmptyMessageTemplate(['attachment' => $sAttachment, 'id' => $iJot]);
+
+                                    if ($bMarkAsRead)
+                                        $this->_oDb->readMessage($iJot, $iProfileId);
+
                                     continue;
                                 }
                             }

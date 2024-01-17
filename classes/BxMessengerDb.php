@@ -668,11 +668,15 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	*/
 	public function isParticipant($iLotId, $iParticipantId, $bAsParticipant = false)
 	{
-		$aParticipants = $this -> getParticipantsList($iLotId);
+	    $aParticipants = $this -> getParticipantsList($iLotId);
 		if (array_search($iParticipantId, $aParticipants) !== FALSE)
 			return true;
-		
-		return !$bAsParticipant ? $this -> getOne("SELECT COUNT(*) FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = :lot AND `{$this->CNF['FIELD_AUTHOR']}` = :author LIMIT 1", array('lot' => (int)$iLotId, 'author' => (int)$iParticipantId)) == 1 : false;
+
+        $aLotInfo = $this->getLotInfoById($iLotId);
+        if (!empty($aLotInfo) && $aLotInfo[$this->CNF['FIELD_TYPE']] == BX_IM_TYPE_BROADCAST)
+                return $this->isBroadcastParticipant($iLotId, $iParticipantId);
+
+        return !$bAsParticipant ? $this -> getOne("SELECT COUNT(*) FROM `{$this->CNF['TABLE_ENTRIES']}` WHERE `{$this->CNF['FIELD_ID']}` = :lot AND `{$this->CNF['FIELD_AUTHOR']}` = :author LIMIT 1", array('lot' => (int)$iLotId, 'author' => (int)$iParticipantId)) == 1 : false;
 	}
 	
 	/**
@@ -2782,6 +2786,12 @@ class BxMessengerDb extends BxBaseModGeneralDb
         return $this->getColumn( "SELECT `{$this->CNF['FIELD_MASS_USER_ID']}` 
                                             FROM `{$this->CNF['TABLE_MASS_TRACKER']}` 
                                             WHERE `{$this->CNF['FIELD_MASS_CONVO_ID']}`=:id", ['id' => $iConvoId]);
+    }
+
+    function isBroadcastParticipant($iConvoId, $iProfileId){
+        return $this->getOne( "SELECT  COUNT(*)
+                                          FROM `{$this->CNF['TABLE_MASS_TRACKER']}` 
+                                          WHERE `{$this->CNF['FIELD_MASS_CONVO_ID']}`=:id AND `{$this->CNF['FIELD_MASS_USER_ID']}`=:user_id", ['id' => $iConvoId, 'user_id' => $iProfileId]) != 0;
     }
 
     function getNotificationsSettings($sGroup){

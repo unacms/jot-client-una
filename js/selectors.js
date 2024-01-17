@@ -97,6 +97,8 @@
                 sendAreaActionsButtons: '.bx-messenger-post-box-send-actions',
                 textAreaDisabled: 'bx-messenger-post-box-disabled',
                 talkTitle: '#bx-messenger-talk-title',
+                attachmentArea: '.bx-messenger-send-area-attachments',
+                attachmentGroup: '.bx-messenger-attachment-group'
             };
 
             this.HISTORY_INFO = {

@@ -2826,10 +2826,8 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         $sDisplayName = $oProfile->getDisplayName();
 
         $aPartList = $this->_oDb->getParticipantsList($iLotId);
-        if ((int)$aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_BROADCAST) {
-            $aBroadcastParts = $this->_oDb->getBroadcastParticipants($iLotId);
-            $aPartList = array_unique(array_merge($aPartList, $aBroadcastParts), SORT_NUMERIC);
-        }
+        if ((int)$aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_BROADCAST)
+            $aPartList = $this->_oDb->getBroadcastParticipants($iLotId);
 
         $iPartCount = count($aPartList);
         $iFilesCount = $this->_oDb->getLotFilesCount($iLotId);

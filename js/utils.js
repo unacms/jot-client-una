@@ -109,9 +109,17 @@ window.oMUtils = (function($) {
                 return aFields;
             },
             onCalculateProfiles: () => {
-                const aFields = window.oMUtils.getBroadcastFields();
-                if (Object.keys(aFields).length)
-                    $.post('modules/?r=messenger/calculate_profiles', { data: aFields }, (oData) => processJsonData(oData), 'json');
+                const { selectedUsersArea, selectedUserElement } = window.oMessengerSelectors.CREATE_TALK,
+                    aFields = window.oMUtils.getBroadcastFields();
+
+                const aManuallList = $(selectedUserElement, selectedUsersArea).map(function(){
+                    return $(this).data('id');
+                }).get();
+
+                if (Object.keys(aFields).length || aManuallList.length)
+                    $.post('modules/?r=messenger/calculate_profiles', { data: aFields, manually: aManuallList }, (oData) => {
+                        processJsonData(oData);
+                    }, 'json');
             },
             toggleList: function(oObject){
                 const oDropDown =$(oObject).next();

@@ -539,9 +539,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 }
 
                 $aBroadcastParticipants = $this->getProfilesByCriteria($aData[BX_MSG_TALK_TYPE_BROADCAST]);
-                $this->_oDb->createBroadcastUsers($iCreatedLot, $aBroadcastParticipants);
-                $this->_oDb->markAsNewJot($aBroadcastParticipants, $iCreatedLot, $iId);
-
                 $aPartList = array_unique(array_merge($aParticipants, $aBroadcastParticipants), SORT_NUMERIC);
 
                 $sModule = $this->_oConfig->getObject('alert');
@@ -554,6 +551,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
                         'participants' => &$aPartList,
                         'data' => &$aData
                     ]);
+
+                $this->_oDb->createBroadcastUsers($iCreatedLot, $aPartList);
+                $this->_oDb->markAsNewJot($aPartList, $iCreatedLot, $iId);
 
                 $aAttachments[$sTemplateName] = (int)$iId;
                 $aNotificationsType = [];
@@ -1825,10 +1825,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $aPartList = $this->_oDb->getParticipantsList($iLotId, true, $this->_iProfileId);
         if ((int)$aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_BROADCAST) {
             $iJotCount = $this->_oDb->getJotsNumber($iLotId, 0);
-            if ($iJotCount >= 2) {
-                $aBroadcastParts = $this->_oDb->getBroadcastParticipants($iLotId);
-                $aPartList = array_unique(array_merge($aPartList, $aBroadcastParts), SORT_NUMERIC);
-            }
+            if ($iJotCount >= 2)
+                $aPartList = $this->_oDb->getBroadcastParticipants($iLotId);
         }
 
         if (empty($aPartList))
@@ -2375,11 +2373,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $aPartList = $this->_oDb->getParticipantsList($iLotId, true, $this->_iProfileId);
         if ((int)$aConvoInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_BROADCAST) {
             $iJotCount = $this->_oDb->getJotsNumber($iLotId, 0);
-            if ($iJotCount >= 2) {
-                $aBroadcastParts = $this->_oDb->getBroadcastParticipants($iLotId);
-                $aPartList = array_unique(array_merge($aPartList, $aBroadcastParts), SORT_NUMERIC);
-            }
-              else
+            if ($iJotCount >= 2)
+                $aPartList = $this->_oDb->getBroadcastParticipants($iLotId);
+            else
                 return false;
         }
 
@@ -4300,11 +4296,16 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
     function actionCalculateProfiles(){
         $aData = bx_get('data');
+        $aManuall = bx_get('manually');
+
         $iConvoType = isset($aData['convo_type']) ? $aData['convo_type'] : 0;
-        if (!$this->isLogged() || empty($aData) || !$iConvoType)
+        if (!$this->isLogged() || (empty($aData) && empty($aManuall)) || !$iConvoType)
             return false;
 
         $aResult = $this->getProfilesByCriteria($aData);
+        if (!empty($aManuall))
+            $aResult = array_unique(array_merge($aResult, $aManuall), SORT_NUMERIC);
+
         echoJson(['msg' => _t('_bx_messenger_broadcast_total_profiles', count($aResult))]);
     }
 

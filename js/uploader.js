@@ -12,7 +12,6 @@
  */
 
 ;window.oMessengerUploader = class BxMessengerFilesUploader {
-
     constructor(oOptions) {
         this.bClean = false;
         this.oUploader = null;

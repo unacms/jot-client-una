@@ -152,7 +152,8 @@
                 filterCriteria: '.bx-create-convo-criteria',
                 selectedUsersListInputs: '{selectedUsersArea} input[name="users[]"]',
                 filterCriteriaForm: '#bx-messenger-convo-filter-criteria',
-                createConvoForm: '#bx_messenger_lots'
+                createConvoForm: '#bx_messenger_lots',
+                selectedUserElement: '.bx-messenger-participants-added-item'
             }
         };
         get(sName){

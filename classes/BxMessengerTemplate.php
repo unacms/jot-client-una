@@ -175,59 +175,53 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	    if (!$iProfileId || $mixedResult !== true)
 	        return '';
 
-        $bGiphy = $bIsGiphySet = $CNF['GIPHY']['api_key'] !== '';
 	    $bRecorder = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_VIDEO_RECORDER, $iProfileId) === true;
         $bFiles = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_SEND_FIELS, $iProfileId) === true;
-
-        $bMSG = $bSmiles = true;
-	    if ($iLotId) {
-          $mixedOptions = $this->_oDb->getLotSettings($iLotId);
-
-          $bMSG = $mixedOptions === false || in_array(BX_MSG_SETTING_MSG, $mixedOptions);
-          $bFiles = $bFiles && ($mixedOptions === false || in_array(BX_MSG_SETTING_FILES, $mixedOptions));
-          $bRecorder = $bRecorder && ($mixedOptions === false || in_array(BX_MSG_SETTING_VIDEO_RECORD, $mixedOptions));
-          $bGiphy = $bIsGiphySet && ($mixedOptions === false || in_array(BX_MSG_SETTING_GIPHY, $mixedOptions));
-          $bSmiles = $mixedOptions === false || in_array(BX_MSG_SETTING_SMILES, $mixedOptions);
-        }
+        $bGiphy = $CNF['GIPHY']['api_key'] !== '';
+        $bSmiles = true;
 
         $bCheckAction = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $iProfileId) === true;
         $bIsAuthor = $bCheckAction || $this->_oDb->isAuthor($iLotId, $iProfileId);
 
-        $sContent = '';
-	    if ($bMSG || $bFiles || $bRecorder || $bGiphy || $bSmiles || $bIsAuthor) {
-            $aVars = array(
-                'bx_if:giphy' => array(
-                    'condition' => $bGiphy || ($bIsGiphySet && $bIsAuthor),
-                    'content' => array()
-                ),
-                'bx_if:recording' => array(
-                    'condition' => $bRecorder || $bIsAuthor,
-                    'content' => array()
-                ),
-                'bx_if:files' => array(
-                    'condition' => $bFiles || $bIsAuthor,
-                    'content' => array()
-                ),
-                'bx_if:smiles' => array(
-                    'condition' => ($bMSG && $bSmiles) || $bIsAuthor,
-                    'content' => array()
-                ),
-                'bx_if:text' => array(
-                    'condition' => $bMSG || $bIsAuthor,
-                    'content' => array()
-                ),
-                'giphy' => $bGiphy || ($bIsGiphySet && $bIsAuthor) ? $this->getGiphyPanel() : ''
-            );
+        if ($mixedOptions = $this->_oDb->getLotSettings($iLotId) && !$bIsAuthor) {
+            if (!in_array(BX_MSG_SETTING_MSG, $mixedOptions))
+               return '';
 
-            $aVars['bx_if:topics'] = [
-                                        'condition' => !$iLotId && !$bHideTopics,
-                                        'content'  => array()
-                                     ];
-
-            $sContent = $this -> parseHtmlByName('text-area.html', $aVars);
+           $bFiles &= in_array(BX_MSG_SETTING_FILES, $mixedOptions);
+           $bRecorder &= in_array(BX_MSG_SETTING_VIDEO_RECORD, $mixedOptions);
+           $bGiphy &= in_array(BX_MSG_SETTING_GIPHY, $mixedOptions);
+           $bSmiles = in_array(BX_MSG_SETTING_SMILES, $mixedOptions);
         }
 
-        return $sContent;
+	    $aVars = [
+              'bx_if:giphy' => [
+                  'condition' => $bGiphy,
+                  'content' => []
+              ],
+              'bx_if:recording' => [
+                  'condition' => $bRecorder,
+                  'content' => []
+              ],
+              'bx_if:files' => [
+                  'condition' => $bFiles,
+                  'content' => []
+              ],
+              'bx_if:smiles' => [
+                  'condition' => $bSmiles,
+                  'content' => []
+              ],
+              'bx_if:text' => [
+                  'condition' => true,
+                  'content' => []
+              ],
+              'giphy' => $bGiphy ? $this->getGiphyPanel() : '',
+              'bx_if:topics' => [
+                  'condition' => !$iLotId && !$bHideTopics,
+                  'content'  => []
+              ]
+         ];
+
+        return $this -> parseHtmlByName('text-area.html', $aVars);
     }
 
 	public function initFilesUploader(){
@@ -2274,7 +2268,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
     }
 
     public function getGiphyPanel(){
-	    return $this -> parseHtmlByName('giphy-panel.html', array());
+	    return $this -> parseHtmlByName('giphy-panel.html', []);
     }
 
     public function getGiphyItems($sAction, $sQuery, $fHeight = 0, $iStart = 0){

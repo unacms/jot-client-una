@@ -91,11 +91,15 @@ class BxMessengerLotMenu extends BxBaseModTextMenu
             return false;
 
         $bAllowedEdit = $this->_oModule->_oDb->isAuthor($aLotInfo[$CNF['FIELD_ID']], $this->_iProfileId) || $this->_oModule->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true;
-        if ($aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_BROADCAST && !$bAllowedEdit)
+        $bBroadcast = $aLotInfo[$CNF['FIELD_TYPE']] == BX_IM_TYPE_BROADCAST;
+        if (!$bAllowedEdit && $bBroadcast)
             return false;
 
         switch ($a['name']) {
             case 'settings':
+                /*if (!$bAllowedEdit && $bBroadcast)
+                    return false;*/
+
                 if ($this->_iContentId)
                     $this->addMarkers(array('lot_menu_id' => "lot-info-menu-{$this->_iContentId}"));
 
@@ -104,7 +108,6 @@ class BxMessengerLotMenu extends BxBaseModTextMenu
 
                 $this->_sPopupTalOptions = $oMenu->getCode();
                 return true;
-
             case 'parent':
                 if (isset($aLotInfo[$CNF['FIELD_PARENT_JOT']]) && (int)$aLotInfo[$CNF['FIELD_PARENT_JOT']]) {
                     $iMainLotId = $this->_oModule->_oDb->getLotByJotId((int)$aLotInfo[$CNF['FIELD_PARENT_JOT']]);
@@ -135,7 +138,11 @@ class BxMessengerLotMenu extends BxBaseModTextMenu
             case 'star':
                 $this->addMarkers(array('id' => $this->_iContentId));
                 return true;
+
             case 'video_call':
+                /*if ($bBroadcast)
+                    return false;*/
+
                 if (empty($aLotInfo) || $oModule->_oConfig->isJitsiAllowed($aLotInfo[$CNF['FIELD_TYPE']])) {
                     if (!empty($aLotInfo)) {
                         $aJVC = $oModule->_oDb->getJVC($this->_iContentId);

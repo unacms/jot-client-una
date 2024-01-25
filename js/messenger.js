@@ -112,6 +112,7 @@
 		this.call = 'modules/boonex/messenger/data/call.mp3'; //incoming call file for video conferences
 		this.emojiObject = oOptions.emoji || null;
 		this.direction = oOptions.direction || 'LTR';
+
 		this.aPlatforms = ['MacIntel', 'MacPPC', 'Mac68K', 'Macintosh', 'iPhone', 'iPod', 'iPad', 'iPhone Simulator', 'iPod Simulator', 'iPad Simulator', 'Pike v7.6 release 92', 'Pike v7.8 release 517'];
 		this.oStorage = null;
 		this.oHistory = window.history || {};
@@ -910,9 +911,6 @@
 	oMessenger.prototype.disableCreateList = function() {
 		const { conversationBlockHistory, createTalkArea } = window.oMessengerSelectors.HISTORY,
 			  { talkTitle } = window.oMessengerSelectors.TEXT_AREA;
-
-		if (!this.bCreateNew)
-			return ;
 
 		$(createTalkArea, conversationBlockHistory).hide().remove();
 		$(talkTitle).remove();
@@ -2136,9 +2134,6 @@
 		// remove MSG (if it exists) from clean history page
 		if ($(blockContainer, conversationBody).length)
 				$(blockContainer, conversationBody).remove();
-
-		/*if (!_this.bCreateNew)
-			_this.disableCreateList();*/
 
 		if (oParams.message.length > this.iMaxLength) 
 			oParams.message = oParams.message.substr(0, this.iMaxLength);

@@ -4139,17 +4139,29 @@ class BxMessengerModule extends BxBaseModGeneralModule
             return ['code' => 1, 'msg' => _t('_bx_messenger_not_logged')];
 
         $CNF = &$this->_oConfig->CNF;
-        $aForm = BxBaseFormView::getObjectInstance($CNF['OBJECT_API_FORM_NAME'], $CNF['OBJECT_API_FORM_NAME']);
+        $oForm = BxBaseFormView::getObjectInstance($CNF['OBJECT_API_FORM_NAME'], $CNF['OBJECT_API_FORM_NAME']);
 
-        if ($aForm->isSubmittedAndValid()){
+        if ($sParams)
             $aOptions = json_decode($sParams, true);
 
-            $iLotId = 0;
-            if (isset($aOptions['id']) && $aOptions['id'])
-                $iLotId = $this->_oDb->getConvoByHash($aOptions['id']);
+        if (!empty($aOptions)){
+            if (isset($aOptions['action']) && $aOptions['action'] === 'edit' && isset($aOptions['id']) && (int)$aOptions['id']){
+                $aJotInfo = $this->_oDb->getJotById((int)$aOptions['id']);
+                if ($this->isAvailable($aJotInfo[$CNF['FIELD_MESSAGE_FK']])){
+                    $oForm->aInputs['message_id']['value'] = $aJotInfo[$CNF['FIELD_MESSAGE_ID']];
+                    $oForm->aInputs['action']['value'] = 'edit';
+                    $oForm->aInputs['message']['value'] = $aJotInfo[$CNF['FIELD_MESSAGE']];
+                }
+            }
+        }
+
+        if ($oForm->isSubmittedAndValid()){
+            $iLotId = 0 ;
+            $mixedLotId = bx_get('id');
+            if ($mixedLotId)
+                $iLotId = $this->_oDb->getConvoByHash($mixedLotId);
 
             $aData = ['lot' => $iLotId, 'message' => bx_get('message')];
-
             $mixPayload = bx_get('payload');
             if ($mixPayload && !$aData['lot']) {
                 $aData = array_merge($aData, json_decode(bx_get('payload'), true));
@@ -4157,8 +4169,31 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     $aData['participants'][] = $this->_iProfileId;
             }
 
+            $iMessageId = bx_get('message_id');
+            $sAction = bx_get('action');
+            if ($iMessageId && $sAction === 'edit') {
+                $aJotInfo = $this->_oDb->getJotById($iMessageId);
+                if (empty($aJotInfo))
+                    return ['code' => 1, 'msg' => _t('_Empty')];
+
+                if (!$this->isAvailable($aJotInfo[$CNF['FIELD_MESSAGE_FK']]))
+                    return ['code' => 1, 'msg' => _t('_bx_messenger_not_participant')];
+
+                $sMessage = $this->prepareMessageToDb($aData['message']);
+                $mixedResult = $this->_oDb->isAllowedToEditJot($iMessageId, $this->_iProfileId);
+                if ($mixedResult !== true)
+                    return ['code' => 1, 'msg' => $mixedResult];
+
+                if ($sMessage && $this->_oDb->editJot($iMessageId, $this->_iProfileId, $sMessage)) {
+                    $this->onUpdateJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iMessageId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
+                    return ['code' => 0];
+                }
+
+                return ['code' => 1];
+            }
+
             $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
-            if (!empty($aLotInfo) && ($aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_PRIVATE && !$this->_oDb->isParticipant($aLotInfo[$CNF['FIELD_ID']], $this->_iProfileId)))
+            if (!empty($aLotInfo) && !$this->isAvailable($iLotId))
                 return ['code' => 1, 'msg' => _t('_bx_messenger_not_participant')];
 
             $mixedFiles = bx_get('files');
@@ -4168,7 +4203,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             return $this->sendMessage($aData);
         }
 
-        return $aForm->getCodeAPI();
+        return $oForm->getCodeAPI();
     }
 
     public function checkAllowedDeleteAnyEntryForProfile ($isPerformAction = false, $iProfileId = false){

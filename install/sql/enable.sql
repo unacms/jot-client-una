@@ -348,6 +348,7 @@ INSERT INTO `sys_form_inputs` (`object`, `module`, `name`, `value`, `values`, `c
 ('bx_messenger_send', @sName, 'message', '', '', 0, 'textarea', '_bx_messenger_neo_app_form_input_caption_message', '', '', '', 0, 0, 0, 3, 0, '', 'a:1:{s:12:"autocomplete";s:3:"off";}', '', '', '', '', '', 'XssHtml', '', 1, 0),
 ('bx_messenger_send', @sName, 'payload', '', '', 0, 'hidden', '_bx_messenger_neo_app_form_input_caption_payload', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', '', '', 0, 0),
 ('bx_messenger_send', @sName, 'message_id', '', '', 0, 'hidden', '_bx_messenger_neo_app_form_input_caption_message_id', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', 'Int', '', 0, 0),
+('bx_messenger_send', @sName, 'id', '', '', 0, 'hidden', '_bx_messenger_neo_app_form_input_caption_id', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', 'Int', '', 0, 0),
 ('bx_messenger_send', @sName, 'action', '', '', 0, 'hidden', '_bx_messenger_neo_app_form_input_caption_action', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', '', '', 0, 0),
 ('bx_messenger_send', @sName, 'send', '', '', 0, 'hidden', '_bx_messenger_neo_app_form_input_caption_messenger_send', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', '', '', 0, 0);
 
@@ -359,7 +360,7 @@ INSERT INTO `sys_form_display_inputs` (`display_name`, `input_name`, `visible_fo
 ('bx_messenger_send', 'cf', 2147483647, 1, 7),
 ('bx_messenger_send', 'message', 2147483647, 1, 6),
 ('bx_messenger_send', 'payload', 2147483647, 1, 5),
-('bx_messenger_send', 'message_id', 2147483647, 0, 4),
+('bx_messenger_send', 'message_id', 2147483647, 1, 4),
 ('bx_messenger_send', 'action', 2147483647, 1, 3),
 ('bx_messenger_send', 'id', 2147483647, 1, 2),
 ('bx_messenger_send', 'send', 2147483647, 1, 1);

@@ -4114,7 +4114,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
                 $aResult[] = array_merge($aJot, [
                     'author_data' => BxDolProfile::getInstance()->getData($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]),
-                    $CNF['FIELD_MESSAGE'] => strip_tags($aJot[$CNF['FIELD_MESSAGE']]),
+                    $CNF['FIELD_MESSAGE'] => strip_tags($aJot[$CNF['FIELD_MESSAGE']], '<br>'),
                     'reactions' => array_map(function($aItem) use ($CNF){
                         return ['name' => $this->_oConfig->convertApp2Emoji($aItem[$CNF['FIELD_REACT_EMOJI_ID']]),
                                 'user_id' => BxDolProfile::getInstance()->getData($aItem[$CNF['FIELD_REACT_PROFILE_ID']]),
@@ -4161,6 +4161,11 @@ class BxMessengerModule extends BxBaseModGeneralModule
             if ($mixedLotId)
                 $iLotId = $this->_oDb->getConvoByHash($mixedLotId);
 
+            $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
+            if (!empty($aLotInfo) && !$this->isAvailable($iLotId))
+                return ['code' => 1, 'msg' => _t('_bx_messenger_not_participant')];
+
+
             $aData = ['lot' => $iLotId, 'message' => bx_get('message')];
             $mixPayload = bx_get('payload');
             if ($mixPayload && !$aData['lot']) {
@@ -4168,6 +4173,11 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 if (isset($aData['participants']) && !in_array($this->_iProfileId, $aData['participants']))
                     $aData['participants'][] = $this->_iProfileId;
             }
+
+            $mixedFiles = bx_get('files');
+            if (!empty($mixedFiles))
+                $aData['files'] = explode(',', $mixedFiles);
+
 
             $iMessageId = bx_get('message_id');
             $sAction = bx_get('action');
@@ -4184,6 +4194,31 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 if ($mixedResult !== true)
                     return ['code' => 1, 'msg' => $mixedResult];
 
+                if (!empty($aData['files'])) {
+                    $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
+                    $aFilesNames = [];
+                    foreach($aData['files'] as &$iFileId) {
+                        $aFile = $oStorage->getFile($iFileId);
+                        if (empty($aFile))
+                            continue;
+
+                        $aFilesNames[] = $aFile[$CNF['FIELD_ST_NAME']];
+                        $this->_oDb->updateFiles($iFileId, array(
+                            $CNF['FIELD_ST_JOT'] => $iMessageId,
+                        ));
+                        $oStorage->afterUploadCleanup($iFileId, $this->_iProfileId);
+                    }
+
+                    $aFilesData = [];
+                    if (!empty($aJotInfo[$CNF['FIELD_MESSAGE_AT']]))
+                        $aFilesData = @unserialize($aJotInfo[$CNF['FIELD_MESSAGE_AT']]);
+
+                    if (!empty($aFilesNames))
+                        $aFilesData[BX_ATT_TYPE_FILES] = ( isset($aFilesData[BX_ATT_TYPE_FILES]) ? $aFilesData[BX_ATT_TYPE_FILES] : [] ) + $aFilesNames;
+
+                    $this->_oDb->updateJot($iMessageId, $CNF['FIELD_MESSAGE_AT'], @serialize($aFilesData));
+                }
+
                 if ($sMessage && $this->_oDb->editJot($iMessageId, $this->_iProfileId, $sMessage)) {
                     $this->onUpdateJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iMessageId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
                     return ['code' => 0];
@@ -4191,14 +4226,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
                 return ['code' => 1];
             }
-
-            $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
-            if (!empty($aLotInfo) && !$this->isAvailable($iLotId))
-                return ['code' => 1, 'msg' => _t('_bx_messenger_not_participant')];
-
-            $mixedFiles = bx_get('files');
-            if (!empty($mixedFiles))
-                $aData['files'] = explode(',', $mixedFiles);
 
             return $this->sendMessage($aData);
         }

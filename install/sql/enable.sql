@@ -371,7 +371,7 @@ INSERT INTO `sys_objects_vote` (`Name`, `Module`, `TableMain`, `TableTrack`, `Po
 
 --- UPLOADERS
 INSERT INTO `sys_objects_uploader` (`object`, `active`, `override_class_name`, `override_class_file`) VALUES
-('bx_messenger_html5', 1, 'BxTemplCmtsUploaderHTML5', '');
+('bx_messenger_html5', 1, 'BxMessengerUploaderHTML5', 'modules/boonex/messenger/classes/BxMessengerUploaderHTML5.php');
 
 -- MENU: custom menu for snippet meta info
 INSERT INTO `sys_objects_menu`(`object`, `title`, `set_name`, `module`, `template_id`, `deletable`, `active`, `override_class_name`, `override_class_file`) VALUES

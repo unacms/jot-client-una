@@ -3808,7 +3808,30 @@ class BxMessengerModule extends BxBaseModGeneralModule
             'FindConvo' => '',
             'SearchUsers' => '',
             'SavePartsList' => '',
+            'ClearGhost' => '',
         ];
+    }
+
+    public function serviceClearGhost($sParams){
+        $aOptions = json_decode($sParams, true);
+        if (!isset($aOptions['id']))
+            return [];
+
+        $CNF = &$this->_oConfig->CNF;
+        $aJotInfo = $this->_oDb->getJotById($aOptions['id']);
+        if (empty($aJotInfo) || !$this->isAvailable($aJotInfo[$CNF['FIELD_MESSAGE_FK']]))
+            return [];
+
+        $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
+
+        if (!($aFiles = $this->_oDb->getJotFiles($aOptions['id'])))
+            return [];
+
+        $aResultFiles = array_map(function($aFile) use ($CNF){
+            return $aFile[$CNF['FIELD_ST_ID']];
+        }, $aFiles);
+
+        $oStorage->afterUploadCleanup($aResultFiles, $this->_iProfileId);
     }
 
     public function serviceSavePartsList($sParams){
@@ -3838,7 +3861,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     'title' => $aItem[$CNF['FIELD_TITLE']],
                     'message' => $aItem['bx_if:user']['content']['message'],
                     'date' => $aItem['bx_if:timer']['content']['time'],
-                    'id' => $aItem[$CNF['FIELD_ID']],
+                    'id' => $aLotInfo[$CNF['FIELD_HASH']],
                     'total_messages' => $this->_oDb->getJotsNumber($aItem[$CNF['FIELD_ID']], 0)
                 ];
 

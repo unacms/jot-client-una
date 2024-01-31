@@ -19,7 +19,7 @@ class BxMessengerUploaderHTML5 extends BxBaseModFilesUploaderHTML5
 
     public function getGhostsWithOrder($iProfileId, $sFormat, $sImagesTranscoder = false, $iContentId = false)
     {
-        if ($iContentId){
+        if ((int)$iContentId){
             $oStorage = BxDolStorage::getObjectInstance($this->_sStorageObject);
             $aFiles = $this->_oModule->_oDb->getJotFiles($iContentId);
             foreach($aFiles as &$aFile)

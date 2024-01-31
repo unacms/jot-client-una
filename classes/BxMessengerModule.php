@@ -4027,7 +4027,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         $aResult[] = array_merge($aJotInfo, [
             'author_data' => BxDolProfile::getInstance()->getData($aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]),
-            $CNF['FIELD_MESSAGE'] => strip_tags($aJotInfo[$CNF['FIELD_MESSAGE']]),
+            $CNF['FIELD_MESSAGE'] => strip_tags($aJotInfo[$CNF['FIELD_MESSAGE']], '<br>'),
             'reactions' => array_map(function($aItem) use ($CNF){
                 return ['name' => $this->_oConfig->convertApp2Emoji($aItem[$CNF['FIELD_REACT_EMOJI_ID']]),
                     'user_id' => BxDolProfile::getInstance()->getData($aItem[$CNF['FIELD_REACT_PROFILE_ID']]),

@@ -36,6 +36,34 @@ class BxMessengerUploaderHTML5 extends BxBaseModFilesUploaderHTML5
                     'file_title_attr' => bx_html_attribute($aFile['file_name'])
                 ];
     }
+
+    public function deleteGhost($iFileId, $iProfileId)
+    {
+        $oStorage = BxDolStorage::getObjectInstance($this->_sStorageObject);
+        $aFile = $oStorage->getFile($iFileId);
+        $CNF = &$this->_oModule->_oConfig->CNF;
+        if (empty($aFile) || !(int)$aFile[$CNF['FIELD_ST_JOT']])
+            return _t('_error occured');
+
+        $sResult = parent::deleteGhost($iFileId, $iProfileId);
+        if ($sResult !== 'ok')
+            return $sResult;
+
+        $iMessageId = (int)$aFile[$CNF['FIELD_ST_JOT']];
+        $aJotInfo = $this->_oModule->_oDb->getJotById($iMessageId);
+        if (empty($aJotInfo))
+            return _t('_error occured');
+
+        $aFilesData = !$aJotInfo[$CNF['FIELD_MESSAGE_AT']] ? @unserialize($aJotInfo[$CNF['FIELD_MESSAGE_AT']]) : [];
+        $aFilesList = $this->_oModule->_oDb->getJotFiles($iMessageId);
+        if (!empty($aFilesList)){
+             foreach($aFilesList as &$aFileItem)
+                 $aFilesData[BX_ATT_TYPE_FILES][] = $aFileItem[$CNF['FIELD_ST_NAME']];
+        }
+
+        $this->_oModule->_oDb->updateJot($iMessageId, $CNF['FIELD_MESSAGE_AT'], !empty($aFilesData) ? @serialize($aFilesData) : '');
+        return 'ok';
+    }
 }
 
 /** @} */

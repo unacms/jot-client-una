@@ -4095,7 +4095,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 }
 
             case 'prev':
-                $aOptions = [
+                $aCriteria = [
                     'lot_id' => $iLotId,
                     'url' => $sUrl,
                     'start' => $iJot,
@@ -4113,7 +4113,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     $iUnreadJotsNumber = (int)$aUnreadInfo[$CNF['FIELD_NEW_UNREAD']];
                 }
 
-                $mixedContent = $this->_oTemplate->getJotsOfLot($this->_iProfileId, $aOptions);
+                $mixedContent = $this->_oTemplate->getJotsOfLot($this->_iProfileId, $aCriteria);
                 break;
         }
 
@@ -4136,6 +4136,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     }
 
                 $aResult[] = array_merge($aJot, [
+                    $CNF['FIELD_MESSAGE_FK'] => $aOptions['lot'],
                     'author_data' => BxDolProfile::getInstance()->getData($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]),
                     $CNF['FIELD_MESSAGE'] => strip_tags($aJot[$CNF['FIELD_MESSAGE']], '<br>'),
                     'reactions' => array_map(function($aItem) use ($CNF){

@@ -3799,6 +3799,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return [
             'GetConvosList' => '',
             'GetConvoMessages' => '',
+            'GetConvoMessage' => '',
             'GetSendForm' => '',
             'RemoveConvo' => '',
             'SubmitMessage' => '',
@@ -4025,7 +4026,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     $aFiles[] = ['src' => $oImagesTranscoder->getFileUrl((int)$aFile[$CNF['FIELD_ST_ID']]), 'name' => $aFile[$CNF['FIELD_ST_NAME']]];
             }
 
-        $aResult[] = array_merge($aJotInfo, [
+        return array_merge($aJotInfo, [
             'author_data' => BxDolProfile::getInstance()->getData($aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]),
             $CNF['FIELD_MESSAGE'] => strip_tags($aJotInfo[$CNF['FIELD_MESSAGE']], '<br>'),
             'reactions' => array_map(function($aItem) use ($CNF){
@@ -4036,9 +4037,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
             'menu' => $oMenu->getMenuItems(),
             'files' => $aFiles
         ]);
-
-
-        return $aResult;
     }
 
     public function serviceGetConvoMessages($sParams)
@@ -4202,7 +4200,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
             if (!empty($mixedFiles))
                 $aData['files'] = explode(',', $mixedFiles);
 
-
             $iMessageId = bx_get('message_id');
             $sAction = bx_get('action');
             if ($iMessageId && $sAction === 'edit') {
@@ -4245,13 +4242,18 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
                 if ($sMessage && $this->_oDb->editJot($iMessageId, $this->_iProfileId, $sMessage)) {
                     $this->onUpdateJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iMessageId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
-                    return ['code' => 0];
+
+                    $this->pusherData('edit-message', ['convo' => $iLotId, 'message' => $iMessageId]);
+                    return ['code' => 0, 'jot_id' => $iMessageId];
                 }
 
                 return ['code' => 1];
             }
 
-            return $this->sendMessage($aData);
+            $aResult = $this->sendMessage($aData);
+            $aResult['time'] = bx_get('payload');
+            $this->pusherData('new-message', ['convo' => $iLotId, 'message' => $aResult['jot_id']]);
+            return $aResult;
         }
 
         return $oForm->getCodeAPI();
@@ -4462,6 +4464,22 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         $sContent = $this->_oTemplate->getInfoBlockContent($iLotId);
         return echoJson(array('code' => 0, 'html' => $sContent));
+    }
+
+    private function pusherData($sAction, $aData = []){
+        $oSockets = BxDolSockets::getInstance();
+
+        if (isset($aData['convo']) && (int)$aData['convo']){
+            $CNF = &$this->_oConfig->CNF;
+            $aLotInfo = $this->_oDb->getLotInfoById($aData['convo']);
+            $aData['id'] = $aLotInfo[$CNF['FIELD_HASH']];
+        }
+
+        $aData['user_id'] = $this->_iProfileId;
+
+        if($oSockets->isEnabled() && $sAction && !empty($aData)) {
+            $oSockets->sendEvent('bx', 'messenger', $sAction, $aData);
+        }
     }
 }
 

@@ -3999,6 +3999,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                    'date' => $aItem['bx_if:timer']['content']['time'],
                    'id' => $aData['list'][$iKey][$CNF['FIELD_HASH']],
                     'id2' => $aItem[$CNF['FIELD_ID']],
+                   'unread' => $aItem['count'],
                    'total_messages' => $this->_oDb->getJotsNumber($aItem[$CNF['FIELD_ID']], 0)
                 ];
             }
@@ -4113,7 +4114,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     'limit' => $CNF['MAX_JOTS_BY_DEFAULT'],
                     'views' => true,
                     'dynamic' => true,
-                    'area' => $sArea
+                    'area' => $sArea,
+                    'read' => true
                 ];
 
                 $iLastUnreadJotId = $iUnreadJotsNumber = 0;
@@ -4137,7 +4139,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             foreach($mixedContent as &$aJot) {
                 $iJotId = $aJot[$CNF['FIELD_MESSAGE_ID']];
                 $aReactions = $this->_oDb->getJotReactions($iJotId);
-
+                $this->_oDb->readMessage($iJotId, $this->_iProfileId);
                 $aFiles = [];
                 if ($mixedFiles = $this->_oDb->getJotFiles($iJotId))
                     foreach($mixedFiles as &$aFile) {
@@ -4147,7 +4149,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
                 $aResult[] = array_merge($aJot, [
                     $CNF['FIELD_MESSAGE_FK'] => $aOptions['lot'],
-                    'author_data' => BxDolProfile::getInstance()->getData($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]),
+                    'author_data' => BxDolProfile::getInstance($aJot[$CNF['FIELD_MESSAGE_AUTHOR']])->getData(),
                     $CNF['FIELD_MESSAGE'] => strip_tags($aJot[$CNF['FIELD_MESSAGE']], '<br>'),
                     'reactions' => array_map(function($aItem) use ($CNF){
                         return ['name' => $this->_oConfig->convertApp2Emoji($aItem[$CNF['FIELD_REACT_EMOJI_ID']]),

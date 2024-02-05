@@ -259,7 +259,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
     public function serviceGetMainMessengerPage(){
         if(bx_is_api())
-            return [bx_api_get_block('messenger_main_page', [])];
+            return [
+                bx_api_get_block('messenger_main_page', ['menu' => $this->serviceGetMessengerMenu(), 'form' => ['data' =>$this->serviceGetSendForm()]], ['ext' => ['name' => $this->getName(), 'request' => ['url' => '/api.php?r=' . $this->getName() . '/get_send_form/', 'immutable' => true]]])
+            ];
 
         $this->initDefaultParams();
 
@@ -3995,6 +3997,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                    'message' => $aItem['bx_if:user']['content']['message'],
                    'date' => $aItem['bx_if:timer']['content']['time'],
                    'id' => $aData['list'][$iKey][$CNF['FIELD_HASH']],
+                    'id2' => $aItem[$CNF['FIELD_ID']],
                    'total_messages' => $this->_oDb->getJotsNumber($aItem[$CNF['FIELD_ID']], 0)
                 ];
             }
@@ -4041,7 +4044,12 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
     public function serviceGetConvoMessages($sParams)
     {
+        if(is_array($sParams)){
+            $aOptions = $sParams;
+        }
+        else{
         $aOptions = json_decode($sParams, true);
+        }
 
         $CNF = &$this->_oConfig->CNF;
         $iJot = isset($aOptions['jot']) ? (int)$aOptions['jot'] : 0;
@@ -4092,6 +4100,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     $this->_oDb->readMessage($iLastViewedJot, $this->_iProfileId);
                 }
 
+            case 'ids':
+                $mixedContent = [$this->_oDb->getJotById($iJot)];
+                break;
             case 'prev':
                 $aCriteria = [
                     'lot_id' => $iLotId,
@@ -4252,7 +4263,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
             $aResult = $this->sendMessage($aData);
             $aResult['time'] = bx_get('payload');
-            $this->pusherData('new-message', ['convo' => $iLotId, 'message' => $aResult['jot_id']]);
+           //$this->pusherData('new-message', ['convo' => $iLotId, 'message' => $aResult['jot_id']]);
+            $this->pusherData('convo_' . $iLotId, ['convo' => $iLotId, 'data' => $this->serviceGetConvoMessages(['jot' => $aResult['jot_id'], 'load' => 'ids'])]);
             return $aResult;
         }
 

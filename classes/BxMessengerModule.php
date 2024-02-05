@@ -3803,7 +3803,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             'GetConvoMessages' => '',
             'GetConvoMessage' => '',
             'GetSendForm' => '',
-            'RemoveConvo' => '',
+            'RemoveJot' => '',
             'SubmitMessage' => '',
             'GetMessengerMenu' => '',
             'GetConvoItem' => '',
@@ -3960,13 +3960,14 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return $oMenu->getMenuItems();
     }
 
-    function serviceRemoveConvo($sParams = ''){
+    function serviceRemoveJot($sParams = ''){
         $aOptions = json_decode($sParams, true);
 
         $iJotId = isset($aOptions['jot_id']) ? (int)$aOptions['jot_id'] : 0;
+        $iLotId = isset($aOptions['lot_id']) ? $aOptions['lot_id'] : 0;
         if (!$iJotId)
             return [];
-
+        $this->pusherData('convo_' . $iLotId, ['convo' => $iLotId, 'action' => 'deleted', 'data' => $iJotId]);
         return $this->serviceDeleteJot($iJotId, true);
     }
 
@@ -4253,8 +4254,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
                 if ($sMessage && $this->_oDb->editJot($iMessageId, $this->_iProfileId, $sMessage)) {
                     $this->onUpdateJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iMessageId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
-
-                    $this->pusherData('edit-message', ['convo' => $iLotId, 'message' => $iMessageId]);
+                    $this->pusherData('convo_' . $aLotInfo['hash'], ['convo' => $iLotId, 'action' => 'edited', 'data' => $this->serviceGetConvoMessages(['jot' => $iMessageId, 'load' => 'ids'])]);
+                    //$this->pusherData('edit-message', ['convo' => $iLotId, 'message' => $iMessageId]);
                     return ['code' => 0, 'jot_id' => $iMessageId];
                 }
 
@@ -4264,7 +4265,14 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $aResult = $this->sendMessage($aData);
             $aResult['time'] = bx_get('payload');
            //$this->pusherData('new-message', ['convo' => $iLotId, 'message' => $aResult['jot_id']]);
-            $this->pusherData('convo_' . $iLotId, ['convo' => $iLotId, 'data' => $this->serviceGetConvoMessages(['jot' => $aResult['jot_id'], 'load' => 'ids'])]);
+            $this->pusherData('convo_' . $aLotInfo['hash'], ['convo' => $iLotId, 'action' => 'added', 'data' => $this->serviceGetConvoMessages(['jot' => $aResult['jot_id'], 'load' => 'ids'])]);
+            
+            $aParticipantsList = $this->_oDb->getParticipantsList($iLotId, true);
+            foreach($aParticipantsList as $iProfile){
+                $this->pusherData('profile_' . $iProfile, ['convo' => $iLotId]);
+            }
+            print_r($aParticipantsList);
+            
             return $aResult;
         }
 

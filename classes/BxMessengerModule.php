@@ -3998,7 +3998,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                    'message' => $aItem['bx_if:user']['content']['message'],
                    'date' => $aItem['bx_if:timer']['content']['time'],
                    'id' => $aData['list'][$iKey][$CNF['FIELD_HASH']],
-                    'id2' => $aItem[$CNF['FIELD_ID']],
+                   'id2' => $aItem[$CNF['FIELD_ID']],
                    'unread' => $aItem['count'],
                    'total_messages' => $this->_oDb->getJotsNumber($aItem[$CNF['FIELD_ID']], 0)
                 ];
@@ -4114,8 +4114,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     'limit' => $CNF['MAX_JOTS_BY_DEFAULT'],
                     'views' => true,
                     'dynamic' => true,
-                    'area' => $sArea,
-                    'read' => true
+                    'area' => $sArea
                 ];
 
                 $iLastUnreadJotId = $iUnreadJotsNumber = 0;
@@ -4273,8 +4272,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             foreach($aParticipantsList as $iProfile){
                 $this->pusherData('profile_' . $iProfile, ['convo' => $iLotId]);
             }
-            print_r($aParticipantsList);
-            
+
             return $aResult;
         }
 

@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_jots` (
    `edit_by` int(11) unsigned NOT NULL default '0',
    `trash` tinyint(1) unsigned NOT NULL default 0,
    `vc` int(11) NOT NULL default 0,
+   `rrate` float NOT NULL default '0',
+   `rvotes` int(11) NOT NULL default '0',
    `reply` int(11) NOT NULL default 0,
    PRIMARY KEY (`id`),
    KEY `lot_id` (`lot_id`),
@@ -35,6 +37,28 @@ CREATE TABLE IF NOT EXISTS `bx_messenger_jots_media_tracker` (
    `user_id` int(11) unsigned NOT NULL default 0,
    `collapsed` tinyint(1) NOT NULL default 1,
     PRIMARY KEY (`file_id`, `user_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `bx_messenger_jots_rvotes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `object_id` int(11) NOT NULL default '0',
+  `reaction` varchar(32) NOT NULL default '',
+  `count` int(11) NOT NULL default '0',
+  `sum` int(11) NOT NULL default '0',
+  PRIMARY KEY (`id`),    
+  UNIQUE KEY `reaction` (`object_id`, `reaction`)
+);
+
+CREATE TABLE IF NOT EXISTS `bx_messenger_jots_rvotes_track` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `object_id` int(11) NOT NULL default '0',
+  `author_id` int(11) NOT NULL default '0',
+  `author_nip` int(11) unsigned NOT NULL default '0',
+  `reaction` varchar(32) NOT NULL default '',
+  `value` tinyint(4) NOT NULL default '0',
+  `date` int(11) NOT NULL default '0',
+  PRIMARY KEY (`id`),
+  KEY `vote` (`object_id`, `author_nip`)
 );
 
 CREATE TABLE IF NOT EXISTS `bx_messenger_lots` (
@@ -274,6 +298,12 @@ INSERT INTO `sys_transcoder_filters` (`transcoder_object`, `filter`, `filter_par
 ('bx_messenger_videos_mp4_hd', 'Mp4', 'a:3:{s:1:"h";s:3:"720";s:13:"video_bitrate";s:4:"1536";s:10:"force_type";s:3:"mp4";}', 0),
 ('bx_messenger_videos_webm', 'Webm', 'a:2:{s:1:"h";s:3:"480";s:10:"force_type";s:4:"webm";}', 0),
 ('bx_messenger_mp3', 'Mp3', 'a:2:{s:13:"audio_bitrate";s:3:"128";s:10:"force_type";s:3:"mp3";}', 0);
+
+
+-- VOTES
+INSERT INTO `sys_objects_vote` (`Name`, `Module`, `TableMain`, `TableTrack`, `PostTimeout`, `MinValue`, `MaxValue`, `IsUndo`, `IsOn`, `TriggerTable`, `TriggerFieldId`, `TriggerFieldAuthor`, `TriggerFieldRate`, `TriggerFieldRateCount`, `ClassName`, `ClassFile`) VALUES 
+('bx_messenger_jots_rvotes', 'bx_messenger', 'bx_messenger_jots_rvotes', 'bx_messenger_jots_rvotes_track', '604800', '1', '1', '1', '1', 'bx_messenger_jots', 'id', 'user_id', 'rrate', 'rvotes', 'BxMessengerJotVoteReactions', 'modules/boonex/messenger/classes/BxMessengerJotVoteReactions.php');
+
 
 -- STUDIO PAGE & WIDGET
 INSERT INTO `sys_std_pages`(`index`, `name`, `header`, `caption`, `icon`) VALUES

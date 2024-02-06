@@ -4147,15 +4147,24 @@ class BxMessengerModule extends BxBaseModGeneralModule
                             $aFiles[] = ['src' => $oImagesTranscoder->getFileUrl((int)$aFile[$CNF['FIELD_ST_ID']]), 'name' => $aFile[$CNF['FIELD_ST_NAME']]];
                     }
 
+                $aReactions = [];
+                if(($oReactions = BxDolVote::getObjectInstance($CNF['OBJECT_JOTS_RVOTES'], $iJotId)) && $oReactions->isEnabled()) {
+                    $aReactionsOptions = [];
+                    $aReactions = $oReactions->getElementApi($aReactionsOptions);
+                }
+
                 $aResult[] = array_merge($aJot, [
                     $CNF['FIELD_MESSAGE_FK'] => $aOptions['lot'],
                     'author_data' => BxDolProfile::getInstance($aJot[$CNF['FIELD_MESSAGE_AUTHOR']])->getData(),
                     $CNF['FIELD_MESSAGE'] => strip_tags($aJot[$CNF['FIELD_MESSAGE']], '<br>'),
+                    'reactions' => $aReactions,
+                    /*
                     'reactions' => array_map(function($aItem) use ($CNF){
                         return ['name' => $this->_oConfig->convertApp2Emoji($aItem[$CNF['FIELD_REACT_EMOJI_ID']]),
                                 'user_id' => BxDolProfile::getInstance()->getData($aItem[$CNF['FIELD_REACT_PROFILE_ID']]),
                                 'count' => 1];
                     }, $aReactions),
+                     */
                     'menu' => $oMenu->getMenuItems(),
                     'files' => $aFiles
                 ]);

@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS `bx_messenger_videos_processed`;
 DROP TABLE IF EXISTS `bx_messenger_mp3_processed`;
 DROP TABLE IF EXISTS `bx_messenger_lcomments`;
 DROP TABLE IF EXISTS `bx_messenger_jot_reactions`;
+DROP TABLE IF EXISTS `bx_messenger_jots_rvotes`, `bx_messenger_jots_rvotes_track`;
 DROP TABLE IF EXISTS `bx_messenger_unread_jots`;
 DROP TABLE IF EXISTS `bx_messenger_jvc`;
 DROP TABLE IF EXISTS `bx_messenger_jvc_track`;
@@ -28,6 +29,9 @@ DELETE FROM `sys_objects_transcoder` WHERE `storage_object` LIKE 'bx_messenger%'
 DELETE FROM `sys_transcoder_filters` WHERE `transcoder_object` LIKE 'bx_messenger%';
 DELETE FROM `sys_transcoder_images_files` WHERE `transcoder_object` = 'bx_messenger_preview';
 DELETE FROM `sys_transcoder_videos_files` WHERE `transcoder_object` LIKE 'bx_messenger%';
+
+-- VOTES
+DELETE FROM `sys_objects_vote` WHERE `Name` LIKE 'bx_messenger%';
 
 -- STUDIO PAGE & WIDGET
 DELETE FROM `tp`, `tw`, `tpw`

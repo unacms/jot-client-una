@@ -1050,7 +1050,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         $aResult = array('content' => '');
 		$aLotInfo = $this -> _oDb -> getLotByIdOrUrl($iLotId, $sUrl, $iProfileId);
 		if (empty($aLotInfo))
-			return $aResult;
+			return bx_is_api() ? [] : $aResult;
 
 		if ($bSelectJot && $iStart){
 		    $aStartMiddleJot = $this -> _oDb -> getJotsByLotId([

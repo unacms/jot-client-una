@@ -262,6 +262,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
                                                 ),
             'OBJECT_MENU_SNIPPET_META' => 'bx_messenger_profile_snippet_meta',
             'OBJECT_VIEWS' => 'bx_messenger_lots',
+            'OBJECT_JOTS_RVOTES' => 'bx_messenger_jots_rvotes',
             'OBJECT_FORM_ENTRY' => 'bx_messenger_lots',
             'OBJECT_FORM_FILTER' => 'bx_messenger_filter_criteria',
             'OBJECT_FORM_FILTER_DISPLAY' => 'bx_messenger_filter_criteria',

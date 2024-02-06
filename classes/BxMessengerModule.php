@@ -421,7 +421,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 	* @param int $iSender sender's profile id
 	* @return array/string
 	*/
-	private function sendMessage(&$aData, $iRecipient = 0, $iSender = 0){
+    public function sendMessage(&$aData, $iRecipient = 0, $iSender = 0){
         $sMessage = isset($aData['message']) ? trim($aData['message']) : '';
         $iLotId = isset($aData['lot']) ? (int)$aData['lot'] : 0;
         $iGroupId = isset($aData['group_id']) ? (int)$aData['group_id'] : 0;
@@ -3799,18 +3799,18 @@ class BxMessengerModule extends BxBaseModGeneralModule
     public function serviceGetSafeServices()
     {
         return [
-            'GetConvosList' => '',
-            'GetConvoMessages' => '',
+            'GetConvosList' => 'BxMessengerServices',
+            'GetConvoMessages' => 'BxMessengerServices',
             'GetConvoMessage' => '',
-            'GetSendForm' => '',
-            'RemoveJot' => '',
+            'GetSendForm' => 'BxMessengerServices',
+            'RemoveJot' => 'BxMessengerServices',
             'SubmitMessage' => '',
             'GetMessengerMenu' => '',
             'GetConvoItem' => '',
             'GetBlockContactsMessenger' => '',
             'FindConvo' => '',
-            'SearchUsers' => '',
-            'SavePartsList' => '',
+            'SearchUsers' => 'BxMessengerServices',
+            'SavePartsList' => 'BxMessengerServices',
             'ClearGhost' => '',
         ];
     }
@@ -3837,6 +3837,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $oStorage->afterUploadCleanup($aResultFiles, $this->_iProfileId);
     }
 
+    /*
+     * Moved to Services
+     */
     public function serviceSavePartsList($sParams){
         $aOptions = json_decode($sParams, true);
 
@@ -3875,6 +3878,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return $aResult;
     }
 
+    /*
+     * Moved to Services
+     */
     public function serviceSearchUsers($sParams){
         $aOptions = json_decode($sParams, true);
         $aResult = ['code' => 1];
@@ -3960,6 +3966,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return $oMenu->getMenuItems();
     }
 
+    /*
+     * Moved to Services
+     */
     function serviceRemoveJot($sParams = ''){
         $aOptions = json_decode($sParams, true);
 
@@ -3971,6 +3980,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return $this->serviceDeleteJot($iJotId, true);
     }
 
+    /*
+     * Moved to Services
+     */
     function serviceGetConvosList($sParams = ''){
         $aOptions = json_decode($sParams, true);
         $aData = $this->serviceGetTalksList($aOptions);
@@ -3998,7 +4010,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                    'message' => $aItem['bx_if:user']['content']['message'],
                    'date' => $aItem['bx_if:timer']['content']['time'],
                    'id' => $aData['list'][$iKey][$CNF['FIELD_HASH']],
-                   'id2' => $aItem[$CNF['FIELD_ID']],
+                    'id2' => $aItem[$CNF['FIELD_ID']],
                    'unread' => $aItem['count'],
                    'total_messages' => $this->_oDb->getJotsNumber($aItem[$CNF['FIELD_ID']], 0)
                 ];
@@ -4044,6 +4056,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         ]);
     }
 
+    /*
+     * Moved to Services
+     */
     public function serviceGetConvoMessages($sParams)
     {
         if(is_array($sParams)){
@@ -4114,7 +4129,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     'limit' => $CNF['MAX_JOTS_BY_DEFAULT'],
                     'views' => true,
                     'dynamic' => true,
-                    'area' => $sArea
+                    'area' => $sArea,
+                    'read' => true
                 ];
 
                 $iLastUnreadJotId = $iUnreadJotsNumber = 0;
@@ -4178,6 +4194,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         ];
     }
 
+    /**
+     * Moved to Services
+     */
     public function serviceGetSendForm($sParams = ''){
         if (!$this->isLogged())
             return ['code' => 1, 'msg' => _t('_bx_messenger_not_logged')];
@@ -4281,7 +4300,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
             foreach($aParticipantsList as $iProfile){
                 $this->pusherData('profile_' . $iProfile, ['convo' => $iLotId]);
             }
-
+            print_r($aParticipantsList);
+            
             return $aResult;
         }
 
@@ -4495,6 +4515,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return echoJson(array('code' => 0, 'html' => $sContent));
     }
 
+    /**
+     * Moved to Services
+     */
     private function pusherData($sAction, $aData = []){
         $oSockets = BxDolSockets::getInstance();
 

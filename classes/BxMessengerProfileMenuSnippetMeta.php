@@ -9,6 +9,9 @@
  * @{
  */
 
+/**
+ * For API only.
+ */
 class BxMessengerProfileMenuSnippetMeta extends BxBaseModProfileMenuSnippetMeta
 {
     public function __construct($aObject, $oTemplate = false)

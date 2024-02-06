@@ -14,13 +14,14 @@
  */
 class BxMessengerMainMenu extends BxTemplMenu
 {
+    private $_sModule = '';
     private $_oModule = null;
     private $_aMenuStat = null;
     public function __construct ($aObject, $oTemplate = false)
     {
         parent::__construct ($aObject, $oTemplate);
-        $this->MODULE = 'bx_messenger';
-        $this->_oModule = BxDolModule::getInstance($this->MODULE);
+        $this->_sModule = 'bx_messenger';
+        $this->_oModule = BxDolModule::getInstance($this->_sModule);
         $this->_oTemplate = &$this->_oModule->_oTemplate;
         $this->_aMenuStat = $this->_oModule->_oDb->getUnreadMessagesStat(bx_get_logged_profile_id());
     }

@@ -14,13 +14,15 @@
  */
 class BxMessengerJotMenu extends BxTemplMenuCustom
 {
+    protected $_sModule;
     protected $_oModule;
     protected $_iContentId;
+    protected $_aContentInfo;
 
     public function __construct($aObject, $oTemplate = false)
     {
-        $this-> MODULE = 'bx_messenger';
-        $this->_oModule = BxDolModule::getInstance($this-> MODULE);
+        $this->_sModule = 'bx_messenger';
+        $this->_oModule = BxDolModule::getInstance($this->_sModule);
         parent::__construct($aObject, $this->_oModule->_oTemplate);
     }
 

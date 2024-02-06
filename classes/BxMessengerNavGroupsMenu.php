@@ -14,6 +14,7 @@
  */
 class BxMessengerNavGroupsMenu extends BxTemplMenuProfileFollowings
 {
+    private $_sModule = '';
     private $_oModule = null;
     private $_oConfig = null;
     private $_oDb = null;
@@ -22,8 +23,8 @@ class BxMessengerNavGroupsMenu extends BxTemplMenuProfileFollowings
 
     public function __construct ($aObject, $oTemplate = false)
     {
-        $this->MODULE = 'bx_messenger';
-        $this->_oModule = BxDolModule::getInstance($this->MODULE);
+        $this->_sModule = 'bx_messenger';
+        $this->_oModule = BxDolModule::getInstance($this->_sModule);
         parent::__construct ($aObject, $this->_oModule->_oTemplate);
 
         $this->_oConfig = &$this->_oModule->_oConfig;

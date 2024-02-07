@@ -3807,14 +3807,15 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
             //--- Aren't used in App for now.
             'GetConvoMessage' => '',
-            'SubmitMessage' => '',
-            'GetMessengerMenu' => '',
             'GetConvoItem' => '',
             'FindConvo' => '',
             'ClearGhost' => '',
         ];
     }
 
+    /*
+     * Should be moved to Services if it's needed, otherwise removed.
+     */
     public function serviceClearGhost($sParams){
         $aOptions = json_decode($sParams, true);
         if (!isset($aOptions['id']))
@@ -3906,6 +3907,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return $aUsers;
     }
 
+    /*
+     * Should be moved to Services if it's needed, otherwise removed.
+     */
     public function serviceFindConvo($sParams)
     {
         $aOptions = json_decode($sParams, true);
@@ -3944,6 +3948,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return [];
     }
 
+    /*
+     * Should be moved to Services if it's needed, otherwise removed.
+     */
     public function serviceGetConvoItem($sParams)
     {
         $aOptions = json_decode($sParams, true);
@@ -3958,15 +3965,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         $CNF = $this->_oConfig->CNF;
         return array_merge($aLotInfo, ['author_data' => BxDolProfile::getInstance()->getData($aLotInfo[$CNF['FIELD_AUTHOR']])]);
-    }
-
-    /*
-     * Moved to Services
-     */
-    public function serviceGetMessengerMenu(){
-        $CNF = &$this->_oConfig->CNF;
-        $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_NAV_LEFT_MENU']);
-        return $oMenu->getMenuItems();
     }
 
     /*

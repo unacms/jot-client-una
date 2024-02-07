@@ -75,18 +75,6 @@ class BxMessengerServices extends BxDol
         return [bx_api_get_block('browse', $aData)];
     }
 
-    /**
-     * Looks like it isn't needed anymore.
-     * 
-    public function serviceGetMessengerMenu()
-    {
-        $CNF = &$this->_oModule->_oConfig->CNF;
-
-        $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_NAV_LEFT_MENU']);
-        return $oMenu->getMenuItems();
-    }
-     */
-
     public function serviceGetConvosList($sParams = '')
     {
         $CNF = &$this->_oModule->_oConfig->CNF;

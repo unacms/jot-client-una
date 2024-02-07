@@ -67,10 +67,6 @@
    @apply right-[0.05rem] opacity-[0.4] whitespace-normal bottom-0;
 }
 
-/*.bx-messenger-jots-message-edit-time {
-    @apply left-0;
-}*/
-
 .bx-messenger-jots-message-deleted
 {
     @apply w-full text-left flex relative bg-transparent/[0.07] min-h-[1.5rem] overflow-hidden whitespace-normal
@@ -224,4 +220,8 @@ div.bx-messenger-edit-jot div.bx-messenger-post-box-send-area div.bx-messenger-t
 div.bx-messenger-jots-icons.active
 {
     @apply inline;
+}
+
+.bx-messenger-jots-message.bx-def-vanilla-html p {
+    @apply m-0 leading-5;
 }

@@ -660,7 +660,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 		    $CNF = &$this->_oConfig->CNF;
 			if (!empty($aLastJotInfo) && isset($aData['tmp_id'])) {
                 $iTimer = $aLastJotInfo[$CNF['FIELD_MESSAGE_ADDED']];
-                $iCurrent = $aData['tmp_id']/1000;
+                $iCurrent = intval($aData['tmp_id']/1000);
                 if (($iCurrent - $iTimer) > $CNF['DATE-SHIFT'])
                     $mixedResult['separator'] = $this->_oTemplate->getDateSeparator($iCurrent);
             }
@@ -3560,7 +3560,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     unset($aFilesData[BX_ATT_TYPE_FILES_UPLOADING]);
             }
 
-            //$sFilesList = implode(',', $aSuccessfulFiles );
             if (!empty($aFilesData[BX_ATT_TYPE_FILES]))
                 $aFilesData[BX_ATT_TYPE_FILES] = @unserialize($aFilesData[BX_ATT_TYPE_FILES]) + $aSuccessfulFiles;// . ",{$sFilesList}";
             else

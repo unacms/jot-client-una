@@ -300,6 +300,42 @@ INSERT INTO `sys_transcoder_filters` (`transcoder_object`, `filter`, `filter_par
 ('bx_messenger_mp3', 'Mp3', 'a:2:{s:13:"audio_bitrate";s:3:"128";s:10:"force_type";s:3:"mp3";}', 0);
 
 
+-- FORMS: for NEO
+INSERT INTO `sys_objects_form` (`object`, `module`, `title`, `action`, `form_attrs`, `submit_name`, `table`, `key`, `uri`, `uri_title`, `params`, `deletable`, `active`, `parent_form`, `override_class_name`, `override_class_file`) VALUES
+('bx_messenger_send', @sName, '_bx_messenger_neo_app_form', '', 'a:1:{s:7:"enctype";s:19:"multipart/form-data";}', 'submit', '', 'id', '', '', '', 0, 1, '', 'BxMessengerFormEntry', 'modules/boonex/messenger/classes/BxMessengerFormEntry.php');
+
+INSERT INTO `sys_form_displays` (`display_name`, `module`, `object`, `title`) VALUES
+('bx_messenger_send', @sName, 'bx_messenger_send', '_bx_messenger_neo_app_form_display_send_message');
+
+INSERT INTO `sys_form_inputs` (`object`, `module`, `name`, `value`, `values`, `checked`, `type`, `caption_system`, `caption`, `info`, `help`, `required`, `unique`, `collapsed`, `html`, `privacy`, `rateable`, `attrs`, `attrs_tr`, `attrs_wrapper`, `checker_func`, `checker_params`, `checker_error`, `db_pass`, `db_params`, `editable`, `deletable`) VALUES
+('bx_messenger_send', @sName, 'submit', '_bx_messenger_neo_app_form_input_submit', '', 0, 'submit', '_bx_messenger_neo_app_form_input_caption_submit', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', '', '', 0, 0),
+('bx_messenger_send', @sName, 'cancel', '_bx_messenger_neo_app_form_input_cancel', '', 0, 'button', '_bx_messenger_neo_app_form_input_caption_cancel', '', '', '', 0, 0, 0, 0, 0, '', 'a:1:{s:5:"class";s:22:"bx-def-margin-sec-left";}', '', '', '', '', '', '', '', 0, 0),
+('bx_messenger_send', @sName, 'controls', '', 'submit,cancel', 0, 'input_set', '', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', '', '', 0, 0),
+('bx_messenger_send', @sName, 'cf', '', '#!sys_content_filter', 0, 'select', '_sys_form_entry_input_sys_cf', '_sys_form_entry_input_cf', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', '', '', 1, 0),
+('bx_messenger_send', @sName, 'files', 'a:1:{i:0;s:18:"bx_messenger_html5";}', 'a:1:{s:18:"bx_messenger_html5";s:25:"_sys_uploader_html5_title";}', 0, 'files', '_bx_messenger_neo_app_form_input_caption_files', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', '', '', 1, 0),
+('bx_messenger_send', @sName, 'message', '', '', 0, 'textarea', '_bx_messenger_neo_app_form_input_caption_message', '', '', '', 0, 0, 0, 3, 0, '', 'a:1:{s:12:"autocomplete";s:3:"off";}', '', '', '', '', '', 'XssHtml', '', 1, 0),
+('bx_messenger_send', @sName, 'payload', '', '', 0, 'hidden', '_bx_messenger_neo_app_form_input_caption_payload', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', '', '', 0, 0),
+('bx_messenger_send', @sName, 'reply', '', '', 0, 'hidden', '_bx_messenger_neo_app_form_input_caption_reply', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', 'Int', '', 0, 0),
+('bx_messenger_send', @sName, 'message_id', '', '', 0, 'hidden', '_bx_messenger_neo_app_form_input_caption_message_id', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', 'Int', '', 0, 0),
+('bx_messenger_send', @sName, 'id', '', '', 0, 'hidden', '_bx_messenger_neo_app_form_input_caption_id', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', 'Int', '', 0, 0),
+('bx_messenger_send', @sName, 'action', '', '', 0, 'hidden', '_bx_messenger_neo_app_form_input_caption_action', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', '', '', 0, 0),
+('bx_messenger_send', @sName, 'send', '', '', 0, 'hidden', '_bx_messenger_neo_app_form_input_caption_messenger_send', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', '', '', 0, 0);
+
+INSERT INTO `sys_form_display_inputs` (`display_name`, `input_name`, `visible_for_levels`, `active`, `order`) VALUES
+('bx_messenger_send', 'controls', 2147483647, 0, 0),
+('bx_messenger_send', 'cancel', 2147483647, 0, 0),
+('bx_messenger_send', 'files', 2147483647, 1, 10),
+('bx_messenger_send', 'submit', 2147483647, 1, 9),
+('bx_messenger_send', 'cf', 2147483647, 1, 8),
+('bx_messenger_send', 'message', 2147483647, 1, 7),
+('bx_messenger_send', 'payload', 2147483647, 1, 6),
+('bx_messenger_send', 'reply', 2147483647, 1, 5),
+('bx_messenger_send', 'message_id', 2147483647, 1, 4),
+('bx_messenger_send', 'action', 2147483647, 1, 3),
+('bx_messenger_send', 'id', 2147483647, 1, 2),
+('bx_messenger_send', 'send', 2147483647, 1, 1);
+
+
 -- VOTES
 INSERT INTO `sys_objects_vote` (`Name`, `Module`, `TableMain`, `TableTrack`, `PostTimeout`, `MinValue`, `MaxValue`, `IsUndo`, `IsOn`, `TriggerTable`, `TriggerFieldId`, `TriggerFieldAuthor`, `TriggerFieldRate`, `TriggerFieldRateCount`, `ClassName`, `ClassFile`) VALUES 
 ('bx_messenger_jots_rvotes', 'bx_messenger', 'bx_messenger_jots_rvotes', 'bx_messenger_jots_rvotes_track', '604800', '1', '1', '1', '1', 'bx_messenger_jots', 'id', 'user_id', 'rrate', 'rvotes', 'BxMessengerJotVoteReactions', 'modules/boonex/messenger/classes/BxMessengerJotVoteReactions.php');

@@ -29,41 +29,100 @@ class BxMessengerServices extends BxDol
         $this->_iProfileId = bx_get_logged_profile_id();
     }
 
+    public function serviceGetBlockMain()
+    {
+        $CNF = &$this->_oModule->_oConfig->CNF;
+
+        $aMenuMain = [];
+        if(($oMenuMain = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_NAV_LEFT_MENU'])) !== false)
+            $aMenuMain =  $oMenuMain->getCodeAPI();
+
+        return [
+            bx_api_get_block('messenger_main_page', [
+                'menu' => $aMenuMain, 
+                'form' => ['data' => $this->serviceGetSendForm()]
+            ], [
+                'ext' => [
+                    'name' => $this->_sModule, 
+                    'request' => ['url' => '/api.php?r=' . $this->_sModule . '/get_send_form/Services', 'immutable' => true]
+                ]
+            ])
+        ];
+    }
+
+    public function serviceGetBlockContacts($mixedParams)
+    {
+        $aParams = bx_api_get_browse_params($mixedParams, true);
+
+        $aProfiles = !defined('BX_API_PAGE') ? $this->_oModule->_oTemplate->getContacts($this->_iProfileId, $aParams) : [];
+
+        $aResultProfiles = [];
+        foreach($aProfiles as &$aProfile)
+            $aResultProfiles[] = $this->_unitAPI($aProfile['id']);
+
+        $aData = array_merge([
+            'data' => $aResultProfiles
+        ], [
+            'params' => [
+                'start' => isset($aParams['start']) ? $aParams['start'] : 0,
+                'per_page' => isset($aParams['per_page']) ? $aParams['per_page'] : 0 
+        ]], [
+            'module' => $this->_sModule,
+            'unit' => 'mixed',
+            'request_url' => '/api.php?r=' . $this->_sModule . '/get_block_contacts/Services&params[]='
+        ]);
+
+        return [bx_api_get_block('browse', $aData)];
+    }
+
+    /**
+     * Looks like it isn't needed anymore.
+     * 
+    public function serviceGetMessengerMenu()
+    {
+        $CNF = &$this->_oModule->_oConfig->CNF;
+
+        $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_NAV_LEFT_MENU']);
+        return $oMenu->getMenuItems();
+    }
+     */
+
     public function serviceGetConvosList($sParams = '')
     {
+        $CNF = &$this->_oModule->_oConfig->CNF;
+
         $aOptions = json_decode($sParams, true);
         $aData = $this->_oModule->serviceGetTalksList($aOptions);
 
         $aList = $aData['list'];
-        if (isset($aData['code']) && !(int)$aData['code'] && !empty($aData['list']))
-            $aList = $this->_oModule->_oTemplate->getLotsPreview($this->_iProfileId, $aData['list']);
-
-        $CNF = &$this->_oModule->_oConfig->CNF;
+        if(isset($aData['code']) && !(int)$aData['code'] && !empty($aData['list']))
+            $aList = $this->_oModule->_oTemplate->getLotsPreview($this->_iProfileId, $aData['list']);       
 
         $aResult = [];
-        if (!empty($aList)){
-            foreach($aList as $iKey => $aItem){
-                $sImageUrl = bx_api_get_relative_url($aItem['bx_if:user']['content']['icon']);
-                $aResult[] = [
-                  'author_data' => (int)$aItem[$CNF['FIELD_AUTHOR']] ? BxDolProfile::getData($aItem[$CNF['FIELD_AUTHOR']]) : [
-                      'id' => 0,
-                      'display_type' => 'unit',
-                      'display_name' => $aItem['bx_if:user']['content']['talk_type'],
-                      'url' => $sImageUrl,
-                      'url_avatar' => $sImageUrl,
-                      'module' => isset($aItem['author_module']) ? $aItem['author_module'] : 'bx_pages',
-                  ],
-                   'title' => $aItem[$CNF['FIELD_TITLE']],
-                   'message' => $aItem['bx_if:user']['content']['message'],
-                   'date' => $aItem['bx_if:timer']['content']['time'],
-                   'id' => $aData['list'][$iKey][$CNF['FIELD_HASH']],
-                    'id2' => $aItem[$CNF['FIELD_ID']],
-                   'unread' => $aItem['count'],
-                   'total_messages' => $this->_oModule->_oDb->getJotsNumber($aItem[$CNF['FIELD_ID']], 0)
-                ];
-            }
+        if(empty($aList))
+            return $aResult;
+
+        foreach($aList as $iKey => $aItem) {
+            $sImageUrl = bx_api_get_relative_url($aItem['bx_if:user']['content']['icon']);
+            $aResult[] = [
+                'author_data' => (int)$aItem[$CNF['FIELD_AUTHOR']] ? BxDolProfile::getData($aItem[$CNF['FIELD_AUTHOR']]) : [
+                    'id' => 0,
+                    'display_type' => 'unit',
+                    'display_name' => $aItem['bx_if:user']['content']['talk_type'],
+                    'url' => $sImageUrl,
+                    'url_avatar' => $sImageUrl,
+                    'module' => isset($aItem['author_module']) ? $aItem['author_module'] : 'bx_pages',
+                ],
+                'title' => $aItem[$CNF['FIELD_TITLE']],
+                'message' => $aItem['bx_if:user']['content']['message'],
+                'date' => $aItem['bx_if:timer']['content']['time'],
+                'id' => $aData['list'][$iKey][$CNF['FIELD_HASH']],
+                'id2' => $aItem[$CNF['FIELD_ID']],
+                'unread' => $aItem['count'],
+                'total_messages' => $this->_oModule->_oDb->getJotsNumber($aItem[$CNF['FIELD_ID']], 0)
+            ];
         }
-        
+
         return $aResult;
     }
 
@@ -232,16 +291,21 @@ class BxMessengerServices extends BxDol
                 return ['code' => 1, 'msg' => _t('_bx_messenger_not_participant')];
 
 
-            $aData = ['lot' => $iLotId, 'message' => bx_get('message')];
-            $mixPayload = bx_get('payload');
-            if ($mixPayload && !$aData['lot']) {
-                $aData = array_merge($aData, json_decode(bx_get('payload'), true));
-                if (isset($aData['participants']) && !in_array($this->_iProfileId, $aData['participants']))
+            $aData = [
+                'lot' => $iLotId, 
+                'message' => bx_get('message')
+            ];
+
+            if(($iReply = bx_get('reply')) !== false)
+                $aData['reply'] = (int)$iReply;
+
+            if(($mixPayload = bx_get('payload')) !== false && !$aData['lot']) {
+                $aData = array_merge($aData, json_decode($mixPayload, true));
+                if(isset($aData['participants']) && !in_array($this->_iProfileId, $aData['participants']))
                     $aData['participants'][] = $this->_iProfileId;
             }
 
-            $mixedFiles = bx_get('files');
-            if (!empty($mixedFiles))
+            if(($mixedFiles = bx_get('files')) !== false && !empty($mixedFiles))
                 $aData['files'] = explode(',', $mixedFiles);
 
             $iMessageId = bx_get('message_id');
@@ -309,7 +373,7 @@ class BxMessengerServices extends BxDol
 
         return $oForm->getCodeAPI();
     }
-    
+
     public function serviceSavePartsList($sParams)
     {
         $aOptions = json_decode($sParams, true);
@@ -387,6 +451,47 @@ class BxMessengerServices extends BxDol
         $this->_pusherData('convo_' . $iLotId, ['convo' => $iLotId, 'action' => 'deleted', 'data' => $iJotId]);
 
         return $this->_oModule->serviceDeleteJot($iJotId, true);
+    }
+
+    protected function _unitAPI($iProfileId, $aParams = [])
+    {
+        $CNF = &$this->_oModule->_oConfig->CNF;
+
+        $oProfile = BxDolProfile::getInstance($iProfileId);
+        if(!$oProfile)
+            return '';
+
+        $sModule = $oProfile->getModule();
+        $iContentId = $oProfile->getContentId();
+        $oModule = BxDolModule::getInstance($sModule);
+
+        $aData = $oModule->_oDb->getContentInfoById($iContentId);
+        $oPCNF = &$oModule->_oConfig->CNF;
+
+        $aResult = [
+            'id' => $iContentId,
+            'module' => $sModule,
+            'title' => $oProfile->getDisplayName(),
+            'url' => bx_api_get_relative_url($oProfile->getUrl()),
+            'image' => bx_api_get_image($oPCNF['OBJECT_STORAGE'], $aData[$oPCNF['FIELD_PICTURE']]),
+            'cover' => bx_api_get_image($oPCNF['OBJECT_STORAGE'], $aData[$oPCNF['FIELD_COVER']]),
+        ];
+
+        $sKey = 'OBJECT_MENU_SNIPPET_META';
+        if(!empty($CNF[$sKey]) && ($oMetaMenu = BxDolMenu::getObjectInstance($CNF[$sKey], $oModule->_oTemplate)) !== false) {
+            $oPrivacy = BxDolPrivacy::getObjectInstance($oPCNF['OBJECT_PRIVACY_VIEW']);
+            $bPrivacy = $oPrivacy !== false;
+
+            $bPublic = !$bPrivacy || $oPrivacy->check($iContentId) || $oPrivacy->isPartiallyVisible($aData[$CNF['FIELD_ALLOW_VIEW_TO']]);
+
+            $oMetaMenu->setContentModule($sModule);
+            $oMetaMenu->setContentId($iContentId);
+            $oMetaMenu->setContentPublic($bPublic);
+
+            $aResult['meta'] = $oMetaMenu->getCodeAPI();
+        }
+
+        return $aResult;
     }
 
     protected function _pusherData($sAction, $aData = [])

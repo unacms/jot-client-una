@@ -37,13 +37,6 @@ DELETE FROM `sys_menu_sets` WHERE `module` = @sName;
 DELETE FROM `sys_objects_menu` WHERE `module` = @sName;
 DELETE FROM `sys_menu_templates` WHERE `template`='menu-create-convo.html' AND `title`='_bx_messenger_create_convo_template_title';
 
-
----- NEO APP FORM
-DELETE FROM `sys_objects_form` WHERE `module` = @sName;
-DELETE FROM `sys_form_displays` WHERE `module` = @sName;
-DELETE FROM `sys_form_inputs` WHERE `module` = @sName;
-DELETE FROM `sys_form_display_inputs` WHERE `display_name` = 'bx_messenger_send';
-
 ----- NEO REACTION
 DELETE FROM `sys_objects_vote` WHERE `Name` = 'bx_messenger_jot';
 

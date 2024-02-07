@@ -259,9 +259,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
     public function serviceGetMainMessengerPage(){
         if(bx_is_api())
-            return [
-                bx_api_get_block('messenger_main_page', ['menu' => $this->serviceGetMessengerMenu(), 'form' => ['data' =>$this->serviceGetSendForm()]], ['ext' => ['name' => $this->getName(), 'request' => ['url' => '/api.php?r=' . $this->getName() . '/get_send_form/', 'immutable' => true]]])
-            ];
+            return bx_srv($this->getName(), 'get_block_main', [], 'Services');
 
         $this->initDefaultParams();
 
@@ -1358,7 +1356,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
      * @return string with json
      */
 
-    private function saveParticipantsList($aParticipants, $iLotId = 0, $bIsBlock = 0){
+    public function saveParticipantsList($aParticipants, $iLotId = 0, $bIsBlock = 0){
         $bCheckAction = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true;
         if ($iLotId && !($this->_oDb->isAuthor($iLotId, $this->_iProfileId) || $bCheckAction))
             return ['code' => 1, 'message' => _t('_bx_messenger_lot_action_not_allowed')];
@@ -3065,7 +3063,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return array('lot_id' => $iLotId, 'jots' => $aJots);
     }
 
-    private function prepareMessageToDb($sMessage)
+    public function prepareMessageToDb($sMessage)
     {
         if (!$sMessage)
             return '';
@@ -3801,16 +3799,18 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return [
             'GetConvosList' => 'BxMessengerServices',
             'GetConvoMessages' => 'BxMessengerServices',
-            'GetConvoMessage' => '',
             'GetSendForm' => 'BxMessengerServices',
             'RemoveJot' => 'BxMessengerServices',
+            'SearchUsers' => 'BxMessengerServices',
+            'SavePartsList' => 'BxMessengerServices',
+            'GetBlockContacts' => 'BxMessengerServices',
+
+            //--- Aren't used in App for now.
+            'GetConvoMessage' => '',
             'SubmitMessage' => '',
             'GetMessengerMenu' => '',
             'GetConvoItem' => '',
-            'GetBlockContactsMessenger' => '',
             'FindConvo' => '',
-            'SearchUsers' => 'BxMessengerServices',
-            'SavePartsList' => 'BxMessengerServices',
             'ClearGhost' => '',
         ];
     }
@@ -3960,6 +3960,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return array_merge($aLotInfo, ['author_data' => BxDolProfile::getInstance()->getData($aLotInfo[$CNF['FIELD_AUTHOR']])]);
     }
 
+    /*
+     * Moved to Services
+     */
     public function serviceGetMessengerMenu(){
         $CNF = &$this->_oConfig->CNF;
         $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_NAV_LEFT_MENU']);
@@ -4316,6 +4319,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return true;
     }
 
+    /**
+     * Moved to Services
+     */
     public function unitAPI($iProfileId, $aParams = [])
     {
         $CNF = &$this->_oConfig->CNF;
@@ -4361,29 +4367,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return $aResult;
     }
 
-    function serviceGetBlockContactsMessenger($mixedParams = []){
-        $bIsApi = bx_is_api();
-        $aParams  = $bIsApi ? bx_api_get_browse_params($mixedParams, true) : $mixedParams;
-        if($bIsApi) {
-            $aProfiles = !defined('BX_API_PAGE') ? $this->_oTemplate->getContacts($this->_iProfileId, $aParams) : [];
-
-            $aResultProfiles = [];
-            foreach($aProfiles as &$aProfile)
-                $aResultProfiles[] = $this->unitAPI($aProfile['id']);
-
-            $aData = array_merge(
-                ['data' => $aResultProfiles],
-                ['params' => [
-                    'start' => isset($aParams['start']) ? $aParams['start'] : 0,
-                    'per_page' => isset($aParams['per_page']) ? $aParams['per_page'] : 0 ]
-                ],
-                ['module' => $this->_oConfig->getName(),
-                 'unit' => 'mixed',
-                 'request_url' => '/api.php?r=' . $this->_oConfig->getName() . '/get_block_contacts_messenger/&params[]='
-                ]);
-
-            return [bx_api_get_block('browse', $aData)];
-        }
+    function serviceGetBlockContactsMessenger($mixedParams = []) {
+        if(bx_is_api())
+            return bx_srv($this->getName(), 'get_block_contacts', [$mixedParams], 'Services');
 
         return $this->_oTemplate->getContacts($this->_iProfileId, $aParams);
     }

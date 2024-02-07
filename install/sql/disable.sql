@@ -37,8 +37,5 @@ DELETE FROM `sys_menu_sets` WHERE `module` = @sName;
 DELETE FROM `sys_objects_menu` WHERE `module` = @sName;
 DELETE FROM `sys_menu_templates` WHERE `template`='menu-create-convo.html' AND `title`='_bx_messenger_create_convo_template_title';
 
------ NEO REACTION
-DELETE FROM `sys_objects_vote` WHERE `Name` = 'bx_messenger_jot';
-
 --- NEO UPLODAERS
 DELETE FROM `sys_objects_uploader` WHERE `object` = 'bx_messenger_html5';

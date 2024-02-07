@@ -35,9 +35,8 @@ DELETE FROM `sys_objects_form` WHERE `module` = @sName;
 DELETE FROM `sys_form_displays` WHERE `module` = @sName;
 DELETE FROM `sys_form_inputs` WHERE `module` = @sName;
 DELETE FROM `sys_form_display_inputs` WHERE `display_name` = 'bx_messenger_send';
-
--- VOTES
 DELETE FROM `sys_objects_vote` WHERE `Name` LIKE 'bx_messenger%';
+
 
 -- STUDIO PAGE & WIDGET
 DELETE FROM `tp`, `tw`, `tpw`

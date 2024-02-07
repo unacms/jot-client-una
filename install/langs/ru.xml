@@ -401,4 +401,5 @@
 	<string name="_bx_messenger_filter_criteria_form_display"><![CDATA[Форма с критериями для массовых рассылок]]></string>
 	<string name="_bx_messenger_no_criteria_available"><![CDATA[Критерии для фильтрации не найдены!]]></string>
 	<string name="_bx_messenger_create_talk_confirm"><![CDATA[Вы уверены, что хотите создать разговор?]]></string>
+	<string name="_bx_messenger_neo_app_form_input_caption_reply"><![CDATA[Номер родительского сообщения]]></string>
 </resources>

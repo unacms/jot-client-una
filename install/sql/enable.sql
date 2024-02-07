@@ -279,10 +279,6 @@ INSERT INTO `sys_objects_menu`(`object`, `title`, `set_name`, `module`, `templat
 INSERT INTO `sys_menu_sets`(`set_name`, `module`, `title`, `deletable`) VALUES
 (CONCAT(@sName, '_groups_menu'), @sName, '_bx_messenger_groups_menu_title_view', 0);
 
--- PRIVACY
---INSERT INTO `sys_objects_privacy` (`object`, `module`, `action`, `title`, `default_group`, `table`, `table_field_id`, `table_field_author`, `override_class_name`, `override_class_file`) VALUES
---('bx_messenger_allow_view_groups_to', @sName, 'view', '_bx_messenger_form_entry_input_allow_view_groups_to', 3, 'bx_messenger_groups', 'id', 'author', '', '');
-
 -- MENU: Talk Info Menu
 INSERT INTO `sys_objects_menu`(`object`, `title`, `set_name`, `module`, `template_id`, `deletable`, `active`, `override_class_name`, `override_class_file`) VALUES
 (CONCAT(@sName, '_lot_info_menu'), '_bx_messenger_menu_lot_info_title', CONCAT(@sName, '_lot_info_menu'), @sName, 6, 0, 1, 'BxMessengerLotInfoMenu', 'modules/boonex/messenger/classes/BxMessengerLotInfoMenu.php');
@@ -331,10 +327,6 @@ INSERT INTO `sys_menu_items`(`set_name`, `module`, `name`, `title_system`, `titl
 (CONCAT(@sName, '_create_convo_menu'), @sName, 'followers', '_bx_messenger_create_convo_menu_followers_system', '_bx_messenger_create_convo_menu_followers_system', 'javascript:void(0);', '{js_object}.onSelectConvoFilter(''followers'');', '_self', 'group', '', 2147483647, 1, 0, 1),
 (CONCAT(@sName, '_create_convo_menu'), @sName, 'friends', '_bx_messenger_create_convo_menu_friends_system', '_bx_messenger_create_convo_menu_friends_system', 'javascript:void(0);', '{js_object}.onSelectConvoFilter(''friends'');', '_self', 'user-friends', '', 2147483647, 1, 0, 1),
 (CONCAT(@sName, '_create_convo_menu'), @sName, 'broadcast', '_bx_messenger_create_convo_menu_broadcast_system', '_bx_messenger_create_convo_menu_broadcast_system', 'javascript:void(0);', '{js_object}.onSelectConvoFilter(''broadcast'');', '_self', 'bullhorn', '', 2147483647, 1, 0, 2);
-
----- NEO REACTIONS
-INSERT INTO `sys_objects_vote` (`Name`, `Module`, `TableMain`, `TableTrack`, `PostTimeout`, `MinValue`, `MaxValue`, `Pruning`, `IsUndo`, `IsOn`, `TriggerTable`, `TriggerFieldId`, `TriggerFieldAuthor`, `TriggerFieldRate`, `TriggerFieldRateCount`, `ClassName`, `ClassFile`) VALUES
-('bx_messenger_jot', @sName, 'bx_messenger_jot_reactions', 'bx_messenger_jot_reactions', 604800, 1, 1, 31536000, 1, 1, 'bx_messenger_jots', 'id', 'user_id', 'rrate', 'rvotes', 'BxMessengerJotReactions', 'modules/boonex/messenger/classes/BxMessengerJotReactions.php');
 
 --- UPLOADERS
 INSERT INTO `sys_objects_uploader` (`object`, `active`, `override_class_name`, `override_class_file`) VALUES

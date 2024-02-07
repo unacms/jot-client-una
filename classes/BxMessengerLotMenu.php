@@ -20,7 +20,7 @@ class BxMessengerLotMenu extends BxBaseModTextMenu
     private $_isBlockVersion = true;
     public function __construct($aObject, $oTemplate = false)
     {
-        $this-> MODULE = 'bx_messenger';
+        $this->MODULE = 'bx_messenger';
         $this->_oModule = BxDolModule::getInstance($this-> MODULE);
         $this->_iProfileId = bx_get_logged_profile_id();
 

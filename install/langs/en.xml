@@ -418,4 +418,5 @@ name="_bx_ntfs_alert_action_got_broadcast_ntfs_personal"><![CDATA[Broadcast mess
 	<string name="_bx_messenger_create_talk_confirm"><![CDATA[You are sure, you would like to create the talk?]]></string>
 	<string name="_bx_messenger_neo_app_form_input_caption_id"><![CDATA[Convo Id]]></string>
 	<string name="_bx_messenger_neo_app_form_input_id"><![CDATA[Convo Id]]></string>
+	<string name="_bx_messenger_neo_app_form_input_caption_reply"><![CDATA[Parent message id]]></string>
 </resources>

@@ -497,7 +497,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (!$iLotId && empty($aParticipants) && $iType === BX_IM_TYPE_PRIVATE)
             return _t('_bx_messenger_save_part_failed');
 
-        if (empty($aParticipants) && $iType === BX_IM_TYPE_BROADCAST) {
+        if (empty($aParticipants) && $iType === BX_IM_TYPE_BROADCAST && isset($aData[BX_MSG_TALK_TYPE_BROADCAST])) {
             $aBroadcastParticipants = $this->getProfilesByCriteria($aData[BX_MSG_TALK_TYPE_BROADCAST]);
             if (empty($aBroadcastParticipants))
                 return _t('_bx_messenger_save_part_failed');
@@ -3519,7 +3519,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $CNF = &$this->_oConfig->CNF;
         $aLotInfo = $this->_oDb->getLotByJotId($iJotId, false);
         if (empty($aLotInfo) || ($aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_PRIVATE &&
-                !$this->_oDb->isParticipant($aLotInfo[$CNF['FIELD_MESSAGE_FK']], $this->_iProfileId)))
+                !$this->_oDb->isParticipant($aLotInfo[$CNF['FIELD_ID']], $this->_iProfileId)))
             return echoJson(array('code' => 1, 'message' => '_bx_messenger_not_participant'));
 
         $aUploadedFiles = $this->_oDb->getJotFiles($iJotId);

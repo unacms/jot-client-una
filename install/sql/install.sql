@@ -1,5 +1,18 @@
 SET @sName = 'bx_messenger';
 
+-- STUDIO PAGE & WIDGET
+INSERT INTO `sys_std_pages`(`index`, `name`, `header`, `caption`, `icon`) VALUES
+(3, @sName, '_bx_messenger', '_bx_messenger', 'bx_messenger@modules/boonex/messenger/|std-icon.svg');
+SET @iPageId = LAST_INSERT_ID();
+
+SET @iParentPageId = (SELECT `id` FROM `sys_std_pages` WHERE `name` = 'home');
+SET @iParentPageOrder = (SELECT MAX(`order`) FROM `sys_std_pages_widgets` WHERE `page_id` = @iParentPageId);
+INSERT INTO `sys_std_widgets` (`page_id`, `module`, `url`, `click`, `icon`, `caption`, `cnt_notices`, `cnt_actions`) VALUES
+(@iPageId, @sName, '{url_studio}module.php?name=bx_messenger', '', 'bx_messenger@modules/boonex/messenger/|std-icon.svg', '_bx_messenger', '', 'a:4:{s:6:"module";s:6:"system";s:6:"method";s:11:"get_actions";s:6:"params";a:0:{}s:5:"class";s:18:"TemplStudioModules";}');
+INSERT INTO `sys_std_pages_widgets` (`page_id`, `widget_id`, `order`) VALUES
+(@iParentPageId, LAST_INSERT_ID(), IF(ISNULL(@iParentPageOrder), 1, @iParentPageOrder + 1));
+
+
 CREATE TABLE IF NOT EXISTS `bx_messenger_jots` (
    `id` int(11) NOT NULL auto_increment,
    `lot_id` int(11) unsigned NOT NULL default '0',   
@@ -322,33 +335,19 @@ INSERT INTO `sys_form_inputs` (`object`, `module`, `name`, `value`, `values`, `c
 ('bx_messenger_send', @sName, 'send', '', '', 0, 'hidden', '_bx_messenger_neo_app_form_input_caption_messenger_send', '', '', '', 0, 0, 0, 0, 0, '', '', '', '', '', '', '', '', '', 0, 0);
 
 INSERT INTO `sys_form_display_inputs` (`display_name`, `input_name`, `visible_for_levels`, `active`, `order`) VALUES
-('bx_messenger_send', 'controls', 2147483647, 0, 0),
-('bx_messenger_send', 'cancel', 2147483647, 0, 0),
-('bx_messenger_send', 'files', 2147483647, 1, 10),
-('bx_messenger_send', 'submit', 2147483647, 1, 9),
-('bx_messenger_send', 'cf', 2147483647, 1, 8),
-('bx_messenger_send', 'message', 2147483647, 1, 7),
-('bx_messenger_send', 'payload', 2147483647, 1, 6),
-('bx_messenger_send', 'reply', 2147483647, 1, 5),
-('bx_messenger_send', 'message_id', 2147483647, 1, 4),
-('bx_messenger_send', 'action', 2147483647, 1, 3),
+('bx_messenger_send', 'send', 2147483647, 1, 1),
 ('bx_messenger_send', 'id', 2147483647, 1, 2),
-('bx_messenger_send', 'send', 2147483647, 1, 1);
-
+('bx_messenger_send', 'action', 2147483647, 1, 3),
+('bx_messenger_send', 'message_id', 2147483647, 1, 4),
+('bx_messenger_send', 'reply', 2147483647, 1, 5),
+('bx_messenger_send', 'payload', 2147483647, 1, 6),
+('bx_messenger_send', 'message', 2147483647, 1, 7),
+('bx_messenger_send', 'cf', 2147483647, 1, 8),
+('bx_messenger_send', 'submit', 2147483647, 1, 9),
+('bx_messenger_send', 'files', 2147483647, 1, 10),
+('bx_messenger_send', 'cancel', 2147483647, 0, 11),
+('bx_messenger_send', 'controls', 2147483647, 0, 12);
 
 -- VOTES
 INSERT INTO `sys_objects_vote` (`Name`, `Module`, `TableMain`, `TableTrack`, `PostTimeout`, `MinValue`, `MaxValue`, `IsUndo`, `IsOn`, `TriggerTable`, `TriggerFieldId`, `TriggerFieldAuthor`, `TriggerFieldRate`, `TriggerFieldRateCount`, `ClassName`, `ClassFile`) VALUES 
 ('bx_messenger_jots_rvotes', 'bx_messenger', 'bx_messenger_jots_rvotes', 'bx_messenger_jots_rvotes_track', '604800', '1', '1', '1', '1', 'bx_messenger_jots', 'id', 'user_id', 'rrate', 'rvotes', 'BxMessengerJotVoteReactions', 'modules/boonex/messenger/classes/BxMessengerJotVoteReactions.php');
-
-
--- STUDIO PAGE & WIDGET
-INSERT INTO `sys_std_pages`(`index`, `name`, `header`, `caption`, `icon`) VALUES
-(3, 'bx_messenger', '_bx_messenger', '_bx_messenger', 'bx_messenger@modules/boonex/messenger/|std-icon.svg');
-SET @iPageId = LAST_INSERT_ID();
-
-SET @iParentPageId = (SELECT `id` FROM `sys_std_pages` WHERE `name` = 'home');
-SET @iParentPageOrder = (SELECT MAX(`order`) FROM `sys_std_pages_widgets` WHERE `page_id` = @iParentPageId);
-INSERT INTO `sys_std_widgets` (`page_id`, `module`, `url`, `click`, `icon`, `caption`, `cnt_notices`, `cnt_actions`) VALUES
-(@iPageId, 'bx_messenger', '{url_studio}module.php?name=bx_messenger', '', 'bx_messenger@modules/boonex/messenger/|std-icon.svg', '_bx_messenger', '', 'a:4:{s:6:"module";s:6:"system";s:6:"method";s:11:"get_actions";s:6:"params";a:0:{}s:5:"class";s:18:"TemplStudioModules";}');
-INSERT INTO `sys_std_pages_widgets` (`page_id`, `widget_id`, `order`) VALUES
-(@iParentPageId, LAST_INSERT_ID(), IF(ISNULL(@iParentPageOrder), 1, @iParentPageOrder + 1));

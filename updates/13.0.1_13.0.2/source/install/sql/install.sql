@@ -312,6 +312,12 @@ INSERT INTO `sys_transcoder_filters` (`transcoder_object`, `filter`, `filter_par
 ('bx_messenger_videos_webm', 'Webm', 'a:2:{s:1:"h";s:3:"480";s:10:"force_type";s:4:"webm";}', 0),
 ('bx_messenger_mp3', 'Mp3', 'a:2:{s:13:"audio_bitrate";s:3:"128";s:10:"force_type";s:3:"mp3";}', 0);
 
+--- SEARCH CRITERIA FORM
+INSERT INTO `sys_objects_form` (`object`, `module`, `title`, `action`, `form_attrs`, `submit_name`, `table`, `key`, `uri`, `uri_title`, `params`, `deletable`, `active`, `parent_form`, `override_class_name`, `override_class_file`) VALUES
+('bx_messenger_filter_criteria', @sName, '_bx_messenger_filter_criteria_form', '', 'a:1:{s:7:"enctype";s:19:"multipart/form-data";}', '', '', '', '', '', '', 0, 1, '', 'BxMessengerFilterForm', 'modules/boonex/messenger/classes/BxMessengerFilterForm.php');
+
+INSERT INTO `sys_form_displays` (`display_name`, `module`, `object`, `title`) VALUES
+('bx_messenger_filter_criteria', @sName, 'bx_messenger_filter_criteria', '_bx_messenger_filter_criteria_form_display');
 
 -- FORMS: for NEO
 INSERT INTO `sys_objects_form` (`object`, `module`, `title`, `action`, `form_attrs`, `submit_name`, `table`, `key`, `uri`, `uri_title`, `params`, `deletable`, `active`, `parent_form`, `override_class_name`, `override_class_file`) VALUES

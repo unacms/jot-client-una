@@ -341,10 +341,3 @@ INSERT INTO `sys_menu_sets`(`set_name`, `module`, `title`, `deletable`) VALUES
 
 INSERT INTO `sys_menu_items`(`set_name`, `module`, `name`, `title_system`, `title`, `link`, `onclick`, `target`, `icon`, `submenu_object`, `visible_for_levels`, `active`, `copyable`, `editable`, `order`) VALUES
 ('bx_messenger_profile_snippet_meta', @sName, 'message', '_bx_messenger_item_title_sm_message', '_bx_messenger_item_title_sm_message', 'page.php?i=messenger', '', '', 'comments', '', 2147483647, 0, 0, 1, 1);
-
----- SEARCH CRITERIA FORM
-INSERT INTO `sys_objects_form` (`object`, `module`, `title`, `action`, `form_attrs`, `submit_name`, `table`, `key`, `uri`, `uri_title`, `params`, `deletable`, `active`, `parent_form`, `override_class_name`, `override_class_file`) VALUES
-('bx_messenger_filter_criteria', @sName, '_bx_messenger_filter_criteria_form', '', 'a:1:{s:7:"enctype";s:19:"multipart/form-data";}', '', '', '', '', '', '', 0, 1, '', 'BxMessengerFilterForm', 'modules/boonex/messenger/classes/BxMessengerFilterForm.php');
-
-INSERT INTO `sys_form_displays` (`display_name`, `module`, `object`, `title`) VALUES
-('bx_messenger_filter_criteria', @sName, 'bx_messenger_filter_criteria', '_bx_messenger_filter_criteria_form_display');

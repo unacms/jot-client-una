@@ -28,7 +28,7 @@ class BxMessengerUpdater extends BxDolStudioUpdater
     }
 
     private function generateConvoHash(){
-        $iCount = $this->oDb->getOne("SELECT COUNT(*) FROM `bx_messenger_lots` WHERE `hash` <> ''");
+        $iCount = $this->oDb->getOne("SELECT COUNT(*) FROM `bx_messenger_lots` WHERE `hash` = ''");
 
         if (!$iCount)
             return true;
@@ -51,7 +51,7 @@ class BxMessengerUpdater extends BxDolStudioUpdater
         foreach($aTalksList as &$iId)
             $this->oDb->query("UPDATE `bx_messenger_lots` SET `hash`=:hash WHERE `id`=:id", ['id' => $iId, 'hash' => array_pop($aResult)]);
 
-        $this->oDb->query("ALTER TABLE `bx_messenger_lots` ADD `hash` UNIQUE KEY `hash` (`hash`)");
+        $this->oDb->query("ALTER TABLE `bx_messenger_lots` ADD UNIQUE KEY `hash` (`hash`)");
         return true;
     }
 

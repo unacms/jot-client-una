@@ -466,7 +466,7 @@
 					const { id } = _this.aUploaderQueue[sName] || {},
 							fUpload = () => {
 
-								const { uploading_jot_id } = _this.aUploaderQueue[sName];
+								const { uploading_jot_id, lot } = _this.aUploaderQueue[sName];
 												return $.post('modules/?r=messenger/update_uploaded_files/', {
 													jot_id: uploading_jot_id,
 													files: aFiles
@@ -476,7 +476,7 @@
 													else
 													{
 														_this.broadcastMessage({
-															jot_id: uploading_jot_id,
+															jot_id: uploading_jot_id, lot,
 															addon: 'update_attachment'
 														});
 
@@ -2112,7 +2112,7 @@
 			oParams.files = _this.oFilesUploader.getAllFiles();
 
 			if (oParams.files.length && !_this.oFilesUploader.isReady())
-				_this.aUploaderQueue[_this.oFilesUploader.name()] = { id: oParams.tmp_id };
+				_this.aUploaderQueue[_this.oFilesUploader.name()] = { id: oParams.tmp_id, lot: this.oSettings.lot };
 		}
 
 		if (typeof mixedObjects !== 'undefined' && Array.isArray(mixedObjects.files))

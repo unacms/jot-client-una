@@ -1,29 +1,22 @@
-<img src="https://user-images.githubusercontent.com/22210428/27619378-391220cc-5c05-11e7-86ee-21edd7404298.png" width="300"> 
+![std-icon](https://github.com/unacms/jot-client-una/assets/22319431/8369cd4b-76e7-4bb4-b3cb-9e36a7f59d8f)
 
-# Messenger App for UNA
+# Messenger for UNA CMS Platform
+The Messenger module for [UNA CMS Platform](https://unacms.com) is designed to provide a real-time private messaging platform for communication. It offers a range of features that are commonly found in popular messengers, as well as some unique functionalities.
 
-```Jot Messenger``` app for [UNA Community Management System](https://una.io) is a real-time private messenger as well as a public communication platform. Jot allows members to create private talks, group talks and participate in embedded conversations integrated with other UNA apps.
+Users have the ability to create private one-on-one conversations as well as group chats. They can also create threaded discussions within these chats for more organized and focused communication. Additionally, users have the option to save important conversations for later reference.
 
-**Jot Messenger** requires the **[Jot Server](https://github.com/unaio/jot-server)**. **Jot Messenger** also supports push notifications via OneSignal platform, but you don't need to create separate account on OneSignal if you already have created one for UNA, in this case you just need to enable optio in Studio -> Messenger -> Settings -> Enable OneSignal Push Notifications (If global site's push notification options are set, they will be used for messenger)
+One of the standout features of this Messenger module is its integration capabilities with other UNA site pages. Users can embed their conversations into any page on their UNA site, allowing for seamless communication with other site members. Furthermore, the module is also compatible with the UNA mobile app, ensuring that users can stay connected on-the-go.
 
-How to install messenger to your UNA-powered site (skip steps 2-4 if you have UNA OneSignal account):
-1) You should go to ```UNA Studio -> Apps```, download **Messenger** app, install and activate it.
-2) If you like to enable **Push notification**, you should create account on http://onesignal.com/ and then setup ```Web Push``` notifications.
 
-How to setup push notifications:
-1. Go to App Settings and click Configure for the **Google Chrome, FireFox and Safari**.
-<img src="https://j.gifs.com/wjDz2R.gif" width="480"  height="auto" />
+### 📦 The module utilizes several third-party software components to enhance its functionality:
 
-2. Enter site URL
-3. Enter icon URL **(RECOMMENDED size is 192x192)**. The file must be .png, .jpg, or .gif.
-<img src="https://j.gifs.com/wjDzYJ.gif" width="480"  height="auto" />
+- Quill Editor 
+- FilePond Uploader
+- Primus Realtime Framework
+- Missive Emoji Mart
+- Jitsi Software
+- Tailwind CSS is utilized for styling and to ensure a modern and responsive user interface
 
-More details about web push notifications setup you may find here for [**```http```**](https://documentation.onesignal.com/docs/web-push-sdk-setup-http) and for [**```https```**](https://documentation.onesignal.com/docs/web-push-sdk-setup-https)
+It is important to note that this module also requires the installation of a custom [Jot Server](https://github.com/unaio/jot-server) module, which is specifically created based on the Primus realtime software. This server module is necessary for the functioning of the real-time messaging features.
 
-4. Fill appropriate fields in Messenger settings with OneSignal options values.
-
-If you setup **[Jot Server](https://github.com/unaio/jot-server)** on your own server, you should fill 
-```Server URL for messenger```
-option with your own server's url and port number. (**Example: http://localhost:5443**)
-
-Now the **Jot Messenger** is completely installed. Enjoy! :)
+Overall, the Messenger module for [UNA CMS Platform](https://unacms.com) offers a comprehensive and user-friendly messaging solution with a rich set of features and seamless integration capabilities.

@@ -32,7 +32,7 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_giphy_type', 'gifs', @iCategId, '_bx_messenger_giphy_type', 'select', '', '', 'gifs,stickers', 19),
 ('bx_messenger_giphy_content_rating', 'g', @iCategId, '_bx_messenger_giphy_content_rating', 'select', '', '', 'g,pg,pg-13,r', 20),
 ('bx_messenger_giphy_limit', 15, @iCategId, '_bx_messenger_giphy_limit', 'digit', '', '', '', 21),
-('bx_messenger_emoji_set', 'native', @iCategId, '_bx_messenger_emoji_set', 'select', '', '', 'native,apple,google,twitter,emojione,facebook,messenger', 22),
+('bx_messenger_emoji_set', 'native', @iCategId, '_bx_messenger_emoji_set', 'select', '', '', 'native,apple,google,twitter,facebook', 22),
 ('bx_messenger_reactions_size', 16, @iCategId, '_bx_messenger_reactions_size', 'select', '', '', '16,20,24,32', 23),
 ('bx_messenger_show_emoji_preview', '', @iCategId, '_bx_messenger_show_emoji_preview', 'checkbox', '', '', '', 24),
 ('bx_messenger_jitsi_enable', 'on', @iCategId, '_bx_messenger_allow_to_use_jitsi', 'checkbox', '', '', '', 25),

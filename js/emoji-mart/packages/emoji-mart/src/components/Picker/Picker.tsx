@@ -127,6 +127,7 @@ export default class Picker extends Component {
 
   unregister() {
     document.removeEventListener('click', this.handleClickOutside)
+    this.darkMedia?.removeEventListener('change', this.darkMediaCallback)
     this.unobserve()
   }
 
@@ -192,6 +193,11 @@ export default class Picker extends Component {
 
       this.refs.categories.set(category.id, { root: createRef(), rows })
     }
+  }
+
+  darkMediaCallback = () => {
+    if (this.props.theme != 'auto') return
+    this.setState({ theme: this.darkMedia.matches ? 'dark' : 'light' })
   }
 
   initTheme(theme) {
@@ -682,6 +688,7 @@ export default class Picker extends Component {
         ref={this.refs.navigation}
         icons={this.props.icons}
         theme={this.state.theme}
+        dir={this.dir}
         unfocused={!!this.state.searchResults}
         position={this.props.navPosition}
         onClick={this.handleCategoryClick}
@@ -728,28 +735,17 @@ export default class Picker extends Component {
           </div>
 
           <div class={`margin-${this.dir[0]}`}>
-            {emoji ? (
+            {emoji || noSearchResults ? (
               <div class={`padding-${this.dir[2]} align-${this.dir[0]}`}>
-                <div class="ellipsis" style={{ fontSize: '1.1em' }}>
-                  {emoji.name}
+                <div class="preview-title ellipsis">
+                  {emoji ? emoji.name : I18n.search_no_results_1}
                 </div>
-                <div class="ellipsis color-c" style={{ fontSize: '.9em' }}>
-                  {emoji.skins[0].shortcodes}
-                </div>
-              </div>
-            ) : noSearchResults ? (
-              <div class={`padding-${this.dir[2]} align-${this.dir[0]}`}>
-                <div class="ellipsis" style={{ fontSize: '1.1em' }}>
-                  {I18n.search_no_results_1}
-                </div>
-                <div class="ellipsis color-c" style={{ fontSize: '.9em' }}>
-                  {I18n.search_no_results_2}
+                <div class="preview-subtitle ellipsis color-c">
+                  {emoji ? emoji.skins[0].shortcodes : I18n.search_no_results_2}
                 </div>
               </div>
             ) : (
-              <div class="color-c" style={{ fontSize: 21 }}>
-                {I18n.pick}
-              </div>
+              <div class="preview-placeholder color-c">{I18n.pick}</div>
             )}
           </div>
         </div>
@@ -825,8 +821,6 @@ export default class Picker extends Component {
       <div>
         <div class="spacer"></div>
         <div class="flex flex-middle">
-          {renderSkinTone && this.dir == 'rtl' && this.renderSkinToneButton()}
-
           <div class="search relative flex-grow bx-messenger-emoji-picker-search">
             <input
               type="search"
@@ -853,7 +847,7 @@ export default class Picker extends Component {
             )}
           </div>
 
-          {renderSkinTone && this.dir == 'ltr' && this.renderSkinToneButton()}
+          {renderSkinTone && this.renderSkinToneButton()}
         </div>
       </div>
     )
@@ -1106,10 +1100,18 @@ export default class Picker extends Component {
   }
 
   render() {
+    const lineWidth = this.props.perLine * this.props.emojiButtonSize
+
     return (
       <section
         id="root"
         class={"flex flex-column bx-messenger-emoji-picker " + this.state.theme}
+        dir={this.dir}
+        style={{
+          width: this.props.dynamicWidth
+            ? '100%'
+            : `calc(${lineWidth}px + (var(--padding) + var(--sidebar-width)))`,
+        }}
         data-emoji-set={this.props.set}
         data-theme={this.state.theme}
         data-menu={this.state.showSkins ? '' : undefined}
@@ -1117,15 +1119,13 @@ export default class Picker extends Component {
         {this.props.previewPosition == 'top' && this.renderPreview()}
         {this.props.navPosition == 'top' && this.renderNav()}
         {this.props.searchPosition == 'sticky' && (
-          <div>{this.renderSearch()}</div>
+          <div class="padding-lr">{this.renderSearch()}</div>
         )}
 
-        <div ref={this.refs.scroll} class="scroll flex-grow bx-messenger-emoji-picker-scroll">
+        <div ref={this.refs.scroll} class="scroll flex-grow padding-lr bx-messenger-emoji-picker-scroll">
           <div
             style={{
-              width: this.props.dynamicWidth
-                ? '100%'
-                : this.props.perLine * this.props.emojiButtonSize,
+              width: this.props.dynamicWidth ? '100%' : lineWidth,
               height: '100%',
             }}
           >

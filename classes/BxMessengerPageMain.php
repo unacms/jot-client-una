@@ -28,6 +28,12 @@ class BxMessengerPageMain extends BxBaseModGeneralPageBrowse
 		return parent::getCode();
 	}
 	
+	public function _isAvailablePage($a){
+       if (isLogged())
+           return true;
+       
+       return false;
+   } 
 }
 
 /** @} */

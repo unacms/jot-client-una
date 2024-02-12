@@ -766,6 +766,34 @@ class BxMessengerDb extends BxBaseModGeneralDb
 		return $this -> getAll( $iStart && $sMode == 'new' ? $sQuery : "({$sQuery}) ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}`", $aBindings);
 	}
 
+    /**
+     * For API only.
+     */
+    public function getJotsByLotIdApi($aData)
+    {
+        $sMode = isset($aData['mode']) ? $aData['mode'] : 'new';
+        $iLot = isset($aData['lot']) ? (int)$aData['lot'] : BX_IM_EMPTY;
+        $iStart = isset($aData['start']) ? (int)$aData['start'] : BX_IM_EMPTY;
+        $iLimit = isset($aData['limit']) ? (int)$aData['limit'] : BX_IM_EMPTY;
+        $sArea = isset($aData['area']) ? $aData['area'] : '';
+
+        $aBindings = [
+            'lot' => (int)$iLot,
+            'start' => (int)$iStart,
+            'limit' => (int)$iLimit
+        ];
+
+        $sWhere = $sLimit = '';
+        $sWhere = "AND `m`.`{$this->CNF['FIELD_MESSAGE_FK']}` = :lot ";
+
+        $sJoinArea = $sWhereArea = '';
+        if($sArea)
+            list($sJoinArea, $sWhereArea) = $this->getJotsByArea($sArea);
+
+        $sQuery = "SELECT `m`.*  FROM `{$this->CNF['TABLE_MESSAGES']}` as `m` {$sJoinArea} WHERE 1 {$sWhere} {$sWhereArea}	ORDER BY `m`.`{$this->CNF['FIELD_MESSAGE_ID']}` DESC LIMIT :start, :limit";
+        return $this->getAll("({$sQuery}) ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}`", $aBindings);
+    }
+
     function getJotsByArea($sArea){
         $CNF = &$this->_oConfig->CNF;
 

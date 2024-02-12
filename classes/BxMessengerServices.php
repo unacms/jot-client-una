@@ -116,18 +116,15 @@ class BxMessengerServices extends BxDol
 
     public function serviceGetConvoMessages($sParams)
     {
-        if(is_array($sParams)){
-            $aOptions = $sParams;
-        }
-        else{
-        $aOptions = json_decode($sParams, true);
-        }
+        $aOptions = is_array($sParams) ? $sParams : json_decode($sParams, true);
 
         $CNF = &$this->_oModule->_oConfig->CNF;
+
         $iJot = isset($aOptions['jot']) ? (int)$aOptions['jot'] : 0;
+        $iStart = isset($aOptions['start']) ? (int)$aOptions['start'] : 0;
 
         $iLotId = 0;
-        if (isset($aOptions['lot']) && $aOptions['lot'])
+        if(isset($aOptions['lot']) && $aOptions['lot'])
             $iLotId = $this->_oModule->_oDb->getConvoByHash($aOptions['lot']);
 
         $sLoad = isset($aOptions['load']) ? $aOptions['load'] : 'prev';
@@ -149,6 +146,7 @@ class BxMessengerServices extends BxDol
         $iLastUnreadJotId = 0;
         $bAttach = true;
         $bRemoveSeparator = false;
+        $aParamsBrowse = [];
         switch ($sLoad) {
             case 'new':
                 if (!$iJot) {
@@ -178,15 +176,13 @@ class BxMessengerServices extends BxDol
 
             case 'prev':
                 $aCriteria = [
-                    'lot_id' => $iLotId,
+                    'lot' => $iLotId,
                     'url' => $sUrl,
                     'start' => $iJot,
                     'load' => $sLoad,
+                    'start' => $iStart,
                     'limit' => $CNF['MAX_JOTS_BY_DEFAULT'],
-                    'views' => true,
-                    'dynamic' => true,
                     'area' => $sArea,
-                    'read' => true
                 ];
 
                 $iLastUnreadJotId = $iUnreadJotsNumber = 0;
@@ -196,7 +192,11 @@ class BxMessengerServices extends BxDol
                     $iUnreadJotsNumber = (int)$aUnreadInfo[$CNF['FIELD_NEW_UNREAD']];
                 }
 
-                $mixedContent = $this->_oModule->_oTemplate->getJotsOfLot($this->_iProfileId, $aCriteria);
+                $aParamsBrowse = array_merge($aParamsBrowse, [
+                    'start' => $iStart,
+                    'limit' => $CNF['MAX_JOTS_BY_DEFAULT'],
+                ]);
+                $mixedContent = $this->_oModule->_oDb->getJotsByLotIdApi($aCriteria);
                 break;
         }
 
@@ -227,13 +227,21 @@ class BxMessengerServices extends BxDol
 
                 $oMenu->setContentId($iJotId);
 
+                $sReplyMessage = '';
+                if(($iReply = (int)$aJot['reply']) != 0) {
+                    $aReply = $this->_oModule->_oDb->getJotById($iReply);
+                    if(!empty($aReply) || is_array($aReply))
+                        $sReplyMessage = $aReply[$CNF['FIELD_MESSAGE']];
+                }
+
                 $aResult[] = array_merge($aJot, [
                     $CNF['FIELD_MESSAGE_FK'] => $aOptions['lot'],
-                    'author_data' => BxDolProfile::getData($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]),
                     $CNF['FIELD_MESSAGE'] => strip_tags($aJot[$CNF['FIELD_MESSAGE']], '<br>'),
+                    'author_data' => BxDolProfile::getData($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]),
                     'reactions' => $aReactions,
                     'menu' => $oMenu->getCodeAPI(),
-                    'files' => $aFiles
+                    'files' => $aFiles,
+                    'reply_message' => $sReplyMessage
                 ]);
             }
         }
@@ -241,6 +249,7 @@ class BxMessengerServices extends BxDol
         return [
             'code' => 0,
             'jots' => $aResult,
+            'params' => $aParamsBrowse,
             'unread_jots' => $iUnreadJotsNumber,
             'last_unread_jot' => $iLastUnreadJotId
         ];
@@ -338,7 +347,7 @@ class BxMessengerServices extends BxDol
 
                 if ($sMessage && $this->_oModule->_oDb->editJot($iMessageId, $this->_iProfileId, $sMessage)) {
                     $this->_oModule->onUpdateJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iMessageId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
-                    $this->_pusherData('convo_' . $aLotInfo['hash'], ['convo' => $iLotId, 'action' => 'edited', 'data' => $this->_oModule->serviceGetConvoMessages(['jot' => $iMessageId, 'load' => 'ids'])]);
+                    $this->_pusherData('convo_' . $aLotInfo['hash'], ['convo' => $iLotId, 'action' => 'edited', 'data' => $this->serviceGetConvoMessages(['jot' => $iMessageId, 'load' => 'ids'])]);
                     //$this->_pusherData('edit-message', ['convo' => $iLotId, 'message' => $iMessageId]);
                     return ['code' => 0, 'jot_id' => $iMessageId];
                 }
@@ -349,7 +358,7 @@ class BxMessengerServices extends BxDol
             $aResult = $this->_oModule->sendMessage($aData);
             $aResult['time'] = bx_get('payload');
            //$this->_pusherData('new-message', ['convo' => $iLotId, 'message' => $aResult['jot_id']]);
-            $this->_pusherData('convo_' . $aLotInfo['hash'], ['convo' => $iLotId, 'action' => 'added', 'data' => $this->_oModule->serviceGetConvoMessages(['jot' => $aResult['jot_id'], 'load' => 'ids'])]);
+            $this->_pusherData('convo_' . $aLotInfo['hash'], ['convo' => $iLotId, 'action' => 'added', 'data' => $this->serviceGetConvoMessages(['jot' => $aResult['jot_id'], 'load' => 'ids'])]);
             
             $aParticipantsList = $this->_oModule->_oDb->getParticipantsList($iLotId, true);
             foreach($aParticipantsList as $iProfile){
@@ -432,9 +441,11 @@ class BxMessengerServices extends BxDol
         $aOptions = json_decode($sParams, true);
 
         $iJotId = isset($aOptions['jot_id']) ? (int)$aOptions['jot_id'] : 0;
-        $iLotId = isset($aOptions['lot_id']) ? $aOptions['lot_id'] : 0;
         if(!$iJotId)
             return [];
+
+        $sLotHash = isset($aOptions['lot_id']) ? $aOptions['lot_id'] : 0;
+        $iLotId = $this->_oModule->_oDb->getConvoByHash($sLotHash);
 
         $this->_pusherData('convo_' . $iLotId, ['convo' => $iLotId, 'action' => 'deleted', 'data' => $iJotId]);
 
@@ -512,6 +523,21 @@ class BxMessengerServices extends BxDol
             return false;
 
         return true;
+    }
+
+    public function log($mixedContents, $sSection = '', $sTitle = '')
+    {
+        if(is_array($mixedContents))
+            $mixedContents = var_export($mixedContents, true);	
+        else if(is_object($mixedContents))
+            $mixedContents = json_encode($mixedContents);
+
+        if(empty($sSection))
+            $sSection = "Core";
+
+        $sTitle .= "\n";
+
+        bx_log($this->_sModule, ":\n[" . $sSection . "] " . $sTitle . $mixedContents);
     }
 }
 

@@ -278,8 +278,21 @@ class BxMessengerServices extends BxDol
         }
 
         if ($oForm->isSubmittedAndValid()){
+            
+           /*   if (isset($aOptions['convo_id'])){
+                 $oForm->aInputs['id']['value'] = $aOptions['convo_id'];
+            }     */
+            if (isset($aOptions['reply_id'])){
+                 $oForm->aInputs['reply']['value'] = $aOptions['reply_id'];
+            } 
+        
             $iLotId = 0 ;
             $mixedLotId = bx_get('id');
+            
+            if (!$mixedLotId){
+                $mixedLotId = $oForm->aInputs['id']['value'] = $aOptions['convo_id'];
+            }
+            
             if ($mixedLotId)
                 $iLotId = $this->_oModule->_oDb->getConvoByHash($mixedLotId);
 
@@ -293,8 +306,11 @@ class BxMessengerServices extends BxDol
                 'message' => bx_get('message')
             ];
 
-            if(($iReply = bx_get('reply')) !== false)
-                $aData['reply'] = (int)$iReply;
+           /* if(($iReply = bx_get('reply')) !== false)
+                $aData['reply'] = (int)$iReply;*/
+            if (isset($aOptions['reply_id'])){
+                  $aData['reply'] = $aOptions['reply_id'];
+            } 
 
             if(($mixPayload = bx_get('payload')) !== false && !$aData['lot']) {
                 $aData = array_merge($aData, json_decode($mixPayload, true));
@@ -441,13 +457,11 @@ class BxMessengerServices extends BxDol
         $aOptions = json_decode($sParams, true);
 
         $iJotId = isset($aOptions['jot_id']) ? (int)$aOptions['jot_id'] : 0;
+        $iLotId = isset($aOptions['lot_id']) ? $aOptions['lot_id'] : 0;
         if(!$iJotId)
             return [];
-
-        $sLotHash = isset($aOptions['lot_id']) ? $aOptions['lot_id'] : 0;
-        $iLotId = $this->_oModule->_oDb->getConvoByHash($sLotHash);
-
-        $this->_pusherData('convo_' . $iLotId, ['convo' => $iLotId, 'action' => 'deleted', 'data' => $iJotId]);
+        $iLotId2 = $this->_oModule->_oDb->getConvoByHash($iLotId);
+        $this->_pusherData('convo_' . $iLotId, ['convo' => $iLotId2, 'action' => 'deleted', 'data' => $iJotId]);
 
         return $this->_oModule->serviceDeleteJot($iJotId, true);
     }

@@ -1,5 +1,5 @@
 .bx-messenger-create-talk-list {
-    @apply max-w-full h-full sm:mt-12 mt-1 flex flex-col relative;
+    @apply max-w-full h-full mt-1 flex flex-col relative;
 }
 
 .bx-messenger-create-talk-list-header {

@@ -44,7 +44,6 @@
 		this.sGiphySendArea = '#bx-messenger-send-area-giphy';
 		this.sGiphMain = '.giphy';
 		this.sGiphyBlock = '.bx-messenger-giphy';
-		this.sEmojiId = '#emoji-picker';
 		this.sTalkAreaWrapper = '.bx-messenger-table-wrapper';
 		this.sActivePopup = '.bx-popup-applied:visible';
 		this.sJitsiButton = '#jitsi-button';
@@ -602,21 +601,16 @@
 		$(_this.sSendAreaActionsButtons)
 			.find(window.oMessengerSelectors.EMOJI.sendEmojiButton)
 			.attacheEmoji((e) => {
-				const { emojiComponent } = window.oMessengerSelectors.EMOJI,
-						{ textArea } = window.oMessengerSelectors.TEXT_AREA,
-						{ tableWrapper } = window.oMessengerSelectors.HISTORY;
+				const { textArea } = window.oMessengerSelectors.TEXT_AREA;
 
-				if ($(emojiComponent).is(':visible'))
-					$(emojiComponent).hide();
-				else
-					$(emojiComponent).css({
-						top: $(tableWrapper).height() - $(emojiComponent).height() - $(textArea).height(),
+				if (window.oMessengerEmoji)
+					window.oMessengerEmoji.emojiCall({
 						position: 'absolute',
 						left: '2.5rem',
 						right: '',
-					}).show();
-
-				_this.oActiveEmojiObject['type'] = 'textarea';
+						top: '',
+						bottom: $(textArea).height()
+					}, () => _this.oActiveEmojiObject['type'] = 'textarea');
 			});
 
 		// init files uploader
@@ -678,18 +672,6 @@
 		   }
 	   }
    }
-
-   oMessenger.prototype.getEmojiPopUp = function(fCallback) {
-	   const _this = this;
-		if (!$('emoji-picker').length)
-		   $.get('modules/?r=messenger/get_emoji_picker',(sData) => {
-			   $(_this.sTalkAreaWrapper)
-				   .append($(sData));
-		   });
-
-		if (typeof fCallback === 'function')
-			fCallback();
-	}
 
 	oMessenger.prototype.updateSendAreaHeight = function() {
 		const { inputArea } = window.oMessengerSelectors.TEXT_AREA,
@@ -1150,18 +1132,12 @@
 			oJot = $(oObject).closest(jotMain),
 			iJotId = oJot.data('id') || 0;
 
-		const { emojiComponent } = window.oMessengerSelectors.EMOJI;
-
-		if ($(emojiComponent).is(':visible'))
-			$(emojiComponent).hide();
-		else
-			$(emojiComponent).css({
-				top: _this.calculatePositionTop(oJot, $(emojiComponent)),
+		if (window.oMessengerEmoji)
+			window.oMessengerEmoji.emojiCall((oComponent) => ({
+				top: _this.calculatePositionTop(oJot, oComponent),
 				left: bNear && !oMUtils.isMobile() ? $(oObject).position().left : 0,
 				position: 'absolute'
-			}).show();
-
-		_this.oActiveEmojiObject = {'type': 'reaction', 'param': iJotId};
+			}), () => _this.oActiveEmojiObject = {'type': 'reaction', 'param': iJotId});
 	};
 
 	oMessenger.prototype.deleteLot = function(iLotId){

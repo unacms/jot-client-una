@@ -4,16 +4,16 @@
  */
 
 window.oMessengerEmoji = (function($){
-   const oPickerOptions = { onEmojiSelect: console.log, onClickOutside: function(e){
-       const { emojiComponent, sendEmojiButton, reactionButton } = window.oMessengerSelectors.EMOJI,
+   const { emojiPopup, emojiComponent} = window.oMessengerSelectors.EMOJI,
+         oPickerOptions = { onEmojiSelect: console.log, onClickOutside: function(e){
+         const { sendEmojiButton, reactionButton } = window.oMessengerSelectors.EMOJI,
              { jotLineMenu } = window.oMessengerSelectors.JOT;
 
            if ($(emojiComponent).is(':visible') && !$(e.target).closest(`${sendEmojiButton},${reactionButton},${jotLineMenu}`).length)
                $(emojiComponent).hide();
    }, theme: 'buk'};
 
-   const { tableWrapper } = window.oMessengerSelectors.HISTORY,
-         { emojiPopup, emojiComponent } = window.oMessengerSelectors.EMOJI;
+    let oPicker = null;
 
    $.fn.attacheEmoji = function(fCallback){
         const _this = this;
@@ -22,21 +22,26 @@ window.oMessengerEmoji = (function($){
             _this.on('click', (e) => fCallback(e));
    };
 
+   const initEmojiConfig = async (oOptions) =>{
+       const oLang = await fetch(`modules/boonex/messenger/js/emoji/data/i18n/${oOptions['lang']}.json`),
+             oSet = await fetch(`modules/boonex/messenger/js/emoji/data/set/${oOptions['set']}.json`);
+
+       if (!oLang.ok)
+           throw new Error(`Error: emoji language is not found: ${oLang.status}. Please check boonex/messenger/js/emoji/data/i18n/ folder in order to find ${oOptions['lang']}.json file`);
+
+       if (!oSet.ok)
+           throw new Error(`Error: emoji sets file is not found: ${oSet.status}. Please check messenger/js/emoji/data/set folder in order to find ${oOptions['set']}.json file`);
+
+     return { data: await oSet.json(), i18n: await oLang.json() };
+   };
+
    return {
        init: (oOptions) => {
-           let oPicker = null;
-
            if ($(emojiComponent).length)
                return false;
 
            if (typeof oOptions['lang'] === 'undefined')
                oOptions['lang'] = 'en';
-
-           if (oOptions['lang'] !== 'en')
-               oPickerOptions.i18n = async () => (await fetch(`modules/boonex/messenger/js/emoji/data/i18n/${oOptions['lang']}.json`)).json();
-
-           if (typeof oOptions['set'] !== 'undefined')
-               oPickerOptions.data = async () => (await fetch(`modules/boonex/messenger/js/emoji/data/set/${oOptions['set']}.json`)).json();
 
            if (typeof oOptions['onEmojiSelect'] === 'function')
                oPickerOptions.onEmojiSelect = (oEmoji) => {
@@ -44,14 +49,43 @@ window.oMessengerEmoji = (function($){
                    return oOptions['onEmojiSelect'](oEmoji);
                };
 
-           $.extend(oPickerOptions, { locale: oOptions['lang'], skinTonePosition: 'none', previewPosition: oOptions['preview'] === 'undefined' || !oOptions['preview'] ? 'none' : 'bottom' });
+           $.extend(oPickerOptions, {
+               locale: oOptions['lang'],
+               skinTonePosition: 'none',
+               previewPosition: oOptions['preview'] === 'undefined' || !oOptions['preview'] ? 'none' : 'bottom',
+               set: typeof oOptions['set'] !== 'undefined' ? oOptions['set'] : 'native'
+           });
 
-           bx_get_scripts(['modules/boonex/messenger/js/emoji/emoji.min.js'], () => {
+           bx_get_scripts(['modules/boonex/messenger/js/emoji/emoji.min.js'], async () => await initEmojiConfig(oOptions)
+                   .then( data => $.extend(oPickerOptions, data))
+                   .catch((e) => {
+                        console.log(e);
+                    }).finally(() => {
                if (oPicker === null && typeof EmojiMart !== 'undefined') {
                    oPicker = new EmojiMart.Picker(oPickerOptions);
+                       }
+                    })
+           );
+       },
+       emojiCall:(oPos, fCallback)=> {
+           if (typeof oPos === 'undefined')
+               return;
+
+           const { tableWrapper } = window.oMessengerSelectors.HISTORY;
+           if ($(emojiComponent).is(':visible'))
+               $(emojiComponent).hide();
+           else
+           {
+               // init WEB Component only once on the first call
+               if (!$(emojiComponent).length)
                    $(tableWrapper).append($(oPicker).addClass(emojiPopup));
+
+               const oCss = typeof oPos === 'function' ? oPos($(emojiComponent)) : oPos;
+
+               $(emojiComponent).css(oCss).show();
+               if (typeof fCallback === 'function')
+                   fCallback();
                }
-           });
        }
    }
 })(jQuery);

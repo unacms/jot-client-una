@@ -42,26 +42,29 @@ class BxMessengerUploaderHTML5 extends BxBaseModFilesUploaderHTML5
         $oStorage = BxDolStorage::getObjectInstance($this->_sStorageObject);
         $aFile = $oStorage->getFile($iFileId);
         $CNF = &$this->_oModule->_oConfig->CNF;
-        if (empty($aFile) || !(int)$aFile[$CNF['FIELD_ST_JOT']])
+        if (empty($aFile))
             return _t('_error occured');
 
         $sResult = parent::deleteGhost($iFileId, $iProfileId);
         if ($sResult !== 'ok')
             return $sResult;
 
-        $iMessageId = (int)$aFile[$CNF['FIELD_ST_JOT']];
-        $aJotInfo = $this->_oModule->_oDb->getJotById($iMessageId);
-        if (empty($aJotInfo))
-            return _t('_error occured');
+        if((int)$aFile[$CNF['FIELD_ST_JOT']]) {
+            $iMessageId = (int)$aFile[$CNF['FIELD_ST_JOT']];
+            $aJotInfo = $this->_oModule->_oDb->getJotById($iMessageId);
+            if (empty($aJotInfo))
+                return _t('_error occured');
 
-        $aFilesData = !$aJotInfo[$CNF['FIELD_MESSAGE_AT']] ? @unserialize($aJotInfo[$CNF['FIELD_MESSAGE_AT']]) : [];
-        $aFilesList = $this->_oModule->_oDb->getJotFiles($iMessageId);
-        if (!empty($aFilesList)){
-             foreach($aFilesList as &$aFileItem)
-                 $aFilesData[BX_ATT_TYPE_FILES][] = $aFileItem[$CNF['FIELD_ST_NAME']];
+            $aFilesData = !$aJotInfo[$CNF['FIELD_MESSAGE_AT']] ? @unserialize($aJotInfo[$CNF['FIELD_MESSAGE_AT']]) : [];
+            $aFilesList = $this->_oModule->_oDb->getJotFiles($iMessageId);
+            if (!empty($aFilesList)){
+                 foreach($aFilesList as &$aFileItem)
+                     $aFilesData[BX_ATT_TYPE_FILES][] = $aFileItem[$CNF['FIELD_ST_NAME']];
+            }
+
+            $this->_oModule->_oDb->updateJot($iMessageId, $CNF['FIELD_MESSAGE_AT'], !empty($aFilesData) ? @serialize($aFilesData) : '');
         }
 
-        $this->_oModule->_oDb->updateJot($iMessageId, $CNF['FIELD_MESSAGE_AT'], !empty($aFilesData) ? @serialize($aFilesData) : '');
         return 'ok';
     }
 }

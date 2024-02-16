@@ -236,7 +236,7 @@ class BxMessengerServices extends BxDol
 
                 $aResult[] = array_merge($aJot, [
                     $CNF['FIELD_MESSAGE_FK'] => $aOptions['lot'],
-                    $CNF['FIELD_MESSAGE'] => strip_tags($aJot[$CNF['FIELD_MESSAGE']], '<br>'),
+                    $CNF['FIELD_MESSAGE'] => $aJot[$CNF['FIELD_MESSAGE']],
                     'author_data' => BxDolProfile::getData($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]),
                     'reactions' => $aReactions,
                     'menu' => $oMenu->getCodeAPI(),

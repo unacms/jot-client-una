@@ -457,22 +457,24 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
 	}
 	
 	/**
-	* Builds from server environment valid Url handle for lot 
+	* Builds from server environment valid Url handle for the talk
 	*@return string url
 	*/
     public function getPageIdent($sPageLink = '')
     {
         $sPageUrl = $sPageLink ? $sPageLink : $_SERVER['REQUEST_URI'];
-
         if ($sPageUrl === '/' || $sPageUrl === '/index.php')
             return 'index.php';
 
+        $sPath = parse_url(BX_DOL_URL_ROOT, PHP_URL_PATH);
+        $sPageUrl = substr($sPageUrl, get_mb_len($sPath));
+
         // check if the link is jot link, then to return base url
-        $sLinkToCheck = BX_DOL_URL_ROOT . substr($sPageUrl, 1);
+        $sLinkToCheck = BX_DOL_URL_ROOT . $sPageUrl;
         if ($this->isJotLink($sLinkToCheck))
             $sPageUrl = BxDolPermalinks::getInstance()->permalink($this->CNF['URL_HOME']);
 
-        $sPageUrl = BxDolPermalinks::getInstance()->unpermalink(ltrim($sPageUrl, '/'));
+        $sPageUrl = BxDolPermalinks::getInstance()->unpermalink($sPageUrl);
         $sPageUrl = parse_url($sPageUrl, PHP_URL_QUERY);
         if (!empty($sPageUrl)) {
             parse_str($sPageUrl, $aUrl);

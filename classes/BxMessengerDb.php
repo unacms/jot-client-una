@@ -2417,7 +2417,8 @@ class BxMessengerDb extends BxBaseModGeneralDb
     }
 
    function registerGroup($sUrl, $iLotId, $bForce = false){
-	    parse_str($sUrl, $aUrl);
+        $aUrl = [];
+        parse_str($sUrl, $aUrl);
 		if (!empty($aUrl) && isset($aUrl['i'])) {
             $oPage = BxDolPage::getObjectInstanceByModuleAndURI(BX_IM_EMPTY_URL, $aUrl['i']);
 

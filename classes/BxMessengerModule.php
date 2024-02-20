@@ -166,6 +166,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $aLotInfo = $this->_oDb->getLotByClass($sClass);
 
         $sUrl = $this->_oConfig->getPageIdent();
+
         $iType = $this->_oConfig->getTalkType($sModule);
         if (empty($aLotInfo) && $sUrl)
             $aLotInfo = $this->_oDb->findLotByParams(array(
@@ -176,6 +177,10 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         $iLotId = !empty($aLotInfo) && isset($aLotInfo[$CNF['FIELD_ID']]) ? (int)$aLotInfo[$CNF['FIELD_ID']] : 0;
         if (!$iLotId) {
+            
+            if (!$sUrl)
+                return false;
+
             $sTalkUrl = $this->getPreparedUrl($sUrl);
             $sTalkTitle = BxDolTemplate::getInstance()->getPageHeader();
 
@@ -1208,10 +1213,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 return array();
         }
 
-        bx_alert($this->getName(), 'get_profiles_list', 0, 0, array(
-           'term' => $sTerm,
-           'override_list' => &$aSearchResult)
-        );
+        bx_alert($this->getName(), 'get_profiles_list', 0, 0, ['term' => $sTerm, 'override_list' => &$aSearchResult]);
 
         $aUsers = [];
         if (!bx_is_api()) {

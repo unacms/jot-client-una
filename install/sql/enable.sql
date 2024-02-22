@@ -317,7 +317,7 @@ INSERT INTO `sys_menu_templates` (`id`, `template`, `title`, `visible`) VALUES
 SET @iTemplId = (SELECT `id` FROM `sys_menu_templates` WHERE `template`='menu-create-convo.html' AND `title`='_bx_messenger_create_convo_template_title' LIMIT 1);
 
 INSERT INTO `sys_objects_menu`(`object`, `title`, `set_name`, `module`, `template_id`, `deletable`, `active`, `override_class_name`, `override_class_file`) VALUES
-(CONCAT(@sName, '_create_convo_menu'), '_bx_messenger_create_convo_menu_title', CONCAT(@sName, '_create_convo_menu'), @sName, @iTemplId, 0, 1, 'BxMessengerCreateConvoMenu', 'modules/boonex/messenger/classes/BxMessengerCreateConvoMenu.php');
+(CONCAT(@sName, '_create_convo_menu'), '_bx_messenger_create_convo_menu_title', CONCAT(@sName, '_create_convo_menu'), @sName, @iTemplId, 0, 0, 'BxMessengerCreateConvoMenu', 'modules/boonex/messenger/classes/BxMessengerCreateConvoMenu.php');
 
 INSERT INTO `sys_menu_sets`(`set_name`, `module`, `title`, `deletable`) VALUES
 (CONCAT(@sName, '_create_convo_menu'), @sName, '_bx_messenger_create_convo_menu_set_title', 0);

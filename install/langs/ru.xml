@@ -352,7 +352,7 @@
 	<string name="_bx_messenger_neo_app_form_input_caption_message"><![CDATA[Сообщение]]></string>
 	<string name="_bx_messenger_neo_app_form_input_caption_parent_id"><![CDATA[ID родителя]]></string>
 	<string name="_bx_messenger_neo_app_form_input_caption_message_id"><![CDATA[ID сообщения]]></string>
-        <string name="_bx_messenger_page_block_contacts_title"><![CDATA[Контакты]]></string>
+    <string name="_bx_messenger_page_block_contacts_title"><![CDATA[Контакты]]></string>
 	<string name="_bx_messenger_profile_title_snippet_meta"><![CDATA[Мета Информация]]></string>
 	<string name="_bx_messenger_set_title_profile_snippet_meta"><![CDATA[Метаданные профиля для блока контактов]]></string>
 	<string name="_bx_messenger_item_title_sm_message"><![CDATA[Сообщение]]></string>
@@ -360,7 +360,7 @@
 	<string name="_bx_messenger_broadcast_field_membership"><![CDATA[Уровень участника]]></string>
 	<string name="_bx_messenger_broadcast_profile_fields_title"><![CDATA[Пожалуйста выбирите поля для фильтрации]]></string>
 	<string name="_bx_messenger_broadcast_field_calculate"><![CDATA[Расчитать]]></string>
-	<string name="_bx_messenger_broadcast_total_profiles"><![CDATA[Всего сообщение получат {0} провилей]]></string>
+	<string name="_bx_messenger_broadcast_total_profiles"><![CDATA[Сообщение получат {0} участников]]></string>
 	<string name="_bx_messenger_lots_menu_info"><![CDATA[Информация]]></string>
 
 	<string name="_bx_messenger_create_convo_menu_standard_system"><![CDATA[Группа]]></string>

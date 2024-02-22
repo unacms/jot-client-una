@@ -627,7 +627,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
            'bx_if:broadcast' => [
                 'condition' => $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_BROADCASTS) === true && !$iLotId,
                 'content' => [
-                    'convo_menu' => $oCreateMenu->getCode(),
+                    'convo_menu' => $oCreateMenu !== FALSE ? $oCreateMenu->getCode() : '',
                 ],
            ],
            'bx_if:edit' => [

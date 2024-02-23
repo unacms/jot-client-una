@@ -182,7 +182,8 @@
 	<string name="_bx_messenger_emoji_skintones_6"><![CDATA[Dark Skin Tone]]></string>
 	<string name="_bx_messenger_emoji_set"><![CDATA[Select set of Emoji to use for reactions and in text messages]]></string>
 	<string name="_bx_messenger_reactions_size"><![CDATA[Size of the emoji in reactions]]></string>
-	<string name="_bx_messenger_show_emoji_preview"><![CDATA[Show emojis preview]]></string>
+	<string name="_bx_messenger_show_emoji_preview">
+<![CDATA[Show emojis preview]]></string>
 	<string name="_bx_messenger_file_download"><![CDATA[Download file]]></string>
 	<string name="_bx_messenger_txt_subobject_added_single"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> sent {subentry_sample}]]></string>
 	<string name="_bx_messenger_txt_sample_comment_giphy_single"><![CDATA[an animation]]></string>

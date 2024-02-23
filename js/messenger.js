@@ -641,6 +641,7 @@
 					});
 
 		_this.setStorageData();
+		_this.updateSendAreaHeight();
 		_this.checkNotFinishedTalks();
     }
 

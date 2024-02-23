@@ -105,7 +105,8 @@
                 infoArea: '#bx-messenger-info-area',
                 typingInfoArea: '.bx-messenger-conversations-typing span',
                 connectingArea: '.bx-messenger-info-area-connecting',
-                connectionFailedArea: '.bx-messenger-info-area-connect-failed'
+                connectionFailedArea: '.bx-messenger-info-area-connect-failed',
+                serverErrorArea: '.bx-messenger-no-server',
             };
 
             this.THREAD = {

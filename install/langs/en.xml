@@ -69,7 +69,7 @@
 	<string name="_bx_messenger_notification_request"><![CDATA[Would you like to get notifications about new messages?]]></string>
 	<string name="_bx_messenger_notification_request_yes"><![CDATA[Yes]]></string>	
 	<string name="_bx_messenger_notification_request_no"><![CDATA[No, thanks]]></string>
-	<string name="_bx_messenger_server_url"><![CDATA[Server URL for messenger]]></string>
+	<string name="_bx_messenger_server_url"><![CDATA[Jot Server URL]]></string>
 	<string name="_bx_messenger_online"><![CDATA[Active]]></string>
 	<string name="_bx_messenger_offline"><![CDATA[Offline]]></string>
 	<string name="_bx_messenger_away"><![CDATA[Away]]></string>
@@ -420,4 +420,5 @@ name="_bx_ntfs_alert_action_got_broadcast_ntfs_personal"><![CDATA[Broadcast mess
 	<string name="_bx_messenger_neo_app_form_input_caption_id"><![CDATA[Convo Id]]></string>
 	<string name="_bx_messenger_neo_app_form_input_id"><![CDATA[Convo Id]]></string>
 	<string name="_bx_messenger_neo_app_form_input_caption_reply"><![CDATA[Parent message id]]></string>
+	<string name="_bx_messenger_no_server"><![CDATA[Messenger settings do not have the Jot Server Url defined, which means that real-time communication is not currently possible]]></string>
 </resources>

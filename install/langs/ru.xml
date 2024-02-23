@@ -402,4 +402,5 @@
 	<string name="_bx_messenger_no_criteria_available"><![CDATA[Критерии для фильтрации не найдены!]]></string>
 	<string name="_bx_messenger_create_talk_confirm"><![CDATA[Вы уверены, что хотите создать разговор?]]></string>
 	<string name="_bx_messenger_neo_app_form_input_caption_reply"><![CDATA[Номер родительского сообщения]]></string>
+	<string name="_bx_messenger_no_server"><![CDATA[В настройках мессенджера не определен URL-адрес Jot Server. В настоящее время связь в режиме реального времени невозможна.]]></string>
 </resources>

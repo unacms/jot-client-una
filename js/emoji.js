@@ -13,7 +13,9 @@ window.oMessengerEmoji = (function($){
                $(emojiComponent).hide();
    }, theme: 'buk'};
 
-    let oPicker = null;
+    let oPicker = null,
+        oLangs = null,
+        oSets = null;
 
    $.fn.attacheEmoji = function(fCallback){
         const _this = this;
@@ -23,16 +25,19 @@ window.oMessengerEmoji = (function($){
    };
 
    const initEmojiConfig = async (oOptions) =>{
-       const oLang = await fetch(`modules/boonex/messenger/js/emoji/data/i18n/${oOptions['lang']}.json`),
-             oSet = await fetch(`modules/boonex/messenger/js/emoji/data/set/${oOptions['set']}.json`);
+       if (oLangs === null) {
+           oLangs = await fetch(`modules/boonex/messenger/js/emoji/data/i18n/${oOptions['lang']}.json`);
+           if (!oLangs.ok)
+               throw new Error(`Error: emoji language is not found: ${oLangs.status}. Please check boonex/messenger/js/emoji/data/i18n/ folder in order to find ${oOptions['lang']}.json file`);
+       }
 
-       if (!oLang.ok)
-           throw new Error(`Error: emoji language is not found: ${oLang.status}. Please check boonex/messenger/js/emoji/data/i18n/ folder in order to find ${oOptions['lang']}.json file`);
+       if (oSets === null) {
+           oSets = await fetch(`modules/boonex/messenger/js/emoji/data/set/${oOptions['set']}.json`);
+           if (!oSets.ok)
+               throw new Error(`Error: emoji sets file is not found: ${oSets.status}. Please check messenger/js/emoji/data/set folder in order to find ${oOptions['set']}.json file`);
+       }
 
-       if (!oSet.ok)
-           throw new Error(`Error: emoji sets file is not found: ${oSet.status}. Please check messenger/js/emoji/data/set folder in order to find ${oOptions['set']}.json file`);
-
-     return { data: await oSet.json(), i18n: await oLang.json() };
+     return { data: await oSets.json(), i18n: await oLangs.json() };
    };
 
    return {

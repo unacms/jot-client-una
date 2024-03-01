@@ -184,7 +184,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         $bIsAuthor = $bCheckAction || $this->_oDb->isAuthor($iLotId, $iProfileId);
 
         $mixedOptions = $this->_oDb->getLotSettings($iLotId);
-        if (!empty($mixedOptions) && !$bIsAuthor) {
+        if ($mixedOptions !== FALSE && is_array($mixedOptions) && !$bIsAuthor) {
             if (!in_array(BX_MSG_SETTING_MSG, $mixedOptions))
                return '';
 

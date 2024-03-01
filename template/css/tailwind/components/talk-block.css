@@ -16,6 +16,10 @@
     @apply overflow-hidden;
 }
 
-.bx-messenger-block-messenger.bx-messenger-columns {
+/*.bx-messenger-block-messenger.bx-messenger-columns {
     @apply divide-x-0;
+}*/
+
+.bx-messenger-block-messenger .bx-messenger-info-section-block {
+    @apply border-l;
 }

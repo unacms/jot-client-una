@@ -11,7 +11,7 @@
 }
 
 .bx-messenger-create-talk-list-header svg {
-    @apply mx-auto h-8 w-8 text-gray-400;
+    @apply mx-auto text-gray-400;
 }
 
 .bx-messenger-create-talk-list-header .bx-messenger-create-talk-list-main-logo svg {

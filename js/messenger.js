@@ -519,7 +519,6 @@
 			placeholder: _t('_bx_messenger_post_area_message'),
 			onEnter:() => {
 				if (!(oMUtils.isMobileDevice() || oMUtils.isUnaMobileApp())) {
-					_this.updateScrollPosition('bottom');
 					$(sendButton).click();
 					return true;
 				}
@@ -2693,6 +2692,16 @@
 
 		return true;
 	}
+
+	oMessenger.prototype.scrollIntoView = function(oObject, sBlock, fCallback){
+		if (this.isBlockVersion() || typeof oObject === 'undefined' || typeof oObject.scrollIntoView !== 'function')
+			return false;
+
+		oObject.scrollIntoView({ behavior: 'auto', block: sBlock });
+		if (typeof fCallback === 'function')
+			setTimeout(() => fCallback(), 200);
+	}
+
 	/**
 	* Correct scroll position in history area depends on loaded messages (old history or new just received)
 	*@param string sPosition position name
@@ -2706,33 +2715,20 @@
 			 { talkListJotSelector } = window.oMessengerSelectors.JOT,
 			 iHeight = $(talkBlock).prop('scrollHeight');
 
-
 		let iPosition = 0;
 		switch(sPosition){
 			case 'top':
-					if (mixedObject && typeof mixedObject[0].scrollIntoView === 'function') {
-						mixedObject[0].scrollIntoView({behavior: 'auto', block: 'start'});
+				const { pos, object } = mixedObject || {};
+				iPosition = pos ? pos : 0;
 
-						if (typeof fCallback === 'function')
-							setTimeout(() => fCallback(), 200);
-
+				if (this.scrollIntoView(object && object[0], 'start', fCallback) !== false)
 						return;
-					}
-
-					const { pos } = mixedObject || {};
-					iPosition = pos ? pos : 0;
 
 					break;
 			case 'bottom':
-					const oLast = mixedObject && mixedObject[0] && typeof mixedObject[0].scrollIntoView === 'function' ? mixedObject[0] : $(talkListJotSelector).last()[0];
-					if (typeof oLast !=='undefined' && typeof oLast.scrollIntoView === 'function' && !sEff) {
-						$(talkListJotSelector).last()[0].scrollIntoView({behavior: 'auto', block: 'end'});
-
-						if (typeof fCallback === 'function')
-							setTimeout(() => fCallback(), 200);
-
+					const oLast = (mixedObject && mixedObject[0]) || $(talkListJotSelector).last()[0];
+					if (!sEff && this.scrollIntoView(oLast, 'end', fCallback) !== false)
 						return;
-					}
 
 					iPosition = iHeight;
 					break;
@@ -2740,15 +2736,9 @@
 					iPosition = typeof mixedObject !== 'undefined' ? mixedObject.position().top : 0;
 					break;
 			case 'center':
-					const oJot = mixedObject[0];
-					if (oJot && typeof oJot.scrollIntoView === 'function') {
-						oJot.scrollIntoView({behavior: 'auto', block: 'center'});
-
-						if (typeof fCallback === 'function')
-							setTimeout(() => fCallback(), 200);
-
+					const oJot = mixedObject && mixedObject[0];
+					if (this.scrollIntoView(oJot, 'center', fCallback) !== false)
 						return;
-					}
 
 					iPosition = mixedObject.position().top - $(talkBlock).prop('clientHeight')/2;
 					break;
@@ -2967,10 +2957,14 @@
 													.fadeIn();
 											})
 											.end())
-								.waitForImages(() => {
-									_this.updateScrollPosition('top', 'fast', oObjects.first());
+								.waitForImages(oParent => {
+									const iId = oObjects.first().data('id');
+									if (+iId)
+										setTimeout(() => {
+											const iTop = $(`[data-id="${iId}"]${jotMain}`, oParent).position().top || 0;
+											_this.updateScrollPosition('top', 'fast', { pos: iTop, object: oObjects.first()});
+										}, 0);
 								});
-
 							break;
 						case 'edit':
 						case 'vc':

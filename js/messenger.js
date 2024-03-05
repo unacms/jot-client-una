@@ -544,10 +544,10 @@
 				const { ops } = _this.oEditor.getContents(),
 					{ lot, name, user_id } = _this.oSettings;
 
+				_this.updateSendAreaHeight();
 				if (!lot || _this.bCreateNew)
 					return;
 
-				_this.updateSendAreaHeight();
 				if (_this.oEditor.length > 1){
 					const oJotInfo = Object.create(null);
 					 oJotInfo.message = ops;

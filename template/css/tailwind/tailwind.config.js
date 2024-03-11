@@ -2,7 +2,7 @@ module.exports = {
   presets: [require('./parent.config.js')],
   safelist: [
       'lg:block','xl:block',
-      '-space-x-4','space-y-1',
+      '-space-x-4','space-y-1', 'gap-3',
       'md:hidden', 'h-min', 'max-w-fit',
       {
          pattern: /col-span-(2|3|4|5|6|7|8|9|10)/,

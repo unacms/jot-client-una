@@ -3798,18 +3798,22 @@ class BxMessengerModule extends BxBaseModGeneralModule
     public function serviceGetSafeServices()
     {
         return [
+            'FindConvo' => 'BxMessengerServices',
+            'LeaveConvo' => 'BxMessengerServices',
+            'DeleteConvo' => 'BxMessengerServices',
+            'GetConvo' => 'BxMessengerServices',
             'GetConvosList' => 'BxMessengerServices',
             'GetConvoMessages' => 'BxMessengerServices',
             'GetSendForm' => 'BxMessengerServices',
             'RemoveJot' => 'BxMessengerServices',
             'SearchUsers' => 'BxMessengerServices',
+            'GetPartsList' => 'BxMessengerServices',
             'SavePartsList' => 'BxMessengerServices',
             'GetBlockContacts' => 'BxMessengerServices',
 
             //--- Aren't used in App for now.
             'GetConvoMessage' => '',
             'GetConvoItem' => '',
-            'FindConvo' => '',
             'ClearGhost' => '',
         ];
     }
@@ -3909,7 +3913,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
     }
 
     /*
-     * Should be moved to Services if it's needed, otherwise removed.
+     * Moved to Services.
      */
     public function serviceFindConvo($sParams)
     {
@@ -4022,6 +4026,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return $aResult;
     }
 
+    /*
+     * Should be moved to Services if it's needed, otherwise removed.
+     */
     public function serviceGetConvoMessage($sParams){
         $aOptions = json_decode($sParams, true);
 

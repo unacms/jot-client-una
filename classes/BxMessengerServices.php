@@ -75,6 +75,87 @@ class BxMessengerServices extends BxDol
         return [bx_api_get_block('browse', $aData)];
     }
 
+    /*
+     * Find convo (lot) related to logged in profile and context if the last one is provided.
+     */
+    public function serviceFindConvo($sParams)
+    {
+        $aOptions = json_decode($sParams, true);
+
+        $aParticipants = [$this->_iProfileId];
+        if(!empty($aOptions['context']))
+            $aParticipants[] = $aOptions['context'];
+
+        $aLot = $this->_oModule->_oDb->getLotsByParticipantsList($aParticipants, BX_IM_TYPE_PRIVATE);
+        if(empty($aLot) || !is_array($aLot))
+            return [];
+
+        return ['lot' => $aLot];
+    }
+    
+    /**
+     * Leave convo (lot) with defined ID
+     */
+    public function serviceLeaveConvo($sParams)
+    {
+        $aOptions = json_decode($sParams, true);
+
+        $iLotId = isset($aOptions['lot']) ? (int)$aOptions['lot'] : 0;
+
+        if(!$iLotId || !$this->_oModule->_oDb->isParticipant($iLotId, $this->_iProfileId))
+            return ['code' => 1, 'message' => _t('_bx_messenger_not_participant')];
+
+        if($this->_oModule->_oDb->isAuthor($iLotId, $this->_iProfileId))
+            return ['code' => 2, 'message' => _t('_bx_messenger_cant_leave')];
+
+        return ['code' => !$this->_oModule->_oDb->leaveLot($iLotId, $this->_iProfileId) ? 3 : 0];
+    }
+
+    /**
+     * Delete convo (lot) with defined ID
+     */
+    public function serviceDeleteConvo($sParams)
+    {
+        $aOptions = json_decode($sParams, true);
+
+        $iLotId = isset($aOptions['lot']) ? (int)$aOptions['lot'] : 0;
+
+        if(!$iLotId || !($this->_oModule->_oDb->isAuthor($iLotId, $this->_iProfileId) || ($this->_oModule->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true)))
+            return ['code' => 1, 'message' => _t('_bx_messenger_can_not_delete')];
+
+        return ['code' => !$this->_oModule->_oDb->deleteLot($iLotId) ? 2 : 0];
+    }
+
+    /**
+     * Get convo (lot) info with defined ID
+     */
+    public function serviceGetConvo($sParams)
+    {
+        $CNF = &$this->_oModule->_oConfig->CNF;
+
+        $aOptions = json_decode($sParams, true);
+
+        $iLotId = isset($aOptions['lot']) ? (int)$aOptions['lot'] : 0;
+        $aLotInfo = [];
+
+        if(!$iLotId || !($aLotInfo = $this->_oModule->_oDb->getLotInfoById($iLotId)))
+            return ['code' => 1, 'message' => _t('_bx_messenger_not_found')];
+
+        if(!$this->_isAvailable($iLotId))
+            return ['code' => 2, 'message' => _t('_bx_messenger_not_participant')];
+
+        $aPartList = $this->_oModule->_oDb->getParticipantsList($iLotId);
+        if((int)$aLotInfo[$CNF['FIELD_TYPE']] === BX_IM_TYPE_BROADCAST)
+            $aPartList = $this->_oModule->_oDb->getBroadcastParticipants($iLotId);
+
+        return ['code' => 0, 'lot' => [
+            'author_data' => BxDolProfile::getData($aLotInfo[$CNF['FIELD_AUTHOR']]),
+            'parts' => count($aPartList),
+            'files' => $this->_oModule->_oDb->getLotFilesCount($iLotId),
+            'messages' => $this->_oModule->_oDb->getJotsNumber($iLotId, 0),
+        ]];
+    }
+
     public function serviceGetConvosList($sParams = '')
     {
         $CNF = &$this->_oModule->_oConfig->CNF;
@@ -385,6 +466,28 @@ class BxMessengerServices extends BxDol
         }
 
         return $oForm->getCodeAPI();
+    }
+
+    /*
+     * Get participants list by lot ID.
+     */
+    public function serviceGetPartsList($sParams)
+    {
+        $aOptions = json_decode($sParams, true);
+
+        $iLotId = isset($aOptions['lot']) ? (int)$aOptions['lot'] : 0;
+        if(!$iLotId || !($bAllowed = $this->_oModule->_oDb->isAuthor($iLotId, $this->_iProfileId) || $this->_oModule->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true))
+            return ['code' => 1];
+        
+        $aIds = $this->_oModule->_oDb->getParticipantsList($iLotId);
+        if(empty($aIds) || !is_array($aIds))
+            return ['code' => 2];
+
+        $aResult = [];
+        foreach($aIds as $iId)
+            $aResult[] = BxDolProfile::getData($iId);
+        
+        return $aResult;
     }
 
     public function serviceSavePartsList($sParams)

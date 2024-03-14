@@ -14,10 +14,6 @@
     @apply ring-2 ring-white dark:ring-gray-900 bg-gray-500/20 rounded-full overflow-hidden;
 }
 
-.bx-messenger-jots-snip-avatars-list img {
-    @apply max-w-fit;
-}
-
 .bx-messenger-jots-snip-avatars-list p {
     @apply rounded-full text-white flex items-center justify-center h-12 w-12;
 }

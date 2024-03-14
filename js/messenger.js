@@ -1043,7 +1043,7 @@
 		this.iMuted = +!iVal;
 		$(oEl).data('value', this.iMuted);
 
-		$.post('modules/?r=messenger/mute', {lot:iLotId}, function(oData){
+		$.post('modules/?r=messenger/mute', { lot:iLotId }, function(oData){
 				if (typeof oData.code !== 'undefined')
 				    $(oEl)
 						.attr('title', oData.title)
@@ -1063,7 +1063,6 @@
 				.removeClass('fill');
 
 		$(oEl).data('value', +!iVal);
-
 		$.post('modules/?r=messenger/star', {lot:iLotId}, function(oData){
 					if (typeof oData.code !== 'undefined')
 						$(oEl)
@@ -1746,7 +1745,7 @@
 
 		this.notifyNewUnreadChats(iUnreadLotsCount);
 
-		$(document).prop('title', $(document).prop('title').replace(/\(\d\)$/g, ''));
+		$(document).prop('title', $(document).prop('title').replace(/\(\d+\)$/g, ''));
 		if (bEnable === true || iUnreadLotsCount) {
 			$('link[rel="shortcut icon"]').attr('href', this.sInfoFavIcon);
 			$(document).prop('title', $(document).prop('title') + ` (${iUnreadLotsCount})`);

@@ -544,11 +544,7 @@ class BxMessengerServices extends BxDol
                 $oPCNF = &$oModule->_oConfig->CNF;
                 $aData = $oModule->_oDb->getContentInfoById($aProfile['id']);
                 $oProfile = BxDolProfile::getInstanceByContentAndType($aProfile['id'], $aProfile['module']);
-                $aUsers[] = array_merge($aProfile, [
-                  'id' => $oProfile->id(),
-                  'image' => bx_api_get_image($oPCNF['OBJECT_STORAGE'], $aData[$oPCNF['FIELD_PICTURE']]),
-                  'cover' => bx_api_get_image($oPCNF['OBJECT_STORAGE'], $aData[$oPCNF['FIELD_COVER']])
-                ]);
+                $aUsers[] = $aProfile['author_data'];
             }
         }
 

@@ -58,7 +58,8 @@ class BxMessengerServices extends BxDol
 
         $aResultProfiles = [];
         foreach($aProfiles as &$aProfile)
-            $aResultProfiles[] = $this->_unitAPI($aProfile['id']);
+            if($aProfile['id'] != $this->_iProfileId)
+                $aResultProfiles[] = $this->_unitAPI($aProfile['id']);
 
         $aData = array_merge([
             'data' => $aResultProfiles
@@ -497,6 +498,9 @@ class BxMessengerServices extends BxDol
         $aResult = ['code' => 1];
         if (!$sParams || !isset($aOptions['parts']))
             return $aResult;
+
+        if(!in_array($this->_iProfileId, $aOptions['parts']))
+            $aOptions['parts'][] = $this->_iProfileId;
 
         $aResult = $this->_oModule->saveParticipantsList($aOptions['parts'], (isset($aOptions['id']) ? $aOptions['id'] : 0));
         if (isset($aResult['lot'])) {

@@ -3807,6 +3807,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             'GetSendForm' => 'BxMessengerServices',
             'RemoveJot' => 'BxMessengerServices',
             'SearchUsers' => 'BxMessengerServices',
+            'SearchLots' => 'BxMessengerServices',
             'GetPartsList' => 'BxMessengerServices',
             'SavePartsList' => 'BxMessengerServices',
             'GetBlockContacts' => 'BxMessengerServices',

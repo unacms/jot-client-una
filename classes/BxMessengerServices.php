@@ -551,6 +551,41 @@ class BxMessengerServices extends BxDol
         return $aUsers;
     }
 
+    public function serviceSearchLots($sParams)
+    {
+        $aOptions = json_decode($sParams, true);
+
+        $sTerm = isset($aOptions['term']) ? $aOptions['term'] : '';
+        $iStarred = isset($aOptions['starred']) ? (int)$aOptions['starred'] : 0;
+
+        $aJots = [];
+        $aLots = $this->_oModule->_oDb->getMyLots($this->_iProfileId, ['term' => $sTerm, 'star' => (bool)$iStarred], $aJots);
+        if(empty($aLots) || !is_array($aLots))
+            return [];
+
+        $aResult = [
+            'lots' => $aLots,
+            'search_list' => []
+        ];
+
+        if(!empty($aJots['jots_list']) && is_array($aJots['jots_list'])) {
+            foreach($aJots['jots_list'] as $iJot => $iLot) {
+                if(!isset($aResult['search_list'][$iLot]))
+                    $aResult['search_list'][$iLot] = [
+                        'id' => $iLot,
+                        'jots' => []
+                    ];
+
+                $aResult['search_list'][$iLot]['jots'][] = $iJot;
+            }
+            
+            if(!empty($aResult['search_list']))
+                $aResult['search_list'] = array_values($aResult['search_list']);
+        }
+
+        return $aResult;
+    }
+
     public function serviceRemoveJot($sParams = '')
     {
         $aOptions = json_decode($sParams, true);

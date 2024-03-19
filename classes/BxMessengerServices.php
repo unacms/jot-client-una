@@ -173,6 +173,13 @@ class BxMessengerServices extends BxDol
             return $aResult;
 
         foreach($aList as $iKey => $aItem) {
+            $aParticipants = [];
+            if(!empty($aItem[$CNF['FIELD_PARTICIPANTS']])) {
+                $aPartIds = explode(',', $aItem[$CNF['FIELD_PARTICIPANTS']]);
+                foreach($aPartIds as $iPartId)
+                    $aParticipants[] = BxDolProfile::getData($iPartId);
+            }
+
             $sImageUrl = bx_api_get_relative_url($aItem['bx_if:user']['content']['icon']);
             $aResult[] = [
                 'author_data' => (int)$aItem[$CNF['FIELD_AUTHOR']] ? BxDolProfile::getData($aItem[$CNF['FIELD_AUTHOR']]) : [
@@ -183,6 +190,7 @@ class BxMessengerServices extends BxDol
                     'url_avatar' => $sImageUrl,
                     'module' => isset($aItem['author_module']) ? $aItem['author_module'] : 'bx_pages',
                 ],
+                'participants' => $aParticipants,
                 'title' => $aItem[$CNF['FIELD_TITLE']],
                 'message' => $aItem['bx_if:user']['content']['message'],
                 'date' => $aItem['bx_if:timer']['content']['time'],

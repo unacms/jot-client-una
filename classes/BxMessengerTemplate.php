@@ -921,6 +921,8 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			$aVars['view_in_chat'] = '';
 			$aVars['bubble_class'] = $iUnreadJotsCount ? '' : 'hidden';
 			$aVars['count'] = $iUnreadJotsCount;
+                        $aVars['participants'] = $aLot[$CNF['FIELD_PARTICIPANTS']];
+                        
 
             $aVars['bx_if:user'] = [
                 'condition' => $sModuleIcon,

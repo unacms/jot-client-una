@@ -59,7 +59,7 @@ class BxMessengerServices extends BxDol
         $aResultProfiles = [];
         foreach($aProfiles as &$aProfile)
             if($aProfile['id'] != $this->_iProfileId)
-                $aResultProfiles[] = $this->_unitAPI($aProfile['id']);
+                $aResultProfiles[] = $this->_unitProfile($aProfile['id']);
 
         $aData = array_merge([
             'data' => $aResultProfiles
@@ -159,47 +159,19 @@ class BxMessengerServices extends BxDol
 
     public function serviceGetConvosList($sParams = '')
     {
-        $CNF = &$this->_oModule->_oConfig->CNF;
-
         $aOptions = json_decode($sParams, true);
         $aData = $this->_oModule->serviceGetTalksList($aOptions);
 
         $aList = $aData['list'];
         if(isset($aData['code']) && !(int)$aData['code'] && !empty($aData['list']))
-            $aList = $this->_oModule->_oTemplate->getLotsPreview($this->_iProfileId, $aData['list']);       
+            $aList = $this->_oModule->_oTemplate->getLotsPreview($this->_iProfileId, $aData['list']);
 
         $aResult = [];
         if(empty($aList))
             return $aResult;
 
-        foreach($aList as $iKey => $aItem) {
-            $aParticipants = [];
-            if(!empty($aItem[$CNF['FIELD_PARTICIPANTS']])) {
-                $aPartIds = explode(',', $aItem[$CNF['FIELD_PARTICIPANTS']]);
-                foreach($aPartIds as $iPartId)
-                    $aParticipants[] = BxDolProfile::getData($iPartId);
-            }
-
-            $sImageUrl = bx_api_get_relative_url($aItem['bx_if:user']['content']['icon']);
-            $aResult[] = [
-                'author_data' => (int)$aItem[$CNF['FIELD_AUTHOR']] ? BxDolProfile::getData($aItem[$CNF['FIELD_AUTHOR']]) : [
-                    'id' => 0,
-                    'display_type' => 'unit',
-                    'display_name' => $aItem['bx_if:user']['content']['talk_type'],
-                    'url' => $sImageUrl,
-                    'url_avatar' => $sImageUrl,
-                    'module' => isset($aItem['author_module']) ? $aItem['author_module'] : 'bx_pages',
-                ],
-                'participants' => $aParticipants,
-                'title' => $aItem[$CNF['FIELD_TITLE']],
-                'message' => $aItem['bx_if:user']['content']['message'],
-                'date' => $aItem['bx_if:timer']['content']['time'],
-                'id' => $aData['list'][$iKey][$CNF['FIELD_HASH']],
-                'id2' => $aItem[$CNF['FIELD_ID']],
-                'unread' => $aItem['count'],
-                'total_messages' => $this->_oModule->_oDb->getJotsNumber($aItem[$CNF['FIELD_ID']], 0)
-            ];
-        }
+        foreach($aList as $iKey => $aItem)
+            $aResult[] = $this->_unitLot($aData['list'][$iKey], $aItem);
 
         return $aResult;
     }
@@ -511,32 +483,18 @@ class BxMessengerServices extends BxDol
             $aOptions['parts'][] = $this->_iProfileId;
 
         $aResult = $this->_oModule->saveParticipantsList($aOptions['parts'], (isset($aOptions['id']) ? $aOptions['id'] : 0));
-        if (isset($aResult['lot'])) {
-            $CNF = &$this->_oModule->_oConfig->CNF;
-            $aLotInfo = $this->_oModule->_oDb->getLotInfoById($aResult['lot']);
-            $aItem = $this->_oModule->_oTemplate->getLotsPreview($this->_iProfileId, [$aLotInfo]);            
-            if (!empty($aItem)) {
-                $aItem = current($aItem);
-                $sImageUrl = bx_api_get_relative_url($aItem['bx_if:user']['content']['icon']);
-                $aResult['convo'] = [
-                    'author_data' => (int)$aItem[$CNF['FIELD_AUTHOR']] ? BxDolProfile::getData($aItem[$CNF['FIELD_AUTHOR']]) : [
-                        'id' => 0,
-                        'display_type' => 'unit',
-                        'display_name' => $aItem['bx_if:user']['content']['talk_type'],
-                        'url' => $sImageUrl,
-                        'url_avatar' => $sImageUrl,
-                        'module' => isset($aItem['author_module']) ? $aItem['author_module'] : 'bx_pages',
-                    ],
-                    'title' => $aItem[$CNF['FIELD_TITLE']],
-                    'message' => $aItem['bx_if:user']['content']['message'],
-                    'date' => $aItem['bx_if:timer']['content']['time'],
-                    'id' => $aLotInfo[$CNF['FIELD_HASH']],
-                    'total_messages' => $this->_oModule->_oDb->getJotsNumber($aItem[$CNF['FIELD_ID']], 0)
-                ];
+        if(!isset($aResult['lot']))
+            return $aResult;
 
-                $aResult['lot'] = $aLotInfo[$CNF['FIELD_HASH']];
-            }
-        }
+        $CNF = &$this->_oModule->_oConfig->CNF;
+
+        $aLot = $this->_oModule->_oDb->getLotInfoById($aResult['lot']);
+        $aItems = $this->_oModule->_oTemplate->getLotsPreview($this->_iProfileId, [$aLot]);            
+        if(!empty($aItems) && is_array($aItems))
+            $aResult = array_merge($aResult, [
+                'convo' => $this->_unitLot($aLot, current($aItems)),
+                'lot' => $aLot[$CNF['FIELD_HASH']]
+            ]);
 
         return $aResult;
     }
@@ -576,9 +534,13 @@ class BxMessengerServices extends BxDol
             return [];
 
         $aResult = [
-            'lots' => $aLots,
+            'lots' => [],
             'search_list' => []
         ];
+
+        $aItems = $this->_oModule->_oTemplate->getLotsPreview($this->_iProfileId, $aLots);
+        foreach($aItems as $iKey => $aItem)
+            $aResult['lots'][] = $this->_unitLot($aLots[$iKey], $aItem);
 
         if(!empty($aJots['jots_list']) && is_array($aJots['jots_list'])) {
             foreach($aJots['jots_list'] as $iJot => $iLot) {
@@ -612,7 +574,7 @@ class BxMessengerServices extends BxDol
         return $this->_oModule->serviceDeleteJot($iJotId, true);
     }
 
-    protected function _unitAPI($iProfileId, $aParams = [])
+    protected function _unitProfile($iProfileId, $aParams = [])
     {
         $CNF = &$this->_oModule->_oConfig->CNF;
 
@@ -651,6 +613,39 @@ class BxMessengerServices extends BxDol
         }
 
         return $aResult;
+    }
+
+    protected function _unitLot($aLot, $aItem)
+    {
+        $CNF = &$this->_oModule->_oConfig->CNF;
+
+        $aParticipants = [];
+        if(!empty($aItem[$CNF['FIELD_PARTICIPANTS']])) {
+            $aPartIds = explode(',', $aItem[$CNF['FIELD_PARTICIPANTS']]);
+            foreach($aPartIds as $iPartId)
+                $aParticipants[] = BxDolProfile::getData($iPartId);
+        }
+
+        $sImageUrl = bx_api_get_relative_url($aItem['bx_if:user']['content']['icon']);
+
+        return [
+            'author_data' => (int)$aItem[$CNF['FIELD_AUTHOR']] ? BxDolProfile::getData($aItem[$CNF['FIELD_AUTHOR']]) : [
+                'id' => 0,
+                'display_type' => 'unit',
+                'display_name' => $aItem['bx_if:user']['content']['talk_type'],
+                'url' => $sImageUrl,
+                'url_avatar' => $sImageUrl,
+                'module' => isset($aItem['author_module']) ? $aItem['author_module'] : 'bx_pages',
+            ],
+            'participants' => $aParticipants,
+            'title' => $aItem[$CNF['FIELD_TITLE']],
+            'message' => $aItem['bx_if:user']['content']['message'],
+            'date' => $aItem['bx_if:timer']['content']['time'],
+            'id' => $aLot[$CNF['FIELD_HASH']],
+            'id2' => $aItem[$CNF['FIELD_ID']],
+            'unread' => $aItem['count'],
+            'total_messages' => $this->_oModule->_oDb->getJotsNumber($aItem[$CNF['FIELD_ID']], 0)
+        ];
     }
 
     protected function _pusherData($sAction, $aData = [])

@@ -169,6 +169,7 @@
 		this.oNotifications = Object.assign({
 			'inbox': 0,
 			'threads': Object.create({}),
+			'broadcast': Object.create({}),
 			'direct': Object.create({}),
 			'groups': Object.create({})
 		}, oOptions.messages || {});

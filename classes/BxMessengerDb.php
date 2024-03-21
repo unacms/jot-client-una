@@ -2530,6 +2530,9 @@ class BxMessengerDb extends BxBaseModGeneralDb
        if ($aInfo[$this->CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
            return [ 'type' => BX_MSG_TALK_TYPE_DIRECT ];
 
+       if ($aInfo[$this->CNF['FIELD_TYPE']] == BX_IM_TYPE_BROADCAST)
+           return [ 'type' => BX_MSG_TALK_TYPE_BROADCAST];
+
        return false;
    }
 

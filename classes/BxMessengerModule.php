@@ -4398,7 +4398,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
     private function getProfilesByCriteria($aData){
         if (isset($aData['connection_type'])){
             if ($oConnection = $this->_oConfig->getConnectionByType($aData['connection_type'])) {
-                return $oConnection->getConnectedContent($this->_iProfileId, true);
+                return $oConnection->getConnectedContent($this->_iProfileId, $aData['connection_type'] === 'friends');
             }
         }
 

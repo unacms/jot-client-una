@@ -2240,6 +2240,11 @@
 
 									_this.updateLotSettings({ lot: +lot_id });
 									_this.updateTalksListArea();
+									_this.broadcastMessage({
+											addon: {
+												jot_id: jot_id
+											}
+									});
 
 									const fLoadTalksCallback = () => _this.loadTalk(lot_id, undefined, () => {
 																												if (!_this.isBlockVersion())
@@ -2287,7 +2292,7 @@
 								let iCounter = parseInt($('>span', threadReplies).text());
 								$('>span', threadReplies).text(++iCounter);
 							}
-							
+
 							if (!_this.iAttachmentUpdate){
 								_this.broadcastMessage({
 									addon: {
@@ -2399,10 +2404,10 @@
 
 	oMessenger.prototype.broadcastMessage = function(oInfo){
 		const oMessage = Object.assign({
-												lot: this.oSettings.lot,
-												name: this.oSettings.name,
-												user_id: this.oSettings.user_id
-											 }, oInfo || {});
+											lot: this.oSettings.lot,
+											name: this.oSettings.name,
+											user_id: this.oSettings.user_id
+										}, oInfo || {});
 
 		if (this.oRTWSF !== undefined)
 			this.oRTWSF.message(oMessage);
@@ -2499,7 +2504,11 @@
 		const _this = this,
 			{ lot, addon } = oObject,
 			{ talksListItems, talksList, topItem, talkItem } = window.oMessengerSelectors.TALKS_LIST,
-			{ msgContainer } = window.oMessengerSelectors.SYSTEM;
+			{ msgContainer } = window.oMessengerSelectors.SYSTEM,
+			fBeep = (muted) => {
+				if ((typeof addon === 'undefined' || typeof addon === 'object') && !bSilentMode && !muted)
+						$(_this).trigger(jQuery.Event('message'));
+				};
 
 		if (this.iThreadId)
 			return;
@@ -2528,11 +2537,12 @@
 
 						const { type, group_id } = params,
 							  { area_type } = _this.oSettings;
+
 						if ( type !== area_type && area_type !== 'inbox')
-							return;
+							return fBeep(muted);
 						else
 							if (area_type === 'groups' && type === 'groups' && +group_id !== +_this.oSettings.group_id)
-							return;
+							return fBeep(muted);
 					}
 
 					const sHtml = html.replace(new RegExp(_this.sJotUrl + '\\d+', 'i'), _t('_bx_messenger_repost_message')),
@@ -2565,12 +2575,7 @@
 								sFunc();
 
 					_this.setUsersStatuses(oLot);
-					if (typeof addon === 'undefined' || typeof addon === 'object') /* only for new messages */
-					{
-						if (!bSilentMode && !muted)
-							$(_this).trigger(jQuery.Event('message'));
-
-					}
+					fBeep(muted);
 
 				}, 'json');
 	};

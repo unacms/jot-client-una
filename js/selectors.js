@@ -60,6 +60,7 @@
                 inboxAreaTitle: '#bx-messenger-inbox-area-title',
                 menuButton: '.bx-messenger-talks-list-header-menu',
                 createTalkButton: '#bx-messenger-create-post-button',
+                showImportantButton: '#bx-messenger-show-important-button'
             };
 
             this.MENU_AREA = {

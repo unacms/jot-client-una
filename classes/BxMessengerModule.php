@@ -921,18 +921,47 @@ class BxMessengerModule extends BxBaseModGeneralModule
      * Search for Lots by keywords in the right side block
      * @return string with json
      */
-    public function actionSearch(){
+	public function actionSearch(){
         if (!$this->isLogged())
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged')), 'reload' => 1));
 
         $sParam = bx_get('param');
         $iStarred = bx_get('starred');
+        $sType = bx_get('type');
+        $iGroupId = bx_get('group_id');
 
         $aResult = ['code' => 0];
         $aParams = ['term' => $sParam, 'star' => (bool)$iStarred];
 
-        $aFoundConvos = [];
-        $aMyLots = $this->_oDb->getMyLots($this->_iProfileId, $aParams, $aFoundConvos);
+        $aFoundConvos = $aMyLots = [];
+        switch($sType){
+            case BX_MSG_TALK_TYPE_THREADS:
+                $aParams['threads'] = true;
+                $aMyLots = $this->_oDb->getMyLots($this->_iProfileId, $aParams, $aFoundConvos);
+                break;
+            case 'public':
+                $aParams['type'] = [BX_IM_TYPE_SETS, BX_IM_TYPE_PUBLIC];
+                $aMyLots = $this->_oDb->getMyLots($this->_iProfileId, $aParams, $aFoundConvos);
+                break;
+            case BX_MSG_TALK_TYPE_MR:
+                $aMyLots = $this->_oDb->getReactionsMentionsLots($this->_iProfileId, $aParams);
+                break;
+            case BX_MSG_TALK_TYPE_REPLIES:
+                $aMyLots = $this->_oDb->getLotsWithReplies($this->_iProfileId, $aParams);
+                break;
+            case BX_MSG_TALK_TYPE_SAVED:
+                $aMyLots = $this->_oDb->getSavedJotInLots($this->_iProfileId, $aParams);
+                break;
+            case BX_MSG_TALK_TYPE_GROUPS:
+                $aParams['group'] = $iGroupId;
+                $aMyLots = $this->_oDb->getMyLots($this->_iProfileId, $aParams, $aFoundConvos);
+                break;
+            case BX_MSG_TALK_TYPE_DIRECT:
+                $aParams['type'] = [BX_IM_TYPE_PRIVATE];
+            default:
+                $aMyLots = $this->_oDb->getMyLots($this->_iProfileId, $aParams, $aFoundConvos);
+        }
+
         if (empty($aMyLots))
             $sContent = $sParam ? MsgBox(_t('_bx_messenger_txt_msg_no_results')) : $this->_oTemplate->getFriendsList($sParam);
         {

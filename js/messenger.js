@@ -86,7 +86,7 @@
 		this.iUpdateProcessedMedia = 30000; //  30 seconds to check updated media files
 		this.iTypingUsersTitleHide = 1000; //hide typing users div when users stop typing
 		this.iLoadTimout = 0;
-		this.iFilterType = 0;
+		this.sFilterType = '';
 		this.iStarredTalks = false;
 		this.bActiveConnect = true;
 		this.aUsers = [];
@@ -837,17 +837,17 @@
 	}
 	
 	/**
-	* Search for lot
-	*@param int/function mixedOption type of the lot or calback function
-	*@param string sText keyword for filter
+	* Search talks by text criteria and current selected area
+	*@param function type callback function
 	*/
-	oMessenger.prototype.searchByItems = function(mixedOption, sText){
+	oMessenger.prototype.searchByItems = function(fCallback){
 		const _this = this,
-			iFilterType	= typeof mixedOption == 'function' || mixedOption === undefined ? this.iFilterType : mixedOption,
-			{ talksList, searchCloseIcon } = window.oMessengerSelectors.TALKS_LIST,
+			{ group_id } = _this.oSettings,
+			{ talksList, searchCloseIcon, searchCriteria } = window.oMessengerSelectors.TALKS_LIST,
+			sText = $(searchCriteria).val(),
 			searchFunction = () => {
 								_this.iTimer = setTimeout(() => bx_loading($(talksList), true), 1000);
-								$.get('modules/?r=messenger/search', { param:sText || '', type:iFilterType, starred: +_this.iStarredTalks },
+								$.get('modules/?r=messenger/search', { param:sText || '', type: _this.sFilterType, starred: +_this.iStarredTalks, group_id },
 										function({ code, html, search_list })
 										{
 											clearTimeout(_this.iTimer);
@@ -860,18 +860,17 @@
 												_this.aSearchJotsList = typeof search_list !== 'undefined' ? search_list : null;
 												_this.showSearchCounter(_this.oSettings.lot);
 
-												const fCallback = () => typeof mixedOption === 'function' && mixedOption();
+												const fFuncCallback = () => typeof fCallback === 'function' && fCallback();
 												if (!parseInt(code)) {
 													$(' > ul', talksList)
 														.html(html)
 														.bxMsgTime()
-														.fadeIn(fCallback);
+														.fadeIn(fFuncCallback);
 
 													$(talksList).initLazyLoading((oObject, bFlag) => _this.loadTalksList(oObject, bFlag));
-													_this.iFilterType = iFilterType;
 												}
 												else
-													fCallback();
+													fFuncCallback();
 											}
 
 											if (sText && sText.length)
@@ -881,14 +880,8 @@
 
 										}, 'json');
 							};
-
-
-		if ((typeof mixedOption !== 'function' && mixedOption) || typeof sText !== 'undefined'){
-			clearTimeout(_this.iTimer);	
-			this.iTimer = setTimeout(searchFunction, _this.iRunSearchInterval);
-		}
-		else
-			searchFunction();
+		clearTimeout(_this.iTimer);
+		this.iTimer = setTimeout(searchFunction, _this.iRunSearchInterval);
 	}
 
 	oMessenger.prototype.disableCreateList = function() {
@@ -3879,7 +3872,7 @@
 			return this;
 		},
 		searchByItems: function (sText) {
-			_oMessenger.searchByItems(_oMessenger.iFilterType, sText);
+			_oMessenger.searchByItems(sText);
 			return this;
 		},
 		onSaveParticipantsList: function (iLotId) {
@@ -3938,10 +3931,6 @@
 		},
 		onClearLot: function (iLotId) {
 			bx_confirm(_t('_bx_messenger_clear_lot', _oMessenger.oSettings.title) , () => _oMessenger.clearLot(iLotId));
-			return this;
-		},
-		showLotsByType: function (iType) {
-			_oMessenger.searchByItems(iType);
 			return this;
 		},
 		onDeleteJot: function (oObject, bCompletely) {
@@ -4236,22 +4225,20 @@
 		 *@param object oEl
 		 */
 		showStarred: function (oEl) {
-			const { searchCriteria } = window.oMessengerSelectors.TALKS_LIST;
 			if (!_oMessenger.iStarredTalks) {
 				$(oEl)
 					.addClass('active')
-					.find('i.star')
+					.find('.star')
 					.addClass('fill')
 			} else
 				$(oEl)
 					.removeClass('active')
-					.find('i.star')
+					.find('.star')
 					.removeClass('fill');
 
 			_oMessenger.iStarredTalks = !_oMessenger.iStarredTalks;
-			this.searchByItems($(searchCriteria).val());
+			_oMessenger.searchByItems();
 		},
-
 		removeFile: (oEl, id) => bx_confirm(_t('_bx_messenger_post_confirm_delete_file'), () => oMessengerJotMenu.removeFile(oEl, id)),
 		downloadFile: (iFileId) => oMessengerJotMenu.downloadFile(iFileId),
 		sendVideoRecord: function (oFile, oCallback) {
@@ -4479,10 +4466,27 @@
 		},
 		loadTalksList: function(oMenu, mixedGroup){
 			const { group } = mixedGroup,
-				{ talksListItems } = window.oMessengerSelectors.TALKS_LIST;
+				{ talksListItems, showImportantButton, searchCriteria, searchInput, inboxAreaTitle } = window.oMessengerSelectors.TALKS_LIST;
 
 			_oMessenger.oMenu.toggleMenuPanel();
 			_oMessenger.oMenu.toggleAlwaysOnTop(false);
+			_oMessenger.sFilterType = group || '';
+
+			if ($(searchInput).is(':visible')) {
+				$(inboxAreaTitle).fadeIn();
+				$(searchInput).hide();
+				$(searchCriteria).val('');
+			}
+
+			if (_oMessenger.iStarredTalks) {
+				$(showImportantButton)
+					.removeClass('active')
+					.find('.star')
+					.removeClass('fill');
+
+				_oMessenger.iStarredTalks = false;
+			}
+
 			_oMessenger.loadTalksListByParam(mixedGroup, () => {
 				const oLotId = $(talksListItems).first(),
 					  iLotId = oLotId && +oLotId.data('lot');
@@ -4550,7 +4554,7 @@
 			const { searchCriteria, searchCloseIcon } = window.oMessengerSelectors.TALKS_LIST;
 			$(searchCriteria).val('');
 			$(searchCloseIcon).hide();
-			_oMessenger.searchByItems('');
+			_oMessenger.searchByItems();
 			_oMessenger.aSearchJotsList = null;
 		}
 	}

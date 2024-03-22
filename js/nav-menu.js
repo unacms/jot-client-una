@@ -88,12 +88,12 @@
         if (this.bUniqueMode) {
             aMainViewScheme = {
                 [historyColumn]: {
-                    [sDesktop]: { view: 'col-span-6', enabled: true },
+                    [sDesktop]: { view: 'col-span-7', enabled: true },
                     [sTablet]: { view : 'col-span-6', enabled: true },
                     [sPhone]: { view : 'col-span-10', columns: { [listColumn]: 'hidden' }},
                 },
                 [listColumn]: {
-                    [sDesktop]: { view: 'col-span-4', enabled: true },
+                    [sDesktop]: { view: 'col-span-3', enabled: true },
                     [sTablet]: { view: 'col-span-4', enabled: true },
                     [sPhone]: { view: 'col-span-10', enabled: true, columns: { [historyColumn]: 'hidden' }},
                 },

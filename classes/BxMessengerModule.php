@@ -274,8 +274,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
             'info' => $this->_oTemplate->getInfoSection(),
             'list' => $this->serviceGetBlockInbox(),
             'history' => $this->serviceGetBlockLot(),
-            'list_width' => $bSimpleMode ? 'xl:col-span-4' : 'xl:col-span-3',
-            'history_width' => $bSimpleMode ? 'xl:col-span-6' : 'xl:col-span-5',
+            'list_width' => $bSimpleMode ? 'xl:col-span-3' : 'xl:col-span-3',
+            'history_width' => $bSimpleMode ? 'xl:col-span-7' : 'xl:col-span-5',
         ];
 
         return $this->_oTemplate->parseHtmlByName('main.html', $aData);
@@ -921,7 +921,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
      * Search for Lots by keywords in the right side block
      * @return string with json
      */
-	public function actionSearch(){	   
+    public function actionSearch(){
         if (!$this->isLogged())
             return echoJson(array('code' => 1, 'html' => MsgBox(_t('_bx_messenger_not_logged')), 'reload' => 1));
 

@@ -81,6 +81,7 @@
 	<string name="_bx_messenger_lots_message_type_sets"><![CDATA[Общее сообщение]]></string>
 	<string name="_bx_messenger_lots_message_type_events"><![CDATA[Сообщение Событий]]></string>
 	<string name="_bx_messenger_lots_message_type_groups"><![CDATA[Сообщение Групп]]></string>
+	<string name="_bx_messenger_lots_message_type_broadcast"><![CDATA[Массовое сообщение]]></string>
 	<string name="_bx_messenger_lot_title_participants_number"><![CDATA[и ещё {0}]]></string>
 	<string name="_bx_messenger_server_is_not_installed"><![CDATA[Пожалуйста, укажите данные сервера для правильной работы чата]]></string>
 	<string name="_bx_messenger_reconnecting_message"><![CDATA[Подключение]]></string>

@@ -80,6 +80,7 @@
 	<string name="_bx_messenger_lots_message_type_sets"><![CDATA[Sets message]]></string>
 	<string name="_bx_messenger_lots_message_type_events"><![CDATA[Events message]]></string>
 	<string name="_bx_messenger_lots_message_type_groups"><![CDATA[Groups message]]></string>
+	<string name="_bx_messenger_lots_message_type_broadcast"><![CDATA[Broadcast message]]></string>
 	<string name="_bx_messenger_lot_title_participants_number"><![CDATA[and {0} others]]></string>
 	<string name="_bx_messenger_server_is_not_installed"><![CDATA[Please define Jot Server for messenger]]></string>
 	<string name="_bx_messenger_reconnecting_message"><![CDATA[Connecting]]></string>

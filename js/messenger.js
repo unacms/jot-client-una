@@ -1225,9 +1225,11 @@
 		if (!iJotId)
 			return false;
 
-		$.post('modules/?r=messenger/save_jot_item', { jot: iJotId }, function ({ code, msg }) {
-				if (code)
+		$.post('modules/?r=messenger/save_jot_item', { jot: iJotId }, function ({ code, msg, status }) {
+				if (code && msg)
 					bx_alert(msg);
+				else
+					$('.bx-menu-item-title', oObject).text(!status ? _t('_bx_messenger_jot_menu_save') : _t('_bx_messenger_jot_menu_remove_save'));
 		});
 	}
 

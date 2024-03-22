@@ -2306,6 +2306,12 @@ class BxMessengerDb extends BxBaseModGeneralDb
                                                     `{$this->CNF['FSJ_PROFILE_ID']}`=:profile_id", array('jot_id' => $iJotId, 'profile_id' => $iProfileId));
     }
 
+    function isJotSaved($iJotId, $iProfileId){
+        return $this->getOne("SELECT COUNT(*) FROM `{$this->CNF['TABLE_SAVED_JOTS']}` 
+                                               WHERE  `{$this->CNF['FSJ_ID']}`=:jot_id AND `{$this->CNF['FSJ_PROFILE_ID']}`=:profile_id",
+                                    ['jot_id' => $iJotId, 'profile_id' => $iProfileId]) != 0;
+    }
+
     function deleteSavedJotItems($iJotId = 0, $iProfileId = 0){
         if ($iJotId && $iProfileId)
             return $this->query("DELETE FROM `{$this->CNF['TABLE_SAVED_JOTS']}` 

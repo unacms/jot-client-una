@@ -1377,7 +1377,9 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             '_bx_messenger_delete_lot',
             '_bx_messenger_clear_lot',
             '_bx_messenger_are_you_sure_leave',
-            '_bx_messenger_lot_parts_empty'
+            '_bx_messenger_lot_parts_empty',
+            '_bx_messenger_jot_menu_remove_save',
+            '_bx_messenger_jot_menu_save'
         ));
 
         $sUsername = '';

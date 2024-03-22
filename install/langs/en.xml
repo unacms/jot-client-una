@@ -323,7 +323,7 @@ name="_bx_ntfs_alert_action_got_broadcast_ntfs_personal"><![CDATA[Broadcast mess
 	<string name="_bx_messenger_jot_menu_edit"><![CDATA[Edit]]></string>
 	<string name="_bx_messenger_jot_menu_remove"><![CDATA[Delete]]></string>
 	<string name="_bx_messenger_jot_menu_thread"><![CDATA[Reply in thread]]></string>
-	<string name="_bx_messenger_jot_menu_save"><![CDATA[Save message]]></string>
+	<string name="_bx_messenger_jot_menu_save"><![CDATA[Bookmark]]></string>
 	<string name="_bx_messenger_jot_menu_share"><![CDATA[Copy link]]></string>
 	<string name="_bx_messenger_bad_request"><![CDATA[Bad request attempt]]></string>
 	<string name="_bx_messenger_search_criteria_list"><![CDATA[Use these criteria for messages filtration]]></string>
@@ -421,4 +421,5 @@ name="_bx_ntfs_alert_action_got_broadcast_ntfs_personal"><![CDATA[Broadcast mess
 	<string name="_bx_messenger_neo_app_form_input_id"><![CDATA[Convo Id]]></string>
 	<string name="_bx_messenger_neo_app_form_input_caption_reply"><![CDATA[Parent message id]]></string>
 	<string name="_bx_messenger_no_server"><![CDATA[Messenger settings do not have the Jot Server Url defined, which means that real-time communication is not currently possible]]></string>
+	<string name="_bx_messenger_jot_menu_remove_save"><![CDATA[Remove bookmark]]></string>
 </resources>

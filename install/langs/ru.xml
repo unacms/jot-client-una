@@ -294,7 +294,7 @@
 	<string name="_bx_messenger_search_item_content"><![CDATA[тело сообщений]]></string>
 	<string name="_bx_messenger_time_in_history"><![CDATA[Используйте формат времени <b>from now</b> для отображения в сообщениях]]></string>
 	<string name="_bx_messenger_dont_show_search_desc"><![CDATA[Не показывать описание профилей во всплывающем меню поиска контактов]]></string>
-	<string name="_bx_messenger_use_unique_mode"><![CDATA[Включить уникальный режим]]></string>
+	<string name="_bx_messenger_use_unique_mode"><![CDATA[Включить двухколоночный режим]]></string>
 	<string name="_bx_messenger_talk_is_not_allowed"><![CDATA[Разговор недоступен для вас!]]></string>
 	<string name="_bx_messenger_connect_friends_only"><![CDATA[Разрешить создавать разговоры только с друзьями]]></string>
 	<string name="_bx_messenger_talk_types_market_title"><![CDATA[Разговор с {opponent}]]></string>

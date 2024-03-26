@@ -2501,13 +2501,15 @@
 	*/
 	oMessenger.prototype.upLotsPosition = function(oObject, bSilentMode = false){
 		const _this = this,
-			{ lot, addon } = oObject,
+			{ lot, addon, jot_id } = oObject,
 			{ talksListItems, talksList, topItem, talkItem } = window.oMessengerSelectors.TALKS_LIST,
+			{ jotMain } = window.oMessengerSelectors.JOT,
 			{ msgContainer } = window.oMessengerSelectors.SYSTEM,
 			fBeep = (muted) => {
 				if ((typeof addon === 'undefined' || typeof addon === 'object') && !bSilentMode && !muted)
 						$(_this).trigger(jQuery.Event('message'));
 				};
+
 
 		if (this.iThreadId)
 			return;
@@ -2521,8 +2523,8 @@
 			return;
 		}
 
-		if (typeof addon === 'string' && addon !== 'delete')
-			return;
+		if ((addon === 'delete' || addon === 'edit') && !(jot_id && $(`[data-id="${jot_id}"]${jotMain}`).is(':last-child')))
+			return
 
 		$.get('modules/?r=messenger/update_lot_brief', { lot_id: lot },
 				function({ html, code, muted, params })
@@ -2565,11 +2567,12 @@
 												_this.updatePageIcon();
 
 											};
-						if ($(`[data-lot='${lot}']`).length)
-							$(`[data-lot='${lot}']`).fadeOut('slow', () => {
-														$(`[data-lot='${lot}']`).remove();
-														 sFunc();
-													 });
+						const oLotItem = $(`[data-lot='${lot}']`);
+						if (oLotItem.length)
+							oLotItem.fadeOut('slow', () => {
+								oLotItem.remove();
+								sFunc();
+							 });
 							else
 								sFunc();
 
@@ -2811,6 +2814,7 @@
 		const _this = this,
 			{ talkBlock, conversationBody } = window.oMessengerSelectors.HISTORY,
 			{ talkListJotSelector, jotMain, jotMessage, jotMessageView } = window.oMessengerSelectors.JOT,
+			{ dateIntervalsSelector } = window.oMessengerSelectors.DATE_SEPARATOR,
 			{ addon, position, action, last_viewed_jot, callback, jot_id, user_id } = oAction;
 
 		let sAction = typeof addon === 'string' ? addon : (action !== 'msg' ? action : 'new'),
@@ -2981,10 +2985,14 @@
 									.bxMsgTime();// don't update attachment for message and don't broadcast as new message
 							return;
 						case 'delete':
-								const onRemove = () => {
-															$(this).remove();
-															_this.updateScrollPosition('bottom');
-														};
+								const onRemove = function(){
+																if ($(this).prev().hasClass(dateIntervalsSelector.substr(1)) && !$(this).next().length)
+																	$(this).prev().remove();
+
+																$(this).remove();
+
+																_this.updateScrollPosition('bottom');
+															};
 
 								if (html.length)
 										$('div[data-id="' + iJotId + '"] ' + jotMessage, oList)

@@ -1110,8 +1110,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                    $aJots = $this->_oTemplate->getJotsOfLot($this->_iProfileId, $aOptions);
                    $sContent = $aJots['content'];
 
-                    if (isset($aJots['first_jot']) && $iJot) {
-                        $aJotInfo = $this->_oDb->getJotById($iJot);
+                    if (isset($aJots['first_jot']) && $iJot && ($aJotInfo = $this->_oDb->getJotById($iJot))) {
                         $iFDate = strtotime(date("Y-m-d", $aJots['first_jot'][$CNF['FIELD_MESSAGE_ADDED']]));
                         $iSDate = strtotime(date("Y-m-d", $aJotInfo[$CNF['FIELD_MESSAGE_ADDED']]));
                         $bRemoveSeparator = +($iFDate == $iSDate);

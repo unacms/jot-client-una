@@ -2053,6 +2053,9 @@
 				$(mainTalkBlock)
 					.find(talkBlock)
 					.html(history)
+					.initJotIcons()
+					.initAccordion()
+					.bxProcessHtml()
 					.end()
 					.bxMsgTime()
 					.waitForImages(() => _this.updateScrollPosition(iJotId ? 'position' : 'bottom', 'fast', $(`[data-id="${iJotId}"]`)));

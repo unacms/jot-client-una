@@ -2254,23 +2254,23 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $sSubject = _t("_bx_messenger_notification_subject_broadcast", BxDolProfile::getInstanceMagic($aEvent['owner_id'])->getDisplayName());
         $sAlterBody = $sTruncatedMessage ? $sTruncatedMessage : _t('_bx_messenger_txt_sample_email_push', html2txt($sMessage));
 
-        $aResult['lang_key'] = array(
+        $aResult['lang_key'] = [
             'site' => $aResult['lang_key'],
             'email' => $sAlterBody,
             'push' => $sAlterBody
-        );
+        ];
 
-        $aResult['settings'] = array(
-            'email' => array(
+        $aResult['settings'] = [
+            'email' => [
                 'subject' => $sSubject
-            ),
-            'push' => array(
+            ],
+            'push' => [
                 'subject' => $sSubject
-            )
-        );
+            ]
+        ];
 
         bx_alert($this->_oConfig->getObject('alert'), 'before_broadcast_notification', $aEvent['subobject_id'],
-                    $aEvent['object_owner_id'], ['data' => &$aResult,'talk' => $aLotInfo, 'message' => $aJotInfo]);
+                $aEvent['object_owner_id'], ['data' => &$aResult,'talk' => $aLotInfo, 'message' => $aJotInfo]);
 
         return $aResult;
     }

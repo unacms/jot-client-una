@@ -44,7 +44,9 @@ class BxMessengerProfileMenuSnippetMeta extends BxBaseModProfileMenuSnippetMeta
                 if(!isset($aResult['lot']))
                     return [];
 
-                $aLot = $aResult['lot'];
+                $aLot = $this->_oModule->_oDb->getLotInfoById($aResult['lot']);
+                if(empty($aLot) || !is_array($aLot))
+                    return [];
             }
 
             return $this->_getMenuItemAPI($aItem, 'text', [

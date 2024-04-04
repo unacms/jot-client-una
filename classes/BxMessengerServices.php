@@ -126,7 +126,7 @@ class BxMessengerServices extends BxDol
 
         return ['code' => !$this->_oModule->_oDb->deleteLot($iLotId) ? 2 : 0];
     }
-
+    
     /**
      * Get convo (lot) info with defined ID
      */
@@ -155,6 +155,37 @@ class BxMessengerServices extends BxDol
             'files' => $this->_oModule->_oDb->getLotFilesCount($iLotId),
             'messages' => $this->_oModule->_oDb->getJotsNumber($iLotId, 0),
         ]];
+    }
+
+    /**
+     * Get convo (lot) URL by recipient ID
+     */
+    public function serviceGetConvoUrl($sParams)
+    {
+        $CNF = &$this->_oModule->_oConfig->CNF;
+
+        $aOptions = json_decode($sParams, true);
+        
+        $aParticipants = [$this->_iProfileId];
+        if(!empty($aOptions['recipient']))
+            $aParticipants[] = $aOptions['recipient'];
+        
+        $aLot = $this->_oModule->_oDb->findLotByParams([
+            $CNF['FIELD_PARTICIPANTS'] => $aParticipants,
+            $CNF['FIELD_TYPE'] => BX_IM_TYPE_PRIVATE
+        ]);
+
+        if(empty($aLot) || !is_array($aLot)) {
+            $aResult = $this->_oModule->saveParticipantsList($aParticipants);
+            if(!isset($aResult['lot']))
+                return false;
+
+            $aLot = $this->_oModule->_oDb->getLotInfoById($aResult['lot']);
+            if(empty($aLot) || !is_array($aLot))
+                return false;
+        }
+
+        return bx_api_get_relative_url(BxDolPermalinks::getInstance()->permalink($CNF['URL_HOME']) . '/inbox/' . $aLot['hash']);
     }
 
     public function serviceGetConvosList($sParams = '')

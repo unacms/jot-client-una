@@ -3802,6 +3802,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             'LeaveConvo' => 'BxMessengerServices',
             'DeleteConvo' => 'BxMessengerServices',
             'GetConvo' => 'BxMessengerServices',
+            'GetConvoUrl' => 'BxMessengerServices',
             'GetConvosList' => 'BxMessengerServices',
             'GetConvoMessages' => 'BxMessengerServices',
             'GetSendForm' => 'BxMessengerServices',

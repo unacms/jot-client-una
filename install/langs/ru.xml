@@ -81,6 +81,7 @@
 	<string name="_bx_messenger_lots_message_type_sets"><![CDATA[Общее сообщение]]></string>
 	<string name="_bx_messenger_lots_message_type_events"><![CDATA[Сообщение Событий]]></string>
 	<string name="_bx_messenger_lots_message_type_groups"><![CDATA[Сообщение Групп]]></string>
+	<string name="_bx_messenger_lots_message_type_broadcast"><![CDATA[Массовое сообщение]]></string>
 	<string name="_bx_messenger_lot_title_participants_number"><![CDATA[и ещё {0}]]></string>
 	<string name="_bx_messenger_server_is_not_installed"><![CDATA[Пожалуйста, укажите данные сервера для правильной работы чата]]></string>
 	<string name="_bx_messenger_reconnecting_message"><![CDATA[Подключение]]></string>
@@ -293,7 +294,7 @@
 	<string name="_bx_messenger_search_item_content"><![CDATA[тело сообщений]]></string>
 	<string name="_bx_messenger_time_in_history"><![CDATA[Используйте формат времени <b>from now</b> для отображения в сообщениях]]></string>
 	<string name="_bx_messenger_dont_show_search_desc"><![CDATA[Не показывать описание профилей во всплывающем меню поиска контактов]]></string>
-	<string name="_bx_messenger_use_unique_mode"><![CDATA[Включить уникальный режим]]></string>
+	<string name="_bx_messenger_use_unique_mode"><![CDATA[Включить двухколоночный режим]]></string>
 	<string name="_bx_messenger_talk_is_not_allowed"><![CDATA[Разговор недоступен для вас!]]></string>
 	<string name="_bx_messenger_connect_friends_only"><![CDATA[Разрешить создавать разговоры только с друзьями]]></string>
 	<string name="_bx_messenger_talk_types_market_title"><![CDATA[Разговор с {opponent}]]></string>
@@ -403,4 +404,5 @@
 	<string name="_bx_messenger_create_talk_confirm"><![CDATA[Вы уверены, что хотите создать разговор?]]></string>
 	<string name="_bx_messenger_neo_app_form_input_caption_reply"><![CDATA[Номер родительского сообщения]]></string>
 	<string name="_bx_messenger_no_server"><![CDATA[В настройках мессенджера не определен URL-адрес Jot Server. В настоящее время связь в режиме реального времени невозможна.]]></string>
+	<string name="_bx_messenger_jot_menu_remove_save"><![CDATA[Удалить из сохранённых]]></string>
 </resources>

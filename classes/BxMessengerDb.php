@@ -624,11 +624,15 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	
 	/**
 	*Get list of all existed types as pairs: Id - Value
-	*@return  array types
+    *@return  array types
 	*/
 	public function getLotsTypesPairs(){
-		return $this -> getPairs("SELECT * FROM `{$this->CNF['TABLE_TYPES']}` ORDER BY `{$this->CNF['FIELD_TYPE_ID']}`", $this->CNF['FIELD_TYPE_ID'], $this->CNF['FIELD_TYPE_NAME']);
+	    return $this -> getPairs("SELECT * FROM `{$this->CNF['TABLE_TYPES']}` ORDER BY `{$this->CNF['FIELD_TYPE_ID']}`", $this->CNF['FIELD_TYPE_ID'], $this->CNF['FIELD_TYPE_NAME']);
 	}
+
+    public function getLotTypeId($sType){
+       return $this->getOne("SELECT `{$this->CNF['FIELD_TYPE_ID']}` FROM `{$this->CNF['TABLE_TYPES']}` WHERE  `{$this->CNF['FIELD_TYPE_NAME']}`=:name LIMIT 1", ['name' => $sType]);
+    }
 
 	/**
 	* Check if this ype of lot exists
@@ -1239,7 +1243,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
         $bStar = isset($aParams['star']) && $aParams['star'] === true;
         if ($bStar) {
-            $sJoin .= "INNER JOIN `{$this->CNF['TABLE_USERS_INFO']}` as `u` ON `u`.`{$this->CNF['FIELD_INFO_LOT_ID']}` = `l`.`{$this->CNF['FIELD_ID']}` AND `u`.`{$this->CNF['FIELD_INFO_USER_ID']}`=:profile";
+            $sJoin .= " INNER JOIN `{$this->CNF['TABLE_USERS_INFO']}` as `u` ON `u`.`{$this->CNF['FIELD_INFO_LOT_ID']}` = `l`.`{$this->CNF['FIELD_ID']}` AND `u`.`{$this->CNF['FIELD_INFO_USER_ID']}`=:profile";
             $aSWhere[] = "`u`.`{$this->CNF['FIELD_INFO_STAR']}` = 1";
         }
 
@@ -2302,6 +2306,12 @@ class BxMessengerDb extends BxBaseModGeneralDb
                                                     `{$this->CNF['FSJ_PROFILE_ID']}`=:profile_id", array('jot_id' => $iJotId, 'profile_id' => $iProfileId));
     }
 
+    function isJotSaved($iJotId, $iProfileId){
+        return $this->getOne("SELECT COUNT(*) FROM `{$this->CNF['TABLE_SAVED_JOTS']}` 
+                                               WHERE  `{$this->CNF['FSJ_ID']}`=:jot_id AND `{$this->CNF['FSJ_PROFILE_ID']}`=:profile_id",
+                                    ['jot_id' => $iJotId, 'profile_id' => $iProfileId]) != 0;
+    }
+
     function deleteSavedJotItems($iJotId = 0, $iProfileId = 0){
         if ($iJotId && $iProfileId)
             return $this->query("DELETE FROM `{$this->CNF['TABLE_SAVED_JOTS']}` 
@@ -2325,15 +2335,24 @@ class BxMessengerDb extends BxBaseModGeneralDb
     }
 
     function getSavedJotInLots($iProfileId, $aParams){
+        $CNF = &$this->_oConfig->CNF;
 
         $aWhere['start'] = isset($aParams['start']) ? (int)$aParams['start'] : 0;
         $aWhere['per_page'] = isset($aParams['per_page']) ? (int)$aParams['per_page'] : (int)$this->CNF['MAX_LOTS_NUMBER'];
         $sLimit = "LIMIT :start, :per_page";
 
+        $sWhere = '';
+        if (isset($aParams['term'])) {
+            $aParams = preg_split('/[\s]/', $aParams['term'], -1, PREG_SPLIT_NO_EMPTY);
+            $sCriteria = implode('%', $aParams);
+            $aWhere['criteria'] = "%{$sCriteria}%";
+            $sWhere = "AND `m`.`{$CNF['FIELD_MESSAGE']}` like :criteria";
+        }
+
         return $this->getAll("SELECT `m`.`{$this->CNF['FIELD_MESSAGE_FK']}`,`l`.* FROM `{$this->CNF['TABLE_SAVED_JOTS']}` as `s`
                                         LEFT JOIN `{$this->CNF['TABLE_MESSAGES']}` as `m` ON `s`.`{$this->CNF['FSJ_ID']}` = `m`.`{$this->CNF['FIELD_ID']}`
                                         LEFT JOIN `{$this->CNF['TABLE_ENTRIES']}` as `l` ON `l`.`{$this->CNF['FIELD_ID']}` = `m`.`{$this->CNF['FIELD_MESSAGE_FK']}`
-                                        WHERE `{$this->CNF['FSJ_PROFILE_ID']}`=:profile_id 
+                                        WHERE `{$this->CNF['FSJ_PROFILE_ID']}`=:profile_id {$sWhere}
                                         GROUP BY `m`.`{$this->CNF['FIELD_MESSAGE_FK']}`
                                         {$sLimit}", ['profile_id' => $iProfileId] + $aWhere);
     }
@@ -2360,13 +2379,21 @@ class BxMessengerDb extends BxBaseModGeneralDb
        $sUrl = BxDolProfile::getInstance($iProfileId)->getUrl();
        $aWhere['parts'] = '(^|,)' . (int)$iProfileId . '(,|$)';
 
+       $sWhere = '';
+       if (isset($aParams['term'])) {
+           $aParams = preg_split('/[\s]/', $aParams['term'], -1, PREG_SPLIT_NO_EMPTY);
+           $sCriteria = implode('%', $aParams);
+           $aWhere['criteria'] = "%{$sCriteria}%";
+           $sWhere = "AND `m`.`{$CNF['FIELD_MESSAGE']}` like :criteria";
+       }
+
        return $this->getAll("SELECT `m`.`{$CNF['FIELD_MESSAGE_FK']}`, `l`.* 
                FROM `{$CNF['TABLE_MESSAGES']}` as `m`
                LEFT JOIN `{$CNF['TABLE_ENTRIES']}` as `l` ON `l`.`{$CNF['FIELD_ID']}` = `m`.`{$CNF['FIELD_MESSAGE_FK']}`
                LEFT JOIN `{$CNF['TABLE_JOT_REACTIONS']}` as `r` ON `m`.`{$CNF['FIELD_MESSAGE_ID']}` = `r`.`{$CNF['FIELD_REACT_JOT_ID']}`
                WHERE ((`r`.`{$CNF['FIELD_REACT_JOT_ID']}` IS NOT NULL AND `m`.`{$CNF['FIELD_MESSAGE_AUTHOR']}`=:profile_id ) 
                             OR `m`.`{$CNF['FIELD_MESSAGE']}` LIKE '\"%" . '/' . bx_ltrim_str($sUrl, BX_DOL_URL_ROOT) . "\"' ) AND 
-                            (`l`.`{$CNF['FIELD_PARTICIPANTS']}` REGEXP :parts OR `l`.`{$CNF['FIELD_AUTHOR']}`=:profile_id)
+                            (`l`.`{$CNF['FIELD_PARTICIPANTS']}` REGEXP :parts OR `l`.`{$CNF['FIELD_AUTHOR']}`=:profile_id) {$sWhere}
                                     GROUP BY `m`.`{$CNF['FIELD_MESSAGE_FK']}`
                                     {$sLimit}", ['profile_id' => $iProfileId] + $aWhere);
    }
@@ -2377,11 +2404,20 @@ class BxMessengerDb extends BxBaseModGeneralDb
         $aWhere['start'] = isset($aParams['start']) ? (int)$aParams['start'] : 0;
         $aWhere['per_page'] = isset($aParams['per_page']) ? (int)$aParams['per_page'] : (int)$this->CNF['MAX_LOTS_NUMBER'];
         $sLimit = "LIMIT :start, :per_page";
+
+        $sWhere = '';
+        if (isset($aParams['term'])) {
+            $aParams = preg_split('/[\s]/', $aParams['term'], -1, PREG_SPLIT_NO_EMPTY);
+            $sCriteria = implode('%', $aParams);
+            $aWhere['criteria'] = "%{$sCriteria}%";
+            $sWhere = "AND `m`.`{$CNF['FIELD_MESSAGE']}` like :criteria";
+        }
+
         return $this->getAll("SELECT `m`.`{$CNF['FIELD_MESSAGE_FK']}`, `l`.*
                                     FROM `{$this->CNF['TABLE_MESSAGES']}` as `m` 
                                     LEFT JOIN `{$this->CNF['TABLE_ENTRIES']}` as `l` ON `l`.`{$this->CNF['FIELD_ID']}` = `m`.`{$this->CNF['FIELD_MESSAGE_FK']}`
                                     LEFT JOIN `{$CNF['TABLE_MESSAGES']}` as `r` ON `r`.`{$CNF['FIELD_MESSAGE_ID']}` = `m`.`{$CNF['FIELD_MESSAGE_REPLY']}`
-                                    WHERE `r`.`{$CNF['FIELD_MESSAGE_AUTHOR']}`=:profile_id AND `m`.`{$CNF['FIELD_MESSAGE_REPLY']}` <> 0
+                                    WHERE `r`.`{$CNF['FIELD_MESSAGE_AUTHOR']}`=:profile_id AND `m`.`{$CNF['FIELD_MESSAGE_REPLY']}` <> 0 {$sWhere}
                                     GROUP BY `m`.`{$CNF['FIELD_MESSAGE_FK']}`
                                     {$sLimit}", ['profile_id' => $iProfileId] + $aWhere);
     }
@@ -2529,6 +2565,9 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
        if ($aInfo[$this->CNF['FIELD_TYPE']] == BX_IM_TYPE_PRIVATE)
            return [ 'type' => BX_MSG_TALK_TYPE_DIRECT ];
+
+       if ($aInfo[$this->CNF['FIELD_TYPE']] == BX_IM_TYPE_BROADCAST)
+           return [ 'type' => BX_MSG_TALK_TYPE_BROADCAST];
 
        return false;
    }

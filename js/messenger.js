@@ -86,7 +86,7 @@
 		this.iUpdateProcessedMedia = 30000; //  30 seconds to check updated media files
 		this.iTypingUsersTitleHide = 1000; //hide typing users div when users stop typing
 		this.iLoadTimout = 0;
-		this.iFilterType = 0;
+		this.sFilterType = '';
 		this.iStarredTalks = false;
 		this.bActiveConnect = true;
 		this.aUsers = [];
@@ -169,6 +169,7 @@
 		this.oNotifications = Object.assign({
 			'inbox': 0,
 			'threads': Object.create({}),
+			'broadcast': Object.create({}),
 			'direct': Object.create({}),
 			'groups': Object.create({})
 		}, oOptions.messages || {});
@@ -836,17 +837,17 @@
 	}
 	
 	/**
-	* Search for lot
-	*@param int/function mixedOption type of the lot or calback function
-	*@param string sText keyword for filter
+	* Search talks by text criteria and current selected area
+	*@param function type callback function
 	*/
-	oMessenger.prototype.searchByItems = function(mixedOption, sText){
+	oMessenger.prototype.searchByItems = function(fCallback){
 		const _this = this,
-			iFilterType	= typeof mixedOption == 'function' || mixedOption === undefined ? this.iFilterType : mixedOption,
-			{ talksList, searchCloseIcon } = window.oMessengerSelectors.TALKS_LIST,
+			{ group_id } = _this.oSettings,
+			{ talksList, searchCloseIcon, searchCriteria } = window.oMessengerSelectors.TALKS_LIST,
+			sText = $(searchCriteria).val(),
 			searchFunction = () => {
 								_this.iTimer = setTimeout(() => bx_loading($(talksList), true), 1000);
-								$.get('modules/?r=messenger/search', { param:sText || '', type:iFilterType, starred: +_this.iStarredTalks },
+								$.get('modules/?r=messenger/search', { param:sText || '', type: _this.sFilterType, starred: +_this.iStarredTalks, group_id },
 										function({ code, html, search_list })
 										{
 											clearTimeout(_this.iTimer);
@@ -859,18 +860,17 @@
 												_this.aSearchJotsList = typeof search_list !== 'undefined' ? search_list : null;
 												_this.showSearchCounter(_this.oSettings.lot);
 
-												const fCallback = () => typeof mixedOption === 'function' && mixedOption();
+												const fFuncCallback = () => typeof fCallback === 'function' && fCallback();
 												if (!parseInt(code)) {
 													$(' > ul', talksList)
 														.html(html)
 														.bxMsgTime()
-														.fadeIn(fCallback);
+														.fadeIn(fFuncCallback);
 
 													$(talksList).initLazyLoading((oObject, bFlag) => _this.loadTalksList(oObject, bFlag));
-													_this.iFilterType = iFilterType;
 												}
 												else
-													fCallback();
+													fFuncCallback();
 											}
 
 											if (sText && sText.length)
@@ -880,14 +880,8 @@
 
 										}, 'json');
 							};
-
-
-		if ((typeof mixedOption !== 'function' && mixedOption) || typeof sText !== 'undefined'){
-			clearTimeout(_this.iTimer);	
-			this.iTimer = setTimeout(searchFunction, _this.iRunSearchInterval);
-		}
-		else
-			searchFunction();
+		clearTimeout(_this.iTimer);
+		this.iTimer = setTimeout(searchFunction, _this.iRunSearchInterval);
 	}
 
 	oMessenger.prototype.disableCreateList = function() {
@@ -1231,9 +1225,11 @@
 		if (!iJotId)
 			return false;
 
-		$.post('modules/?r=messenger/save_jot_item', { jot: iJotId }, function ({ code, msg }) {
-				if (code)
+		$.post('modules/?r=messenger/save_jot_item', { jot: iJotId }, function ({ code, msg, status }) {
+				if (code && msg)
 					bx_alert(msg);
+				else
+					$('.bx-menu-item-title', oObject).text(!status ? _t('_bx_messenger_jot_menu_save') : _t('_bx_messenger_jot_menu_remove_save'));
 		});
 	}
 
@@ -2057,6 +2053,9 @@
 				$(mainTalkBlock)
 					.find(talkBlock)
 					.html(history)
+					.initJotIcons()
+					.initAccordion()
+					.bxProcessHtml()
 					.end()
 					.bxMsgTime()
 					.waitForImages(() => _this.updateScrollPosition(iJotId ? 'position' : 'bottom', 'fast', $(`[data-id="${iJotId}"]`)));
@@ -2240,6 +2239,11 @@
 
 									_this.updateLotSettings({ lot: +lot_id });
 									_this.updateTalksListArea();
+									_this.broadcastMessage({
+											addon: {
+												jot_id: jot_id
+											}
+									});
 
 									const fLoadTalksCallback = () => _this.loadTalk(lot_id, undefined, () => {
 																												if (!_this.isBlockVersion())
@@ -2287,7 +2291,7 @@
 								let iCounter = parseInt($('>span', threadReplies).text());
 								$('>span', threadReplies).text(++iCounter);
 							}
-							
+
 							if (!_this.iAttachmentUpdate){
 								_this.broadcastMessage({
 									addon: {
@@ -2399,10 +2403,10 @@
 
 	oMessenger.prototype.broadcastMessage = function(oInfo){
 		const oMessage = Object.assign({
-												lot: this.oSettings.lot,
-												name: this.oSettings.name,
-												user_id: this.oSettings.user_id
-											 }, oInfo || {});
+											lot: this.oSettings.lot,
+											name: this.oSettings.name,
+											user_id: this.oSettings.user_id
+										}, oInfo || {});
 
 		if (this.oRTWSF !== undefined)
 			this.oRTWSF.message(oMessage);
@@ -2497,9 +2501,15 @@
 	*/
 	oMessenger.prototype.upLotsPosition = function(oObject, bSilentMode = false){
 		const _this = this,
-			{ lot, addon } = oObject,
+			{ lot, addon, jot_id } = oObject,
 			{ talksListItems, talksList, topItem, talkItem } = window.oMessengerSelectors.TALKS_LIST,
-			{ msgContainer } = window.oMessengerSelectors.SYSTEM;
+			{ jotMain } = window.oMessengerSelectors.JOT,
+			{ msgContainer } = window.oMessengerSelectors.SYSTEM,
+			fBeep = (muted) => {
+				if ((typeof addon === 'undefined' || typeof addon === 'object') && !bSilentMode && !muted)
+						$(_this).trigger(jQuery.Event('message'));
+				};
+
 
 		if (this.iThreadId)
 			return;
@@ -2513,8 +2523,8 @@
 			return;
 		}
 
-		if (typeof addon === 'string' && addon !== 'delete')
-			return;
+		if ((addon === 'delete' || addon === 'edit') && !(jot_id && $(`[data-id="${jot_id}"]${jotMain}`).is(':last-child')))
+			return
 
 		$.get('modules/?r=messenger/update_lot_brief', { lot_id: lot },
 				function({ html, code, muted, params })
@@ -2528,11 +2538,12 @@
 
 						const { type, group_id } = params,
 							  { area_type } = _this.oSettings;
+
 						if ( type !== area_type && area_type !== 'inbox')
-							return;
+							return fBeep(muted);
 						else
 							if (area_type === 'groups' && type === 'groups' && +group_id !== +_this.oSettings.group_id)
-							return;
+							return fBeep(muted);
 					}
 
 					const sHtml = html.replace(new RegExp(_this.sJotUrl + '\\d+', 'i'), _t('_bx_messenger_repost_message')),
@@ -2556,21 +2567,17 @@
 												_this.updatePageIcon();
 
 											};
-						if ($(`[data-lot='${lot}']`).length)
-							$(`[data-lot='${lot}']`).fadeOut('slow', () => {
-														$(`[data-lot='${lot}']`).remove();
-														 sFunc();
-													 });
+						const oLotItem = $(`[data-lot='${lot}']`);
+						if (oLotItem.length)
+							oLotItem.fadeOut('slow', () => {
+								oLotItem.remove();
+								sFunc();
+							 });
 							else
 								sFunc();
 
 					_this.setUsersStatuses(oLot);
-					if (typeof addon === 'undefined' || typeof addon === 'object') /* only for new messages */
-					{
-						if (!bSilentMode && !muted)
-							$(_this).trigger(jQuery.Event('message'));
-
-					}
+					fBeep(muted);
 
 				}, 'json');
 	};
@@ -2807,6 +2814,7 @@
 		const _this = this,
 			{ talkBlock, conversationBody } = window.oMessengerSelectors.HISTORY,
 			{ talkListJotSelector, jotMain, jotMessage, jotMessageView } = window.oMessengerSelectors.JOT,
+			{ dateIntervalsSelector } = window.oMessengerSelectors.DATE_SEPARATOR,
 			{ addon, position, action, last_viewed_jot, callback, jot_id, user_id } = oAction;
 
 		let sAction = typeof addon === 'string' ? addon : (action !== 'msg' ? action : 'new'),
@@ -2977,10 +2985,14 @@
 									.bxMsgTime();// don't update attachment for message and don't broadcast as new message
 							return;
 						case 'delete':
-								const onRemove = () => {
-															$(this).remove();
-															_this.updateScrollPosition('bottom');
-														};
+								const onRemove = function(){
+																if ($(this).prev().hasClass(dateIntervalsSelector.substr(1)) && !$(this).next().length)
+																	$(this).prev().remove();
+
+																$(this).remove();
+
+																_this.updateScrollPosition('bottom');
+															};
 
 								if (html.length)
 										$('div[data-id="' + iJotId + '"] ' + jotMessage, oList)
@@ -3873,7 +3885,7 @@
 			return this;
 		},
 		searchByItems: function (sText) {
-			_oMessenger.searchByItems(_oMessenger.iFilterType, sText);
+			_oMessenger.searchByItems(sText);
 			return this;
 		},
 		onSaveParticipantsList: function (iLotId) {
@@ -3932,10 +3944,6 @@
 		},
 		onClearLot: function (iLotId) {
 			bx_confirm(_t('_bx_messenger_clear_lot', _oMessenger.oSettings.title) , () => _oMessenger.clearLot(iLotId));
-			return this;
-		},
-		showLotsByType: function (iType) {
-			_oMessenger.searchByItems(iType);
 			return this;
 		},
 		onDeleteJot: function (oObject, bCompletely) {
@@ -4230,22 +4238,20 @@
 		 *@param object oEl
 		 */
 		showStarred: function (oEl) {
-			const { searchCriteria } = window.oMessengerSelectors.TALKS_LIST;
 			if (!_oMessenger.iStarredTalks) {
 				$(oEl)
 					.addClass('active')
-					.find('i.star')
+					.find('.star')
 					.addClass('fill')
 			} else
 				$(oEl)
 					.removeClass('active')
-					.find('i.star')
+					.find('.star')
 					.removeClass('fill');
 
 			_oMessenger.iStarredTalks = !_oMessenger.iStarredTalks;
-			this.searchByItems($(searchCriteria).val());
+			_oMessenger.searchByItems();
 		},
-
 		removeFile: (oEl, id) => bx_confirm(_t('_bx_messenger_post_confirm_delete_file'), () => oMessengerJotMenu.removeFile(oEl, id)),
 		downloadFile: (iFileId) => oMessengerJotMenu.downloadFile(iFileId),
 		sendVideoRecord: function (oFile, oCallback) {
@@ -4473,10 +4479,27 @@
 		},
 		loadTalksList: function(oMenu, mixedGroup){
 			const { group } = mixedGroup,
-				{ talksListItems } = window.oMessengerSelectors.TALKS_LIST;
+				{ talksListItems, showImportantButton, searchCriteria, searchInput, inboxAreaTitle } = window.oMessengerSelectors.TALKS_LIST;
 
 			_oMessenger.oMenu.toggleMenuPanel();
 			_oMessenger.oMenu.toggleAlwaysOnTop(false);
+			_oMessenger.sFilterType = group || '';
+
+			if ($(searchInput).is(':visible')) {
+				$(inboxAreaTitle).fadeIn();
+				$(searchInput).hide();
+				$(searchCriteria).val('');
+			}
+
+			if (_oMessenger.iStarredTalks) {
+				$(showImportantButton)
+					.removeClass('active')
+					.find('.star')
+					.removeClass('fill');
+
+				_oMessenger.iStarredTalks = false;
+			}
+
 			_oMessenger.loadTalksListByParam(mixedGroup, () => {
 				const oLotId = $(talksListItems).first(),
 					  iLotId = oLotId && +oLotId.data('lot');
@@ -4544,7 +4567,7 @@
 			const { searchCriteria, searchCloseIcon } = window.oMessengerSelectors.TALKS_LIST;
 			$(searchCriteria).val('');
 			$(searchCloseIcon).hide();
-			_oMessenger.searchByItems('');
+			_oMessenger.searchByItems();
 			_oMessenger.aSearchJotsList = null;
 		}
 	}

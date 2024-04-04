@@ -54,7 +54,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
 	{
 	    $sQuery = $this -> prepare("SELECT `l`.*, `g`.`{$this->CNF['FMGL_GROUP_ID']}` FROM `{$this->CNF['TABLE_ENTRIES']}` as `l`
                                            LEFT JOIN `{$this->CNF['TABLE_GROUPS_LOTS']}` as `g` ON `g`.`{$this->CNF['FMGL_LOT_ID']}` = `l`.`{$this->CNF['FIELD_ID']}`
-                                           WHERE `{$this->CNF['FIELD_ID']}` = ? LIMIT 1", (int)$iId);
+                                           WHERE `l`.`{$this->CNF['FIELD_ID']}` = ? LIMIT 1", (int)$iId);
 		return $this -> getRow($sQuery);
 	}
 

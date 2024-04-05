@@ -297,8 +297,8 @@ class BxMessengerServices extends BxDol
         if (is_array($mixedContent) && $mixedContent){
             $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_JOT_MENU']);
 
-            $oStorage = new BxMessengerStorage($CNF['OBJECT_STORAGE']);
-            $oImagesTranscoder = BxDolTranscoderImage::getObjectInstance($CNF['OBJECT_IMAGES_TRANSCODER_PREVIEW']);
+            $sStorage = $CNF['OBJECT_STORAGE'];
+            $oStorage = new BxMessengerStorage($sStorage);
 
             foreach($mixedContent as &$aJot) {
                 $iJotId = $aJot[$CNF['FIELD_MESSAGE_ID']];
@@ -309,7 +309,7 @@ class BxMessengerServices extends BxDol
                 if ($mixedFiles = $this->_oModule->_oDb->getJotFiles($iJotId))
                     foreach($mixedFiles as &$aFile) {
                         if ($oStorage->isImageFile($aFile[$CNF['FIELD_ST_TYPE']]))
-                            $aFiles[] = ['src' => $oImagesTranscoder->getFileUrl((int)$aFile[$CNF['FIELD_ST_ID']]), 'name' => $aFile[$CNF['FIELD_ST_NAME']]];
+                            $aFiles[] = bx_api_get_image($sStorage, (int)$aFile[$CNF['FIELD_ST_ID']]);
                     }
 
                 $aReactions = [];

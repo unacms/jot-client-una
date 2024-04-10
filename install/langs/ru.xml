@@ -405,4 +405,16 @@
 	<string name="_bx_messenger_neo_app_form_input_caption_reply"><![CDATA[Номер родительского сообщения]]></string>
 	<string name="_bx_messenger_no_server"><![CDATA[В настройках мессенджера не определен URL-адрес Jot Server. В настоящее время связь в режиме реального времени невозможна.]]></string>
 	<string name="_bx_messenger_jot_menu_remove_save"><![CDATA[Удалить из сохранённых]]></string>
+
+	<string name="_bx_messenger_cpt_category_settings"><![CDATA[Настройки]]></string>
+	<string name="_bx_messenger_cpt_category_security"><![CDATA[Безопасность]]></string>
+	<string name="_bx_messenger_cpt_category_moderation"><![CDATA[Модерация]]></string>
+	<string name="_bx_messenger_cpt_category_giphy"><![CDATA[Giphy]]></string>
+	<string name="_bx_messenger_cpt_category_emoji"><![CDATA[Emoji]]></string>
+	<string name="_bx_messenger_cpt_category_jitsi"><![CDATA[Jitsi]]></string>
+	<string name="_bx_messenger_cpt_category_privacy"><![CDATA[Приватность]]></string>
+	<string name="_bx_messenger_cpt_category_view"><![CDATA[Вид]]></string>
+	<string name="_bx_messenger_cpt_category_search"><![CDATA[Поиск]]></string>
+
+	<string name=""><![CDATA[]]></string>
 </resources>

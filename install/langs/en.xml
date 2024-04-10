@@ -136,7 +136,7 @@
 	<string name="_bx_messenger_txt_sample_comment_single"><![CDATA[message - <b>{0}</b>]]></string>
 	<string name="_bx_messenger_txt_sample_comment_file_single"><![CDATA[<b>{0} file(s) </b>]]></string>
 	<string name="_bx_messenger_max_ntfs_number"><![CDATA[Maximum notifications number per member from one Talk during 1 hour]]></string>
-	<string name="_bx_messenger_max_parts_views"><![CDATA[Allow to show messages' views for Talks which contain maximum defined number of participants]]></string>
+	<string name="_bx_messenger_max_parts_views"><![CDATA[Display viewers icons on messages within Talks that have reached the maximum defined number of participants]]></string>
 	<string name="_bx_messenger_allow_to_remove_messages"><![CDATA[Allow members to moderate their messages (delete/edit)]]></string>
 	<string name="_bx_messenger_remove_messages_immediately"><![CDATA[Remove messages immediately, without administration confirmation]]></string>
 	<string name="_bx_messenger_lots_menu_media"><![CDATA[Files]]></string>
@@ -181,9 +181,9 @@
 	<string name="_bx_messenger_emoji_skintones_4"><![CDATA[Medium Skin Tone]]></string>
 	<string name="_bx_messenger_emoji_skintones_5"><![CDATA[Medium-Dark Skin Tone]]></string>
 	<string name="_bx_messenger_emoji_skintones_6"><![CDATA[Dark Skin Tone]]></string>
-	<string name="_bx_messenger_emoji_set"><![CDATA[Select set of Emoji to use for reactions and in text messages]]></string>
-	<string name="_bx_messenger_reactions_size"><![CDATA[Size of the emoji in reactions]]></string>
-	<string name="_bx_messenger_show_emoji_preview"><![CDATA[Show emojis preview]]></string>
+	<string name="_bx_messenger_emoji_set"><![CDATA[Choose an emoji style to use for reactions and in-text messages]]></string>
+	<string name="_bx_messenger_reactions_size"><![CDATA[Size of the emoji in reactions in pixels]]></string>
+	<string name="_bx_messenger_show_emoji_preview"><![CDATA[Show emojis preview in Emoji popup block]]></string>
 	<string name="_bx_messenger_file_download"><![CDATA[Download file]]></string>
 	<string name="_bx_messenger_txt_subobject_added_single"><![CDATA[<b class="bx-ntfs-content-profile">{owner_name}</b> sent {subentry_sample}]]></string>
 	<string name="_bx_messenger_txt_sample_comment_giphy_single"><![CDATA[an animation]]></string>
@@ -422,4 +422,16 @@ name="_bx_ntfs_alert_action_got_broadcast_ntfs_personal"><![CDATA[Broadcast mess
 	<string name="_bx_messenger_neo_app_form_input_caption_reply"><![CDATA[Parent message id]]></string>
 	<string name="_bx_messenger_no_server"><![CDATA[Messenger settings do not have the Jot Server Url defined, which means that real-time communication is not currently possible]]></string>
 	<string name="_bx_messenger_jot_menu_remove_save"><![CDATA[Remove bookmark]]></string>
+
+	<string name="_bx_messenger_cpt_category_settings"><![CDATA[Settings]]></string>
+	<string name="_bx_messenger_cpt_category_security"><![CDATA[Security]]></string>
+	<string name="_bx_messenger_cpt_category_moderation"><![CDATA[Moderation]]></string>
+	<string name="_bx_messenger_cpt_category_giphy"><![CDATA[Giphy]]></string>
+	<string name="_bx_messenger_cpt_category_emoji"><![CDATA[Emoji]]></string>
+	<string name="_bx_messenger_cpt_category_jitsi"><![CDATA[Jitsi]]></string>
+	<string name="_bx_messenger_cpt_category_privacy"><![CDATA[Privacy]]></string>
+	<string name="_bx_messenger_cpt_category_view"><![CDATA[View]]></string>
+	<string name="_bx_messenger_cpt_category_search"><![CDATA[Search]]></string>
+
+	<string name=""><![CDATA[]]></string>
 </resources>

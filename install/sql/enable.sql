@@ -6,57 +6,94 @@ INSERT INTO `sys_options_types`(`group`, `name`, `caption`, `icon`, `order`) VAL
 ('modules', @sName, '_bx_messenger', 'bx_messenger@modules/boonex/messenger/|std-icon.svg', IF(ISNULL(@iTypeOrder), 1, @iTypeOrder + 1));
 SET @iTypeId = LAST_INSERT_ID();
 
-INSERT INTO `sys_options_categories` (`type_id`, `name`, `caption`, `order`)
-VALUES (@iTypeId, @sName, '_bx_messenger', 1);
+INSERT INTO `sys_options_categories`(`type_id`, `name`, `caption`, `hidden`, `order`) VALUES (@iTypeId, CONCAT(@sName, '_settings'), '_bx_messenger_cpt_category_settings', 0, 1);
+SET @iCategId = LAST_INSERT_ID();
+INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `check`, `check_error`, `extra`, `order`) VALUES
+('bx_messenger_server_url', '', @iCategId, '_bx_messenger_server_url', 'digit', '', '', '', 1),
+('bx_messenger_max_symbols_number', 64000, @iCategId, '_bx_messenger_symbols_num_option', 'digit', '', '', '', 2),
+('bx_messenger_max_files_send', 5, @iCategId, '_bx_messenger_max_files_upload', 'digit', '', '', '', 3),
+('bx_messenger_max_video_length_minutes', 5, @iCategId, '_bx_messenger_max_video_file_size', 'digit', '', '', '', 4),
+('bx_messenger_max_ntfs_number', 5, @iCategId, '_bx_messenger_max_ntfs_number', 'digit', '', '', '', 5),
+('bx_messenger_max_parts_views', 10, @iCategId, '_bx_messenger_max_parts_views', 'digit', '', '', '', 6),
+('bx_messenger_use_embedly', 'on', @iCategId, '_bx_messenger_use_embedly', 'checkbox', '', '', '', 7),
+('bx_messenger_enable_mentions', 'on', @iCategId, '_bx_messenger_use_mentions', 'checkbox', '', '', '', 8);
+
+INSERT INTO `sys_options_categories`(`type_id`, `name`, `caption`, `hidden`, `order`) VALUES (@iTypeId, CONCAT(@sName, '_security'), '_bx_messenger_cpt_category_security', 0, 2);
 SET @iCategId = LAST_INSERT_ID();
 
 INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `check`, `check_error`, `extra`, `order`) VALUES
-('bx_messenger_max_symbols_number', 64000, @iCategId, '_bx_messenger_symbols_num_option', 'digit', '', '', '', 1),
-('bx_messenger_max_symbols_brief_jot', 145, @iCategId, '_bx_messenger_symbols_num_brief_jot', 'digit', '', '', '', 2),
-('bx_messenger_max_jot_number_default', 20, @iCategId, '_bx_messenger_jot_number_default', 'digit', '', '', '', 3),
-('bx_messenger_max_jot_number_in_history', 30, @iCategId, '_bx_messenger_max_jot_number_in_history', 'digit', '', '', '', 4),
-('bx_messenger_max_lots_number', 15, @iCategId, '_bx_messenger_max_max_lots_number', 'digit', '', '', '', 5),
-('bx_messenger_server_url', '', @iCategId, '_bx_messenger_server_url', 'digit', '', '', '', 6),
-('bx_messenger_max_files_send', 5, @iCategId, '_bx_messenger_max_files_upload', 'digit', '', '', '', 7),
-('bx_messenger_max_video_length_minutes', 5, @iCategId, '_bx_messenger_max_video_file_size', 'digit', '', '', '', 8),
-('bx_messenger_max_ntfs_number', 5, @iCategId, '_bx_messenger_max_ntfs_number', 'digit', '', '', '', 9),
-('bx_messenger_max_parts_views', 10, @iCategId, '_bx_messenger_max_parts_views', 'digit', '', '', '', 10),
-('bx_messenger_max_drop_down_select', 5, @iCategId, '_bx_messenger_max_drop_down_select', 'digit', '', '', '', 11),
-('bx_messenger_allow_to_remove_messages', 'on', @iCategId, '_bx_messenger_allow_to_remove_messages', 'checkbox', '', '', '', 12),
-('bx_messenger_allow_to_moderate_messages', 'on', @iCategId, '_bx_messenger_allow_to_moderate_messages', 'checkbox', '', '', '', 13),
-('bx_messenger_enable_joined_organizations', '', @iCategId, '_bx_messenger_enable_joined_organizations', 'checkbox', '', '', '', 14),
-('bx_messenger_show_friends', 'on', @iCategId, '_bx_messenger_show_friends', 'checkbox', '', '', '', 15),
-('bx_messenger_remove_messages_immediately', '', @iCategId, '_bx_messenger_remove_messages_immediately', 'checkbox', '', '', '', 16),
-('bx_messenger_use_embedly', 'on', @iCategId, '_bx_messenger_use_embedly', 'checkbox', '', '', '', 17),
-('bx_messenger_giphy_key', '', @iCategId, '_bx_messenger_giphy_api_key', 'digit', '', '', '', 18),
-('bx_messenger_giphy_type', 'gifs', @iCategId, '_bx_messenger_giphy_type', 'select', '', '', 'gifs,stickers', 19),
-('bx_messenger_giphy_content_rating', 'g', @iCategId, '_bx_messenger_giphy_content_rating', 'select', '', '', 'g,pg,pg-13,r', 20),
-('bx_messenger_giphy_limit', 15, @iCategId, '_bx_messenger_giphy_limit', 'digit', '', '', '', 21),
-('bx_messenger_emoji_set', 'native', @iCategId, '_bx_messenger_emoji_set', 'select', '', '', 'native,apple,google,twitter,facebook', 22),
-('bx_messenger_reactions_size', 16, @iCategId, '_bx_messenger_reactions_size', 'select', '', '', '16,20,24,32', 23),
-('bx_messenger_show_emoji_preview', '', @iCategId, '_bx_messenger_show_emoji_preview', 'checkbox', '', '', '', 24),
-('bx_messenger_jitsi_enable', 'on', @iCategId, '_bx_messenger_allow_to_use_jitsi', 'checkbox', '', '', '', 25),
-('bx_messenger_jitsi_server', 'meet.jit.si', @iCategId, '_bx_messenger_jitsi_server', 'digit', '', '', '', 26),
-('bx_messenger_jitsi_chat', '', @iCategId, '_bx_messenger_jitsi_chat_enable', 'checkbox', '', '', '', 27),
-('bx_messenger_jitsi_sync', '', @iCategId, '_bx_messenger_jitsi_chat_sync', 'checkbox', '', '', '', 28),
-('bx_messenger_jitsi_hide_info', '', @iCategId, '_bx_messenger_jitsi_hide_info', 'checkbox', '', '', '', 29),
-('bx_messenger_jitsi_enable_watermark', '', @iCategId, '_bx_messenger_jitsi_watermark', 'checkbox', '', '', '', 30),
-('bx_messenger_jitsi_watermark_link', '', @iCategId, '_bx_messenger_jitsi_watermark_link', 'digit', '', '', '', 31),
-('bx_messenger_jitsi_only_for_private', 'on', @iCategId, '_bx_messenger_jitsi_enable_only_for_private', 'checkbox', '', '', '', 32),
-('bx_messenger_jitsi_support_url', 'https://community.jitsi.org/', @iCategId, '_bx_messenger_jitsi_support_url', 'digit', '', '', '', 33),
-('bx_messenger_disable_contact_privacy', '', @iCategId, '_bx_messenger_disable_contact_privacy', 'checkbox', '', '', '', 34),
-('bx_messenger_enable_mentions', 'on', @iCategId, '_bx_messenger_use_mentions', 'checkbox', '', '', '', 35),
-('bx_messenger_jwt_app_id', '', @iCategId, '_bx_messenger_jwt_app_id', 'digit', '', '', '', 36),
-('bx_messenger_jwt_app_secret', '', @iCategId, '_bx_messenger_jwt_app_secret', 'digit', '', '', '', 37),
-('bx_messenger_check_toxic', '', @iCategId, '_bx_messenger_check_toxic', 'checkbox', '', '', '', 38),
-('bx_messenger_jot_server_jwt', '', @iCategId, '_bx_messenger_jot_server_jwt', 'digit', '', '', '', 39),
-('bx_messenger_search_criteria', 'titles,participants,content', @iCategId, '_bx_messenger_search_criteria_list', 'list', '', '', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:18:"get_search_options";}', 40),
-('bx_messenger_connect_friends_only', '', @iCategId, '_bx_messenger_connect_friends_only', 'checkbox', '', '', '', 41),
-('bx_messenger_time_in_history', '', @iCategId, '_bx_messenger_time_in_history', 'checkbox', '', '', '', 42),
-('bx_messenger_dont_show_search_desc', '', @iCategId, '_bx_messenger_dont_show_search_desc', 'checkbox', '', '', '', 43),
-('bx_messenger_use_unique_mode', '', @iCategId, '_bx_messenger_use_unique_mode', 'checkbox', '', '', '', 44),
-('bx_messenger_dont_update_title', '', @iCategId, '_bx_messenger_dont_update_title', 'checkbox', '', '', '', 45),
-('bx_messenger_broadcast_fields', 'membership,gender,countries,birthday', @iCategId, '_bx_messenger_broadcast_fields', 'list', '', '', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:20:"get_broadcast_fields";}', 46);
+('bx_messenger_jwt_app_id', '', @iCategId, '_bx_messenger_jwt_app_id', 'digit', '', '', '', 1),
+('bx_messenger_jwt_app_secret', '', @iCategId, '_bx_messenger_jwt_app_secret', 'digit', '', '', '', 2),
+('bx_messenger_check_toxic', '', @iCategId, '_bx_messenger_check_toxic', 'checkbox', '', '', '', 3),
+('bx_messenger_jot_server_jwt', '', @iCategId, '_bx_messenger_jot_server_jwt', 'digit', '', '', '', 4);
+
+INSERT INTO `sys_options_categories`(`type_id`, `name`, `caption`, `hidden`, `order`) VALUES (@iTypeId, CONCAT(@sName, '_moderation'), '_bx_messenger_cpt_category_moderation', 0, 3);
+SET @iCategId = LAST_INSERT_ID();
+
+INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `check`, `check_error`, `extra`, `order`) VALUES
+('bx_messenger_allow_to_remove_messages', 'on', @iCategId, '_bx_messenger_allow_to_remove_messages', 'checkbox', '', '', '', 1),
+('bx_messenger_allow_to_moderate_messages', 'on', @iCategId, '_bx_messenger_allow_to_moderate_messages', 'checkbox', '', '', '', 2),
+('bx_messenger_remove_messages_immediately', '', @iCategId, '_bx_messenger_remove_messages_immediately', 'checkbox', '', '', '', 3);
+
+INSERT INTO `sys_options_categories`(`type_id`, `name`, `caption`, `hidden`, `order`) VALUES (@iTypeId, CONCAT(@sName, '_giphy'), '_bx_messenger_cpt_category_emoji', 0, 4);
+SET @iCategId = LAST_INSERT_ID();
+
+INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `check`, `check_error`, `extra`, `order`) VALUES
+('bx_messenger_emoji_set', 'native', @iCategId, '_bx_messenger_emoji_set', 'select', '', '', 'native,apple,google,twitter,facebook', 1),
+('bx_messenger_reactions_size', 16, @iCategId, '_bx_messenger_reactions_size', 'select', '', '', '16,20,24,32', 2),
+('bx_messenger_show_emoji_preview', '', @iCategId, '_bx_messenger_show_emoji_preview', 'checkbox', '', '', '', 3);
+
+INSERT INTO `sys_options_categories`(`type_id`, `name`, `caption`, `hidden`, `order`) VALUES (@iTypeId, CONCAT(@sName, '_emoji'), '_bx_messenger_cpt_category_giphy', 0, 5);
+SET @iCategId = LAST_INSERT_ID();
+
+INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `check`, `check_error`, `extra`, `order`) VALUES
+('bx_messenger_giphy_key', '', @iCategId, '_bx_messenger_giphy_api_key', 'digit', '', '', '', 1),
+('bx_messenger_giphy_type', 'gifs', @iCategId, '_bx_messenger_giphy_type', 'select', '', '', 'gifs,stickers', 2),
+('bx_messenger_giphy_content_rating', 'g', @iCategId, '_bx_messenger_giphy_content_rating', 'select', '', '', 'g,pg,pg-13,r', 3),
+('bx_messenger_giphy_limit', 15, @iCategId, '_bx_messenger_giphy_limit', 'digit', '', '', '', 4);
+
+INSERT INTO `sys_options_categories`(`type_id`, `name`, `caption`, `hidden`, `order`) VALUES (@iTypeId, CONCAT(@sName, '_jitsi'), '_bx_messenger_cpt_category_jitsi', 0, 6);
+SET @iCategId = LAST_INSERT_ID();
+
+INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `check`, `check_error`, `extra`, `order`) VALUES
+('bx_messenger_jitsi_enable', 'on', @iCategId, '_bx_messenger_allow_to_use_jitsi', 'checkbox', '', '', '', 1),
+('bx_messenger_jitsi_server', 'meet.jit.si', @iCategId, '_bx_messenger_jitsi_server', 'digit', '', '', '', 2),
+('bx_messenger_jitsi_chat', '', @iCategId, '_bx_messenger_jitsi_chat_enable', 'checkbox', '', '', '', 3),
+('bx_messenger_jitsi_sync', '', @iCategId, '_bx_messenger_jitsi_chat_sync', 'checkbox', '', '', '', 4),
+('bx_messenger_jitsi_hide_info', '', @iCategId, '_bx_messenger_jitsi_hide_info', 'checkbox', '', '', '', 5),
+('bx_messenger_jitsi_enable_watermark', '', @iCategId, '_bx_messenger_jitsi_watermark', 'checkbox', '', '', '', 6),
+('bx_messenger_jitsi_watermark_link', '', @iCategId, '_bx_messenger_jitsi_watermark_link', 'digit', '', '', '', 7),
+('bx_messenger_jitsi_only_for_private', 'on', @iCategId, '_bx_messenger_jitsi_enable_only_for_private', 'checkbox', '', '', '', 8),
+('bx_messenger_jitsi_support_url', 'https://community.jitsi.org/', @iCategId, '_bx_messenger_jitsi_support_url', 'digit', '', '', '', 9);
+
+INSERT INTO `sys_options_categories`(`type_id`, `name`, `caption`, `hidden`, `order`) VALUES (@iTypeId, CONCAT(@sName, '_privacy'), '_bx_messenger_cpt_category_privacy', 0, 7);
+SET @iCategId = LAST_INSERT_ID();
+
+INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `check`, `check_error`, `extra`, `order`) VALUES
+('bx_messenger_enable_joined_organizations', '', @iCategId, '_bx_messenger_enable_joined_organizations', 'checkbox', '', '', '', 1),
+('bx_messenger_disable_contact_privacy', '', @iCategId, '_bx_messenger_disable_contact_privacy', 'checkbox', '', '', '', 2),
+('bx_messenger_connect_friends_only', '', @iCategId, '_bx_messenger_connect_friends_only', 'checkbox', '', '', '', 3);
+
+INSERT INTO `sys_options_categories`(`type_id`, `name`, `caption`, `hidden`, `order`) VALUES (@iTypeId, CONCAT(@sName, '_view'), '_bx_messenger_cpt_category_view', 0, 8);
+SET @iCategId = LAST_INSERT_ID();
+
+INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `check`, `check_error`, `extra`, `order`) VALUES
+('bx_messenger_max_symbols_brief_jot', 145, @iCategId, '_bx_messenger_symbols_num_brief_jot', 'digit', '', '', '', 1),
+('bx_messenger_max_jot_number_default', 20, @iCategId, '_bx_messenger_jot_number_default', 'digit', '', '', '', 2),
+('bx_messenger_max_jot_number_in_history', 30, @iCategId, '_bx_messenger_max_jot_number_in_history', 'digit', '', '', '', 3),
+('bx_messenger_max_lots_number', 15, @iCategId, '_bx_messenger_max_max_lots_number', 'digit', '', '', '', 4),
+('bx_messenger_max_drop_down_select', 5, @iCategId, '_bx_messenger_max_drop_down_select', 'digit', '', '', '', 5),
+('bx_messenger_time_in_history', '', @iCategId, '_bx_messenger_time_in_history', 'checkbox', '', '', '', 6),
+('bx_messenger_use_unique_mode', '', @iCategId, '_bx_messenger_use_unique_mode', 'checkbox', '', '', '', 7),
+('bx_messenger_show_friends', 'on', @iCategId, '_bx_messenger_show_friends', 'checkbox', '', '', '', 8),
+('bx_messenger_dont_update_title', '', @iCategId, '_bx_messenger_dont_update_title', 'checkbox', '', '', '', 9);
+
+INSERT INTO `sys_options_categories`(`type_id`, `name`, `caption`, `hidden`, `order`) VALUES (@iTypeId, CONCAT(@sName, '_search'), '_bx_messenger_cpt_category_search', 0, 8);
+SET @iCategId = LAST_INSERT_ID();
+INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `check`, `check_error`, `extra`, `order`) VALUES
+('bx_messenger_dont_show_search_desc', '', @iCategId, '_bx_messenger_dont_show_search_desc', 'checkbox', '', '', '', 1),
+('bx_messenger_search_criteria', 'titles,participants,content', @iCategId, '_bx_messenger_search_criteria_list', 'list', '', '', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:18:"get_search_options";}', 2),
+('bx_messenger_broadcast_fields', 'membership,gender,countries,birthday', @iCategId, '_bx_messenger_broadcast_fields', 'list', '', '', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:20:"get_broadcast_fields";}', 3);
 
 -- MENU: notifications
 SET @iMIOrder = (SELECT IFNULL(MAX(`order`), 0) FROM `sys_menu_items` WHERE `set_name` = 'sys_toolbar_member' AND `order` < 9999);

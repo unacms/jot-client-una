@@ -434,6 +434,7 @@ name="_bx_ntfs_alert_action_got_broadcast_ntfs_personal"><![CDATA[Broadcast mess
 	<string name="_bx_messenger_cpt_category_search"><![CDATA[Search]]></string>
 
 	<string name="_bx_messenger_hide_parts"><![CDATA[Hide last answered users in talks briefs]]></string>
+	<string name="_bx_messenger_show_search_box"><![CDATA[Enable search input in the talks list column is open by default]]></string>
 
 	<string name=""><![CDATA[]]></string>
 </resources>

@@ -87,7 +87,8 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_use_unique_mode', '', @iCategId, '_bx_messenger_use_unique_mode', 'checkbox', '', '', '', 7),
 ('bx_messenger_show_friends', 'on', @iCategId, '_bx_messenger_show_friends', 'checkbox', '', '', '', 8),
 ('bx_messenger_dont_update_title', '', @iCategId, '_bx_messenger_dont_update_title', 'checkbox', '', '', '', 9),
-('bx_messenger_hide_parts', '', @iCategId, '_bx_messenger_hide_parts', 'checkbox', '', '', '', 10);
+('bx_messenger_hide_parts', '', @iCategId, '_bx_messenger_hide_parts', 'checkbox', '', '', '', 10),
+('bx_messenger_show_search_box', '', @iCategId, '_bx_messenger_show_search_box', 'checkbox', '', '', '', 11);
 
 INSERT INTO `sys_options_categories`(`type_id`, `name`, `caption`, `hidden`, `order`) VALUES (@iTypeId, CONCAT(@sName, '_search'), '_bx_messenger_cpt_category_search', 0, 8);
 SET @iCategId = LAST_INSERT_ID();

@@ -1292,7 +1292,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             $sContent = $this->getLotsPreview($iProfileId, $aMyLots);
         }
 
-        $bSimpleMode = $this->_oConfig->CNF['USE-UNIQUE-MODE'];
+        $bSimpleMode = $this->_oConfig->CNF['SHOW-SEARCH-BOX'];
 
         $oMenu = BxTemplMenu::getObjectInstance($CNF['OBJECT_MENU_ACTIONS_TALK_MENU']);
 		$aVars = [

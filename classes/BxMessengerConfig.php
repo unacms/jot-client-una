@@ -331,6 +331,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'USE-FRIENDS-ONLY-MODE' => getParam($aModule['db_prefix'] . 'connect_friends_only') == 'on',
             'UPDATE-PAGE-TITLE' => getParam($aModule['db_prefix'] . 'dont_update_title') == 'on',
             'HIDE-PARTS' => getParam($aModule['db_prefix'] . 'hide_parts') == 'on',
+            'SHOW-SEARCH-BOX' => getParam($aModule['db_prefix'] . 'show_search_box') == 'on',
             'SEARCH-CRITERIA-SELECTED' => getParam($aModule['db_prefix'] . 'search_criteria'),
             'BROADCAST-FIELDS' => getParam($aModule['db_prefix'] . 'broadcast_fields'),
             'BROADCAST-ALLOWED-FILTER-FIELDS' => ['gender', 'location', 'birthday', 'membership'],

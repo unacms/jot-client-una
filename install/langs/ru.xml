@@ -416,5 +416,7 @@
 	<string name="_bx_messenger_cpt_category_view"><![CDATA[Вид]]></string>
 	<string name="_bx_messenger_cpt_category_search"><![CDATA[Поиск]]></string>
 
+	<string name="_bx_messenger_hide_parts"><![CDATA[Скрыть иконки последних ответивших участников в столбце разговора]]></string>
+
 	<string name=""><![CDATA[]]></string>
 </resources>

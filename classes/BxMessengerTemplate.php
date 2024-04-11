@@ -805,35 +805,37 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 );
             }
 
-			$aNickNames = [];
-            $aVars['bx_repeat:participants'] = [];
-            $aLastAnsweredParticipants = $this->_oDb->getLatestJotsAuthors($aLot[$CNF['FIELD_ID']]);
-			foreach($aLastAnsweredParticipants as $iParticipant){
-				$oProfile = $this -> getObjectUser($iParticipant);
-                if ($oProfile) {
-                    $sThumb = $oProfile->getThumb();
-                    $bThumb = stripos($sThumb, 'no-picture') === FALSE;
-                    $sDisplayName = $oProfile->getDisplayName();
-                    $aVars['bx_repeat:participants'][] = array(
-                        'bx_if:avatars' => array(
-                            'condition' => $bThumb,
-                            'content' => array(
-                                'title' => $sDisplayName,
-                                'thumb' => $sThumb,
+            if (!$CNF['HIDE-PARTS']) {
+                $aLastAnsweredParticipants = $this->_oDb->getLatestJotsAuthors($aLot[$CNF['FIELD_ID']]);
+                $aParticipantsViewList = [];
+                foreach ($aLastAnsweredParticipants as $iParticipant) {
+                    $oProfile = $this->getObjectUser($iParticipant);
+                    if ($oProfile) {
+                        $sThumb = $oProfile->getThumb();
+                        $bThumb = stripos($sThumb, 'no-picture') === FALSE;
+                        $sDisplayName = $oProfile->getDisplayName();
+                        $aParticipantsViewList[] = array(
+                            'bx_if:avatars' => array(
+                                'condition' => $bThumb,
+                                'content' => array(
+                                    'title' => $sDisplayName,
+                                    'thumb' => $sThumb,
+                                )
+                            ),
+                            'bx_if:letters' => array(
+                                'condition' => !$bThumb,
+                                'content' => array(
+                                    'color' => implode(', ', BxDolTemplate::getColorCode($iParticipant, 1.0)),
+                                    'letter' => mb_substr($sDisplayName, 0, 1)
+                                )
                             )
-                        ),
-                        'bx_if:letters' => array(
-                            'condition' => !$bThumb,
-                            'content' => array(
-                                'color' => implode(', ', BxDolTemplate::getColorCode($iParticipant, 1.0)),
-                                'letter' => mb_substr($sDisplayName, 0, 1)
-                            )
-                        )
-                    );
-				 
-					$aNickNames[] = $sDisplayName;
-			    }
-			}
+                        );
+                    }
+                }
+
+                $aVars['bx_if:parts_list'] = ['condition' => true, 'content' => ['bx_repeat:participants' => $aParticipantsViewList]];
+            } else
+                $aVars['bx_if:parts_list'] = ['condition' => false, 'content' => []];
 			
 			if (!empty($aLot[$CNF['FIELD_TITLE']]))
 				$sTitle = _t($aLot[$CNF['FIELD_TITLE']]);
@@ -933,13 +935,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 ]
             ];
 
-			$aVars['bx_if:timer'] = array(
-												'condition' => $bShowTime,
-												'content' => array(
-														'time' => $iTime
-													)
-												);
-
+			$aVars['bx_if:timer'] = ['condition' => $bShowTime, 'content' => [ 'time' => $iTime ]];
 
             bx_alert($this->_oConfig->getObject('alert'), 'talk_preview_data', $aLot[$CNF['FIELD_ID']], $aLot[$CNF['FIELD_ID']], [
                 'vars' => &$aVars,

@@ -354,7 +354,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
         if (!$iLotId)
             return false;
 
-        bx_alert($this->_oConfig->getObject('alert'), 'create_lot', $iLotId, $iProfileId);
+        bx_alert($this->_oConfig->getObject('alert'), 'create_lot', $iLotId, $iProfileId, $this->getLotInfoById($iLotId));
         foreach($aParticipants as &$iParticipant) {
             if ((int)$iParticipant === (int)$iProfileId)
                 continue;

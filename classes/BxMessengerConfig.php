@@ -330,13 +330,14 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             'USE-UNIQUE-MODE' => getParam($aModule['db_prefix'] . 'use_unique_mode') == 'on',
             'USE-FRIENDS-ONLY-MODE' => getParam($aModule['db_prefix'] . 'connect_friends_only') == 'on',
             'UPDATE-PAGE-TITLE' => getParam($aModule['db_prefix'] . 'dont_update_title') == 'on',
+            'HIDE-PARTS' => getParam($aModule['db_prefix'] . 'hide_parts') == 'on',
             'SEARCH-CRITERIA-SELECTED' => getParam($aModule['db_prefix'] . 'search_criteria'),
             'BROADCAST-FIELDS' => getParam($aModule['db_prefix'] . 'broadcast_fields'),
             'BROADCAST-ALLOWED-FILTER-FIELDS' => ['gender', 'location', 'birthday', 'membership'],
-            'JWT' => array(
-              'app_id' => getParam($aModule['db_prefix'] . 'jwt_app_id'),
-              'secret' => getParam($aModule['db_prefix'] . 'jwt_app_secret'),
-            ),
+            'JWT' => [
+                'app_id' => getParam($aModule['db_prefix'] . 'jwt_app_id'),
+                'secret' => getParam($aModule['db_prefix'] . 'jwt_app_secret'),
+            ],
             'JOT-JWT' =>  trim(getParam($aModule['db_prefix'] . 'jot_server_jwt')),
             'JSMain' => 'oMessenger',
             'JSCreateConvoMenu' => 'oMessengerCreateConvo',

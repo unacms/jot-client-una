@@ -61,6 +61,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                     'lazy-loading.js',
                     'selectors.js',
                     'jot-menu.js',
+                    'giphy.js',
                     'messenger.js',
                     'RecordRTC.min.js',
                     'adapter.js',
@@ -935,15 +936,16 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 ]
             ];
 
-			$aVars['bx_if:timer'] = ['condition' => $bShowTime, 'content' => [ 'time' => $iTime ]];
-
+	        $aVars['bx_if:timer'] = ['condition' => $bShowTime, 'content' => [ 'time' => $iTime ]];
+	        $oTemplate = $this;
             bx_alert($this->_oConfig->getObject('alert'), 'talk_preview_data', $aLot[$CNF['FIELD_ID']], $aLot[$CNF['FIELD_ID']], [
-                'vars' => &$aVars,
-                'talk' => $aLot
+               'vars' => &$aVars,
+               'template' => &$oTemplate,
+               'talk' => $aLot,
             ]);
 
 			$aContent[] = $aVars;
-			$sContent .= $this -> parseHtmlByName('lots-briefs.html',  $aVars);
+			$sContent .= $oTemplate->parseHtmlByName('lots-briefs.html',  $aVars);
 		}
 		
 		return  bx_is_api() ? $aContent : $sContent;

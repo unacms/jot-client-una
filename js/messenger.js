@@ -23,27 +23,13 @@
 		this.sJitsiMain = '#bx-messenger-jitsi';
 		this.sEditJotArea = '.bx-messenger-edit-jot';
 		this.sEditJotAreaId = '#bx-messenger-edit-message-box';
-		this.sThreadTextArea = '#bx-messenger-thread-message-box';
-		this.sAttachmentArea = '.bx-messenger-attachment-area';
-		this.sAttachmentBlock = '.bx-messenger-attachment';
-		this.sAttachmentFiles = '.bx-messenger-attachment-files';
-		this.sGiphyImages = '.bx-messenger-static-giphy';
-		this.sAttachmentImages = '.bx-messenger-attachment-file-images';
 		this.sSendAreaActions = '.bx-messenger-post-box-send-actions';
 		this.sSendAreaActionsButtons = '.bx-messenger-post-box-send-actions-items';
 		this.sReactionsArea = '.bx-messenger-jot-reactions';
-		this.sMediaATArea = ['.bx-messenger-attachment-file-videos', '.bx-messenger-attachment-file-audio'];
-		this.sVideoAttachment = '.bx-messenger-attachment-file-videos';
-		this.sAudioAttachment = '.bx-messenger-attachment-file-audio';
-		this.sFileAttachment = '.bx-messenger-attachment-file';
 		this.sFilesUploadAreaOnForm = '.bx-messenger-upload-area';
 		this.sTmpVideoFile = '.bx-messenger-attachment-temp-video';
 		this.sReactionItem = '.bx-messenger-reaction';
 		this.sReactionMenu = '.bx-messenger-reactions-menu';
-		this.sGiphyItems = '.bx-messenger-giphy-items';
-		this.sGiphySendArea = '#bx-messenger-send-area-giphy';
-		this.sGiphMain = '.giphy';
-		this.sGiphyBlock = '.bx-messenger-giphy';
 		this.sTalkAreaWrapper = '.bx-messenger-table-wrapper';
 		this.sActivePopup = '.bx-popup-applied:visible';
 		this.sJitsiButton = '#jitsi-button';
@@ -446,7 +432,8 @@
 
 	oMessenger.prototype.initFilesUploader = function(sSelector = '') {
 		const _this = this,
-			{ attachmentArea } = window.oMessengerSelectors.TEXT_AREA;
+			{ attachmentArea } = window.oMessengerSelectors.TEXT_AREA,
+			{ giphyMain } = window.oMessengerSelectors.GIPHY;
 
 		if (!this.oFilesUploaderSettings)
 			return;
@@ -454,7 +441,7 @@
 		this.oFilesUploader = (new oMessengerUploader(Object.assign({}, this.oFilesUploaderSettings, {
 				onAddFilesCallback: () => {
 					if ($(`${sSelector}${attachmentArea}`).children().length) {
-						$(`${sSelector}${this.sGiphMain}`).fadeOut();
+						$(`${sSelector}${giphyMain}`).fadeOut();
 						$(`${sSelector}${attachmentArea}`).html('');
 					}
 				},
@@ -628,17 +615,9 @@
 			$(_this.sSendAreaActionsButtons)
 				.find('li.video').show();
 
-		$(_this.sGiphySendArea)
-			.on('click',
-					function(e){
-						if ($(_this.sGiphMain).is(':visible'))
-							$(_this.sGiphMain).fadeOut();
-						else
-							$(_this.sGiphMain).fadeIn(function(){
-								$(this).css('display', 'flex');
-								_this.initGiphy();
-							});
-					});
+		/* Giphy Integration */
+		const oGiphy = new oMessengerGiphy();
+		oGiphy.initGiphy();
 
 		_this.setStorageData();
 		_this.updateSendAreaHeight();
@@ -695,12 +674,13 @@
 	};
 
 	oMessenger.prototype.onOuterClick = function(oEvent){
-		const { inputArea } = window.oMessengerSelectors.TEXT_AREA;
+		const { inputArea } = window.oMessengerSelectors.TEXT_AREA,
+			  { giphySendArea, giphyMain } = window.oMessengerSelectors.GIPHY;
 		if ($(oEvent.target).closest(inputArea).length)
 			return;
 
-		if (!$(oEvent.target).closest(this.sGiphySendArea).length && !$(oEvent.target).closest(this.sGiphMain).length)
-			$(this.sGiphMain).fadeOut();
+		if (!$(oEvent.target).closest(giphySendArea).length && !$(oEvent.target).closest(giphyMain).length)
+			$(giphyMain).fadeOut();
 	};
 
 	/**
@@ -1298,10 +1278,11 @@
 	}
 	
 	oMessenger.prototype.getReplyPreview = function(iJotId){
-		const
-			{ jotMain, jotMessage } = window.oMessengerSelectors.JOT,
-			oJot = $(`${jotMain}[data-id="${iJotId}"]`),
-			  iMaxLength = oMUtils.isMobile() ? this.iMaxReplyLength/2 : this.iMaxReplyLength,
+		const { jotMain, jotMessage } = window.oMessengerSelectors.JOT,
+			  { attachmentArea, attachmentImages, videoAttachment, audioAttachment, fileAttachment } = window.oMessengerSelectors.ATTACHMENTS,
+			  { giphyImages } = window.oMessengerSelectors.GIPHY,
+			  oJot = $(`${jotMain}[data-id="${iJotId}"]`),
+			   iMaxLength = oMUtils.isMobile() ? this.iMaxReplyLength/2 : this.iMaxReplyLength,
 			  _this = this;
 			  
 		if (!oJot)
@@ -1315,21 +1296,21 @@
 			return sMessage;
 		}
 		
-		const oFiles = $(_this.sAttachmentArea, oJot);
+		const oFiles = $(attachmentArea, oJot);
 		if (oFiles){
 			let oObject = null;					
-			if (oFiles.find(`${_this.sAttachmentImages},${_this.sGiphyImages}`).length){
-				oObject = oFiles.find(`${_this.sAttachmentImages} img, ${_this.sGiphyImages} img`).first();
+			if (oFiles.find(`${attachmentImages},${giphyImages}`).length){
+				oObject = oFiles.find(`${attachmentImages} img, ${giphyImages} img`).first();
 			}
-			else if (oFiles.find(_this.sVideoAttachment).length){
-				sUrl = oFiles.find(`${_this.sVideoAttachment} video`).first().prop('poster');
+			else if (oFiles.find(videoAttachment).length){
+				const sUrl = oFiles.find(`${videoAttachment} video`).first().prop('poster');
 				if (sUrl)
 					oObject = $(`<img src="${sUrl}" />`);	
 			}
-			else if (oFiles.find(_this.sAudioAttachment).length)
-				oObject = oFiles.find(`${_this.sAudioAttachment} .audio .title`).first();
-			else if (oFiles.find(_this.sFileAttachment).length)
-				oObject = oFiles.find(_this.sFileAttachment).first();
+			else if (oFiles.find(audioAttachment).length)
+				oObject = oFiles.find(`${audioAttachment} .audio .title`).first();
+			else if (oFiles.find(fileAttachment).length)
+				oObject = oFiles.find(fileAttachment).first();
 			
 			return (oObject && oObject.clone()) || '...';
 		}
@@ -1532,7 +1513,8 @@
 	*@param bool bDontAddAttachment don't add repost link to the jot 
 	*/
 	$.fn.linkify = function(bDontAddAttachment, bDontBroadcast){
-		const { jotMessage } = window.oMessengerSelectors.JOT;
+		const { jotMessage } = window.oMessengerSelectors.JOT,
+			{ attachmentArea } = window.oMessengerSelectors.ATTACHMENTS;
 
 		let sUrlPattern = /((https?):\/\/[^"<\s]+)(?![^<>]*>|[^"]*?<\/a)/gim,
 		// www, http, https
@@ -1567,7 +1549,7 @@
 		}
 
 		$(oJot).html(sText);
-		if ($(oJot).siblings(_oMessenger.sAttachmentArea).length)
+		if ($(oJot).siblings(attachmentArea).length)
 			return this;
 		
 		if (sUrl.length)
@@ -1590,7 +1572,7 @@
 		else
 		{
 			$(oJot)
-				.siblings(_oMessenger.sAttachmentArea)
+				.siblings(_oMessenger.attachmentArea)
 				.remove() /* remove attachment block if exists*/
 		}
 
@@ -1606,7 +1588,8 @@
 	*/
 	$.fn.attacheLinkContent = function(sUrl, bDontAddAttachment, fCallback){
 		const _this = this,
-			{ jotMain } = window.oMessengerSelectors.JOT;
+			{ jotMain } = window.oMessengerSelectors.JOT,
+			{ attachmentBlock } = window.oMessengerSelectors.ATTACHMENTS;
 
 		$.post('modules/?r=messenger/parse_link',
 			{
@@ -1620,7 +1603,7 @@
 			{
 				if (!parseInt(oData.code))
 					$(_this)
-						.siblings(_oMessenger.sAttachmentBlock)
+						.siblings(attachmentBlock)
 						.remove() /* remove attachment if exists */
 						.end()
 						.after(oData.html);
@@ -1639,11 +1622,12 @@
 	oMessenger.prototype.updateProcessedMedia = function(){
 		const _this = this,
 			  fMedia = (sMediaType, sType) => document.createElement(sMediaType.toLowerCase()).canPlayType(sType),
-			 { conversationBody } = window.oMessengerSelectors.HISTORY;
+			 { conversationBody } = window.oMessengerSelectors.HISTORY,
+			 { videoAttachment, audioAttachment } = window.oMessengerSelectors.ATTACHMENTS;
+
 
 		let aMedia = [];
-
-		$(this.sMediaATArea.join(','), conversationBody).each(
+		$(`${videoAttachment},${audioAttachment}`, conversationBody).each(
 			function()
 			{
 				let __this = $(this);
@@ -1677,13 +1661,15 @@
 	*/
 	oMessenger.prototype.attacheFiles = function(iJotId, bBottom = true, fCallback){
 		const _this = this,
-			{ talkListJotSelector } = window.oMessengerSelectors.JOT;
+			{ talkListJotSelector } = window.oMessengerSelectors.JOT,
+			{ attachmentArea } = window.oMessengerSelectors.ATTACHMENTS;
+
 		_this.iAttachmentUpdate = true;
 		$.post('modules/?r=messenger/get_attachment', { jot_id: iJotId}, function(oData)
 		{
 			if (!parseInt(oData['code']))
 			{
-				$(_this.sAttachmentArea, '[data-id="' + iJotId + '"]').remove();
+				$(attachmentArea, '[data-id="' + iJotId + '"]').remove();
 
 				$(_this.sReactionsArea, '[data-id="' + iJotId + '"]')
 					.before(
@@ -1732,7 +1718,7 @@
 	oMessenger.prototype.updatePageIcon = function(bEnable, iLot)
 	{
 		const { talksListItems } = window.oMessengerSelectors.TALKS_LIST,
-			  iCurrentLot = $(talksListItems).first().data('lot');
+			iCurrentLot = $(talksListItems).first().data('lot');
 
 		let iUnreadLotsCount = +this.oNotifications.inbox;
 
@@ -1752,7 +1738,10 @@
 	};
 	
 	$.fn.waitForImages = function(fCallback){
-		const aImg = $(`${_oMessenger.sGiphyImages} img, ${_oMessenger.sAttachmentImages} img`, $(this));
+		const { attachmentImages } = window.oMessengerSelectors.ATTACHMENTS,
+			  { giphyImages } = window.oMessengerSelectors.GIPHY;
+
+		const aImg = $(`${giphyImages} img, ${attachmentImages} img`, $(this));
 		let iTotalImg = aImg.length;
 
 		const waitImgLoad = () =>
@@ -2815,6 +2804,7 @@
 			{ talkBlock, conversationBody } = window.oMessengerSelectors.HISTORY,
 			{ talkListJotSelector, jotMain, jotMessage, jotMessageView } = window.oMessengerSelectors.JOT,
 			{ dateIntervalsSelector } = window.oMessengerSelectors.DATE_SEPARATOR,
+			{ attachmentArea } = window.oMessengerSelectors.ATTACHMENTS,
 			{ addon, position, action, last_viewed_jot, callback, jot_id, user_id } = oAction;
 
 		let sAction = typeof addon === 'string' ? addon : (action !== 'msg' ? action : 'new'),
@@ -2999,7 +2989,7 @@
 											.html(html)
 											.parent()
 											.linkify(true, true)
-											.find(_this.sAttachmentArea)
+											.find(attachmentArea)
 											.fadeOut('slow', onRemove);
 								/*  if nothing returns, then remove html code completely */
 								 else
@@ -3519,85 +3509,6 @@
 
 		// this module class is missed when you open messenger page using not direct menu link.
 		$('body').addClass("bx-page-messenger");
-	};
-
-	oMessenger.prototype.initGiphy = function(sSelector = '') {
-		let iTotal = 0;
-		let iScrollPosition = 0;
-
-		const _this = this,
-			oContainer = $(`${sSelector}${this.sGiphyItems}`),
-			oScroll = $(`${sSelector}.bx-messenger-giphy-scroll`),
-			fInitVisibility = (sType, sValue) => {
-				let stopLoading = false;
-				oScroll.on('scroll', (e) => {
-					const { scrollLeft,  scrollWidth, clientWidth} = e.currentTarget;
-					const iItems = $('picture', oContainer).length;
-					const scrollLeftMax = scrollWidth - clientWidth;
-					let	bPassed = scrollLeft >= scrollLeftMax*0.6; // 60% passed
-					iScrollPosition = scrollLeft;
-
-					if (!bPassed || (iTotal && iItems && iItems >= iTotal))
-						return;
-
-					if (!stopLoading) {
-						stopLoading = true;
-						fGiphy(sType, sValue, () => setTimeout(() => {
-							stopLoading = false;
-							oScroll.scrollLeft(iScrollPosition);
-						}, 0));
-					}
-				});
-			},
-			fGiphy = (sType, sValue, fCallback) => {
-				const fHeight = oContainer.height();
-			$('div.search', `${sSelector}${_this.sGiphyBlock}`).addClass('loading');
-				$.get('modules/?r=messenger/get_giphy', {
-						height: fHeight,
-						action: sType,
-						filter: sValue,
-						start: $('picture', oContainer).length
-					}, function (oData) {
-						iTotal = oData.total;
-
-						oContainer
-							.append(
-								oData.code
-									? oData.message
-									: oData.html
-							)
-							.setRandomBGColor();
-
-						$('div.search', `${sSelector}${_this.sGiphyBlock}`).removeClass('loading');
-						if (typeof fCallback === 'function')
-							fCallback(sType, sValue);
-					},
-					'json');
-			};
-
-		if ($(`${sSelector}${_this.sGiphMain}`).css('visibility') === 'visible') {
-			let iTimer = 0;
-			$('input', `${sSelector}${_this.sGiphMain}`).keypress(function (e) {
-				clearTimeout(iTimer);
-				iTimer = setTimeout(() => {
-					iScrollPosition = 0;
-					iTotal = 0;
-					oContainer.html('');
-					oScroll.scrollLeft(0);
-					const sFilter = $(this).val();
-					fGiphy(sFilter && 'search', sFilter, fInitVisibility);
-
-				}, 1000);
-				return true;
-			}).on('keydown', function (e) {
-				if (e.keyCode === 8 || e.keyCode === 46)
-					$(this).trigger('keypress');
-			});
-
-			if (oContainer && !oContainer.find('img').length) {
-				fGiphy(undefined, undefined, fInitVisibility);
-			}
-		}
 	};
 
 	/**
@@ -4123,17 +4034,18 @@
 		 */
 		onSelectGiphy: function (oElement) {
 			const oUploader = _oMessenger.oFilesUploader,
-				{ attachmentArea } = window.oMessengerSelectors.TEXT_AREA;
+				{ attachmentArea } = window.oMessengerSelectors.TEXT_AREA,
+				{ giphyMain, giphyWrapper } = window.oMessengerSelectors.GIPHY;
 
 			if (oUploader && (oUploader.getFiles().length || oUploader.isLoadingStarted())) {
-				$(_oMessenger.sGiphMain).fadeOut();
+				$(giphyMain).fadeOut();
 				return;
 			} else
-				$(_oMessenger.sGiphMain)
+				$(giphyMain)
 					.fadeOut(() => {
 						const oObject = $(oElement)
 							.clone()
-							.wrap('<div class="giphy-item"></div>')
+							.wrap(`<div class="${giphyWrapper.substr(1)}"></div>`)
 							.parent();
 
 						_oMessenger.updateSendArea(false);
@@ -4144,7 +4056,7 @@
 										$(`<i class="sys-icon times"></i>`)
 											.on('click', function () {
 												$(this)
-													.closest('.giphy-item')
+													.closest(giphyWrapper)
 													.fadeOut()
 													.remove();
 

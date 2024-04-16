@@ -99,7 +99,7 @@
                 textAreaDisabled: 'bx-messenger-post-box-disabled',
                 talkTitle: '#bx-messenger-talk-title',
                 attachmentArea: '.bx-messenger-send-area-attachments',
-                attachmentGroup: '.bx-messenger-attachment-group'
+                attachmentGroup: '.bx-messenger-attachment-group',
             };
 
             this.HISTORY_INFO = {
@@ -143,7 +143,12 @@
                 attPrefixSelector: 'bx-messenger-attachment-file-',
                 attachmentWrappers: '.bx-messenger-media-wrapper',
                 attachmentArea: '.bx-messenger-attachment-area',
-                attachmentFileWrapper: '.bx-messenger-attachment-file-wrapper'
+                attachmentFileWrapper: '.bx-messenger-attachment-file-wrapper',
+                attachmentBlock: '.bx-messenger-attachment',
+                attachmentImages: '.bx-messenger-attachment-file-images',
+                videoAttachment: '.bx-messenger-attachment-file-videos',
+                audioAttachment: '.bx-messenger-attachment-file-audio',
+                fileAttachment: '.bx-messenger-attachment-file'
             };
 
             this.CREATE_TALK = {
@@ -156,6 +161,16 @@
                 filterCriteriaForm: '#bx-messenger-convo-filter-criteria',
                 createConvoForm: '#bx_messenger_lots',
                 selectedUserElement: '.bx-messenger-participants-added-item'
+            };
+
+            this.GIPHY = {
+                giphyImages: '.bx-messenger-static-giphy',
+                giphyItems: '.bx-messenger-giphy-items',
+                giphySendArea: '#bx-messenger-send-area-giphy',
+                giphyMain: '.giphy',
+                giphyBlock: '.bx-messenger-giphy',
+                giphyScroll: '.bx-messenger-giphy-scroll',
+                giphyWrapper: '.giphy-item'
             }
         };
         get(sName){

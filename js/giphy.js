@@ -29,7 +29,7 @@
                 });
     }
     init(sSelector = '') {
-        const { giphyItems, giphyScroll, giphyBlock, giphyMain } = window.oMessengerSelectors.GIPHY;
+        const { giphyItems, giphyScroll, giphyMain, giphyInput } = window.oMessengerSelectors.GIPHY;
         let iTotal = 0, iScrollPosition = 0;
 
         const _this = this,
@@ -58,7 +58,9 @@
             },
             fGiphy = (sType, sValue, fCallback) => {
                 const fHeight = oContainer.height();
-                $('div.search', `${sSelector}${giphyBlock}`).addClass('loading');
+                $('.loading', giphyInput).show(function(){
+                    bx_loading_btn($(this), true);
+                });
                 $.get('modules/?r=messenger/get_giphy', {
                         height: fHeight,
                         action: sType,
@@ -75,7 +77,10 @@
                             )
                             .setRandomBGColor();
 
-                        $('div.search', `${sSelector}${giphyBlock}`).removeClass('loading');
+                        $('.loading', giphyInput).hide(function(){
+                            bx_loading_btn($(this), false);
+                        });
+
                         if (typeof fCallback === 'function')
                             fCallback(sType, sValue);
                     },

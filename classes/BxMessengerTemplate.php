@@ -2271,7 +2271,12 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
     }
 
     public function getGiphyPanel(){
-	    return $this -> parseHtmlByName('giphy-panel.html', []);
+	    return $this -> parseHtmlByName('giphy-panel.html', [
+	        'bx_if:powered_by' => [
+	                'condition' => $this->_oConfig->CNF['GIPHY-POWERED-BY'],
+                    'content' => []
+	            ]
+        ]);
     }
 
     public function getGiphyItems($sAction, $sQuery, $fHeight = 0, $iStart = 0){

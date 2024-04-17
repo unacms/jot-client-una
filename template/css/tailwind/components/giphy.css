@@ -3,7 +3,7 @@
 }
 
 .bx-messenger-giphy-input {
-    @apply w-full flex items-center;
+    @apply w-full flex items-center relative;
 }
 
 .bx-messenger-giphy {
@@ -61,31 +61,22 @@
     @apply rounded-[0.45rem] mr-2;
 }
 
-.giphy-item .sys-icon{
+.bx-messenger-giphy-logo {
+   @apply self-start py-2;
+}
+
+.bx-messenger-giphy-logo img {
+    filter: invert(1);
+}
+
+.dark .bx-messenger-giphy-logo img {
+    filter: none;
+}
+
+.giphy-item .sys-icon {
     @apply bg-gray-100 dark:bg-gray-700/50 border
     border-transparent hover:border-gray-200/50 active:border-gray-300 dark:hover:border-gray-700/50 dark:active:border-gray-700
     text-gray-600 dark:text-gray-400 active:bg-gray-300 dark:active:bg-black/50
     hover:bg-gray-200/50 dark:hover:text-gray-200 dark:hover:bg-gray-700/50
     hover:text-gray-800 flex items-center p-1 text-base rounded-[1rem] w-6 h-6 justify-center cursor-pointer;
 }
-
-
-/*div.bx-messenger-giphy-items > div.giphy-loading{
-    width: 100%;
-    position: absolute;
-    height: 100%;
-    min-height: 8rem;
-    background-color: rgba(0, 0, 0, 0.3);
-    top: 0;
-    left: 0;
-}
-
-div.giphy-upload img{
-    max-width: 100%;
-}
-
-@media (max-width:480px) {
-    .bx-messenger-attachment-giphy{
-        max-width: 70%;
-    }
-}*/

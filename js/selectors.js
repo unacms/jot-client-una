@@ -170,7 +170,8 @@
                 giphyMain: '.giphy',
                 giphyBlock: '.bx-messenger-giphy',
                 giphyScroll: '.bx-messenger-giphy-scroll',
-                giphyWrapper: '.giphy-item'
+                giphyWrapper: '.giphy-item',
+                giphyInput: '.bx-messenger-giphy-input'
             }
         };
         get(sName){
@@ -178,8 +179,9 @@
         }
     }
 
-    const oConstants = new oMessengerConstants();
-    const oLib = Object.create(null);
+    const oConstants = new oMessengerConstants(),
+          oLib = Object.create(null);
+
     for (let sKey in oConstants) {
         if (Object.prototype.hasOwnProperty.call(oConstants, sKey)) {
             const oArea = oConstants[sKey];

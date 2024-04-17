@@ -419,5 +419,6 @@
 	<string name="_bx_messenger_hide_parts"><![CDATA[Скрыть иконки последних ответивших участников в столбце разговора]]></string>
 	<string name="_bx_messenger_show_search_box"><![CDATA[Показывать окно поиска в столбце разговоров открытым, по умолчанию]]></string>
 
+	<string name="_bx_messenger_giphy_powered_by"><![CDATA[Включение логотипа 'Powered By': обязательный шаг для интеграции Giphy в производственной среде]]></string>
 	<string name=""><![CDATA[]]></string>
 </resources>

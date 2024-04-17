@@ -20,6 +20,12 @@
 	position:relative;
 }
 
+#bx-content-with-cover-wrapper {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
 #bx-content-container {
 	overflow: hidden;
 	position: relative;
@@ -42,7 +48,7 @@
 .bx-main  > div{
 	flex: 0 0 auto;
 }
-
+#bx-content-with-submenu-wrapper,
 #bx-content-wrapper {
    flex: 1 1 0;
    overflow:hidden;

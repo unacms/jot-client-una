@@ -2025,7 +2025,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
         if ($sAction === BX_JOT_REACTION_ADD) {
            $sNative = $this->getOne("SELECT `{$CNF['FIELD_REACT_NATIVE']}` 
                                                 FROM `{$CNF['TABLE_JOT_REACTIONS']}` 
-                                                WHERE `{$CNF['FIELD_REACT_JOT_ID']}` = :jot_id LIMIT 1", array( 'jot_id' => $iJotId ));
+                                                WHERE `{$CNF['FIELD_REACT_JOT_ID']}` = :jot_id AND `{$CNF['FIELD_REACT_EMOJI_ID']}`=:emoji LIMIT 1", ['jot_id' => $iJotId, 'emoji' => $sEmojiId]);
             return $this-> addJotReaction($iJotId, $iProfileId, array('native' => $sNative, 'id' => $sEmojiId));
         }
 

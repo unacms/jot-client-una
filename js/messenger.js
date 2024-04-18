@@ -649,8 +649,10 @@
 		   if (+reply){
 			   _this.iReplyId = +reply;
 			   _this.replyJot($(`${jotMain}[data-id="${_this.iReplyId}"]`), _this.iReplyId);
-		   }
-	   }
+		   } else
+			   _this.iReplyId = 0;
+	   } else
+		   _this.iReplyId = 0;
    }
 
 	oMessenger.prototype.updateSendAreaHeight = function() {
@@ -2168,7 +2170,7 @@
 			$('[data-tmp="' + oParams.tmp_id + '"]').initJotIcons();
 		}
 
-		if (_this.iReplyId && $(replyAreaMessage).length){
+		if (_this.iReplyId){
 			oParams.reply = +_this.iReplyId;
 			_this.cleanReplayArea();
 		}

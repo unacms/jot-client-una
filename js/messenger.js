@@ -1667,20 +1667,20 @@
 			{ attachmentArea } = window.oMessengerSelectors.ATTACHMENTS;
 
 		_this.iAttachmentUpdate = true;
-		$.post('modules/?r=messenger/get_attachment', { jot_id: iJotId}, function(oData)
+		$.post('modules/?r=messenger/get_attachment', { jot_id: iJotId}, function({ html, code })
 		{
-			if (!parseInt(oData['code']))
+			if (!+code)
 			{
 				$(attachmentArea, '[data-id="' + iJotId + '"]').remove();
 
 				$(_this.sReactionsArea, '[data-id="' + iJotId + '"]')
 					.before(
-								$(oData['html'])
+								$(html)
 									.waitForImages(() => {
 										if (typeof fCallback === 'function')
 											fCallback();
 
-										if (bBottom || $(talkListJotSelector).last().data('id') == iJotId)
+										if (bBottom || +$(talkListJotSelector).last().data('id') === +iJotId)
 											_this.updateScrollPosition('bottom');
 									})
 								);
@@ -1743,7 +1743,7 @@
 		const { attachmentImages } = window.oMessengerSelectors.ATTACHMENTS,
 			  { giphyImages } = window.oMessengerSelectors.GIPHY;
 
-		const aImg = $(`${giphyImages} img, ${attachmentImages} img`, $(this));
+		const aImg = $(`${giphyImages} img, picture img, ${attachmentImages} img`, $(this));
 		let iTotalImg = aImg.length;
 
 		const waitImgLoad = () =>
@@ -4311,7 +4311,6 @@
 			try
 			{
 				await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-
 				$(window).dolPopupAjax({
 					url: 'modules/?r=messenger/get_record_video_form',
 					id: { force: true, value: _oMessenger.sAddFilesForm.substr(1) },

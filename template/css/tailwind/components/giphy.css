@@ -73,6 +73,10 @@
     filter: none;
 }
 
+.bx-messenger-attachment-area.bx-messenger-attachment-giphy {
+    @apply sm:max-w-full max-w-[80%];
+}
+
 .giphy-item .sys-icon {
     @apply bg-gray-100 dark:bg-gray-700/50 border
     border-transparent hover:border-gray-200/50 active:border-gray-300 dark:hover:border-gray-700/50 dark:active:border-gray-700

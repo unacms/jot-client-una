@@ -17,8 +17,6 @@
 	function oMessenger(oOptions){
 		//list of selectors
 
-		this.sAddFilesFormComments = '#bx-messenger-files-upload-comment';
-		this.sAddFilesForm = '#bx-messenger-files-uploader';
 		this.sJitsiVideo = '#bx-messenger-jitsi-video';
 		this.sJitsiMain = '#bx-messenger-jitsi';
 		this.sEditJotArea = '.bx-messenger-edit-jot';
@@ -988,8 +986,9 @@
 	}
 	
 	oMessenger.prototype.updateCommentsAreaWidth = function(fWidth){
-			$(this.sAddFilesFormComments)
-				.css('max-width', fWidth ? fWidth : $(this.sAddFilesFormComments).parent().width());
+		const { recorderComments } = window.oMessengerSelectors.RECORDER;
+			$(recorderComments)
+				.css('max-width', fWidth ? fWidth : $(recorderComments).parent().width());
 	};
 
 	oMessenger.prototype.leaveLot = function(iLotId){
@@ -3998,21 +3997,6 @@
 		},
 
 		/**
-		 * Executes on files uploading window close
-		 *@param string sMessage confirmation message
-		 *@param int iFilesNumber files number
-		 */
-		onCloseUploadingForm: function (sMessage, iFilesNumber) {
-			if (!iFilesNumber || (iFilesNumber && confirm(sMessage))) {
-				$(_oMessenger.sAddFilesFormComments).html('');
-				$(_oMessenger.sAddFilesForm).dolPopupHide();
-				return true;
-			}
-
-			return false;
-		},
-
-		/**
 		 * Occurs on image click, allows to make image bigger in popup.
 		 *@param int iId image file id
 		 */
@@ -4025,6 +4009,11 @@
 				onBeforeShow: function () {
 					$('#bx-messenger-big-img, #bx-messenger-big-img .bx-popup-element-close, #bx-messenger-big-img img, #bx-popup-fog').click(function () {
 						$('#bx-messenger-big-img').dolPopupHide().remove();
+					});
+				},
+				onShow: function () {
+					$('#bx-messenger-big-img img').on('load', function(){
+						$(this).dolPopupCenter();
 					});
 				}
 			});
@@ -4169,6 +4158,7 @@
 		removeFile: (oEl, id) => bx_confirm(_t('_bx_messenger_post_confirm_delete_file'), () => oMessengerJotMenu.removeFile(oEl, id)),
 		downloadFile: (iFileId) => oMessengerJotMenu.downloadFile(iFileId),
 		sendVideoRecord: function (oFile, oCallback) {
+			const { recorderComments, recordeWindow } = window.oMessengerSelectors.RECORDER;
 			let fileName = (new Date().getTime()),
 				formData = new FormData();
 
@@ -4193,7 +4183,7 @@
 					function (oData) {
 						bx_loading($(_oMessenger.sFilesUploadAreaOnForm), false);
 						if (!parseInt(oData.code)) {
-							const sMessage = $(_oMessenger.sAddFilesFormComments).text();
+							const sMessage = $(recorderComments).text();
 							_oMessenger.sendMessage(sMessage, {files: [{ complete: 1, realname: fileName, name: fileName }]}, function (iJotId) {
 								if (typeof oCallback == 'function')
 									oCallback();
@@ -4300,8 +4290,9 @@
 				}
 			})
 		},
-		getVideoRecording: async () => {
-			const sText = _oMessenger.oEditor ? _oMessenger.oEditor.getText() : '';
+		getVideoRecording: async (oButton) => {
+			const sText = _oMessenger.oEditor ? _oMessenger.oEditor.getText() : '',
+				{ recorderComments, recordeWindow } = window.oMessengerSelectors.RECORDER;
 
 			if (navigator.mediaDevices === undefined){
 				bx_alert(_t('_bx_messenger_video_recorder_is_not_available'));
@@ -4311,15 +4302,17 @@
 			try
 			{
 				await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+				bx_loading_btn(oButton, true);
 				$(window).dolPopupAjax({
 					url: 'modules/?r=messenger/get_record_video_form',
-					id: { force: true, value: _oMessenger.sAddFilesForm.substr(1) },
+					id: { force: true, value: recordeWindow.substr(1) },
 					onShow: function () {
+						bx_loading_btn(oButton, false);
 						if (typeof fCallback == 'function')
 							fCallback();
 
 						if (sText && sText.length)
-							$(_oMessenger.sAddFilesFormComments).text(sText);
+							$(recorderComments).text(sText);
 
 						setTimeout(() => _oMessenger.updateCommentsAreaWidth(), 100);
 					},

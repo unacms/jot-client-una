@@ -27,6 +27,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	    $aCss = [
 				   'main.css',
                    'video-conference.css',
+                   'video-recorder.css',
                    'emoji.css',
                    'messenger-phone.css',
                    'quill.bubble.css',
@@ -2240,7 +2241,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 	*@return string html form
 	*/
 	public function getVideoRecordingForm(){
-		return $this -> parseHtmlByName('video_record_form.html', array('max_video_length' => (int)$this->_oConfig->CNF['MAX_VIDEO_LENGTH']  * 60 * 1000));
+		return $this -> parseHtmlByName('video-record-form.html', array('max_video_length' => (int)$this->_oConfig->CNF['MAX_VIDEO_LENGTH']  * 60 * 1000));
 	}
 
     function audioPlayer($sUrlMP3, $bReturnBothIfEmpty = false, $aAttrs = false, $sStyles = '')
@@ -2273,9 +2274,9 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
     public function getGiphyPanel(){
 	    return $this -> parseHtmlByName('giphy-panel.html', [
 	        'bx_if:powered_by' => [
-	                'condition' => $this->_oConfig->CNF['GIPHY-POWERED-BY'],
-                    'content' => []
-	            ]
+	           'condition' => $this->_oConfig->CNF['GIPHY-POWERED-BY'],
+               'content' => []
+	        ]
         ]);
     }
 

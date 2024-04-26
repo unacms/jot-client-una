@@ -2157,8 +2157,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $aFile = $oStorage->getFile((int)$iStorageId);
 
         $sFileUrl = $oStorage->getFileUrlById($iStorageId);
-    	if (!empty($aFile))
-		{
+    	if (!empty($aFile)){
             $aInfo = @getimagesize($sFileUrl);
             if (empty($aInfo)){
                 echo MsgBox(_t('_bx_messenger_post_file_not_found'));
@@ -2184,7 +2183,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         echo $this->_oTemplate->parseHtmlByName('big_image.html', array(
             'height' => $iHeight,
             'width' => $iWidth,
-            'url' => BxDolStorage::getObjectInstance($this->_oConfig->CNF['OBJECT_STORAGE'])->getFileUrlById((int)$iStorageId)
+            'url' => $oStorage->getFileUrlById((int)$iStorageId)
         ));
         exit;
     }

@@ -49,7 +49,7 @@ oJotVideoRecorder.prototype.InitWebCam = function()
 		});
 	}
 	catch(e){
-		alert(_t('_bx_messenger_video_record_is_not_supported', e.toString()));
+		console.log(_t('_bx_messenger_video_record_is_not_supported', e.toString()));
 		$(_this.bclose).click();
 	};
 };
@@ -72,26 +72,22 @@ oJotVideoRecorder.prototype.stopWebCamAndClose = function()
 
 oJotVideoRecorder.prototype.init = function()
 {		
-		const _this = this;
-				
-		$(_this.bclose).click(function(){
-			if ((_this.oVideoBlob !== undefined && confirm(_t('_bx_messenger_close_video_confirm'))) || !_this.oVideoBlob)
-			{
+		const _this = this,
+			fClose = () => {
 				_this.stopWebCamAndClose();
 				_this.close();
-			}
+			};
+				
+		$(_this.bclose).click(function(){
+			if (typeof _this.oVideoBlob !== 'undefined')
+				return bx_confirm(_t('_bx_messenger_close_video_confirm'), fClose);
+			else
+				fClose();
 		});
 		
-		$(this.bsend).click(function()
-		{			
+		$(this.bsend).click(function(){
 			if (_this.oVideoBlob !== undefined)
-			{
-				_this.send(_this.oVideoBlob,
-											function()
-											{
-												_this.stopWebCamAndClose();
-											});	
-			}
+				_this.send(_this.oVideoBlob, () => _this.stopWebCamAndClose());
 		});
 		
 		$(_this.video).on('loadeddata', function()
@@ -107,10 +103,8 @@ oJotVideoRecorder.prototype.init = function()
 			.click(
 					function()
 					{
-						var iActivePos = $(this).data('click');
-						
-						switch(iActivePos)
-						{
+						const iActivePos = $(this).data('click');
+						switch(iActivePos){
 							case 1:
 								$(this)
 									.html('<i class="sys-icon play"></i>')
@@ -137,22 +131,7 @@ oJotVideoRecorder.prototype.init = function()
 							$(_this.bplay)
 								.html('<i class="sys-icon undo"></i>')
 								.addClass('empty')
-								.unbind()
-								.toggle(
-											function()
-											{					
-												$(_this.video).trigger('play');
-												$(this)
-													.removeClass('empty')
-													.html('<i class="sys-icon pause"></i>');
-											},
-											function()
-											{
-												$(this).html('<i class="sys-icon play"></i>');
-												$(_this.video)
-													.trigger('pause');
-											}
-										);
+								.data('click', 2);
 						});
 		
 		$(_this.bstart)

@@ -173,6 +173,11 @@
                 giphyWrapper: '.giphy-item',
                 giphyInput: '.bx-messenger-giphy-input'
             }
+
+            this.RECORDER = {
+                recorderComments: '#bx-messenger-files-upload-comment',
+                recordeWindow: '#bx-messenger-files-uploader'
+            }
         };
         get(sName){
             return typeof this[sName] !== 'undefined' ? this[sName] : null;

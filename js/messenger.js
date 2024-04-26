@@ -4001,21 +4001,19 @@
 		 *@param int iId image file id
 		 */
 		zoomImage: function (iId) {
+			const { bigImag } = window.oMessengerSelectors.IMAGE_ZOOM;
+
 			$(window).dolPopupAjax({
 				url: 'modules/?r=messenger/get_big_image/' + iId + '/' + $(window).width() + '/' + $(window).height(),
-				id: {force: true, value: 'bx-messenger-big-img'},
+				id: {force: true, value: bigImag.substr(1)},
 				top: '0px',
 				left: '0px',
 				onBeforeShow: function () {
-					$('#bx-messenger-big-img, #bx-messenger-big-img .bx-popup-element-close, #bx-messenger-big-img img, #bx-popup-fog').click(function () {
-						$('#bx-messenger-big-img').dolPopupHide().remove();
+					$(`${bigImag}, ${bigImag} .bx-popup-element-close, ${bigImag} img, #bx-popup-fog`).click(function () {
+						$(bigImag).dolPopupHide().remove();
 					});
 				},
-				onShow: function () {
-					$('#bx-messenger-big-img img').on('load', function(){
-						$(this).dolPopupCenter();
-					});
-				}
+				onShow: () => $(`${bigImag}`).waitForImages(() => $(bigImag).dolPopupCenter())
 			});
 		},
 

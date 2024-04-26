@@ -178,6 +178,10 @@
                 recorderComments: '#bx-messenger-files-upload-comment',
                 recordeWindow: '#bx-messenger-files-uploader'
             }
+
+            this.IMAGE_ZOOM = {
+                bigImag: '#bx-messenger-big-img'
+            }
         };
         get(sName){
             return typeof this[sName] !== 'undefined' ? this[sName] : null;

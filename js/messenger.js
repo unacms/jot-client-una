@@ -4299,8 +4299,8 @@
 
 			try
 			{
-				await navigator.mediaDevices.getUserMedia({video: true, audio: true});
 				bx_loading_btn(oButton, true);
+				await navigator.mediaDevices.getUserMedia({video: true, audio: true});
 				$(window).dolPopupAjax({
 					url: 'modules/?r=messenger/get_record_video_form',
 					id: { force: true, value: recordeWindow.substr(1) },
@@ -4329,6 +4329,8 @@
 					default:
 						bx_alert(_t('_bx_messenger_video_recorder_is_not_available'));
 				}
+
+				bx_loading_btn(oButton, false);
 			}
 		},
 		getUserByTerm: function(sTerm){

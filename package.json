@@ -34,5 +34,8 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/unaio/jot-client-una/issues"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.12.5"
   }
 }

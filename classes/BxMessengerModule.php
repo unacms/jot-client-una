@@ -2398,7 +2398,22 @@ class BxMessengerModule extends BxBaseModGeneralModule
      */
     public function onSendJot($iJotId)
     {
-        bx_alert($this->_oConfig->getObject('alert'), 'send_jot', $iJotId, $this->_iProfileId);
+        $aJotInfo = $this->_oDb->getJotById($iJotId);
+
+        /**
+         * @hooks
+         * @hookdef hook-bx_messenger-send_jot 'bx_messenger', 'send_jot' - hook after a jot (message) was sent
+         * - $unit_name - equals `bx_messenger`
+         * - $action - equals `send_jot`
+         * - $object_id - jot (message) id
+         * - $sender_id - jot (message) author profile id
+         * - $extra_params - array of additional params with the following array keys:
+         *      - `jot_info` - [array] jot (message) info array as key&value pairs
+         * @hook @ref hook-bx_messenger-send_jot
+         */
+        bx_alert($this->_oConfig->getObject('alert'), 'send_jot', $iJotId, $this->_iProfileId, [
+            'jot_info' => $aJotInfo
+        ]);
 
         $CNF = &$this->_oConfig->CNF;
 
@@ -2420,7 +2435,24 @@ class BxMessengerModule extends BxBaseModGeneralModule
             return false;
 
         foreach ($aPartList as &$iPart)
-            bx_alert($this->_oConfig->getObject('alert'), 'got_jot', $iLotId, $this->_iProfileId, array('recipient_id' => $iPart, 'subobject_id' => $iJotId));
+            /**
+             * @hooks
+             * @hookdef hook-bx_messenger-got_jot 'bx_messenger', 'got_jot' - hook after a lot (conversation) got a new jot (message)
+             * - $unit_name - equals `bx_messenger`
+             * - $action - equals `got_jot`
+             * - $object_id - lot (conversation) id
+             * - $sender_id - jot (message) author profile id
+             * - $extra_params - array of additional params with the following array keys:
+             *      - `recipient_id` - [int] recipient profile id
+             *      - `subobject_id` - [int] jot (message) id
+             *      - `subobject_info` - [array] jot (message) info array as key&value pairs
+             * @hook @ref hook-bx_messenger-got_jot
+             */
+            bx_alert($this->_oConfig->getObject('alert'), 'got_jot', $iLotId, $this->_iProfileId, [
+                'recipient_id' => $iPart, 
+                'subobject_id' => $iJotId,
+                'subobject_info' => $aJotInfo
+            ]);
 
         if (!$this->_oDb->getIntervalJotsCount($iLotId, $iJotId))
             $this->sendMessageNotification($iLotId, $iJotId);

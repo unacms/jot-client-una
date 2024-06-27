@@ -72,7 +72,7 @@ window.oMUtils = (function($) {
             getBroadcastFields: () => {
                 const { createConvoForm } = window.oMessengerSelectors.CREATE_TALK;
                 const aFields = Object.create(null);
-                $(createConvoForm).find('input:not([name="csrf_token"]),select').each(function(){
+                $(createConvoForm).find('input:not([name="csrf_token"]),select,textarea').each(function(){
                         const sType = $(this).prop('type'),
                             sName = $(this).prop('name').replace(/\[\]/, '');
 
@@ -86,6 +86,7 @@ window.oMUtils = (function($) {
                                 }
                                 break;
                             case "text":
+                            case "textarea":
                             case "hidden":
                                 if ($(this).val().length && sName.length)
                                     aFields[sName] = $(this).val();

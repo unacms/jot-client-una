@@ -2238,6 +2238,9 @@
 									const fLoadTalksCallback = () => _this.loadTalk(lot_id, undefined, () => {
 																												if (!_this.isBlockVersion())
 																													_this.upLotsPosition(_this.oSettings);
+
+																													// trigger to detect new talk creation
+																													$(document).trigger(jQuery.Event('bx_messenger_talk_created'));
 																											 });
 
 									if (!['inbox', 'direct', 'groups'].includes(_this.oSettings.area_type))
@@ -2313,7 +2316,7 @@
 							break;
 					}
 
-					if (typeof fCallBack == 'function')
+					if (typeof fCallBack === 'function')
 						fCallBack(jot_id);
 
 				}, 'json')

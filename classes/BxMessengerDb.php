@@ -2764,9 +2764,6 @@ class BxMessengerDb extends BxBaseModGeneralDb
     }
 
     function getProfilesByCriteria($aFields){
-        if (empty($aFields))
-            return [];
-
         $aSqlParts= ['where' => '', 'join' => ''];
         if (isset($aFields['membership'])) {
             $aSqlParts = BxDolAclQuery::getInstance()->getContentByLevelAsSQLPart('sys_profiles', 'id', $aFields['membership']);
@@ -2794,6 +2791,9 @@ class BxMessengerDb extends BxBaseModGeneralDb
             'fields' => $aFields,
             'sql' => &$aSqlParts
         ]);
+
+       if (empty($aFields) && !$aSqlParts['where'] && !$aSqlParts['join'])
+            return [];
 
         $sSql = $this->prepare("SELECT `sys_profiles`.`id` FROM `sys_profiles`" . $aSqlParts['join'] . " WHERE 1" . $aSqlParts['where']);
         return $this->getColumn($sSql);

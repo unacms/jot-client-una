@@ -27,7 +27,15 @@
 }
 
 .bx-messenger-participants-list {
-    @apply text-base pb-4 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4 list-none p-1;
+    @apply text-base pb-4 grid grid-cols-1 gap-4 xs:grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 list-none p-1;
+}
+
+.bx-media-tablet .bx-messenger-participants-list {
+    @apply sm:grid-cols-2;
+}
+
+.bx-media-tablet2 .bx-messenger-participants-list {
+    @apply sm:grid-cols-3;
 }
 
 .bx-messenger-create-talk-list-back-button {

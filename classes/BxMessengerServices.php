@@ -653,8 +653,12 @@ class BxMessengerServices extends BxDol
         $aParticipants = [];
         if(!empty($aItem[$CNF['FIELD_PARTICIPANTS']])) {
             $aPartIds = explode(',', $aItem[$CNF['FIELD_PARTICIPANTS']]);
-            foreach($aPartIds as $iPartId)
+            foreach($aPartIds as $iPartId) {
+                if(!$iPartId)
+                    continue;
+
                 $aParticipants[] = BxDolProfile::getData($iPartId);
+            }
         }
 
         $sImageUrl = bx_api_get_relative_url($aItem['bx_if:user']['content']['icon']);

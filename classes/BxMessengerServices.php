@@ -185,7 +185,7 @@ class BxMessengerServices extends BxDol
                 return false;
         }
 
-        return bx_api_get_relative_url(BxDolPermalinks::getInstance()->permalink($CNF['URL_HOME']) . '/inbox/' . $aLot['hash']);
+        return bx_api_get_relative_url(BxDolPermalinks::getInstance()->permalink($CNF['URL_HOME']) . '/inbox/' . mb_strtolower($aLot['hash']));
     }
 
     public function serviceGetConvosList($sParams = '')
@@ -201,8 +201,11 @@ class BxMessengerServices extends BxDol
         if(empty($aList))
             return $aResult;
 
-        foreach($aList as $iKey => $aItem)
-            $aResult[] = $this->_unitLot($aData['list'][$iKey], $aItem);
+        foreach($aList as $iKey => $aItem){
+            $a = $this->_unitLot($aData['list'][$iKey], $aItem);
+            $a['id'] = mb_strtolower($a['id']);
+            $aResult[] = $a;
+        }
 
         return $aResult;
     }

@@ -271,7 +271,7 @@
 	<string name="_bx_messenger_nav_menu_item_title_reply"><![CDATA[Ответы]]></string>
 	<string name="_bx_messenger_nav_menu_item_title_mr"><![CDATA[Реакции и Упоминания]]></string>
 	<string name="_bx_messenger_menu_item_title_parent_lot"><![CDATA[Open original message]]></string>
-	<string name="_bx_messenger_jot_server_jwt"><![CDATA[Jot Server JWT token <b>секретное слово</b>. Такое же слово вам необходимо добавить в <b>config.json</b> вашего Jot Server (оставьте поле пустым, если не хотите использовать JWT tokens для Jot Server)]]></string>
+	<string name="_bx_messenger_jot_server_jwt"><![CDATA[Секретное слово для включения JWT токена с Jot Server. Установите то же самое <b>secret</b> слово в файле config/config.json Jot Server, чтобы включить эту опцию. Это позволит подключаться к Jot Server только с авторизованных сайтов. Оставьте это поле пустым, если вы не хотите использовать JWT токены с Jot Server.]]></string>
 	<string name="_bx_messenger_nav_menu_title_view"><![CDATA[Main menu]]></string>
 	<string name="_bx_messenger_groups_menu_title_view"><![CDATA[Groups Menu]]></string>
 	<string name="_bx_messenger_menu_title_view"><![CDATA[Menu заголовка разговора]]></string>

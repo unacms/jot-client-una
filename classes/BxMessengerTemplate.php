@@ -938,7 +938,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             ];
 
 	        $aVars['bx_if:timer'] = ['condition' => $bShowTime, 'content' => [ 'time' => $iTime ]];
-	        $oTemplate = $this;
+	        $oTemplate = &$this;
             bx_alert($this->_oConfig->getObject('alert'), 'talk_preview_data', $aLot[$CNF['FIELD_ID']], $aLot[$CNF['FIELD_ID']], [
                'vars' => &$aVars,
                'template' => &$oTemplate,

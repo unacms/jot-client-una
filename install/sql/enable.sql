@@ -23,10 +23,8 @@ INSERT INTO `sys_options_categories`(`type_id`, `name`, `caption`, `hidden`, `or
 SET @iCategId = LAST_INSERT_ID();
 
 INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `check`, `check_error`, `extra`, `order`) VALUES
-('bx_messenger_jwt_app_id', '', @iCategId, '_bx_messenger_jwt_app_id', 'digit', '', '', '', 1),
-('bx_messenger_jwt_app_secret', '', @iCategId, '_bx_messenger_jwt_app_secret', 'digit', '', '', '', 2),
-('bx_messenger_check_toxic', '', @iCategId, '_bx_messenger_check_toxic', 'checkbox', '', '', '', 3),
-('bx_messenger_jot_server_jwt', '', @iCategId, '_bx_messenger_jot_server_jwt', 'digit', '', '', '', 4);
+('bx_messenger_check_toxic', '', @iCategId, '_bx_messenger_check_toxic', 'checkbox', '', '', '', 1),
+('bx_messenger_jot_server_jwt', '', @iCategId, '_bx_messenger_jot_server_jwt', 'digit', '', '', '', 2);
 
 INSERT INTO `sys_options_categories`(`type_id`, `name`, `caption`, `hidden`, `order`) VALUES (@iTypeId, CONCAT(@sName, '_moderation'), '_bx_messenger_cpt_category_moderation', 0, 3);
 SET @iCategId = LAST_INSERT_ID();
@@ -66,7 +64,9 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_jitsi_enable_watermark', '', @iCategId, '_bx_messenger_jitsi_watermark', 'checkbox', '', '', '', 6),
 ('bx_messenger_jitsi_watermark_link', '', @iCategId, '_bx_messenger_jitsi_watermark_link', 'digit', '', '', '', 7),
 ('bx_messenger_jitsi_only_for_private', 'on', @iCategId, '_bx_messenger_jitsi_enable_only_for_private', 'checkbox', '', '', '', 8),
-('bx_messenger_jitsi_support_url', 'https://community.jitsi.org/', @iCategId, '_bx_messenger_jitsi_support_url', 'digit', '', '', '', 9);
+('bx_messenger_jwt_app_id', '', @iCategId, '_bx_messenger_jwt_app_id', 'digit', '', '', '', 9),
+('bx_messenger_jwt_app_secret', '', @iCategId, '_bx_messenger_jwt_app_secret', 'digit', '', '', '', 10),
+('bx_messenger_jitsi_support_url', 'https://community.jitsi.org/', @iCategId, '_bx_messenger_jitsi_support_url', 'digit', '', '', '', 11);
 
 INSERT INTO `sys_options_categories`(`type_id`, `name`, `caption`, `hidden`, `order`) VALUES (@iTypeId, CONCAT(@sName, '_privacy'), '_bx_messenger_cpt_category_privacy', 0, 7);
 SET @iCategId = LAST_INSERT_ID();

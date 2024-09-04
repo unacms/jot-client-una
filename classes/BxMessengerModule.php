@@ -2291,6 +2291,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $sType = BX_MSG_NTFS_MENTION;
 
         $sEntryUrl = $this->_oConfig->getRepostUrl($aJotInfo[$CNF['FIELD_MESSAGE_ID']]);
+        $sEntryUrlApi = $this->_oConfig->getRepostUrlApi($aLotInfo[$CNF['FIELD_HASH']], $aJotInfo[$CNF['FIELD_MESSAGE_ID']]);
         $iType = $aLotInfo[$CNF['FIELD_TYPE']];
 
         $sTitle = isset($aLotInfo[$CNF['FIELD_TITLE']]) && $aLotInfo[$CNF['FIELD_TITLE']] ?
@@ -2325,6 +2326,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $aResult = array(
             'entry_sample' => _t('_bx_messenger_message'),
             'entry_url' => $sEntryUrl,
+            'entry_url_api' => $sEntryUrlApi,
             'entry_caption' => $sTitle,
             'entry_author' => $aEvent['object_owner_id'],
             'subentry_sample' => $sMessage,
@@ -4155,7 +4157,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if(bx_is_api())
             return bx_srv($this->getName(), 'get_block_contacts', [$mixedParams], 'Services');
 
-        return $this->_oTemplate->getContacts($this->_iProfileId, $mixedParams);
+        return $this->_oTemplate->getContacts($this->_iProfileId, $aParams);
     }
 
     public function serviceGetBroadcastFields($aInputsAdd = array()) {

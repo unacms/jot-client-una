@@ -189,6 +189,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
             // page URIs
             'URL_HOME' => BX_DOL_URL_ROOT . 'page.php?i=messenger',
             'URL_REPOST' => 'archive/',
+            'URL_INBOX' => 'inbox/',
             'URL_TEMPLATE' => BX_DOL_URL_ROOT . 'page.php?{link}',
 
             // some params
@@ -395,6 +396,15 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
     public function getRepostUrl($iJotId = 0)
     {
         return $this->getBaseUri() . $this->CNF['URL_REPOST'] . ( $iJotId ? $iJotId : '');
+    }
+
+    public function getRepostUrlApi($sLotHash, $iJotId = 0)
+    {
+        $sUrl = $this->getBaseUri() . $this->CNF['URL_INBOX'] . $sLotHash;
+        if($iJotId)
+            $sUrl = bx_append_url_params($sUrl, ['id' => $iJotId]);
+
+        return $sUrl;
     }
 
     /**

@@ -1588,7 +1588,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                     {
                             $iDiff = $aJVCItem[$CNF['FJVCT_END']] - $aJVCItem[$CNF['FJVCT_START']];
                             $iH = floor( $iDiff / 3600 );
-                            $iM = floor( ( $iDiff / 60 ) % 60 );
+                            $iM = floor( (int)( $iDiff / 60 ) % 60 );
                             $iS = $iDiff % 60;
 
                             $sDate = _t('_bx_messenger_jitsi_vc_duration_s', $iS);

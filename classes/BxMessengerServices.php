@@ -44,6 +44,7 @@ class BxMessengerServices extends BxDol
             ], [
                 'ext' => [
                     'name' => $this->_sModule, 
+                    'params' => ($aParams = bx_get('params')) !== false ? $aParams : [],
                     'request' => ['url' => '/api.php?r=' . $this->_sModule . '/get_send_form/Services', 'immutable' => true]
                 ]
             ])

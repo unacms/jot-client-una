@@ -716,7 +716,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
     }
 
     public function getSelectedNotificationMode($aNotifData){
-        if (empty($aNotifData) || !$oModule = BxDolModule::getInstance('bx_notifications'))
+        if (empty($aNotifData) || !($oModule = BxDolModule::getInstance('bx_notifications')))
             return false;
 
         $bEmail = in_array('email', $aNotifData);

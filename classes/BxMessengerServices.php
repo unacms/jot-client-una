@@ -470,11 +470,13 @@ class BxMessengerServices extends BxDol
 
             $aResult = $this->_oModule->sendMessage($aData);
             $aResult['time'] = bx_get('payload');
-           //$this->_pusherData('new-message', ['convo' => $iLotId, 'message' => $aResult['jot_id']]);
-            $this->_pusherData('convo_' . $aLotInfo['hash'], ['convo' => $iLotId, 'action' => 'added', 'data' => $this->serviceGetConvoMessages(['jot' => $aResult['jot_id'], 'load' => 'ids'])]);
-            
+            $aResult['data'] = ['convo' => $iLotId, 'action' => 'added', 'data' => $this->serviceGetConvoMessages(['jot' => $aResult['jot_id'], 'load' => 'ids'])];
+
+            //$this->_pusherData('new-message', ['convo' => $iLotId, 'message' => $aResult['jot_id']]);
+            $this->_pusherData('convo_' . $aLotInfo['hash'], ['convo' => $iLotId, 'action' => 'added', 'data' => $aResult['data']]);
+
             $aParticipantsList = $this->_oModule->_oDb->getParticipantsList($iLotId, true);
-            foreach($aParticipantsList as $iProfile){
+            foreach($aParticipantsList as $iProfile) {
                 $this->_pusherData('profile_' . $iProfile, ['convo' => $iLotId]);
             }
 

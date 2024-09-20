@@ -4200,7 +4200,12 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 $aFields[$aInput['name']] = $aData[$aInput['name']];
         }
 
-        return $this->_oDb->getProfilesByCriteria($aFields);
+        $aProfiles = $this->_oDb->getProfilesByCriteria($aFields);
+        bx_alert($this->_oConfig->getObject('alert'), 'broadcast_profiles_list', 0, 0, [
+            'profiles' => &$aProfiles
+        ]);
+
+        return $aProfiles;
     }
 
     function actionCalculateProfiles(){

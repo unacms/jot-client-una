@@ -327,7 +327,7 @@ class BxMessengerServices extends BxDol
                 $sReplyMessage = '';
                 if(($iReply = (int)$aJot['reply']) != 0) {
                     $aReply = $this->_oModule->_oDb->getJotById($iReply);
-                    if(!empty($aReply) || is_array($aReply))
+                    if(!empty($aReply) && is_array($aReply))
                         $sReplyMessage = $aReply[$CNF['FIELD_MESSAGE']];
                 }
 

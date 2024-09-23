@@ -17,7 +17,7 @@ class BxMessengerUploaderHTML5 extends BxBaseModFilesUploaderHTML5
         parent::__construct($aObject, $sStorageObject, $sUniqId, $oTemplate);
     }
 
-    public function getGhostsWithOrder($iProfileId, $sFormat, $sImagesTranscoder = false, $iContentId = false)
+    public function getGhostsWithOrder($iProfileId, $sFormat, $sImagesTranscoder = false, $iContentId = false, $isLatestOnly = false)
     {
         if ((int)$iContentId){
             $oStorage = BxDolStorage::getObjectInstance($this->_sStorageObject);
@@ -26,7 +26,7 @@ class BxMessengerUploaderHTML5 extends BxBaseModFilesUploaderHTML5
                 $oStorage->insertGhost($aFile['id'], $aFile['profile_id'], $iContentId);            
         }
     
-        return parent::getGhostsWithOrder($iProfileId, $sFormat, $sImagesTranscoder, $iContentId);
+        return parent::getGhostsWithOrder($iProfileId, $sFormat, $sImagesTranscoder, $iContentId, $isLatestOnly);
     }
 
     protected function getGhostTemplateVars($aFile, $iProfileId, $iContentId, $oStorage, $oImagesTranscoder)

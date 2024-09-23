@@ -28,8 +28,10 @@ class BxMessengerMainMenu extends BxTemplMenu
 
     protected function _getMenuItem ($a){
         $aMenuItem = parent::_getMenuItem($a);
-        $iAddon = 0;
+        if($aMenuItem === false)
+            return $aMenuItem;
 
+        $iAddon = 0;
         if (isset($this->_aMenuStat[$aMenuItem['name']]))
             $iAddon = is_array($this->_aMenuStat[$aMenuItem['name']]) ? count($this->_aMenuStat[$aMenuItem['name']]) : (int)$this->_aMenuStat[$aMenuItem['name']];
 

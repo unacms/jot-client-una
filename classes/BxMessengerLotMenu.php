@@ -14,15 +14,14 @@
  */
 class BxMessengerLotMenu extends BxBaseModTextMenu
 {
-    protected $_sModule;
     protected $_oModule;
     private $_sPopupTalOptions = '';
     private $_iProfileId = 0;
     private $_isBlockVersion = true;
     public function __construct($aObject, $oTemplate = false)
     {
-        $this->_sModule = 'bx_messenger';
-        $this->_oModule = BxDolModule::getInstance($this-> _sModule);
+        $this->MODULE = 'bx_messenger';
+        $this->_oModule = BxDolModule::getInstance($this->MODULE);
         $this->_iProfileId = bx_get_logged_profile_id();
 
         parent::__construct($aObject, $this->_oModule->_oTemplate);

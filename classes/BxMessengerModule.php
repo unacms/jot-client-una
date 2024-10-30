@@ -641,11 +641,11 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
             $this->onSendJot($iId);
         }
-		else
+        else
             return _t('_bx_messenger_send_message_save_error');
 
-        BxDolSession::getInstance()->exists($iSender);
-		return $aResult;
+            BxDolSession::getInstance()->exists();
+            return $aResult;
 	}
 
 	public function actionSend(){
@@ -731,7 +731,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if ($this->_isBlockMessenger)
             $aVars['talks_list'] = $this->_oTemplate->getTalksList($iLotId);
 
-        BxDolSession::getInstance()->exists($this->_iProfileId);
+        BxDolSession::getInstance()->exists();
         echoJson($aVars);
     }
 
@@ -1150,8 +1150,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
                         );
 
         // update session
-        if ($this->_iProfileId)
-            BxDolSession::getInstance()->exists($this->_iProfileId);
+        BxDolSession::getInstance()->exists();
 
         echoJson($aResult);
     }

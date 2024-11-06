@@ -332,7 +332,7 @@ class BxMessengerServices extends BxDol
                 }
 
                 $aResult[] = array_merge($aJot, [
-                    $CNF['FIELD_MESSAGE_FK'] => $aOptions['lot'],
+                    $CNF['FIELD_MESSAGE_FK'] => $iLotId,
                     $CNF['FIELD_MESSAGE'] => $aJot[$CNF['FIELD_MESSAGE']],
                     'author_data' => BxDolProfile::getData($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]),
                     'reactions' => $aReactions,
@@ -469,8 +469,15 @@ class BxMessengerServices extends BxDol
             }
 
             $aResult = $this->_oModule->sendMessage($aData);
-            $aResult['time'] = bx_get('payload');
-            $aResult['data'] = ['convo' => $iLotId, 'action' => 'added', 'data' => $this->serviceGetConvoMessages(['jot' => $aResult['jot_id'], 'load' => 'ids'])];
+            if(is_array($aResult))
+                $aResult = array_merge($aResult, [
+                    'time' => bx_get('payload'),
+                    'data' => ['convo' => $iLotId, 'action' => 'added', 'data' => $this->serviceGetConvoMessages(['jot' => $aResult['jot_id'], 'load' => 'ids'])]
+                ]);
+            else
+                $aResult = [
+                    'data' => ['convo' => $iLotId, 'action' => 'added', 'data' => ['msg' => $aResult]]
+                ];
 
             //$this->_pusherData('new-message', ['convo' => $iLotId, 'message' => $aResult['jot_id']]);
             $this->_pusherData('convo_' . $aLotInfo['hash'], ['convo' => $iLotId, 'action' => 'added', 'data' => $aResult['data']]);
@@ -545,12 +552,11 @@ class BxMessengerServices extends BxDol
             return $aResult;
 
         $aFoundProfile = $this->_oModule->searchProfiles($aOptions['term'], isset($aOptions['except']) ? $aOptions['except'] : []);
-        if (!empty($aFoundProfile)){
+        if (!empty($aFoundProfile)) {
             foreach($aFoundProfile as &$aProfile) {
-                $oModule = BxDolModule::getInstance($aProfile['module']);
-                $oPCNF = &$oModule->_oConfig->CNF;
-                $aData = $oModule->_oDb->getContentInfoById($aProfile['id']);
-                $oProfile = BxDolProfile::getInstanceByContentAndType($aProfile['id'], $aProfile['module']);
+                if(!($oProfile = BxDolProfile::getInstanceByContentAndType($aProfile['id'], $aProfile['module'])) || $oProfile->checkAllowedProfileContact() !== CHECK_ACTION_RESULT_ALLOWED)
+                    continue;
+
                 $aUsers[] = $aProfile['author_data'];
             }
         }

@@ -2290,7 +2290,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $sType = BX_MSG_NTFS_MENTION;
 
         $sEntryUrl = $this->_oConfig->getRepostUrl($aJotInfo[$CNF['FIELD_MESSAGE_ID']]);
-        $sEntryUrlApi = $this->_oConfig->getRepostUrlApi($aLotInfo[$CNF['FIELD_HASH']], $aJotInfo[$CNF['FIELD_MESSAGE_ID']]);
+        $sEntryUrlApi = $this->_oConfig->getRepostUrlApi($aLotInfo[$CNF['FIELD_HASH']]);
         $iType = $aLotInfo[$CNF['FIELD_TYPE']];
 
         $sTitle = isset($aLotInfo[$CNF['FIELD_TITLE']]) && $aLotInfo[$CNF['FIELD_TITLE']] ?

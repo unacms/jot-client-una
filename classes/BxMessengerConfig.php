@@ -400,7 +400,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
 
     public function getRepostUrlApi($sLotHash, $iJotId = 0)
     {
-        $sUrl = $this->getBaseUri() . $this->CNF['URL_INBOX'] . $sLotHash;
+        $sUrl = $this->getUri() . '/' . $this->CNF['URL_INBOX'] . $sLotHash;
         if($iJotId)
             $sUrl = bx_append_url_params($sUrl, ['id' => $iJotId]);
 

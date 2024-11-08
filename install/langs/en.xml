@@ -435,6 +435,7 @@ name="_bx_ntfs_alert_action_got_broadcast_ntfs_personal"><![CDATA[Broadcast mess
 
 	<string name="_bx_messenger_giphy_powered_by"><![CDATA[Enabling 'Powered By' logo: required step for Giphy integration in Production]]></string>
 	<string name="_bx_messenger_video_record_is_not_supported"><![CDATA[Video recording is not supported: {0}]]></string>
+	<string name="_bx_messenger_nav_menu_item_title_groups"><![CDATA[Groups]]></string>
 
 	<string name=""><![CDATA[]]></string>
 </resources>

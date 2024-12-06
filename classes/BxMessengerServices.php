@@ -636,10 +636,9 @@ class BxMessengerServices extends BxDol
             'id' => $iContentId,
             'module' => $sModule,
             'title' => $oProfile->getDisplayName(),
-            'url' => bx_api_get_relative_url($oProfile->getUrl()),
+            'url' => $this->serviceGetConvoUrl(['recipient' => $iProfileId]),
             'image' => bx_api_get_image($oPCNF['OBJECT_STORAGE'], $aData[$oPCNF['FIELD_PICTURE']]),
-            'cover' => bx_api_get_image($oPCNF['OBJECT_STORAGE'], $aData[$oPCNF['FIELD_COVER']]),
-            'contact_url' => $this->serviceGetConvoUrl(['recipient' => $iProfileId])
+            'cover' => bx_api_get_image($oPCNF['OBJECT_STORAGE'], $aData[$oPCNF['FIELD_COVER']])
         ];
 
         $sKey = 'OBJECT_MENU_SNIPPET_META';

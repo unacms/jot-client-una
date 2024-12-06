@@ -161,12 +161,12 @@ class BxMessengerServices extends BxDol
     /**
      * Get convo (lot) URL by recipient ID
      */
-    public function serviceGetConvoUrl($sParams)
+    public function serviceGetConvoUrl($mixedParams)
     {
         $CNF = &$this->_oModule->_oConfig->CNF;
 
-        $aOptions = json_decode($sParams, true);
-        
+        $aOptions = is_array($mixedParams) ? $mixedParams : json_decode($mixedParams, true);
+
         $aParticipants = [$this->_iProfileId];
         if(!empty($aOptions['recipient']))
             $aParticipants[] = $aOptions['recipient'];
@@ -639,6 +639,7 @@ class BxMessengerServices extends BxDol
             'url' => bx_api_get_relative_url($oProfile->getUrl()),
             'image' => bx_api_get_image($oPCNF['OBJECT_STORAGE'], $aData[$oPCNF['FIELD_PICTURE']]),
             'cover' => bx_api_get_image($oPCNF['OBJECT_STORAGE'], $aData[$oPCNF['FIELD_COVER']]),
+            'contact_url' => $this->serviceGetConvoUrl(['recipient' => $iProfileId])
         ];
 
         $sKey = 'OBJECT_MENU_SNIPPET_META';

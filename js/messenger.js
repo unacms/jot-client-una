@@ -500,7 +500,11 @@
 			{ inputArea, sendButton, attachmentGroup } = window.oMessengerSelectors.TEXT_AREA,
 			{ talkListJotSelector } = window.oMessengerSelectors.JOT;
 
+		// init files uploader
+		_this.createFilesUploader();
+
 		this.oEditor = this.initTextEditor({
+			files_uploader: _this.oFilesUploader,
 			selector: sTextAreaSelector || inputArea,
 			placeholder: _t('_bx_messenger_post_area_message'),
 			onEnter:() => {
@@ -597,9 +601,6 @@
 						bottom: $(textArea).height()
 					}, () => _this.oActiveEmojiObject['type'] = 'textarea');
 			});
-
-		// init files uploader
-		_this.createFilesUploader();
 
 		$(_this.sAttachFilesButton).on('click', () => {
 			if (!$(`${attachmentGroup} [name^="${_this.sUploaderInputPrefix}"]`).length || !_this.oFilesUploader)

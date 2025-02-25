@@ -2651,7 +2651,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             'url' => $oObject->getUrl()
         );
 
-        BxDolPush::getInstance()->send($iReceiverId, array_merge($aInfo, array(
+        BxDolPush::getObjectInstance()->send($iReceiverId, array_merge($aInfo, array(
                 'icon' => $sType === 'bx_persons' ?
                                 $oSender->getThumb() :
                                 $oObject->getThumb())),

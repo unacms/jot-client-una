@@ -203,6 +203,7 @@
                 isReady:            () => _this.instance.status === FilePond.Status.READY,
                 getFiles:           () => _this.instance.getFiles().filter((oFile) => oFile.status === 5).map(({ file }) => file.name),
                 getAllFiles:        () => _this.instance.getFiles().map(({ file, status, source }) => ({ complete: +(status === 5), name: file.name, realname: source.name })),
+                addFile:            (oFile) => _this.instance.addFile(oFile),
                 clean:              () => {
                                             if (typeof _this.onAddFilesCallback === 'function')
                                                 _this.onAddFilesCallback();

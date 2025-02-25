@@ -19,6 +19,7 @@
         this.oHtmlSendButton = oOptions['button'] ? oOptions['button'] : '.send-button';
         this.oPlaceholder = oOptions['placeholder'] || null;
         this.bUseMantions = typeof oOptions['mentions'] === 'undefined' || oOptions['mentions'];
+        this.oFilesUploader = typeof oOptions['files_uploader'] === 'undefined' || oOptions['files_uploader'];
 
         aEditorFunctions.map(sFunc => {
              this[sFunc] = typeof oOptions[sFunc] === 'function' ? oOptions[sFunc] : () => true;
@@ -102,14 +103,32 @@
     }
 
     initClipboard(){
+        const _this = this;
         const QuillClipboard = Quill.import('modules/clipboard');
         class Clipboard extends QuillClipboard {
             onPaste (event) {
+                if (event.clipboardData && event.clipboardData.items) {
+                    const files = [];
+                    for (let item of event.clipboardData.items) {
+                        if (item.kind === 'file') {
+                            const file = item.getAsFile();
+                            if (file) files.push(file);
+                        }
+                    }
+
+                    if (_this.oFilesUploader && files.length) {
+                        event.preventDefault();
+                        files.forEach(file => {
+                            _this.oFilesUploader.addFile(file);
+                        });
+
+                        return;
+                    }
+                }
                 super.onPaste(event);
-                if (event.clipboardData.getData('text/plain').length > 0)
-                    $(this.oHtmlSendButton).fadeIn();
             }
         };
+
         Quill.register('modules/clipboard', Clipboard, true);
     }
 

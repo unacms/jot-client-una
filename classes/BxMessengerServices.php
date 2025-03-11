@@ -389,9 +389,9 @@ class BxMessengerServices extends BxDol
             if (!$mixedLotId){
                 $mixedLotId = $oForm->aInputs['id']['value'] = $aOptions['convo_id'];
             }
-            
+
             if ($mixedLotId)
-                $iLotId = $this->_oModule->_oDb->getConvoByHash($mixedLotId);
+                $iLotId = !is_numeric($mixedLotId) ? $this->_oModule->_oDb->getConvoByHash($mixedLotId) : (int)$mixedLotId;
 
             $aLotInfo = $this->_oModule->_oDb->getLotInfoById($iLotId);
             if (!empty($aLotInfo) && !$this->_isAvailable($iLotId))
@@ -410,7 +410,9 @@ class BxMessengerServices extends BxDol
             } 
 
             if(($mixPayload = bx_get('payload')) !== false && !$aData['lot']) {
-                $aData = array_merge($aData, json_decode($mixPayload, true));
+                if(!empty($mixPayload) && ($mixPayload = json_decode($mixPayload, true)) && is_array($mixPayload))
+                    $aData = array_merge($aData, $mixPayload);
+
                 if(isset($aData['participants']) && !in_array($this->_iProfileId, $aData['participants']))
                     $aData['participants'][] = $this->_iProfileId;
             }

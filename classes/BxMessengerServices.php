@@ -186,7 +186,7 @@ class BxMessengerServices extends BxDol
                 return false;
         }
 
-        return bx_api_get_relative_url(BxDolPermalinks::getInstance()->permalink($CNF['URL_HOME']) . '/inbox/' . mb_strtolower($aLot['hash']));
+        return bx_api_get_relative_url(BxDolPermalinks::getInstance()->permalink($CNF['URL_HOME']) . '/inbox/' . $this->_normalizeConvoHash($aLot['hash']));
     }
 
     public function serviceGetConvosList($sParams = '')
@@ -202,11 +202,8 @@ class BxMessengerServices extends BxDol
         if(empty($aList))
             return $aResult;
 
-        foreach($aList as $iKey => $aItem){
-            $a = $this->_unitLot($aData['list'][$iKey], $aItem);
-            $a['id'] = mb_strtolower($a['id']);
-            $aResult[] = $a;
-        }
+        foreach($aList as $iKey => $aItem)
+            $aResult[] = $this->_unitLot($aData['list'][$iKey], $aItem);
 
         return $aResult;
     }
@@ -332,7 +329,7 @@ class BxMessengerServices extends BxDol
                 }
 
                 $aResult[] = array_merge($aJot, [
-                    $CNF['FIELD_MESSAGE_FK'] => $iLotId,
+                    $CNF['FIELD_MESSAGE_FK'] => isset($aOptions['lot']) ? $aOptions['lot'] : '',
                     $CNF['FIELD_MESSAGE'] => $aJot[$CNF['FIELD_MESSAGE']],
                     'author_data' => BxDolProfile::getData($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]),
                     'reactions' => $aReactions,
@@ -360,6 +357,7 @@ class BxMessengerServices extends BxDol
         $CNF = &$this->_oModule->_oConfig->CNF;
         $oForm = BxBaseFormView::getObjectInstance($CNF['OBJECT_API_FORM_NAME'], $CNF['OBJECT_API_FORM_NAME']);
 
+        $aOptions = [];
         if ($sParams)
             $aOptions = json_decode($sParams, true);
 
@@ -397,6 +395,7 @@ class BxMessengerServices extends BxDol
             if (!empty($aLotInfo) && !$this->_isAvailable($iLotId))
                 return ['code' => 1, 'msg' => _t('_bx_messenger_not_participant')];
 
+            $sLotHash = $this->_normalizeConvoHash($aLotInfo['hash']);
 
             $aData = [
                 'lot' => $iLotId, 
@@ -462,8 +461,13 @@ class BxMessengerServices extends BxDol
 
                 if ($sMessage && $this->_oModule->_oDb->editJot($iMessageId, $this->_iProfileId, $sMessage)) {
                     $this->_oModule->onUpdateJot($aJotInfo[$CNF['FIELD_MESSAGE_FK']], $iMessageId, $aJotInfo[$CNF['FIELD_MESSAGE_AUTHOR']]);
-                    $this->_pusherData('convo_' . $aLotInfo['hash'], ['convo' => $iLotId, 'action' => 'edited', 'data' => $this->serviceGetConvoMessages(['jot' => $iMessageId, 'load' => 'ids'])]);
-                    //$this->_pusherData('edit-message', ['convo' => $iLotId, 'message' => $iMessageId]);
+
+                    $this->_pusherData('convo_' . $sLotHash, ['convo' => $iLotId, 'action' => 'edited', 'data' => $this->serviceGetConvoMessages([
+                        'load' => 'ids',
+                        'lot' => $sLotHash, 
+                        'jot' => $iMessageId
+                    ])]);
+
                     return ['code' => 0, 'jot_id' => $iMessageId];
                 }
 
@@ -471,25 +475,20 @@ class BxMessengerServices extends BxDol
             }
 
             $aResult = $this->_oModule->sendMessage($aData);
-            if(is_array($aResult))
-                $aResult = array_merge($aResult, [
-                    'time' => bx_get('payload'),
-                    'data' => ['convo' => $iLotId, 'action' => 'added', 'data' => $this->serviceGetConvoMessages(['jot' => $aResult['jot_id'], 'load' => 'ids'])]
-                ]);
-            else
-                $aResult = [
-                    'data' => ['convo' => $iLotId, 'action' => 'added', 'data' => ['msg' => $aResult]]
-                ];
+            $bResult = !empty($aResult) && is_array($aResult);
 
-            //$this->_pusherData('new-message', ['convo' => $iLotId, 'message' => $aResult['jot_id']]);
-            $this->_pusherData('convo_' . $aLotInfo['hash'], ['convo' => $iLotId, 'action' => 'added', 'data' => $aResult['data']]);
+            $this->_pusherData('convo_' . $sLotHash, ['convo' => $iLotId, 'action' => 'added', 'data' => ($bResult ? $this->serviceGetConvoMessages([
+                'load' => 'ids',
+                'lot' => $sLotHash,
+                'jot' => $aResult['jot_id']
+            ]) : ['msg' => $aResult])]);
 
             $aParticipantsList = $this->_oModule->_oDb->getParticipantsList($iLotId, true);
             foreach($aParticipantsList as $iProfile) {
                 $this->_pusherData('profile_' . $iProfile, ['convo' => $iLotId]);
             }
 
-            return $aResult;
+            return $bResult ? array_merge($aResult, []) : ['msg' => $aResult];
         }
 
         return $oForm->getCodeAPI();
@@ -610,11 +609,16 @@ class BxMessengerServices extends BxDol
         $aOptions = json_decode($sParams, true);
 
         $iJotId = isset($aOptions['jot_id']) ? (int)$aOptions['jot_id'] : 0;
-        $iLotId = isset($aOptions['lot_id']) ? $aOptions['lot_id'] : 0;
+        $sLotHash = isset($aOptions['lot_id']) ? $aOptions['lot_id'] : 0;
         if(!$iJotId)
             return [];
-        $iLotId2 = $this->_oModule->_oDb->getConvoByHash($iLotId);
-        $this->_pusherData('convo_' . $iLotId, ['convo' => $iLotId2, 'action' => 'deleted', 'data' => $iJotId]);
+
+        $iLotId = $this->_oModule->_oDb->getConvoByHash($sLotHash);
+        $this->_pusherData('convo_' . $sLotHash, [
+            'convo' => $iLotId, 
+            'action' => 'deleted', 
+            'data' => $iJotId
+        ]);
 
         return $this->_oModule->serviceDeleteJot($iJotId, true);
     }
@@ -690,7 +694,7 @@ class BxMessengerServices extends BxDol
             'title' => $aItem[$CNF['FIELD_TITLE']],
             'message' => $aItem['bx_if:user']['content']['message'],
             'date' => $aItem['bx_if:timer']['content']['time'],
-            'id' => $aLot[$CNF['FIELD_HASH']],
+            'id' => $this->_normalizeConvoHash($aLot[$CNF['FIELD_HASH']]),
             'id2' => $aItem[$CNF['FIELD_ID']],
             'unread' => $aItem['count'],
             'total_messages' => $this->_oModule->_oDb->getJotsNumber($aItem[$CNF['FIELD_ID']], 0)
@@ -701,18 +705,12 @@ class BxMessengerServices extends BxDol
     {
         $CNF = &$this->_oModule->_oConfig->CNF;
 
-        $oSockets = BxDolSockets::getInstance();
-
-        if(!empty($aData['convo'])) {
-            $aLotInfo = $this->_oModule->_oDb->getLotInfoById($aData['convo']);
-            $aData['id'] = $aLotInfo[$CNF['FIELD_HASH']];
-        }
-
         $aData['user_id'] = $this->_iProfileId;
+        if(!empty($aData['convo']) && ($aLotInfo = $this->_oModule->_oDb->getLotInfoById($aData['convo'])))
+            $aData['id'] = $this->_normalizeConvoHash($aLotInfo[$CNF['FIELD_HASH']]);
 
-        if($oSockets->isEnabled() && $sAction && !empty($aData)) {
+        if(($oSockets = BxDolSockets::getInstance()) && $oSockets->isEnabled() && $sAction && !empty($aData))
             $oSockets->sendEvent('bx', 'messenger', $sAction, $aData);
-        }
     }
 
     protected function _isAvailable($iLotId)
@@ -727,6 +725,11 @@ class BxMessengerServices extends BxDol
             return false;
 
         return true;
+    }
+
+    protected function _normalizeConvoHash($sHash)
+    {
+        return mb_strtolower($sHash);
     }
 
     public function log($mixedContents, $sSection = '', $sTitle = '')

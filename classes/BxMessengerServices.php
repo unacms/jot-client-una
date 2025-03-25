@@ -679,7 +679,11 @@ class BxMessengerServices extends BxDol
             }
         }
 
-        $sImageUrl = bx_api_get_relative_url($aItem['bx_if:user']['content']['icon']);
+        $sImageUrl = $aItem['bx_if:user']['content']['icon'];
+        if(!empty($sImageUrl) && is_array($sImageUrl))
+            $sImageUrl = !empty($sImageUrl['src']) ? $sImageUrl['src'] : '';
+        if($sImageUrl)
+            $sImageUrl = bx_api_get_relative_url($sImageUrl);
 
         return [
             'author_data' => (int)$aItem[$CNF['FIELD_AUTHOR']] ? BxDolProfile::getData($aItem[$CNF['FIELD_AUTHOR']]) : [

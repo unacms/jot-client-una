@@ -4156,7 +4156,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if(bx_is_api())
             return bx_srv($this->getName(), 'get_block_contacts', [$mixedParams], 'Services');
 
-        return $this->_oTemplate->getContacts($this->_iProfileId, $aParams);
+        return $this->_oTemplate->getContacts($this->_iProfileId, $mixedParams);
     }
 
     public function serviceGetBroadcastFields($aInputsAdd = array()) {

@@ -784,7 +784,12 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             }
             else
             {
-                $oAuthor = $iParticipantsCount == 1 ? $this->getObjectUser(current($aParticipantsList)) : $this->getObjectUser($aLot[$CNF['FIELD_AUTHOR']]);
+                $oAuthor = $this->getObjectUser(
+                    $aLot[$CNF['FIELD_TYPE']] == BX_IM_TYPE_BROADCAST || $iParticipantsCount !== 1
+                        ? $aLot[$CNF['FIELD_AUTHOR']]
+                        : current($aParticipantsList)
+                );
+
                 $sThumb = $oAuthor->getThumb();
                 $bThumb = stripos($sThumb, 'no-picture') === FALSE;
                 $sTitle = $oAuthor->getDisplayName();

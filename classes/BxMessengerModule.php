@@ -3883,6 +3883,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
             //--- Aren't used in App for now.
             'GetConvoMessage' => '',
+            'GetConferenceInfoByUid' => 'BxMessengerServices',
             'GetConvoItem' => '',
             'ClearGhost' => '',
         ];
@@ -4309,6 +4310,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $oSockets->sendEvent('bx', 'messenger', $sAction, $aData);
         }
     }
+
 }
 
 /** @} */

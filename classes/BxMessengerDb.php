@@ -2873,8 +2873,11 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
         $sLimit = '';
         $aParams = ['room' => $sRoom];
-        if ($mixedLimit && is_numeric($mixedLimit)) {
-            $sLimit = "LIMIT " . (int)$mixedLimit;
+        if ($mixedLimit !== false && is_numeric($mixedLimit)) {
+            $limit = (int)$mixedLimit;
+            if ($limit > 0) {
+                $sLimit = "LIMIT {$limit}";
+            }
         }
 
         return $this->getAll("SELECT `v`.`{$this->CNF['FJVC_ID']}`, 

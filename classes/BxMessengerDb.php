@@ -2867,14 +2867,14 @@ class BxMessengerDb extends BxBaseModGeneralDb
         return $this->getAll("({$sQuery}) ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}`", $aBindings);
     }
 
-    public function getVideoConferenceInfoByRoom($sRoom, $mixedLimit = false){
+    public function getVideoConferenceInfoByRoom($sRoom, $iLimit = 0){
         if (!$sRoom)
             return [];
 
         $sLimit = '';
         $aParams = ['room' => $sRoom];
-        if ($mixedLimit !== false && is_numeric($mixedLimit)) {
-            $limit = (int)$mixedLimit;
+        if ($iLimit && is_numeric($iLimit)) {
+            $limit = (int)$iLimit;
             if ($limit > 0) {
                 $sLimit = "LIMIT {$limit}";
             }

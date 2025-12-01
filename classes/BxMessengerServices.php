@@ -55,26 +55,34 @@ class BxMessengerServices extends BxDol
     {
         $aParams = bx_api_get_browse_params($mixedParams, true);
 
-        $aProfiles = !defined('BX_API_PAGE') ? $this->_oModule->_oTemplate->getContacts($this->_iProfileId, $aParams) : [];
+        $aBlock = BxDolPage::getBlockProcessing();
 
-        $aResultProfiles = [];
+        $sContentType = 'browse';
+        if(($sK = 'config_api') && $aBlock[$sK] && is_array($aBlock[$sK]))
+            $sContentType = $aBlock[$sK]['content_type'] ?? $sContentType;
+
+        $bBrowseSimple = $sContentType == 'browse_simple';
+
+        $aProfiles = !defined('BX_API_PAGE') || $bBrowseSimple ? $this->_oModule->_oTemplate->getContacts($this->_iProfileId, $aParams) : [];
+
+        $aData = [];
         foreach($aProfiles as &$aProfile)
             if($aProfile['id'] != $this->_iProfileId)
-                $aResultProfiles[] = $this->_unitProfile($aProfile['id']);
+                $aData[] = $this->_unitProfile($aProfile['id']);
 
-        $aData = array_merge([
-            'data' => $aResultProfiles
-        ], [
-            'params' => [
-                'start' => isset($aParams['start']) ? $aParams['start'] : 0,
-                'per_page' => isset($aParams['per_page']) ? $aParams['per_page'] : 0 
-        ]], [
-            'module' => $this->_sModule,
-            'unit' => 'mixed',
-            'request_url' => '/api.php?r=' . $this->_sModule . '/get_block_contacts/Services&params[]='
-        ]);
+        if(!$bBrowseSimple || $aData)
+            $aData = bx_api_get_block($sContentType, [
+                'module' => $this->_sModule,
+                'unit' => 'mixed',
+                'request_url' => '/api.php?r=' . $this->_sModule . '/get_block_contacts/Services&params[]=',
+                'data' => $aData,
+                'params' => [
+                    'start' => isset($aParams['start']) ? $aParams['start'] : 0,
+                    'per_page' => isset($aParams['per_page']) ? $aParams['per_page'] : 0 
+                ]
+            ]);
 
-        return [bx_api_get_block('browse', $aData)];
+        return [$aData];
     }
 
     /*

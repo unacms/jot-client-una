@@ -71,7 +71,7 @@ class BxMessengerServices extends BxDol
                 $aData[] = $this->_unitProfile($aProfile['id']);
 
         if(!$bBrowseSimple || $aData)
-            $aData = bx_api_get_block($sContentType, [
+            $aData = [bx_api_get_block($sContentType, [
                 'module' => $this->_sModule,
                 'unit' => 'mixed',
                 'request_url' => '/api.php?r=' . $this->_sModule . '/get_block_contacts/Services&params[]=',
@@ -80,9 +80,9 @@ class BxMessengerServices extends BxDol
                     'start' => isset($aParams['start']) ? $aParams['start'] : 0,
                     'per_page' => isset($aParams['per_page']) ? $aParams['per_page'] : 0 
                 ]
-            ]);
+            ])];
 
-        return [$aData];
+        return $aData;
     }
 
     /*

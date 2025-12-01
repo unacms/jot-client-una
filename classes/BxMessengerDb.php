@@ -2866,6 +2866,31 @@ class BxMessengerDb extends BxBaseModGeneralDb
         $sQuery = "SELECT `m`.*  FROM `{$this->CNF['TABLE_MESSAGES']}` as `m` {$sJoinArea} WHERE 1 {$sWhere} {$sWhereArea}	ORDER BY `m`.`{$this->CNF['FIELD_MESSAGE_ID']}` DESC LIMIT :start, :limit";
         return $this->getAll("({$sQuery}) ORDER BY `{$this->CNF['FIELD_MESSAGE_ID']}`", $aBindings);
     }
+
+    public function getVideoConferenceInfoByRoom($sRoom, $iLimit = 0){
+        if (!$sRoom)
+            return [];
+
+        $sLimit = '';
+        $aParams = ['room' => $sRoom];
+        if ($iLimit && is_numeric($iLimit)) {
+            $limit = (int)$iLimit;
+            if ($limit > 0) {
+                $sLimit = "LIMIT {$limit}";
+            }
+        }
+
+        return $this->getAll("SELECT `v`.`{$this->CNF['FJVC_ID']}`, 
+                                           `v`.`{$this->CNF['FJVC_LOT_ID']}`,`v`.`{$this->CNF['FJVC_ACTIVE']}`, 
+                                           `vt`.`{$this->CNF['FJVCT_ID']}` as `conferance_id`,
+                                           `vt`.`{$this->CNF['FJVCT_START']}`,`vt`.`{$this->CNF['FJVCT_END']}`,
+                                           `vt`. `{$this->CNF['FJVCT_PART']}`, `j`.`{$this->CNF['FIELD_MESSAGE_ID']}` as `jot_id`
+                                    FROM `{$this->CNF['TABLE_JVC']}` as `v`
+                                    INNER JOIN `{$this->CNF['TABLE_JVCT']}` as `vt` ON `v`.`{$this->CNF['FJVC_ID']}`=`vt`.`{$this->CNF['FJVCT_FK']}`
+                                    LEFT JOIN `{$this->CNF['TABLE_MESSAGES']}` as `j` ON `j`.`{$this->CNF['FIELD_MESSAGE_VIDEOC']}` = `vt`.`{$this->CNF['FJVCT_ID']}`
+                                    WHERE `v`.`{$this->CNF['FJVC_ROOM']}`=:room
+                                    ORDER BY `vt`.`{$this->CNF['FJVCT_ID']}` DESC {$sLimit}", $aParams);
+    }
 }
 
 /** @} */

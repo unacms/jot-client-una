@@ -758,6 +758,24 @@ class BxMessengerServices extends BxDol
 
         bx_log($this->_sModule, ":\n[" . $sSection . "] " . $sTitle . $mixedContents);
     }
+
+    /**
+     * Service allows to get information about conference by room's uid
+     *
+     * @param $sUid
+     * @param $iLimit
+     * @return mixed
+     */
+    public function serviceGetConferenceInfoByUid($sParams){
+        $aOptions = json_decode($sParams, true);
+
+        $sUid = $aOptions['room_id'] ?? '';
+        if (!$sUid)
+            return [];
+
+        $iLimit = $aOptions['limit'] ?? 0;
+        return $this->_oModule->_oDb->getVideoConferenceInfoByRoom($sUid, $iLimit);
+    }
 }
 
 /** @} */

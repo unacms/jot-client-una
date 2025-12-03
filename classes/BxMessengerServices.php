@@ -299,6 +299,11 @@ class BxMessengerServices extends BxDol
                     'limit' => $CNF['MAX_JOTS_BY_DEFAULT'],
                 ]);
                 $mixedContent = $this->_oModule->_oDb->getJotsByLotIdApi($aCriteria);
+
+                /**
+                 * Mark as read (delete) notification for the lot while getting jots list.
+                 */
+                $this->_oModule->_oDb->markNotificationAsRead($this->_iProfileId, $iLotId);
                 break;
         }
 

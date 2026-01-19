@@ -10,7 +10,8 @@
 }
 
 .bx-messenger-conversation-block-history {
-    @apply flex-dynamic flex-col overflow-hidden relative;
+    @apply flex-dynamic overflow-hidden relative;
+    @apply w-full;
 }
 
 .bx-messenger-conversations
@@ -26,10 +27,6 @@
 .bx-messenger-conversations .bx-messenger-jots-snip:hover
 {
     @apply bg-transparent;
-}
-
-.bx-messenger-conversation-block-history {
-    @apply w-full;
 }
 
 .bx-messenger-conversations-typing

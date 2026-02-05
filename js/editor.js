@@ -26,6 +26,7 @@
         });
 
         this.aToolbarSettings = [
+            [{ 'direction': this.isRtl() ? 'rtl' : 'ltr' }],
             ['bold', 'italic', 'underline', 'strike', 'link'],
             ['blockquote', 'code-block'],
             [{ 'color': [] }, { 'background': [] }]
@@ -41,7 +42,9 @@
             this.init();
         }
     }
-
+    isRtl() {
+        return $('body').hasClass('bx-dir-rtl');
+    }
     init(){
         if (typeof Quill === 'undefined')
             bx_get_scripts(['modules/boonex/messenger/js/quill/quill.min.js'], () => {

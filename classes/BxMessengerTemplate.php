@@ -224,7 +224,12 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
               ]
          ];
 
-        return $this -> parseHtmlByName('text-area.html', $aVars);
+        $sTextArea = $this -> parseHtmlByName('text-area.html', $aVars);
+        bx_alert($this->_oConfig->getObject('alert'), 'text_area_before', $iLotId, $iProfileId, [
+            'content' => &$sTextArea
+        ]);
+
+        return $sTextArea;
     }
 
 	public function initFilesUploader(){

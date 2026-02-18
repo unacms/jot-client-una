@@ -1092,12 +1092,10 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
         $iJotCount = count($aJots);
 		$aVars['bx_repeat:jots'] = array();
         $iFirstUnreadJot = $this->_oDb->getFirstUnreadJot($iProfileId, $iLotId);
-		$bShowThreadsMenu = !(int)$aLotInfo[$CNF['FIELD_PARENT_JOT']];
         $iTimeFromToShift = $iPrevAuthor = 0;
 		foreach($aJots as $iKey => $aJot) {
             $oProfile = $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);
             $iJot = $aJot[$CNF['FIELD_MESSAGE_ID']];
-            $bMediaAttachment = $bShowDateSeparator = false;
             if (!$iTimeFromToShift || (($iTimeFromToShift + $CNF['DATE-SHIFT']) < $aJot[$CNF['FIELD_MESSAGE_ADDED']])){
                 $bShowDateSeparator = true;
                 $iTimeFromToShift = $aJot[$CNF['FIELD_MESSAGE_ADDED']];
@@ -1105,7 +1103,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
             if ($oProfile) {
                     $sReply = $sAttachment = $sMessage = '';
-                    $aAttachments = [];
                     $bIsTrash = (int)$aJot[$CNF['FIELD_MESSAGE_TRASH']];
                     $iIsVC = (int)$aJot[$CNF['FIELD_MESSAGE_VIDEOC']];
                     $bIsLotAuthor = $this->_oDb->isAuthor($iLotId, $iProfileId);
@@ -1120,12 +1117,13 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
                         if (!empty($aJot[$CNF['FIELD_MESSAGE_AT']])) {
                             $aAttachments = $this->getAttachment($aJot);
-                            if (isset($aAttachments[BX_ATT_GROUPS_ATTACH]) && !empty($aAttachments[BX_ATT_GROUPS_ATTACH])) {
+                            if (!empty($aAttachments[BX_ATT_GROUPS_ATTACH])) {
                                 $sAttachment = $aAttachments[BX_ATT_GROUPS_ATTACH];
 
                                 $bIsEmpty = false;
                                 bx_alert($this->_oConfig->getObject('alert'), 'attachment_before', $iJot, $iLotId, [
-                                    'is_empty' => &$bIsEmpty
+                                    'is_empty' => &$bIsEmpty,
+                                    'attachment' => &$sAttachment
                                 ]);
 
                                 if ($bIsEmpty) {
@@ -1147,30 +1145,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         }
                     }
 
-
-                $sActionIcon = '';
                 $sDisplayName = $oProfile->getDisplayName();
-                if (!$bIsTrash) {
-                    if ($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']])
-                        $sActionIcon = $this->parseHtmlByName('edit-icon.html',
-                            [
-                                'edit' => _t('_bx_messenger_edit_by',
-                                bx_process_output($aJot[$CNF['FIELD_MESSAGE_LAST_EDIT']], BX_DATA_DATETIME_TS),
-                                $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_EDIT_BY']])->getDisplayName()),
-                            ]
-                        );
-                    else
-                        if ($iIsVC && $aJot[$CNF['FIELD_MESSAGE']]) {
-                            $aJVCItem = $this->_oDb->getJVCItem($iIsVC);
-                            $sActionIcon = $this->parseHtmlByName('vc_icon.html',
-                                array(
-                                    'info' => _t('_bx_messenger_jitsi_vc_into_title', $sDisplayName->getDisplayName(), bx_process_output($aJVCItem[$CNF['FJVCT_START']], BX_DATA_DATETIME_TS))
-                                )
-                            );
-                        }
-
-                }
-
                 $sThumb = $oProfile->getThumb();
                 $bThumb = stripos($sThumb, 'no-picture') === FALSE;
 
@@ -1629,7 +1604,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         $aJVC = $this->_oDb->getJVC($aLotInfo[$CNF['FIELD_ID']]);
                         $sRoom = empty($aJVC) && !empty($aLotInfo) ? $this->_oConfig->getRoomId($aLotInfo[$CNF['FIELD_ID']], $aLotInfo[$CNF['FIELD_AUTHOR']]) : $aJVC[$CNF['FJVC_ROOM']];
 
-                        $sContent = $this -> parseHtmlByName('vc_message.html',
+                        $sContent = $this -> parseHtmlByName('vc-message.html',
                             array(
                                 'info' => $sInfo,
                                 'bx_if:join' => array(
@@ -2066,10 +2041,16 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         $aResult[BX_ATT_TYPE_FILES][] = $this -> parseHtmlByName('files.html', $aItems);
 						break;
                 default:
-                    if ($sType && ($aService = $this->_oDb->getLotAttachmentType($sType)) && (int)$sValue){
-                        if (isset($aService['module']) && isset($aService['method']) && BxDolRequest::serviceExists($aService['module'], $aService['method'])) {
-                            $sContent = BxDolService::call($aService['module'], $aService['method'], array((int)$sValue));
-                            $aResult[BX_ATT_TYPE_CUSTOM][] = $this -> parseHtmlByName('custom-attachment.html', array('content' => $sContent));
+                    if ($sType && $sValue && ($aService = $this->_oDb->getLotAttachmentType($sType))){
+                        if (!empty($aService['module']) && !empty($aService['method']) && BxDolRequest::serviceExists($aService['module'], $aService['method'])) {
+                            $mixedContent = BxDolService::call($aService['module'], $aService['method'], [$sValue, $aJot[$CNF['FIELD_MESSAGE_ID']]]);
+
+                            if (is_array($mixedContent) && !empty($mixedContent['content']))
+                                $aContent = $mixedContent;
+                            else
+                                $aContent = ['content' => $mixedContent];
+
+                            $aResult[BX_ATT_TYPE_CUSTOM][] = $this -> parseHtmlByName('custom-attachment.html', $aContent);
                         }
                     }
             }
@@ -2083,9 +2064,9 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                         if (!isset($aAttachments[$sGroup]))
                             $aAttachments[$sGroup] = '';
 
-                        $aAttachments[$sGroup] .= implode('', $aResult[$sKey]);
+                        $aAttachments[$sGroup] .= implode('', $sValue);
                     } else
-                        $aAttachments[$sKey] = implode('', $aResult[$sKey]);
+                        $aAttachments[$sKey] = implode('', $sValue);
                 }
             }
         }

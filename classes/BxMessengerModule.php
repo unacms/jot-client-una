@@ -429,12 +429,12 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $iLotId = isset($aData['lot']) ? (int)$aData['lot'] : 0;
         $iGroupId = isset($aData['group_id']) ? (int)$aData['group_id'] : 0;
         $iType = (isset($aData['type']) && $aData['type'] && $this->_oDb->isLotType($aData['type'])) ? (int)$aData['type'] : BX_IM_TYPE_PRIVATE;
-        $aFiles = isset($aData[BX_ATT_TYPE_FILES]) ? $aData[BX_ATT_TYPE_FILES] : [];
-        $aGiphy = isset($aData[BX_ATT_TYPE_GIPHY]) ? $aData[BX_ATT_TYPE_GIPHY] : [];
+        $aFiles = $aData[BX_ATT_TYPE_FILES] ?? [];
+        $aGiphy = $aData[BX_ATT_TYPE_GIPHY] ?? [];
 		$iReply = isset($aData['reply']) ? (int)$aData['reply'] : '';
-		$aParticipants = isset($aData['participants']) ? $aData['participants'] : [];
-        $aAttachments = isset($aData['attachment']) ? $aData['attachment'] : [];
-        $sClass = isset($aData['class']) ? $aData['class'] : '';
+		$aParticipants = $aData['participants'] ?? [];
+        $aAttachments = $aData['attachment'] ?? [];
+        $sClass = $aData['class'] ?? '';
         $sTitle = isset($aData['title']) ? html2txt($aData['title']) : '';
         $iParent = isset($aData['parent']) ? (int)$aData['parent'] : 0;
 		$sUrl = '';

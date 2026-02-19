@@ -1996,6 +1996,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                                            'up_class' => $bCollapsed ? '' : 'hidden',
                                            'down_class' => !$bCollapsed ? '' : 'hidden',
                                         ]),
+                                        'hidden' => $bCollapsed ? 'hidden' : '',
                                         'id' => $aFile[$CNF['FIELD_ST_ID']],
                                         'title' => $aFile[$CNF['FIELD_ST_NAME']],
                                         'mp3' => $this -> audioPlayer($sMp3File, true),

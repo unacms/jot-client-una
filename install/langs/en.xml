@@ -320,6 +320,7 @@ name="_bx_ntfs_alert_action_got_broadcast_ntfs_personal"><![CDATA[Broadcast mess
 	<string name="_bx_messenger_menu_set_title_jot_menu"><![CDATA[Message's menu]]></string>
 	<string name="_bx_messenger_jot_menu_reaction"><![CDATA[Add reaction]]></string>
 	<string name="_bx_messenger_jot_menu_reply"><![CDATA[Reply]]></string>
+	<string name="_bx_messenger_reply_audio_file"><![CDATA[Audio file - "{0}"]]></string>
 	<string name="_bx_messenger_jot_menu_edit"><![CDATA[Edit]]></string>
 	<string name="_bx_messenger_jot_menu_remove"><![CDATA[Delete]]></string>
 	<string name="_bx_messenger_jot_menu_thread"><![CDATA[Reply in thread]]></string>

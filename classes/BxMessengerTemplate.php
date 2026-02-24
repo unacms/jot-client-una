@@ -1363,7 +1363,8 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             '_bx_messenger_are_you_sure_leave',
             '_bx_messenger_lot_parts_empty',
             '_bx_messenger_jot_menu_remove_save',
-            '_bx_messenger_jot_menu_save'
+            '_bx_messenger_jot_menu_save',
+            '_bx_messenger_reply_audio_file'
         ));
 
         $sUsername = '';
@@ -1841,32 +1842,27 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
                 case BX_ATT_TYPE_FILES_UPLOADING:
                 case BX_ATT_TYPE_FILES:
                     $aFiles = $this -> _oDb -> getJotFiles($aJot[$CNF['FIELD_MESSAGE_ID']]);
-                    $aItems = array(
-                        'bx_repeat:images' => array(),
-                        'bx_repeat:files' => array(),
-                        'bx_repeat:videos' => array(),
-                        'bx_repeat:audios' => array(),
-                        'bx_repeat:loading_placeholder' => array()
-                    );
-
                     $aTranscodersVideo = $this -> getAttachmentsVideoTranscoders();
                     $oStorage = new BxMessengerStorage($CNF['OBJECT_STORAGE']);
                     $oTranscoderMp3 = BxDolTranscoderAudio::getObjectInstance($CNF['OBJECT_MP3_TRANSCODER']);
                     $aFile = current($aFiles);
                     $isVideo = $aTranscodersVideo && (0 == strncmp('video/', $aFile['mime_type'], 6)) && $aTranscodersVideo['poster']->isMimeTypeSupported($aFile['mime_type']);
                     if ($oStorage -> isImageFile($aFile[$CNF['FIELD_ST_TYPE']])) {
+                        $sPhotoThumb = "";
                         if ($oImagesTranscoder = BxDolTranscoderImage::getObjectInstance($CNF['OBJECT_IMAGES_TRANSCODER_PREVIEW']))
                             $sPhotoThumb = $oImagesTranscoder->getFileUrl((int)$aFile[$CNF['FIELD_ST_ID']]);
 
                         $sFileUrl = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE'])->getFileUrlById((int)$aFile[$CNF['FIELD_ST_ID']]);
-                        return '<img src="' . ($sPhotoThumb ? $sPhotoThumb : $sFileUrl) . '" />';
+                        return '<img src="' . ( $sPhotoThumb ?: $sFileUrl ) . '" />';
                     }
 
                     if ($isVideo)
                          return '<img src="' . $aTranscodersVideo['poster']->getFileUrl($aFile[$CNF['FIELD_ST_ID']]) . '" />';
 
-                    if ($oTranscoderMp3 -> isMimeTypeSupported($aFile[$CNF['FIELD_ST_TYPE']]))
-                        return $aFile[$CNF['FIELD_ST_NAME']];
+                    if ($oTranscoderMp3 -> isMimeTypeSupported($aFile[$CNF['FIELD_ST_TYPE']])) {
+                        $sAudioFileName = !empty($aFile[$CNF['FIELD_ST_NAME']]) ? $aFile[$CNF['FIELD_ST_NAME']] : '...';
+                        return _t('_bx_messenger_reply_audio_file', $sAudioFileName);
+                    }
 					
 					return $this -> parseHtmlByName('file.html', array(
 																	'type' => $oStorage -> getFontIconNameByFileName($aFile[$CNF['FIELD_ST_NAME']]),
@@ -1874,7 +1870,12 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 																	'file_type' => $aFile[$CNF['FIELD_ST_TYPE']],
 															   ));
 				 default:
-                    return html2txt($aJot[$CNF['FIELD_MESSAGE']]);											   
+                     if ($sAttachmentType && ($aService = $this->_oDb->getLotAttachmentType($sAttachmentType))){
+                         if (!empty($aService['module']) && !empty($aService['method']) && BxDolRequest::serviceExists($aService['module'], $aService['method'])) {
+                             return BxDolService::call($aService['module'], $aService['method'], [$aAttachType[$sAttachmentType] ?? '', $aJot[$CNF['FIELD_MESSAGE_ID']], 'reply']);
+                         }
+                     }
+                     return html2txt($aJot[$CNF['FIELD_MESSAGE']]);
             }
         }
 	}

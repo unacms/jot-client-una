@@ -1278,47 +1278,40 @@
 				
 		this.oStorage.deleteLotItem(this.oSettings.lot, 'reply');
 	}
-	
-	oMessenger.prototype.getReplyPreview = function(iJotId){
-		const { jotMain, jotMessage } = window.oMessengerSelectors.JOT,
-			  { attachmentArea, attachmentImages, videoAttachment, audioAttachment, fileAttachment } = window.oMessengerSelectors.ATTACHMENTS,
-			  { giphyImages } = window.oMessengerSelectors.GIPHY,
-			  oJot = $(`${jotMain}[data-id="${iJotId}"]`),
-			   iMaxLength = oMUtils.isMobile() ? this.iMaxReplyLength/2 : this.iMaxReplyLength,
-			  _this = this;
-			  
-		if (!oJot)
-			return;
-		
-		let sMessage = oJot.find(jotMessage).text();
-		if (sMessage.length){
-			if (sMessage.length > iMaxLength)
-				sMessage = sMessage.substr(0, iMaxLength) + '...';
-			
-			return sMessage;
+
+	oMessenger.prototype.getReplyPreview = function(iJotId) {
+		const { JOT, ATTACHMENTS, GIPHY } = window.oMessengerSelectors;
+		const oJot = $(`${JOT.jotMain}[data-id="${iJotId}"]`);
+
+		if (!oJot.length) return '...';
+
+		const sMessage = oJot.find(JOT.jotMessage).text().trim();
+		if (sMessage) {
+			const iMaxLength = oMUtils.isMobile() ? this.iMaxReplyLength / 2 : this.iMaxReplyLength;
+			return sMessage.length > iMaxLength ? sMessage.substring(0, iMaxLength) + '...' : sMessage;
 		}
-		
-		const oFiles = $(attachmentArea, oJot);
-		if (oFiles){
-			let oObject = null;					
-			if (oFiles.find(`${attachmentImages},${giphyImages}`).length){
-				oObject = oFiles.find(`${attachmentImages} img, ${giphyImages} img`).first();
-			}
-			else if (oFiles.find(videoAttachment).length){
-				const sUrl = oFiles.find(`${videoAttachment} video`).first().prop('poster');
-				if (sUrl)
-					oObject = $(`<img src="${sUrl}" />`);	
-			}
-			else if (oFiles.find(audioAttachment).length)
-				oObject = oFiles.find(`${audioAttachment} .audio .title`).first();
-			else if (oFiles.find(fileAttachment).length)
-				oObject = oFiles.find(fileAttachment).first();
-			
-			return (oObject && oObject.clone()) || '...';
+
+		const oFiles = oJot.find(ATTACHMENTS.attachmentArea);
+		if (!oFiles.length) return '...';
+
+		const oImage = oFiles.find(`${ATTACHMENTS.attachmentImages} img, ${GIPHY.giphyImages} img`).first();
+		if (oImage.length) return oImage.clone();
+
+		const sVideoPoster = oFiles.find(`${ATTACHMENTS.videoAttachment} video`).first().prop('poster');
+		if (sVideoPoster) return $('<img>').attr('src', sVideoPoster);
+
+		const oAudioTitle = oFiles.find(`${ATTACHMENTS.audioAttachment} .audio .title`).first();
+		if (oAudioTitle.length) {
+			const sName = oAudioTitle.text().trim() || '...';
+			const sReplyAudioText = _t('_bx_messenger_reply_audio_file', sName).replace(/&quot;/g, '"');
+			return $('<span>').text(sReplyAudioText);
 		}
-		
+
+		const oFile = oFiles.find(ATTACHMENTS.fileAttachment).first();
+		if (oFile.length) return oFile.clone();
+
 		return '...';
-	}
+	};
 
 	oMessenger.prototype.replyJot = function(oObject, iJotId){
 		const { textArea, replyAreaMessage } = window.oMessengerSelectors.TEXT_AREA,

@@ -282,6 +282,7 @@
 	<string name="_bx_messenger_menu_set_title_jot_menu"><![CDATA[Меню сообщения]]></string>
 	<string name="_bx_messenger_jot_menu_reaction"><![CDATA[Добавить реакцию]]></string>
 	<string name="_bx_messenger_jot_menu_reply"><![CDATA[Ответить]]></string>
+	<string name="_bx_messenger_reply_audio_file"><![CDATA[Аудио файл - "{0}"]]></string>
 	<string name="_bx_messenger_jot_menu_edit"><![CDATA[Редактировать сообщение]]></string>
 	<string name="_bx_messenger_jot_menu_remove"><![CDATA[Удалить запись]]></string>
 	<string name="_bx_messenger_jot_menu_thread"><![CDATA[Ответить отдельно]]></string>

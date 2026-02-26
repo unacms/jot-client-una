@@ -429,71 +429,78 @@
 	}
 
 	oMessenger.prototype.initFilesUploader = function(sSelector = '') {
-		const _this = this,
-			{ attachmentArea } = window.oMessengerSelectors.TEXT_AREA,
-			{ giphyMain } = window.oMessengerSelectors.GIPHY;
+		const { attachmentArea } = window.oMessengerSelectors.TEXT_AREA;
+		const { giphyMain } = window.oMessengerSelectors.GIPHY;
 
-		if (!this.oFilesUploaderSettings)
-			return;
+		if (!this.oFilesUploaderSettings) return;
 
-		this.oFilesUploader = (new oMessengerUploader(Object.assign({}, this.oFilesUploaderSettings, {
-				onAddFilesCallback: () => {
-					if ($(`${sSelector}${attachmentArea}`).children().length) {
-						$(`${sSelector}${giphyMain}`).fadeOut();
-						$(`${sSelector}${attachmentArea}`).html('');
-					}
-				},
-				onUpdateAttachments: (bUpdate) => this.updateSendArea(bUpdate),
-				onUploadingComplete: (sName, aFiles, fCallback) => {
-					if (typeof _this.aUploaderQueue[sName] === 'undefined')
-						return false;
+		this.oFilesUploader = new oMessengerUploader({
+			...this.oFilesUploaderSettings,
 
-					const { id } = _this.aUploaderQueue[sName] || {},
-							fUpload = () => {
-
-								const { uploading_jot_id, lot } = _this.aUploaderQueue[sName];
-												return $.post('modules/?r=messenger/update_uploaded_files/', {
-													jot_id: uploading_jot_id,
-													files: aFiles
-												}, function ({ code, message }) {
-													if (+code && message)
-														bx_alert(message);
-													else
-													{
-														_this.broadcastMessage({
-															jot_id: uploading_jot_id, lot,
-															addon: 'update_attachment'
-														});
-
-														if ($(`#${_this.sUploaderAreaPrefix}-${id}`).length)
-															_this.attacheFiles(uploading_jot_id, true, () => {
-																$(`#${_this.sUploaderAreaPrefix}-${id}`).fadeOut(function () {
-																	$(this).remove();
-																});
-															});
-													}
-
-													if (typeof fCallback === 'function')
-														fCallback();
-
-													delete _this.aUploaderQueue[sName];
-
-												}, 'json');
-							}
-
-					if (aFiles.length) {
-						if (_this.oSendPool.has(id)) {
-							const oThread = _this.oSendPool.get(id);
-							if (oThread.promise !== null)
-								oThread.promise.then(fUpload);
-						} else
-								fUpload();
-					}
+			onAddFilesCallback: () => {
+				const $area = $(`${sSelector}${attachmentArea}`);
+				if ($area.children().length) {
+					$(`${sSelector}${giphyMain}`).fadeOut();
+					$area.empty();
 				}
-			}))).getUploader();
+			},
+
+			onUpdateAttachments: (bUpdate) => this.updateSendArea(bUpdate),
+
+			onUploadingComplete: (sName, aFiles, fCallback) => {
+				const oQueue = this.aUploaderQueue[sName];
+				if (!oQueue || !aFiles.length) return false;
+
+				const { id, uploading_jot_id, lot } = oQueue;
+				const fDispatchFilesUploaded = () => {
+					const detail = { jot_id: uploading_jot_id, lot, files: aFiles };
+					if (typeof window.CustomEvent === 'function') {
+						document.dispatchEvent(new CustomEvent('bxMessengerFilesUploaded', { detail }));
+						return;
+					}
+
+					const evt = document.createEvent('CustomEvent');
+					evt.initCustomEvent('bxMessengerFilesUploaded', true, true, detail);
+					document.dispatchEvent(evt);
+				};
+
+				const fUpload = () => $.post('modules/?r=messenger/update_uploaded_files/', {
+					jot_id: uploading_jot_id,
+					files: aFiles
+				}, ({ code, message }) => {
+					if (+code && message) {
+						bx_alert(message);
+					} else {
+						this.broadcastMessage({ jot_id: uploading_jot_id, lot, addon: 'update_attachment' });
+
+						const $uploaderArea = $(`#${this.sUploaderAreaPrefix}-${id}`);
+						if ($uploaderArea.length) {
+							this.attacheFiles(uploading_jot_id, true, () =>
+								$uploaderArea.fadeOut(() => {
+									$uploaderArea.remove();
+									fDispatchFilesUploaded();
+								})
+							);
+						} else {
+							fDispatchFilesUploaded();
+						}
+					}
+
+					if (typeof fCallback === 'function') fCallback();
+					delete this.aUploaderQueue[sName];
+				}, 'json');
+
+				const oThread = this.oSendPool.get(id);
+				if (oThread?.promise) {
+					oThread.promise.then(fUpload);
+				} else {
+					fUpload();
+				}
+			}
+		}).getUploader();
 
 		return this.oFilesUploader;
-	}
+	};
 
 	oMessenger.prototype.initTextArea = function(fCallback, sTextAreaSelector = null) {
 		const _this = this,

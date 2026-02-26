@@ -126,8 +126,7 @@
 
                     },
                     onprocessfiles: function () {
-                        const aFiles = oUploader.getFiles(),
-                            iProcessed = aFiles.filter(({status}) => +status === 5).length;
+                        const aFiles = oUploader.getFiles();
 
                         if (typeof _this.onUploadingComplete === 'function' && aFiles.length) {
                             const aProcessedFiles = aFiles.map(({

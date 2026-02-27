@@ -3623,17 +3623,30 @@ class BxMessengerModule extends BxBaseModGeneralModule
         }
 
         if (count($aSuccessfulFiles)){
+            $aFilesData = [];
             $aJotInfo = $this->_oDb->getJotById($iJotId);
             if (!empty($aJotInfo[$CNF['FIELD_MESSAGE_AT']])) {
                 $aFilesData = @unserialize($aJotInfo[$CNF['FIELD_MESSAGE_AT']]);
+
+                if (!is_array($aFilesData))
+                    $aFilesData = [];
+
                 if (isset($aFilesData[BX_ATT_TYPE_FILES_UPLOADING]))
                     unset($aFilesData[BX_ATT_TYPE_FILES_UPLOADING]);
             }
 
-            if (!empty($aFilesData[BX_ATT_TYPE_FILES]))
-                $aFilesData[BX_ATT_TYPE_FILES] = @unserialize($aFilesData[BX_ATT_TYPE_FILES]) + $aSuccessfulFiles;// . ",{$sFilesList}";
-            else
-                $aFilesData[BX_ATT_TYPE_FILES] = $aSuccessfulFiles;
+            $aStoredFiles = [];
+            if (!empty($aFilesData[BX_ATT_TYPE_FILES])) {
+                if (is_array($aFilesData[BX_ATT_TYPE_FILES]))
+                    $aStoredFiles = $aFilesData[BX_ATT_TYPE_FILES];
+                elseif (is_string($aFilesData[BX_ATT_TYPE_FILES])) {
+                    $aStoredFiles = @unserialize($aFilesData[BX_ATT_TYPE_FILES]);
+                    if (!is_array($aStoredFiles))
+                        $aStoredFiles = [];
+                }
+            }
+
+            $aFilesData[BX_ATT_TYPE_FILES] = $aStoredFiles + $aSuccessfulFiles;
 
             $this->_oDb->updateJot($iJotId, $CNF['FIELD_MESSAGE_AT'], @serialize($aFilesData));
         }

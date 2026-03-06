@@ -847,8 +847,19 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 }, $aProfilesList);
         }
 
+        if (($mixedContent = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_TALKS, $this->_iProfileId)) !== true) {
+            return echoJson([
+                'code' => 1,
+                'msg' => $sContent = MsgBox($mixedContent)
+            ]);
+        }
+
         $sContent = $this->_oTemplate->getCreateListArea($iLotId, $aProfilesList, $bIsGroupedChat);
-        echoJson(array('code' => 0, 'content' => $sContent, 'text_area' => $this->_oTemplate->getTextArea($this->_iProfileId, $iLotId)));
+        echoJson([
+            'code' => 0,
+            'content' => $sContent,
+            'text_area' => $this->_oTemplate->getTextArea($this->_iProfileId, $iLotId)
+        ]);
     }
 
     private function getParticipantsListByGroupAndFilter($iGroupId, $sTerm = ''){

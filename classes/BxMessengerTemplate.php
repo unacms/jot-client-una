@@ -619,7 +619,6 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 
     function getCreateListArea($iLotId = 0, $mixedProfiles = [], $bEmptyDefaultList = false){
         $sContent = '';
-
         $CNF = &$this->_oConfig->CNF;
 	    if ($this->_oConfig->CNF['SHOW-FRIENDS'] && !$bEmptyDefaultList)
             $sContent = $this->getFriendsList();

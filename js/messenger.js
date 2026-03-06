@@ -948,9 +948,6 @@
 
         _this.oMenu.toggleAlwaysOnTop();
 
-        // flag to detect if the new conversation is created
-        this.bCreateNew = action === 'new';
-
         bx_loading($(mainTalkBlock), true);
         $.post('modules/?r=messenger/load_list', {group_id, area_type, action, lot}, function ({
                                                                                                    code,
@@ -961,10 +958,14 @@
             bx_loading($(mainTalkBlock), false);
             if (+code && msg) {
                 bx_alert(msg);
+                _this.oMenu.toggleAlwaysOnTop();
                 return;
             }
 
             if (!parseInt(code)) {
+                // flag to detect if the new conversation ability is available to create the talk
+                _this.bCreateNew = action === 'new';
+
                 $(talkBlockWrapper, conversationBlockHistory)
                     .before(content);
 

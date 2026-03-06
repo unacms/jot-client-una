@@ -39,8 +39,14 @@ class BxMessengerServices extends BxDol
 
         return [
             bx_api_get_block('messenger_main_page', [
+                'config' => [
+                    'permissions' => [
+                        'create_talk' => $this->_oModule->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_TALKS, $this->_iProfileId) === true ? 1 : 0,
+                        'send_message' => $this->_oModule->_oConfig->isAllowedAction(BX_MSG_ACTION_SEND_MESSAGE, $this->_iProfileId) === true ? 1 : 0,
+                    ]
+                ],
                 'menu' => $aMenuMain, 
-                'form' => ['data' => $this->serviceGetSendForm()]
+                'form' => ['data' => $this->serviceGetSendForm()],
             ], [
                 'ext' => [
                     'name' => $this->_sModule, 

@@ -86,3 +86,12 @@
 .bx-messenger-post-box .bx-messenger-post-box-send-area {
     @apply w-auto content-center justify-center flex relative rounded-[0.7rem] box-border;
 }
+
+.bx-dir-rtl .bx-messenger-post-box .ql-editor {
+    direction: rtl;
+    text-align: right;
+}
+
+.ql-editor p {
+    direction: inherit;
+}

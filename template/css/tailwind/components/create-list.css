@@ -19,7 +19,7 @@
 }
 
 .bx-messenger-create-list-users {
-    @apply md:mt-2 mt-1 text-center mx-4 overflow-y-auto snap-y h-full mb-[2rem] flex-dynamic;
+    @apply md:mt-2 mt-1 text-center mx-4 overflow-y-auto snap-y mb-[2rem] flex-1;
 }
 
 .bx-messenger-create-list-search-area {
@@ -101,7 +101,7 @@
 }
 
 .bx-messenger-existed-users-list {
-    @apply min-h-[2.5rem] max-h-[12rem] w-full grid grid-cols-5 gap-2 overflow-y-auto snap-y touch-pan-y flex-stat items-center auto-rows-min;
+    @apply min-h-0 max-h-[12rem] w-full grid grid-cols-5 gap-2 overflow-y-auto snap-y touch-pan-y flex-stat items-center auto-rows-min;
 }
 
 .bx-messenger-create-list-add-users-area .bx-messenger-participants-list-item {
@@ -120,4 +120,16 @@
 
 .bx-messenger-create-list-add-users-area .bx-messenger-participants-info-plus {
     @apply h-auto w-8;
+}
+
+.bx-create-convo-criteria {
+    @apply flex-1 min-h-0 px-4 flex flex-col;
+}
+
+.bx-messenger-select-users-area {
+    @apply flex flex-col grow-0 shrink basis-0;
+}
+
+.bx-messenger-convo-filter-criteria {
+    @apply w-full px-4 flex-1 overflow-y-auto;
 }

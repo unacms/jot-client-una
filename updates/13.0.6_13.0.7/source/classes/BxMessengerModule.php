@@ -847,19 +847,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 }, $aProfilesList);
         }
 
-        if (($mixedContent = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_CREATE_TALKS, $this->_iProfileId)) !== true) {
-            return echoJson([
-                'code' => 1,
-                'msg' => $sContent = MsgBox($mixedContent)
-            ]);
-        }
-
         $sContent = $this->_oTemplate->getCreateListArea($iLotId, $aProfilesList, $bIsGroupedChat);
-        echoJson([
-            'code' => 0,
-            'content' => $sContent,
-            'text_area' => $this->_oTemplate->getTextArea($this->_iProfileId, $iLotId)
-        ]);
+        echoJson(array('code' => 0, 'content' => $sContent, 'text_area' => $this->_oTemplate->getTextArea($this->_iProfileId, $iLotId)));
     }
 
     private function getParticipantsListByGroupAndFilter($iGroupId, $sTerm = ''){
@@ -3634,30 +3623,17 @@ class BxMessengerModule extends BxBaseModGeneralModule
         }
 
         if (count($aSuccessfulFiles)){
-            $aFilesData = [];
             $aJotInfo = $this->_oDb->getJotById($iJotId);
             if (!empty($aJotInfo[$CNF['FIELD_MESSAGE_AT']])) {
                 $aFilesData = @unserialize($aJotInfo[$CNF['FIELD_MESSAGE_AT']]);
-
-                if (!is_array($aFilesData))
-                    $aFilesData = [];
-
                 if (isset($aFilesData[BX_ATT_TYPE_FILES_UPLOADING]))
                     unset($aFilesData[BX_ATT_TYPE_FILES_UPLOADING]);
             }
 
-            $aStoredFiles = [];
-            if (!empty($aFilesData[BX_ATT_TYPE_FILES])) {
-                if (is_array($aFilesData[BX_ATT_TYPE_FILES]))
-                    $aStoredFiles = $aFilesData[BX_ATT_TYPE_FILES];
-                elseif (is_string($aFilesData[BX_ATT_TYPE_FILES])) {
-                    $aStoredFiles = @unserialize($aFilesData[BX_ATT_TYPE_FILES]);
-                    if (!is_array($aStoredFiles))
-                        $aStoredFiles = [];
-                }
-            }
-
-            $aFilesData[BX_ATT_TYPE_FILES] = $aStoredFiles + $aSuccessfulFiles;
+            if (!empty($aFilesData[BX_ATT_TYPE_FILES]))
+                $aFilesData[BX_ATT_TYPE_FILES] = @unserialize($aFilesData[BX_ATT_TYPE_FILES]) + $aSuccessfulFiles;// . ",{$sFilesList}";
+            else
+                $aFilesData[BX_ATT_TYPE_FILES] = $aSuccessfulFiles;
 
             $this->_oDb->updateJot($iJotId, $CNF['FIELD_MESSAGE_AT'], @serialize($aFilesData));
         }

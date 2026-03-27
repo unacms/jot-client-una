@@ -342,6 +342,7 @@ class BxMessengerConfig extends BxBaseModGeneralConfig
                 'secret' => getParam($aModule['db_prefix'] . 'jwt_app_secret'),
             ],
             'JOT-JWT' =>  trim(getParam($aModule['db_prefix'] . 'jot_server_jwt')),
+            'QUILL_TOOLBAR' => getParam($aModule['db_prefix'] . 'quill_toolbar'),
             'JSMain' => 'oMessenger',
             'JSCreateConvoMenu' => 'oMessengerCreateConvo',
             'JSMessengerLib' => 'oMUtils',

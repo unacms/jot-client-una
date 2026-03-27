@@ -422,6 +422,7 @@ name="_bx_ntfs_alert_action_got_broadcast_ntfs_personal"><![CDATA[Broadcast mess
 	<string name="_bx_messenger_jot_menu_remove_save"><![CDATA[Remove bookmark]]></string>
 
 	<string name="_bx_messenger_cpt_category_settings"><![CDATA[Settings]]></string>
+	<string name="_bx_messenger_quill_toolbar_settings"><![CDATA[Quill Editor Toolbar Settings (JSON array)]]></string>
 	<string name="_bx_messenger_cpt_category_security"><![CDATA[Security]]></string>
 	<string name="_bx_messenger_cpt_category_moderation"><![CDATA[Moderation]]></string>
 	<string name="_bx_messenger_cpt_category_giphy"><![CDATA[Giphy]]></string>

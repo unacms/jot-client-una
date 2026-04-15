@@ -2245,6 +2245,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
         // replace br to spaces and truncate the line
         $sMessage = _t('_bx_messenger_broadcast_message_body');
+        $sTruncatedMessage = '';
         if ($aJotInfo[$CNF['FIELD_MESSAGE']]) {
             $sTruncatedMessage = strmaxtextlen(preg_replace('/<br\W*?\/>|\n/', " ", $aJotInfo[$CNF['FIELD_MESSAGE']]), $CNF['PARAM_MAX_JOT_NTFS_MESSAGE_LENGTH']);
             $sMessage = _t('_bx_messenger_txt_sample_comment_single', $sTruncatedMessage);
@@ -2260,7 +2261,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         ];
 
         $sSubject = _t("_bx_messenger_notification_subject_broadcast", BxDolProfile::getInstanceMagic($aEvent['owner_id'])->getDisplayName());
-        $sAlterBody = $sTruncatedMessage ? $sTruncatedMessage : _t('_bx_messenger_txt_sample_email_push', html2txt($sMessage));
+        $sAlterBody = $sTruncatedMessage ?: _t('_bx_messenger_txt_sample_email_push', html2txt($sMessage));
 
         $aResult['lang_key'] = [
             'site' => $aResult['lang_key'],

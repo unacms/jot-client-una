@@ -4562,7 +4562,11 @@
             $(searchCloseIcon).hide();
             _oMessenger.searchByItems();
             _oMessenger.aSearchJotsList = null;
-        }
+        },
+		setCreateNew: function (bValue)	{
+			if (_oMessenger != undefined)
+				_oMessenger.bCreateNew = !!bValue;
+		}
     }
 })(jQuery);
 

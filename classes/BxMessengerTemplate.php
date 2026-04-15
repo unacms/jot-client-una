@@ -1095,6 +1095,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 		foreach($aJots as $iKey => $aJot) {
             $oProfile = $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);
             $iJot = $aJot[$CNF['FIELD_MESSAGE_ID']];
+            $bShowDateSeparator = false;
             if (!$iTimeFromToShift || (($iTimeFromToShift + $CNF['DATE-SHIFT']) < $aJot[$CNF['FIELD_MESSAGE_ADDED']])){
                 $bShowDateSeparator = true;
                 $iTimeFromToShift = $aJot[$CNF['FIELD_MESSAGE_ADDED']];

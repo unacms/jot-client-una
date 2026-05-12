@@ -67,25 +67,18 @@
     @apply hidden;
 }
 
-#bx-messenger-info-area .bx-messenger-info-area-connect-failed:before
-{
-    content: "\f06a";
+#bx-messenger-info-area .bx-messenger-info-area-status-icon {
+    @apply mr-1 inline-block w-3.5 h-3.5 align-[-0.125em];
 }
 
-#bx-messenger-info-area .bx-messenger-info-area-connecting:before
-{
-    content: "\f1e6";
+#bx-messenger-info-area .bx-messenger-info-area-status-icon-spin {
+    animation: bx-messenger-info-area-spin 1s linear infinite;
 }
 
-#bx-messenger-info-area .bx-messenger-conversations-typing:before
-{
-    content: "\f4ad";
-}
-
-#bx-messenger-info-area .bx-messenger-conversations-typing:before,
-#bx-messenger-info-area .bx-messenger-info-area-connect-failed:before,
-#bx-messenger-info-area .bx-messenger-info-area-connecting:before {
-    font-family: 'sys-user', 'sys-user-fal';
+@keyframes bx-messenger-info-area-spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .bx-messenger-block a

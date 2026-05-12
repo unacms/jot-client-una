@@ -5,7 +5,7 @@
 }
 
 .bx-messenger-area-scroll .bx-messenger-history-arrow {
-    @apply flex items-center justify-center cursor-pointer;
+    @apply flex items-center justify-center cursor-pointer h-full;
 }
 
 .bx-messenger-area-scroll i {

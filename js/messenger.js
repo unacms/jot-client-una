@@ -1684,11 +1684,15 @@
         _this.iAttachmentUpdate = true;
         $.post('modules/?r=messenger/get_attachment', { jot_id: iJotId }, function ({ html, code }) {
             if (!+code) {
-                $(attachmentArea, '[data-id="' + iJotId + '"]').remove();
+                const oAttachment = $(html),
+                    sID = `[data-id="${iJotId}"]`;
+                    oJot = $(sID);
 
-                $(_this.sReactionsArea, '[data-id="' + iJotId + '"]')
+                $(attachmentArea, sID).remove();
+
+                $(_this.sReactionsArea, sID)
                     .before(
-                        $(html)
+                        oAttachment
                             .waitForImages(() => {
                                 if (typeof fCallback === 'function')
                                     fCallback();
@@ -1698,7 +1702,8 @@
                             })
                     );
 
-                $('[data-id="' + iJotId + '"]').initJotIcons().initAccordion();
+                oJot.initJotIcons().initAccordion();
+                oAttachment.bxProcessHtml();
                 _this.broadcastMessage();
             }
 
@@ -2215,7 +2220,7 @@
                 _this.createFilesUploader();
             }
 
-            $('[data-tmp="' + oParams.tmp_id + '"]').initJotIcons();
+            $('[data-tmp="' + oParams.tmp_id + '"]').initJotIcons().bxProcessHtml();
         }
 
         if (_this.iReplyId) {
@@ -2946,7 +2951,7 @@
                             if (!html.length)
                                 return;
 
-                            const oContent = $(html).initJotIcons().initAccordion().bxProcessHtml(),
+                            const oContent = $(html).initJotIcons().initAccordion(),
                                 aContent = [];
 
                             oContent
@@ -2969,8 +2974,9 @@
                                 .end();
 
                             if (aContent.length) {
+                                $(oList).append(oContent);
+                                oContent.bxProcessHtml();
                                 $(oList)
-                                    .append(oContent)
                                     .waitForImages(() => _this.updateScrollPosition(sPosition ? sPosition : 'bottom', 'fast', $(conversationBody).last()));
 
 
@@ -2987,22 +2993,27 @@
 
                             break;
                         case 'prev':
+                            const oPrevContent = $(html)
+                                .initJotIcons()
+                                .initAccordion()
+                                .filter(jotMain)
+                                .each(function () {
+                                    $(`${jotMessageView} img`, this)
+                                        .each(function () {
+                                            if ($(`${jotMain} ${jotMessageView} img[data-viewer-id="${$(this).data('viewer-id')}"]`).length)
+                                                $(this).remove();
+                                        })
+                                        .end()
+                                        .closest(jotMessageView)
+                                        .fadeIn();
+                                })
+                                .end();
+
                             oList
-                                .prepend($(html)
-                                    .initAccordion()
-                                    .bxProcessHtml()
-                                    .filter(jotMain)
-                                    .each(function () {
-                                        $(`${jotMessageView} img`, this)
-                                            .each(function () {
-                                                if ($(`${jotMain} ${jotMessageView} img[data-viewer-id="${$(this).data('viewer-id')}"]`).length)
-                                                    $(this).remove();
-                                            })
-                                            .end()
-                                            .closest(jotMessageView)
-                                            .fadeIn();
-                                    })
-                                    .end())
+                                .prepend(oPrevContent);
+
+                            oPrevContent
+                                .bxProcessHtml()
                                 .waitForImages(oParent => {
                                     const iId = oObjects.first().data('id');
                                     if (+iId)

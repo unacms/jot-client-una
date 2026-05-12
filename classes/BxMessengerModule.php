@@ -1712,6 +1712,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $CNF = &$this->_oConfig->CNF;
         $oStorage = BxDolStorage::getObjectInstance($CNF['OBJECT_STORAGE']);
         $aFile = $oStorage->getFile($iFileId);
+        if (empty($aFile))
+            return echoJson($aResult);
 
         $bIsAllowedToDelete = $this->_oDb->isAllowedToDeleteJot($aFile[$CNF['FIELD_ST_JOT']], $this->_iProfileId);
         if (!$bIsAllowedToDelete)

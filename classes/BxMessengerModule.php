@@ -1396,7 +1396,10 @@ class BxMessengerModule extends BxBaseModGeneralModule
      * @return string with json
      */
 
-    public function saveParticipantsList($aParticipants, $iLotId = 0, $bIsBlock = 0){
+    public function saveParticipantsList($aParticipants, $iLotId = 0, $bIsBlock = 0)
+    {
+        $iLotIdOr = $iLotId;
+
         $bCheckAction = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true;
         if ($iLotId && !($this->_oDb->isAuthor($iLotId, $this->_iProfileId) || $bCheckAction))
             return ['code' => 1, 'message' => _t('_bx_messenger_lot_action_not_allowed')];
@@ -1422,8 +1425,13 @@ class BxMessengerModule extends BxBaseModGeneralModule
 		}
         else {
             $oOriginalParts = $this->_oDb->getParticipantsList($iLotId);
-            if (!$this->_oDb->saveParticipantsList($iLotId, $aParticipants))
-                $aResult = ['code' => 2, 'message' => _t('_bx_messenger_lot_parts_error')];
+            if($iLotIdOr == 0 && $iLotId) {
+                $aResult['lot'] = $iLotId;
+            }
+            else {
+                if (!$this->_oDb->saveParticipantsList($iLotId, $aParticipants))
+                    $aResult = ['code' => 2, 'message' => _t('_bx_messenger_lot_parts_error')];
+            }
         }
 
         $aRemoveParticipants = array_diff($oOriginalParts, $aParticipants);

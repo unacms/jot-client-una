@@ -86,6 +86,10 @@ div.bx-messenger-hidden-jot
     @apply float-left mt-1 cursor-zoom-in rounded;
 }
 
+.bx-messenger-message-icons svg {
+    @apply w-3 h-3
+}
+
 .bx-messenger-message-icons {
     @apply font-light text-xs items-center flex w-full relative justify-end;
 }

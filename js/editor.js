@@ -11,7 +11,7 @@
  * Quill Editor integration
  */
 
-;window.oMessengerEditor = class {
+; window.oMessengerEditor = class {
     constructor(oOptions) {
         const aEditorFunctions = ['onEnter', 'onChange', 'onESC', 'onUp', 'showToolbar', 'onInit', 'onFocus', 'onBlur'];
 
@@ -22,18 +22,22 @@
         this.oFilesUploader = typeof oOptions['files_uploader'] === 'undefined' || oOptions['files_uploader'];
 
         aEditorFunctions.map(sFunc => {
-             this[sFunc] = typeof oOptions[sFunc] === 'function' ? oOptions[sFunc] : () => true;
+            this[sFunc] = typeof oOptions[sFunc] === 'function' ? oOptions[sFunc] : () => true;
         });
 
-        this.aToolbarSettings = [
-            [{ 'direction': this.isRtl() ? 'rtl' : 'ltr' }],
+        let aCustomToolbar = this.parseQuillToolbar(oOptions['quill_toolbar']);
+        aCustomToolbar = aCustomToolbar.length ? aCustomToolbar : [
             ['bold', 'italic', 'underline', 'strike', 'link'],
             ['blockquote', 'code-block'],
             [{ 'color': [] }, { 'background': [] }]
         ];
 
-        if ($(this.oHtmlEditorObject).length){
-            if (!this.oEditor){
+        this.aToolbarSettings = [
+            [{ 'direction': this.isRtl() ? 'rtl' : 'ltr' }],
+            ...aCustomToolbar];
+
+        if ($(this.oHtmlEditorObject).length) {
+            if (!this.oEditor) {
                 this.initClipboard();
                 // Mentions initialization
                 this.oMentions = typeof quillMention !== 'undefined' && this.bUseMantions ? { mention: this.initMentions() } : {};
@@ -42,10 +46,32 @@
             this.init();
         }
     }
+    parseQuillToolbar(toolbar) {
+        if (Array.isArray(toolbar)) {
+            return toolbar;
+        }
+
+        if (typeof toolbar !== 'string' || !toolbar.trim()) {
+            return [];
+        }
+
+        let str = toolbar.trim();
+        str = str.replace(/'/g, '"');
+        str = str.replace(/,\s*$/g, '');
+
+        try {
+            const parsed = JSON.parse(str);
+            return Array.isArray(parsed) ? parsed : [parsed];
+        } catch (e) {
+            console.error("Messenger: Invalid quill_toolbar configuration", e);
+            console.error("Original string:", toolbar);
+            return [];
+        }
+    }
     isRtl() {
         return $('body').hasClass('bx-dir-rtl');
     }
-    init(){
+    init() {
         if (typeof Quill === 'undefined')
             bx_get_scripts(['modules/boonex/messenger/js/quill/quill.min.js'], () => {
                 this.initEditor();
@@ -54,49 +80,49 @@
             this.initEditor();
     }
 
-    setText(mixedValue){
+    setText(mixedValue) {
         if (this.oEditor)
             this.oEditor.setText(mixedValue);
     }
 
-    getText(){
+    getText() {
         if (this.oEditor)
             this.oEditor.getText();
     }
 
-    editor(){
+    editor() {
         this.init();
         return this.oEditor;
     }
 
-    html(){
+    html() {
         return this.oEditor && this.oEditor.root && this.oEditor.root.innerHTML;
     }
 
-    focus(){
+    focus() {
         if (this.oEditor)
             this.oEditor.focus();
     }
 
-    blur(){
+    blur() {
         if (this.oEditor)
             this.oEditor.blur();
     }
 
-    getContents(){
+    getContents() {
         return this.oEditor && this.oEditor.getContents();
     }
 
-    get length(){
-       return this.oEditor && this.oEditor.getLength();
+    get length() {
+        return this.oEditor && this.oEditor.getLength();
     }
 
-    setContents(aValues){
+    setContents(aValues) {
         if (this.oEditor)
             this.oEditor.setContents(!Array.isArray(aValues) ? [] : aValues);
     }
 
-    addToCurrentPosition(sText){
+    addToCurrentPosition(sText) {
         if (!this.oEditor)
             return false;
 
@@ -105,11 +131,11 @@
         this.oEditor.setSelection(range.index + sText.length, 1, Quill.sources.API);
     }
 
-    initClipboard(){
+    initClipboard() {
         const _this = this;
         const QuillClipboard = Quill.import('modules/clipboard');
         class Clipboard extends QuillClipboard {
-            onPaste (event) {
+            onPaste(event) {
                 if (event.clipboardData && event.clipboardData.items) {
                     const files = [];
                     for (let item of event.clipboardData.items) {
@@ -135,7 +161,7 @@
         Quill.register('modules/clipboard', Clipboard, true);
     }
 
-    initMentions(){
+    initMentions() {
         const Embed = Quill.import("blots/embed");
         class MessengerMentionBlot extends Embed {
             static create(data) {
@@ -174,84 +200,84 @@
             linkTarget: '_blank',
             renderItem: data => `<span class="bx-def-font-small bx-def-padding-right">${data.value}</span><img src="${data.thumb}" />`,
             renderLoading: () => _t('_bx_messenger_loading'),
-            source: function(searchTerm, renderList, mentionChar) {
+            source: function (searchTerm, renderList, mentionChar) {
                 if (searchTerm.length)
-                    $.get("searchExtended.php?action=get_authors", { term: searchTerm}, oData => {
-                            if (Array.isArray(oData) && oData.length){
-                                renderList(oData.map((oValue => {
-                                    const { value, label, url, thumb } = oValue;
-                                    return {id: value, value: label, url, thumb };
-                                })));
-                            }
+                    $.get("searchExtended.php?action=get_authors", { term: searchTerm }, oData => {
+                        if (Array.isArray(oData) && oData.length) {
+                            renderList(oData.map((oValue => {
+                                const { value, label, url, thumb } = oValue;
+                                return { id: value, value: label, url, thumb };
+                            })));
                         }
-                        ,'json');
+                    }
+                        , 'json');
             }
         };
     }
 
-    initEditor(){
+    initEditor() {
         const _this = this;
         const Delta = Quill.import('delta');
         this.oEditor = new Quill(this.oHtmlEditorObject, {
-                placeholder: this.oPlaceholder,
-                theme: 'bubble',
-                bounds: this.oHtmlEditorObject,
-                debug: 'error',
-                modules: Object.assign({
-                    toolbar: _this.showToolbar() && _this.aToolbarSettings,
-                    clipboard: {
-                        matchers: [
-                            [
-                                'IMG', () => { return { ops: [] } }
-                            ],
-                            [ Node.ELEMENT_NODE, function(node, delta) {
-                                return delta.compose(new Delta().retain(delta.length(),
-                                        {
-                                            color: false,
-                                            background: false,
-                                        }
-                                    ));
-                                }
-                            ]
+            placeholder: this.oPlaceholder,
+            theme: 'bubble',
+            bounds: this.oHtmlEditorObject,
+            debug: 'error',
+            modules: Object.assign({
+                toolbar: _this.showToolbar() && _this.aToolbarSettings,
+                clipboard: {
+                    matchers: [
+                        [
+                            'IMG', () => { return { ops: [] } }
                         ],
-                        matchVisual: false
-                    },
-                    keyboard: {
-                        bindings: {
-                            enter: {
-                                key: 13,
-                                shiftKey: false,
-                                handler: (range, context) => {
-                                    if (!this.onEnter())
-                                        return true;
+                        [Node.ELEMENT_NODE, function (node, delta) {
+                            return delta.compose(new Delta().retain(delta.length(),
+                                {
+                                    color: false,
+                                    background: false,
                                 }
-                            },
-                            up: {
-                                key: 38,
-                                shiftKey: false,
-                                handler: () => this.onUp()
-                            },
-                            esc: {
-                                key: 27,
-                                shiftKey: false,
-                                handler: () => this.onESC()
+                            ));
+                        }
+                        ]
+                    ],
+                    matchVisual: false
+                },
+                keyboard: {
+                    bindings: {
+                        enter: {
+                            key: 13,
+                            shiftKey: false,
+                            handler: (range, context) => {
+                                if (!this.onEnter())
+                                    return true;
                             }
+                        },
+                        up: {
+                            key: 38,
+                            shiftKey: false,
+                            handler: () => this.onUp()
+                        },
+                        esc: {
+                            key: 27,
+                            shiftKey: false,
+                            handler: () => this.onESC()
                         }
                     }
-                }, this.oMentions)
-            });
+                }
+            }, this.oMentions)
+        });
 
-           this.oEditor.on('text-change', function(delta, oldDelta, source) {
-                  if (source === 'user')
-                        _this.onChange();
+        this.oEditor.on('text-change', function (delta, oldDelta, source) {
+            if (source === 'user')
+                _this.onChange();
 
-           }).on('selection-change', function(range, oldRange, source) {
-               if (range && !range.length)
-                   _this.onFocus();
-                else
-                   _this.onBlur();
-           })
+        }).on('selection-change', function (range, oldRange, source) {
+            if (range && !range.length)
+                _this.onFocus();
+            else
+                _this.onBlur();
+        })
 
-          this.onInit();
+        this.onInit();
     }
 }

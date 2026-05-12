@@ -17,7 +17,8 @@ INSERT INTO `sys_options` (`name`, `value`, `category_id`, `caption`, `type`, `c
 ('bx_messenger_max_parts_views', 10, @iCategId, '_bx_messenger_max_parts_views', 'digit', '', '', '', 6),
 ('bx_messenger_use_embedly', 'on', @iCategId, '_bx_messenger_use_embedly', 'checkbox', '', '', '', 7),
 ('bx_messenger_enable_mentions', 'on', @iCategId, '_bx_messenger_use_mentions', 'checkbox', '', '', '', 8),
-('bx_messenger_broadcast_fields', 'membership,gender,countries,birthday', @iCategId, '_bx_messenger_broadcast_fields', 'list', '', '', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:20:"get_broadcast_fields";}', 9);
+('bx_messenger_broadcast_fields', 'membership,gender,countries,birthday', @iCategId, '_bx_messenger_broadcast_fields', 'list', '', '', 'a:2:{s:6:"module";s:12:"bx_messenger";s:6:"method";s:20:"get_broadcast_fields";}', 9),
+('bx_messenger_quill_toolbar', '[[''bold'', ''italic'', ''underline'', ''strike'', ''link''],[''blockquote'', ''code-block''],[{''color'':[]},{''background'':[]}]]', @iCategId, '_bx_messenger_quill_toolbar_settings', 'digit', '', '', '', 10);
 
 INSERT INTO `sys_options_categories`(`type_id`, `name`, `caption`, `hidden`, `order`) VALUES (@iTypeId, CONCAT(@sName, '_security'), '_bx_messenger_cpt_category_security', 0, 2);
 SET @iCategId = LAST_INSERT_ID();

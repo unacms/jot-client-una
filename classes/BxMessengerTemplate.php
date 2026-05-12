@@ -1095,6 +1095,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 		foreach($aJots as $iKey => $aJot) {
             $oProfile = $this->getObjectUser($aJot[$CNF['FIELD_MESSAGE_AUTHOR']]);
             $iJot = $aJot[$CNF['FIELD_MESSAGE_ID']];
+            $bShowDateSeparator = false;
             if (!$iTimeFromToShift || (($iTimeFromToShift + $CNF['DATE-SHIFT']) < $aJot[$CNF['FIELD_MESSAGE_ADDED']])){
                 $bShowDateSeparator = true;
                 $iTimeFromToShift = $aJot[$CNF['FIELD_MESSAGE_ADDED']];
@@ -1443,6 +1444,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
 			'thumb_letter' => $this->parseHtmlByName('thumb-letter.html', []),
 			'add_user_item' => $this->parseHtmlByName('add-user-item.html', []),
 			'max_history' => (int)$CNF['MAX_JOTS_BY_DEFAULT'],
+			'quill_toolbar' => json_encode($this->_oConfig->CNF['QUILL_TOOLBAR'] ?? ''),
 			'jitsi_server' => $this->_oConfig->getValidUrl($CNF['JITSI-SERVER'], 'url'),
 			'last_unread_jot' => $iLastUnreadJot,
 			'unread_jots' => $iUnreadJotsNumber,

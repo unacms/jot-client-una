@@ -405,6 +405,7 @@
 	<string name="_bx_messenger_jot_menu_remove_save"><![CDATA[Удалить из сохранённых]]></string>
 
 	<string name="_bx_messenger_cpt_category_settings"><![CDATA[Настройки]]></string>
+	<string name="_bx_messenger_quill_toolbar_settings"><![CDATA[Инструменты редактора Quill (JSON массив)]]></string>
 	<string name="_bx_messenger_cpt_category_security"><![CDATA[Безопасность]]></string>
 	<string name="_bx_messenger_cpt_category_moderation"><![CDATA[Модерация]]></string>
 	<string name="_bx_messenger_cpt_category_giphy"><![CDATA[Giphy]]></string>

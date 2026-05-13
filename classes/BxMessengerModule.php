@@ -104,6 +104,9 @@ define('BX_MSG_CLASS_ATTACHMENT', 'message-attachment');
  */
 class BxMessengerModule extends BxBaseModGeneralModule
 {
+    const BROADCAST_BATCH_SIZE = 200;
+    const BROADCAST_BATCHES_PER_RUN = 5;
+
     private $_iUserId = 0;
     private $_iJotId = 0;
     private $_iSelectedProfileId = 0;
@@ -534,14 +537,12 @@ class BxMessengerModule extends BxBaseModGeneralModule
             if (!$iLotId)
                 $aResult['lot_id'] = $this->_oDb->getLotByJotId($iId);
 
+            $aBroadcastContext = [];
             if ($iType === BX_IM_TYPE_BROADCAST && !$iLotId && (int)$aResult['lot_id']) {
                 $iAuthorId = $this->_iProfileId;
                 $iCreatedLot = (int)$aResult['lot_id'];
-                if (isset($aData[BX_MSG_TALK_TYPE_BROADCAST]['author']) && (int)$aData[BX_MSG_TALK_TYPE_BROADCAST]['author']) {
+                if (isset($aData[BX_MSG_TALK_TYPE_BROADCAST]['author']) && (int)$aData[BX_MSG_TALK_TYPE_BROADCAST]['author'])
                     $iAuthorId = $aData[BX_MSG_TALK_TYPE_BROADCAST]['author'];
-                    $this->_oDb->updateConvoFiled($iCreatedLot, $CNF['FIELD_AUTHOR'], $aData[BX_MSG_TALK_TYPE_BROADCAST]['author']);
-                    $this->_oDb->updateJot($iId, $CNF['FIELD_MESSAGE_AUTHOR'], $aData[BX_MSG_TALK_TYPE_BROADCAST]['author']);
-                }
 
                 $aBroadcastParticipants = $this->getProfilesByCriteria($aData[BX_MSG_TALK_TYPE_BROADCAST]);
                 $aPartList = array_unique(array_merge($aParticipants, $aBroadcastParticipants), SORT_NUMERIC);
@@ -557,9 +558,6 @@ class BxMessengerModule extends BxBaseModGeneralModule
                         'data' => &$aData
                     ]);
 
-                $this->_oDb->createBroadcastUsers($iCreatedLot, $aPartList);
-                $this->_oDb->markAsNewJot($aPartList, $iCreatedLot, $iId);
-
                 $aAttachments[$sTemplateName] = (int)$iId;
                 $aNotificationsType = [];
                 if (isset($aData[BX_MSG_TALK_TYPE_BROADCAST]['notify_by'])) {
@@ -567,13 +565,15 @@ class BxMessengerModule extends BxBaseModGeneralModule
                         $aNotificationsType['silent_mode'] = $this->_oConfig->getSelectedNotificationMode($aNotifData);
                 }
 
-                foreach ($aPartList as &$iPart) {
-                    bx_alert($sModule, 'got_broadcast_ntfs', $iCreatedLot, $iAuthorId, [
-                            'object_author_id' => $iPart,
-                            'recipient_id' => $iPart,
-                            'subobject_id' => $iId,
-                        ] + $aNotificationsType);
-                }
+                $aBroadcastContext = [
+                    'author_id' => (int)$iAuthorId,
+                    'lot_id' => $iCreatedLot,
+                    'jot_id' => (int)$iId,
+                    'participants' => array_values(array_unique(array_filter(array_map('intval', $aPartList), function($iPart) {
+                        return $iPart > 0;
+                    }), SORT_NUMERIC)),
+                    'notifications' => $aNotificationsType
+                ];
             }
 
 		    if (!empty($aFiles)) {
@@ -592,31 +592,31 @@ class BxMessengerModule extends BxBaseModGeneralModule
                             }
                         }
                 } else
-                foreach ($aFiles as &$aFile) {
-                    if (!(int)$aFile['complete']) {
-                        $aUploadingFilesNames[] = $aFile['realname'];
-                        continue;
-                    }
+                    foreach ($aFiles as &$aFile) {
+                        if (!(int)$aFile['complete']) {
+                            $aUploadingFilesNames[] = $aFile['realname'];
+                            continue;
+                        }
 
-                    if (!$this->_oConfig->isValidToUpload($aFile['name'])){
-                        $this->_oDb->deleteJot($iId, $this->_iProfileId, true);
-                        return _t('_bx_messenger_bad_request');
-                    }
+                        if (!$this->_oConfig->isValidToUpload($aFile['name'])){
+                            $this->_oDb->deleteJot($iId, $this->_iProfileId, true);
+                            return _t('_bx_messenger_bad_request');
+                        }
 
-                    $sFile = BX_DIRECTORY_PATH_TMP . basename($aFile['name']);
-                    $sExt = $oStorage->getFileExt($sFile);
-                    $sFilename = $oStorage->getFileTitle($aFile['realname']) . ".{$sExt}";
-                    $iFile = $oStorage->storeFileFromPath($sFile, $iType == BX_IM_TYPE_PRIVATE, $this->_iProfileId, (int)$iId);
-                    if ($iFile) {
-                        $oStorage->afterUploadCleanup($iFile, $this->_iProfileId);
-                        $this->_oDb->updateFiles($iFile, array(
-                            $CNF['FIELD_ST_JOT'] => $iId,
-                            $CNF['FIELD_ST_NAME'] => $sFilename
-                        ));
-                        $aCompleteFilesNames[] = $sFilename;
-                        @unlink($sFile);
+                        $sFile = BX_DIRECTORY_PATH_TMP . basename($aFile['name']);
+                        $sExt = $oStorage->getFileExt($sFile);
+                        $sFilename = $oStorage->getFileTitle($aFile['realname']) . ".{$sExt}";
+                        $iFile = $oStorage->storeFileFromPath($sFile, $iType == BX_IM_TYPE_PRIVATE, $this->_iProfileId, (int)$iId);
+                        if ($iFile) {
+                            $oStorage->afterUploadCleanup($iFile, $this->_iProfileId);
+                            $this->_oDb->updateFiles($iFile, array(
+                                $CNF['FIELD_ST_JOT'] => $iId,
+                                $CNF['FIELD_ST_NAME'] => $sFilename
+                            ));
+                            $aCompleteFilesNames[] = $sFilename;
+                            @unlink($sFile);
+                        }
                     }
-                }
 
                 if (!empty($aUploadingFilesNames))
                     $aAttachments[BX_ATT_TYPE_FILES_UPLOADING] = $aUploadingFilesNames;
@@ -633,6 +633,19 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
             if (!empty($aAttachments))
                 $this->_oDb->addAttachment($iId, $aAttachments);
+
+            if (!empty($aBroadcastContext)) {
+                if ($aBroadcastContext['author_id'] && $aBroadcastContext['author_id'] !== (int)$this->_iProfileId) {
+                    $this->_oDb->updateConvoFiled($aBroadcastContext['lot_id'], $CNF['FIELD_AUTHOR'], $aBroadcastContext['author_id']);
+                    $this->_oDb->updateJot($aBroadcastContext['jot_id'], $CNF['FIELD_MESSAGE_AUTHOR'], $aBroadcastContext['author_id']);
+                }
+
+                if (!empty($aBroadcastContext['participants'])) {
+                    $this->_oDb->createBroadcastUsers($aBroadcastContext['lot_id'], $aBroadcastContext['participants']);
+                    if (!$this->queueBroadcastDelivery($aBroadcastContext['lot_id'], $aBroadcastContext['jot_id'], $aBroadcastContext['author_id'], $aBroadcastContext['notifications']))
+                        $this->serviceProcessBroadcastQueue($aBroadcastContext['lot_id'], $aBroadcastContext['jot_id'], $aBroadcastContext['author_id'], $aBroadcastContext['notifications']);
+                }
+            }
 
             $aResult['jot_id'] = $iId;
 			$aJot = $this->_oDb->getJotById($iId);
@@ -4207,6 +4220,60 @@ class BxMessengerModule extends BxBaseModGeneralModule
         }
 
         return $aResult;
+    }
+
+    private function queueBroadcastDelivery($iConvoId, $iJotId, $iAuthorId, $aNotificationsType = [], $iAfterUserId = 0)
+    {
+        if (!$iConvoId || !$iJotId || !$iAuthorId)
+            return false;
+
+        $sStamp = str_replace('.', '', sprintf('%.6F', microtime(true)));
+        $sJobName = sprintf('%s_broadcast_%d_%d_%s', $this->_oConfig->getName(), $iConvoId, $iAfterUserId, $sStamp);
+
+        return BxDolBackgroundJobs::getInstance()->add($sJobName, [
+            $this->_oConfig->getName(),
+            'process_broadcast_queue',
+            [$iConvoId, $iJotId, $iAuthorId, (array)$aNotificationsType, $iAfterUserId],
+            'Module'
+        ], 5);
+    }
+
+    public function serviceProcessBroadcastQueue($iConvoId, $iJotId, $iAuthorId, $aNotificationsType = [], $iAfterUserId = 0)
+    {
+        if (!$iConvoId || !$iJotId || !$iAuthorId)
+            return false;
+
+        $CNF = &$this->_oConfig->CNF;
+        $aConvoInfo = $this->_oDb->getLotInfoById($iConvoId);
+        $aJotInfo = $this->_oDb->getJotById($iJotId);
+        if (empty($aConvoInfo) || empty($aJotInfo) || (int)$aConvoInfo[$CNF['FIELD_TYPE']] !== BX_IM_TYPE_BROADCAST)
+            return false;
+
+        $sModule = $this->_oConfig->getObject('alert');
+        for ($iBatch = 0; $iBatch < self::BROADCAST_BATCHES_PER_RUN; $iBatch++) {
+            $aParticipants = $this->_oDb->getBroadcastParticipants($iConvoId, self::BROADCAST_BATCH_SIZE + 1, $iAfterUserId);
+            if (empty($aParticipants))
+                return true;
+
+            $bHasMore = count($aParticipants) > self::BROADCAST_BATCH_SIZE;
+            if ($bHasMore)
+                $aParticipants = array_slice($aParticipants, 0, self::BROADCAST_BATCH_SIZE);
+
+            $this->_oDb->markAsNewJot($aParticipants, $iConvoId, $iJotId, false);
+            foreach ($aParticipants as $iPart) {
+                bx_alert($sModule, 'got_broadcast_ntfs', $iConvoId, $iAuthorId, [
+                    'object_author_id' => $iPart,
+                    'recipient_id' => $iPart,
+                    'subobject_id' => $iJotId,
+                ] + (array)$aNotificationsType);
+            }
+
+            $iAfterUserId = (int)end($aParticipants);
+            if (!$bHasMore)
+                return true;
+        }
+
+        return $this->queueBroadcastDelivery($iConvoId, $iJotId, $iAuthorId, $aNotificationsType, $iAfterUserId);
     }
 
     private function getProfilesByCriteria($aData){

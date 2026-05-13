@@ -1084,14 +1084,50 @@ class BxMessengerDb extends BxBaseModGeneralDb
             'jot' => $iLastJot
         ));
     }
-    function markAsNewJot($mixedProfile, $iLotId, $iJotId){
-	    if (is_array($mixedProfile)){
-	        foreach($mixedProfile as &$iProfileId)
-                $this->addNewJotItem($iProfileId, $iLotId, $iJotId);
-        } elseif ((int)$mixedProfile)
-                $this->addNewJotItem($mixedProfile, $iLotId, $iJotId);
 
-        return $this -> query("UPDATE `{$this->CNF['TABLE_ENTRIES']}` 
+    private function addNewJotItems($aProfileIds, $iLotId, $iJotId)
+    {
+        $aProfileIds = array_values(
+            array_unique(
+                array_filter($aProfileIds, fn($iProfileId) => $iProfileId > 0 ))
+        );
+
+        if (empty($aProfileIds))
+            return false;
+
+        $bExecuted = false;
+        foreach (array_chunk($aProfileIds, 200) as $aChunk) {
+            $aValues = array_map(function($iProfileId) use ($iLotId, $iJotId) {
+                return sprintf("(%d, %d, 1, %d)", (int)$iLotId, (int)$iJotId, (int)$iProfileId);
+            }, $aChunk);
+
+            $bExecuted |= (bool)$this->query("
+                INSERT INTO `{$this->CNF['TABLE_NEW_MESSAGES']}`
+                    (`{$this->CNF['FIELD_NEW_LOT']}`, `{$this->CNF['FIELD_NEW_JOT']}`, `{$this->CNF['FIELD_NEW_UNREAD']}`, `{$this->CNF['FIELD_NEW_PROFILE']}`)
+                VALUES " . implode(',', $aValues) . "
+                ON DUPLICATE KEY UPDATE
+                    `{$this->CNF['FIELD_NEW_UNREAD']}` = `{$this->CNF['FIELD_NEW_UNREAD']}` + 1,
+                    `{$this->CNF['FIELD_NEW_JOT']}` = IF(
+                        `{$this->CNF['FIELD_NEW_JOT']}` = 0 OR `{$this->CNF['FIELD_NEW_JOT']}` > VALUES(`{$this->CNF['FIELD_NEW_JOT']}`),
+                        VALUES(`{$this->CNF['FIELD_NEW_JOT']}`),
+                        `{$this->CNF['FIELD_NEW_JOT']}`
+                    )
+            ");
+        }
+
+        return $bExecuted;
+    }
+
+    function markAsNewJot($mixedProfile, $iLotId, $iJotId, $bUpdateLot = true){
+        if (is_array($mixedProfile))
+            $this->addNewJotItems($mixedProfile, $iLotId, $iJotId);
+        elseif ((int)$mixedProfile)
+            $this->addNewJotItem($mixedProfile, $iLotId, $iJotId);
+
+        if (!$bUpdateLot)
+            return true;
+
+        return $this->query("UPDATE `{$this->CNF['TABLE_ENTRIES']}` 
                                             SET `{$this->CNF['FIELD_UPDATED']}` = UNIX_TIMESTAMP() 
                                             WHERE `{$this->CNF['FIELD_ID']}` = :id", array('id' => $iLotId));
     }
@@ -2820,10 +2856,19 @@ class BxMessengerDb extends BxBaseModGeneralDb
         return $bExecuted;
     }
 
-    function getBroadcastParticipants($iConvoId){
-        return $this->getColumn( "SELECT `{$this->CNF['FIELD_MASS_USER_ID']}` 
+    function getBroadcastParticipants($iConvoId, $iLimit = 0, $iAfterUserId = 0){
+        $aBindings = ['id' => $iConvoId];
+        $sWhere = "WHERE `{$this->CNF['FIELD_MASS_CONVO_ID']}`=:id";
+        if ((int)$iAfterUserId > 0) {
+            $aBindings['after_user_id'] = (int)$iAfterUserId;
+            $sWhere .= " AND `{$this->CNF['FIELD_MASS_USER_ID']}` > :after_user_id";
+        }
+
+        $sLimit = (int)$iLimit > 0 ? " LIMIT " . (int)$iLimit : "";
+        return $this->getColumn("SELECT `{$this->CNF['FIELD_MASS_USER_ID']}` 
                                             FROM `{$this->CNF['TABLE_MASS_TRACKER']}` 
-                                            WHERE `{$this->CNF['FIELD_MASS_CONVO_ID']}`=:id", ['id' => $iConvoId]);
+                                            {$sWhere}
+                                            ORDER BY `{$this->CNF['FIELD_MASS_USER_ID']}` ASC{$sLimit}", $aBindings);
     }
 
     function isBroadcastParticipant($iConvoId, $iProfileId){

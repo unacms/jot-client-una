@@ -505,6 +505,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (!$iLotId && empty($aParticipants) && $iType === BX_IM_TYPE_PRIVATE)
             return _t('_bx_messenger_save_part_failed');
 
+        $aBroadcastParticipants = null;
         if (empty($aParticipants) && $iType === BX_IM_TYPE_BROADCAST && isset($aData[BX_MSG_TALK_TYPE_BROADCAST])) {
             $aBroadcastParticipants = $this->getProfilesByCriteria($aData[BX_MSG_TALK_TYPE_BROADCAST]);
             if (empty($aBroadcastParticipants))
@@ -544,8 +545,12 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 if (isset($aData[BX_MSG_TALK_TYPE_BROADCAST]['author']) && (int)$aData[BX_MSG_TALK_TYPE_BROADCAST]['author'])
                     $iAuthorId = $aData[BX_MSG_TALK_TYPE_BROADCAST]['author'];
 
-                $aBroadcastParticipants = $this->getProfilesByCriteria($aData[BX_MSG_TALK_TYPE_BROADCAST]);
-                $aPartList = array_unique(array_merge($aParticipants, $aBroadcastParticipants), SORT_NUMERIC);
+                if ($aBroadcastParticipants === null)
+                    $aBroadcastParticipants = $this->getProfilesByCriteria($aData[BX_MSG_TALK_TYPE_BROADCAST]);
+                if (!is_array($aBroadcastParticipants))
+                    $aBroadcastParticipants = [];
+
+                $aPartList = array_unique(array_merge($aParticipants, (array)$aBroadcastParticipants), SORT_NUMERIC);
 
                 $sModule = $this->_oConfig->getObject('alert');
                 $sTemplateName = $this->_oConfig->getName();
@@ -4276,10 +4281,22 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return $this->queueBroadcastDelivery($iConvoId, $iJotId, $iAuthorId, $aNotificationsType, $iAfterUserId);
     }
 
-    private function getProfilesByCriteria($aData){
+    private function getProfilesByCriteria($aData, $aOptions = []){
+        $bCountOnly = !empty($aOptions['count_only']);
+        $aExcludeProfiles = array_values(array_unique(array_filter(array_map('intval', $aOptions['exclude_profiles'] ?? []), function($iProfileId) {
+            return $iProfileId > 0;
+        })));
+
         if (isset($aData['connection_type'])){
             if ($oConnection = $this->_oConfig->getConnectionByType($aData['connection_type'])) {
-                return $oConnection->getConnectedContent($this->_iProfileId, $aData['connection_type'] === 'friends');
+                if ($bCountOnly && empty($aExcludeProfiles))
+                    return (int)$oConnection->getConnectedContentCount($this->_iProfileId, $aData['connection_type'] === 'friends');
+
+                $aProfiles = $oConnection->getConnectedContent($this->_iProfileId, $aData['connection_type'] === 'friends');
+                if (!empty($aExcludeProfiles))
+                    $aProfiles = array_values(array_diff($aProfiles, $aExcludeProfiles));
+
+                return $bCountOnly ? count($aProfiles) : $aProfiles;
             }
         }
 
@@ -4302,6 +4319,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 $aFields[$aInput['name']] = $aData[$aInput['name']];
         }
 
+        if ($bCountOnly)
+            return $this->_oDb->getProfilesCountByCriteria($aFields, $aExcludeProfiles);
+
         $aProfiles = $this->_oDb->getProfilesByCriteria($aFields);
         bx_alert($this->_oConfig->getObject('alert'), 'broadcast_profiles_list', 0, 0, [
             'profiles' => &$aProfiles
@@ -4312,17 +4332,28 @@ class BxMessengerModule extends BxBaseModGeneralModule
 
     function actionCalculateProfiles(){
         $aData = bx_get('data');
-        $aManuall = bx_get('manually');
+        $aManuall = array_values(array_unique(array_filter(array_map('intval', (array)bx_get('manually')), function($iProfileId) {
+            return $iProfileId > 0;
+        })));
 
         $iConvoType = isset($aData['convo_type']) ? $aData['convo_type'] : 0;
         if (!$this->isLogged() || (empty($aData) && empty($aManuall)) || !$iConvoType)
             return false;
 
-        $aResult = $this->getProfilesByCriteria($aData);
-        if (!empty($aManuall))
-            $aResult = array_unique(array_merge($aResult, $aManuall), SORT_NUMERIC);
+        if (isset($aData['connection_type']) && !empty($aManuall)) {
+            $aResult = $this->getProfilesByCriteria($aData);
+            if (!is_array($aResult))
+                $aResult = [];
 
-        echoJson(['msg' => _t('_bx_messenger_broadcast_total_profiles', count($aResult))]);
+            $iTotal = count(array_unique(array_merge((array)$aResult, $aManuall), SORT_NUMERIC));
+        } else {
+            $iTotal = (int)$this->getProfilesByCriteria($aData, [
+                'count_only' => true,
+                'exclude_profiles' => $aManuall
+            ]) + count($aManuall);
+        }
+
+        echoJson(['msg' => _t('_bx_messenger_broadcast_total_profiles', $iTotal)]);
     }
 
     function serviceGetBroadcastCard($iJotId){

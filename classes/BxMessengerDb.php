@@ -2799,7 +2799,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
         return $bIdOnly && !empty($aConvo) ? $aConvo[$this->CNF['FIELD_ID']] : $aConvo;
     }
 
-    function getProfilesByCriteria($aFields){
+    private function getProfilesByCriteriaSqlParts($aFields, $aExcludeProfiles = []){
         $aSqlParts= ['where' => '', 'join' => ''];
         if (isset($aFields['membership'])) {
             $aSqlParts = BxDolAclQuery::getInstance()->getContentByLevelAsSQLPart('sys_profiles', 'id', $aFields['membership']);
@@ -2823,16 +2823,38 @@ class BxMessengerDb extends BxBaseModGeneralDb
             }
         }
 
+        $aExcludeProfiles = array_values(array_unique(array_filter(array_map('intval', (array)$aExcludeProfiles), function($iProfileId) {
+            return $iProfileId > 0;
+        })));
+        if (!empty($aExcludeProfiles))
+            $aSqlParts['where'] .= " AND `sys_profiles`.`id` NOT IN (" . implode(',', $aExcludeProfiles) . ")";
+
         bx_alert($this->_oConfig->getObject('alert'), 'broadcast_criteria_after', 0, 0, [
             'fields' => $aFields,
             'sql' => &$aSqlParts
         ]);
 
-       if (empty($aFields) && !$aSqlParts['where'] && !$aSqlParts['join'])
+        return $aSqlParts;
+    }
+
+    function getProfilesByCriteria($aFields){
+        $aSqlParts = $this->getProfilesByCriteriaSqlParts($aFields);
+
+        if (empty($aFields) && !$aSqlParts['where'] && !$aSqlParts['join'])
             return [];
 
-        $sSql = $this->prepare("SELECT `sys_profiles`.`id` FROM `sys_profiles`" . $aSqlParts['join'] . " WHERE 1" . $aSqlParts['where']);
+        $sSql = $this->prepare("SELECT DISTINCT `sys_profiles`.`id` FROM `sys_profiles`" . $aSqlParts['join'] . " WHERE 1" . $aSqlParts['where']);
         return $this->getColumn($sSql);
+    }
+
+    function getProfilesCountByCriteria($aFields, $aExcludeProfiles = []){
+        $aSqlParts = $this->getProfilesByCriteriaSqlParts($aFields, $aExcludeProfiles);
+
+        if (empty($aFields) && !$aSqlParts['where'] && !$aSqlParts['join'])
+            return 0;
+
+        $sSql = $this->prepare("SELECT COUNT(DISTINCT `sys_profiles`.`id`) FROM `sys_profiles`" . $aSqlParts['join'] . " WHERE 1" . $aSqlParts['where']);
+        return (int)$this->getOne($sSql);
     }
 
     function createBroadcastUsers($iConvoId, &$aData){

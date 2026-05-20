@@ -1942,7 +1942,7 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
     						    if (($iKey = array_search($aFile[$CNF['FIELD_ST_NAME']], $aUploadingFilesList)) !== FALSE)
     						        unset($aUploadingFilesList[$iKey]);
 
-    						    $bCollapsed = (boolean)$aFile[$CNF['FJMT_COLLAPSED']];
+    						    $bCollapsed = (bool)$aFile[$CNF['FJMT_COLLAPSED']];
                                 $isAllowedDelete = $this->_oDb->isAllowedToDeleteJot($aJot[$CNF['FIELD_MESSAGE_ID']], $iViewer, $aJot[$CNF['FIELD_MESSAGE_AUTHOR']], $bIsLotAuthor);
     				            $isVideo = $aTranscodersVideo && (0 == strncmp('video/', $aFile['mime_type'], 6)) && $aTranscodersVideo['poster']->isMimeTypeSupported($aFile['mime_type']);
 								if ($oStorage -> isImageFile($aFile[$CNF['FIELD_ST_TYPE']]))

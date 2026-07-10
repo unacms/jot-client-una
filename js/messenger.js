@@ -1179,7 +1179,7 @@
                     if (_this.isBlockVersion())
                         window.location.reload();
                     else {
-                        $(`[data-lot="${iLotId}"] ${talkItem}`).fadeOut(() => {
+                        $(`[data-lot="${iLotId}"]${talkItem}`).fadeOut(() => {
                             if ($(talksListItems).length > 0) {
                                 $(talksListItems).first().click();
                                 if (oMUtils.isMobile())
@@ -1719,7 +1719,7 @@
      *@param object oBlock selected lot
      */
     oMessenger.prototype.selectLotEmit = function (oBlock) {
-        const { active, talkItemBubble, unreadLot, talkItemInfo } = window.oMessengerSelectors.TALKS_LIST;
+        const { active, talkItemBubble, unreadLot } = window.oMessengerSelectors.TALKS_LIST;
 
         oBlock
             .addClass(active)
@@ -1729,6 +1729,7 @@
             .end()
             .find(talkItemBubble)
             .addClass('hidden');
+
     }
 
     /**
@@ -1792,7 +1793,7 @@
     oMessenger.prototype.updateCounters = function (iNumber, bForceUpdate = false) {
         const { talkItem } = window.oMessengerSelectors.TALKS_LIST,
             { talkBlock, mainScrollArea, unreadJotsCounter } = window.oMessengerSelectors.HISTORY,
-            { talkListJotSelector } = window.oMessengerSelectors.JOT
+            { talkListJotSelector } = window.oMessengerSelectors.JOT,
         iCounter = bForceUpdate ? iNumber : +$(unreadJotsCounter).text(),
             { lot, area_type, group_id } = this.oSettings;
 
@@ -1815,7 +1816,7 @@
 
         if (!$(unreadJotsCounter).is(':visible')) {
             $(this).updateMenuBubbles(lot, { type: area_type, group_id }, false);
-            this.selectLotEmit($(`[data-lot="${lot}"] ${talkItem}`));
+            this.selectLotEmit($(`[data-lot="${lot}"]${talkItem}`));
         }
     }
 
@@ -1841,7 +1842,6 @@
             });
         }
 
-        return;
     };
 
     oMessenger.prototype.showSearchCounter = function (iLotId) {
@@ -1908,7 +1908,7 @@
             { talkListJotSelector, jotMain } = window.oMessengerSelectors.JOT,
             { blockHeader, blockContainer } = window.oMessengerSelectors.SYSTEM,
             { lot, area_type } = this.oSettings,
-            oLotBlock = $(`[data-lot="${iLotId}"] ${talkItem}`),
+            oLotBlock = $(`[data-lot="${iLotId}"]${talkItem}`),
             fEmpty = { done: (r) => r() };
 
         if (!iLotId)
@@ -2705,7 +2705,7 @@
         this.loadTalksListByParam({ group: area_type, id: group_id }, () => {
             if (lot) {
                 const { talkItem } = window.oMessengerSelectors.TALKS_LIST;
-                _this.selectLotEmit($(`[data-lot="${lot}"] ${talkItem}`));
+                _this.selectLotEmit($(`[data-lot="${lot}"]${talkItem}`));
             }
         });
     };
@@ -3406,7 +3406,7 @@
 
     oMessenger.prototype.loadTalksList = function (fCallback, bUpdate = true) {
         const _this = this,
-            { talksList, talkItem, talksListItems } = window.oMessengerSelectors.TALKS_LIST;
+            { talksList, talksListItems } = window.oMessengerSelectors.TALKS_LIST;
 
         let oParams = Object.create(null);
         let oLotObject = $(talksList);
@@ -3464,7 +3464,7 @@
     oMessenger.prototype.loadTalksListByParam = function (mixedData, fCallback) {
         const _this = this,
             { group, id, lot } = mixedData || {},
-            { talksList, topItem, inboxAreaTitle, talkItem, talksListItems } = window.oMessengerSelectors.TALKS_LIST,
+            { talksList, topItem, inboxAreaTitle } = window.oMessengerSelectors.TALKS_LIST,
             { messengerBlock } = window.oMessengerSelectors.TALK_BLOCK,
             { mainTalkBlock, conversationBody } = window.oMessengerSelectors.HISTORY,
             { blockContainer, blockHeader } = window.oMessengerSelectors.SYSTEM,
@@ -3541,7 +3541,7 @@
             clearTimeout(iTimeout);
             iTimeout = setTimeout(() => {
                 oNavMenu.onResize();
-                _this.selectLotEmit($(`[data-lot="${_this.oSettings.lot}"] ${talkItem}`));
+                _this.selectLotEmit($(`[data-lot="${_this.oSettings.lot}"]${talkItem}`));
                 $(conversationBody).waitForImages(() => {
                     if (type === 'resize')
                         _this.setPositionOnSelectedJot(fCallback);
@@ -3795,7 +3795,7 @@
             const { talkItem } = window.oMessengerSelectors.TALKS_LIST,
                 { infoColumn } = window.oMessengerSelectors.INFO;
 
-            _oMessenger.selectLotEmit($(`[data-lot="${iLotId}"] ${talkItem}`));
+            _oMessenger.selectLotEmit($(`[data-lot="${iLotId}"]${talkItem}`));
             _oMessenger.aLoadingRequestsPool.push(iLotId);
 
             if ($(infoColumn).is(':visible') && !_oMessenger.isBlockVersion())

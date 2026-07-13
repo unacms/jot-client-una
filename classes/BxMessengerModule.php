@@ -4418,13 +4418,20 @@ class BxMessengerModule extends BxBaseModGeneralModule
                 $aFields[$aInput['name']] = $aData[$aInput['name']];
         }
 
-        if ($bCountOnly)
-            return $this->_oDb->getProfilesCountByCriteria($aFields, $aOptions);
+        $aParams = [];
+        if (!empty($aExcludeProfiles))
+            $aParams['exclude_profiles'] = $aExcludeProfiles;
 
-        $aProfiles = $this->_oDb->getProfilesByCriteria($aFields, $aOptions);
+        if (!empty($aIncludeProfiles))
+            $aParams['include_profiles'] = $aIncludeProfiles;
+
+        $aProfiles = $this->_oDb->getProfilesByCriteria($aFields, $aParams);
         bx_alert($this->_oConfig->getObject('alert'), 'broadcast_profiles_list', 0, 0, [
             'profiles' => &$aProfiles
         ]);
+
+        if ($bCountOnly)
+            return count($aProfiles);//$this->_oDb->getProfilesCountByCriteria($aFields, $aOptions);
 
         return $aProfiles;
     }
@@ -4440,24 +4447,11 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (!$this->isLogged() || (empty($aData) && empty($aManuall)) || !$iConvoType)
             return false;
 
-        $iTotal = (int) $this->getProfilesByCriteria($aData, [
-            'count_only' => true,
-            'include_profiles' => $aManuall
-        ]);
+        $aParams['count_only'] = true;
+        if (!empty($aManuall))
+            $aParams['include_profiles'] = $aManuall;
 
-        /*if (isset($aData['connection_type']) && !empty($aManuall)) {
-            $aResult = $this->getProfilesByCriteria($aData);
-            if (!is_array($aResult))
-                $aResult = [];
-
-            $iTotal = count(array_unique(array_merge((array) $aResult, $aManuall), SORT_NUMERIC));
-        } else {
-            $iTotal = (int) $this->getProfilesByCriteria($aData, [
-                'count_only' => true,
-                'exclude_profiles' => $aManuall
-            ]) + count($aManuall);
-        }*/
-
+        $iTotal = (int)$this->getProfilesByCriteria($aData, $aParams);
         echoJson(['msg' => _t('_bx_messenger_broadcast_total_profiles', $iTotal)]);
     }
 

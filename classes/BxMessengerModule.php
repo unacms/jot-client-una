@@ -4431,7 +4431,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         ]);
 
         if ($bCountOnly)
-            return count($aProfiles);//$this->_oDb->getProfilesCountByCriteria($aFields, $aOptions);
+            return count($aProfiles);
 
         return $aProfiles;
     }

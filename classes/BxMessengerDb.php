@@ -3097,8 +3097,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
                 $sBegin . implode(",", $aValues);
                 $bExecuted |= (bool) $this->query($sBegin . implode(",", $aValues));
             }
-        }
-        ;
+        };
 
         return $bExecuted;
     }

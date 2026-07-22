@@ -3895,8 +3895,8 @@
                 .closest('form')
                 .find('input[type="checkbox"]:checked')
                 .each(function () {
-                    aOptions.push($(this).prop('name'));
-                })
+                    aOptions.push($(this).prop('value'));
+                });
 
             $.post('modules/?r=messenger/save_lot_settings', {
                 lot: _oMessenger.oSettings.lot,

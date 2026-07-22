@@ -2514,50 +2514,51 @@ class BxMessengerTemplate extends BxBaseModGeneralTemplate
             $sContent = MsgBox(_t('_Empty'));
         else
         {
-            $aOptions = array();
+            $aSettingsOptions = [];
+            $aSelectedValues = [];
             $aLotSettings = $this->_oDb->getLotSettings($iLotId);
-            foreach ($CNF['LOT_OPTIONS'] as &$sValue) {
-                $aOptions[] = array(
-                    'type' => 'checkbox',
-                    'name' => $sValue,
-                    'label' => _t("_bx_messenger_lot_options_item_{$sValue}"),
-                    'checked' => $aLotSettings === false || in_array($sValue, $aLotSettings)
-                );
+            foreach ($CNF['LOT_OPTIONS'] as $sValue) {
+                $aSettingsOptions[] = ['key' => $sValue, 'value' => _t("_bx_messenger_lot_options_item_{$sValue}")];
+                if ($aLotSettings === false || in_array($sValue, $aLotSettings))
+                    $aSelectedValues[] = $sValue;
             }
 
-            $aForm = array(
-                'form_attrs' => array(
+            bx_alert($this->_oConfig->getObject('alert'), 'talk_settings_before', $iLotId, $iLotId, [
+                'options' => &$aSettingsOptions,
+                'values' => &$aSelectedValues
+            ]);
+
+            $aForm = [
+                'form_attrs' => [
                     'name' => 'lot_options',
                     'method' => 'post',
                     'enctype' => 'multipart/form-data'
-                ),
-                'inputs' => array(
-                    'options' => array(
+                ],
+                'inputs' => [
+                    'options' => [
+                        'type' => 'checkbox_set',
+                        'name' => 'options',
+                        'value' => $aSelectedValues,
+                        'values' => $aSettingsOptions
+                    ],
+                    'buttons' => [
                         'type' => 'input_set',
-                        'dv' => '<br/>'
-                    ),
-                    'buttons' => array(
-                        'type' => 'input_set',
-                        'attrs_wrapper' => array('class' => 'bx-messenger-options-buttons'),
-                        array(
+                        'attrs_wrapper' => ['class' => 'bx-messenger-options-buttons'],
+                        [
                             'type' => 'button',
                             'name' => 'save',
                             'value' => _t("_bx_messenger_save_button"),
                             'attrs' => array('onclick' => "javascript:{$CNF['JSMain']}.onSaveLotSettings(this);")
-                        ),
-                        array(
+                        ],
+                        [
                             'type' => 'button',
                             'name' => 'close',
                             'value' => _t("_bx_messenger_cancel_button"),
                             'attrs' => array('onclick' => "javascript:$(this).closest('.bx-popup-applied:visible').dolPopupHide();")
-                        ),
-                    )
-                )
-            );
-
-            if (!empty($aOptions))
-                $aForm['inputs']['options'] = array_merge($aForm['inputs']['options'], $aOptions);
-
+                        ],
+                    ]
+                ]
+            ];
 
             $oForm = new BxTemplFormView($aForm);
             $sContent = $oForm -> getCode();

@@ -762,20 +762,17 @@ class BxMessengerDb extends BxBaseModGeneralDb
 
     /**
      * Get jots list for specified lot
-     *@param int $iLotId lot id
-     *@param int $iStart jot id from which start to get jots
-     *@param string $sMode just posted or old jots from history 
-     *@param int $iLimit number of jots to get
-     *@return array of the jots
+     * @param $aData
+     * @return array of the jots
      */
     public function getJotsByLotId($aData)
     {  /* $iLotId, $iStart = BX_IM_EMPTY, $sMode = 'new', $iLimit = BX_IM_EMPTY, $bInclude = false */
-        $iLotId = isset($aData['lot']) ? (int) $aData['lot'] : BX_IM_EMPTY;
-        $iStart = isset($aData['start']) ? (int) $aData['start'] : BX_IM_EMPTY;
-        $sMode = isset($aData['mode']) ? $aData['mode'] : 'new';
+        $iLotId = isset($aData['lot']) ? (int)$aData['lot'] : BX_IM_EMPTY;
+        $iStart = isset($aData['start']) ? (int)$aData['start'] : BX_IM_EMPTY;
+        $sMode = $aData['mode'] ?? 'new';
         $iLimit = isset($aData['limit']) ? (int) $aData['limit'] : BX_IM_EMPTY;
         $bInclude = isset($aData['include']) && $aData['include'];
-        $sArea = isset($aData['area']) ? $aData['area'] : '';
+        $sArea = $aData['area'] ?? '';
 
         $sJoin = $sWhereJoin = $sLimit = '';
         $aSWhere[] = "`m`.`{$this->CNF['FIELD_MESSAGE_FK']}` = :lot_id ";
@@ -2384,7 +2381,7 @@ class BxMessengerDb extends BxBaseModGeneralDb
             return false;
 
         if (empty($mixedOptions))
-            $mixedOptions = array();
+            $mixedOptions = [];
 
         $mixedData = is_array($mixedOptions) ? @serialize($mixedOptions) : (int) $mixedOptions;
         $aLotSettings = $this->getLotSettings($iLotId, false);

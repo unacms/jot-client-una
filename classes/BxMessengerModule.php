@@ -3199,7 +3199,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return $aResult;
     }
 
-    public function serviceGetLotInfo($iProfileId, $iLotId, $iJotsLimit = 0, $iStart = BX_IM_EMPTY, $sType = BX_JOT_TYPE_NEW)
+    public function serviceGetLotInfo($iProfileId, $iLotId, $iJotsLimit = 0, $iStart = BX_IM_EMPTY, $sType = 'new')
     {
         $aResult = array('code' => 1);
         $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
@@ -3210,7 +3210,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             return array('code' => 1, _t('_bx_messenger_not_participant'));
 
         $CNF = $this->_oConfig->CNF;
-        $iJotsLimit = $iJotsLimit ? $iJotsLimit : $CNF['MAX_JOTS_LOAD_HISTORY'];
+        $iJotsLimit = $iJotsLimit ?: $CNF['MAX_JOTS_LOAD_HISTORY'];
         $aJotsList = $this->_oDb->getJotsByLotId(['lot' => $iLotId, 'start' => $iStart, 'mode' => $sType, 'limit' => $iJotsLimit]);
 
         $aJots = array();
@@ -3220,7 +3220,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
             $aJots[] = array_merge($aJot, array(
                 'thumb' => $aAuthor->getThumb(),
                 'name' => $aAuthor->getDisplayName(),
-                'files' => isset($aAttachments[BX_ATT_GROUPS_ATTACH]) ? $aAttachments[BX_ATT_GROUPS_ATTACH] : ''
+                'files' => $aAttachments[BX_ATT_GROUPS_ATTACH] ?? ''
             ));
         }
 
@@ -3609,17 +3609,18 @@ class BxMessengerModule extends BxBaseModGeneralModule
     {
         $iLotId = (int) bx_get('lot');
         $aOptions = bx_get('options');
-        $aResult = array('code' => 1, 'msg' => _t('_bx_messenger_not_found'));
+        $aResult = ['code' => 1, 'msg' => _t('_bx_messenger_not_found')];
         if (!$iLotId || !isLogged() || !($aLotInfo = $this->_oDb->getLotInfoById($iLotId)))
             return echoJson($aResult);
 
-        $aResult = array('code' => 1, 'msg' => _t('_bx_messenger_lot_can_change_settings'));
+        $aResult = ['code' => 1, 'msg' => _t('_bx_messenger_lot_can_change_settings')];
         $bCheckAction = $this->_oConfig->isAllowedAction(BX_MSG_ACTION_ADMINISTRATE_TALKS, $this->_iProfileId) === true;
         if (!($this->_oDb->isAuthor($iLotId, $this->_iProfileId) || $bCheckAction))
             return echoJson($aResult);
 
+        $aResult = ['code' => 1, 'msg' => _t('_bx_messenger_nothing_has_been_saved')];
         if ($this->_oDb->saveLotSettings($iLotId, $aOptions))
-            return echoJson(array('code' => 0/*, 'text_area' => $this->_oTemplate->getTextArea($this->_iProfileId, $iLotId)*/));
+            return echoJson(['code' => 0]);
 
         return echoJson($aResult);
     }

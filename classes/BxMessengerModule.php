@@ -3618,6 +3618,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (!($this->_oDb->isAuthor($iLotId, $this->_iProfileId) || $bCheckAction))
             return echoJson($aResult);
 
+        $aResult = ['code' => 1, 'msg' => _t('_bx_messenger_nothing_has_been_saved')];
         if ($this->_oDb->saveLotSettings($iLotId, $aOptions))
             return echoJson(['code' => 0]);
 

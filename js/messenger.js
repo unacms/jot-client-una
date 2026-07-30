@@ -3019,7 +3019,6 @@
                                         const iId = oObjects.first().data('id');
                                         if (+iId)
                                             setTimeout(() => {
-                                                console.log(`[data-id="${iId}"]${jotMain}`, oParent);
                                                 const iTop = $(`[data-id="${iId}"]${jotMain}`, oParent).position().top || 0;
                                                 _this.updateScrollPosition('top', 'fast', {
                                                     pos: iTop,

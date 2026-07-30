@@ -2993,6 +2993,9 @@
 
                             break;
                         case 'prev':
+                            if (!html.length)
+                                break;
+
                             const oPrevContent = $(html)
                                 .initJotIcons()
                                 .initAccordion()
@@ -3010,21 +3013,20 @@
                                 .end();
 
                             oList
-                                .prepend(oPrevContent);
-
-                            oPrevContent
+                                .prepend(oPrevContent)
                                 .bxProcessHtml()
                                 .waitForImages(oParent => {
-                                    const iId = oObjects.first().data('id');
-                                    if (+iId)
-                                        setTimeout(() => {
-                                            const iTop = $(`[data-id="${iId}"]${jotMain}`, oParent).position().top || 0;
-                                            _this.updateScrollPosition('top', 'fast', {
-                                                pos: iTop,
-                                                object: oObjects.first()
-                                            });
-                                        }, 0);
-                                });
+                                        const iId = oObjects.first().data('id');
+                                        if (+iId)
+                                            setTimeout(() => {
+                                                console.log(`[data-id="${iId}"]${jotMain}`, oParent);
+                                                const iTop = $(`[data-id="${iId}"]${jotMain}`, oParent).position().top || 0;
+                                                _this.updateScrollPosition('top', 'fast', {
+                                                    pos: iTop,
+                                                    object: oObjects.first()
+                                                });
+                                            }, 0);
+                                    });
                             break;
                         case 'edit':
                         case 'vc':

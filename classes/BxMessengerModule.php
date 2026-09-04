@@ -1961,7 +1961,9 @@ class BxMessengerModule extends BxBaseModGeneralModule
             bx_alert($sModule, !$bIsMention ? 'got_jot_ntfs' : 'got_mention_ntfs', $iLotId, $this->_iProfileId, array(
                 'object_author_id' => $iPart,
                 'recipient_id' => $iPart,
-                'subobject_id' => $iJotId
+                'subobject_id' => $iJotId,
+                'source' => $sModule . '_' . $iJotId,
+                'source_mac' => $sModule . '_' . $this->_iProfileId . '_' . $iJotId,
             ));
         }
 
@@ -4368,6 +4370,8 @@ class BxMessengerModule extends BxBaseModGeneralModule
                     'object_author_id' => $iPart,
                     'recipient_id' => $iPart,
                     'subobject_id' => $iJotId,
+                    'source' => $sModule . '_' . $iJotId,
+                    'source_mac' => $sModule . '_' . $iAuthorId . '_' . $iJotId,
                 ] + (array) $aNotificationsType);
             }
 

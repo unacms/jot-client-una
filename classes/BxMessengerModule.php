@@ -120,6 +120,14 @@ class BxMessengerModule extends BxBaseModGeneralModule
         $this->_iUserId = bx_get_logged_profile_id();
     }
 
+    public function setProfileId($iProfileId)
+    {
+        $iPrev = (int)$this->_iProfileId;
+        $this->_iProfileId = (int)$iProfileId;
+        $this->_iUserId = (int)$iProfileId;
+        return $iPrev;
+    }
+
     /**
      * Returns left side block for messenger page and loads config data
      */
@@ -667,6 +675,12 @@ class BxMessengerModule extends BxBaseModGeneralModule
             if (!empty($aJot))
                 $aResult['time'] = bx_time_utc($aJot[$CNF['FIELD_MESSAGE_ADDED']]);
 
+            // Push this jot before onSendJot so a sync agent reply
+            // cannot appear on the socket before the message it is answering.
+            $iBroadcastLot = $iLotId ? (int)$iLotId : (int)($aResult['lot_id'] ?? 0);
+            if (!$iBroadcastLot)
+                $iBroadcastLot = (int)$this->_oDb->getLotByJotId($iId);
+            $this->broadcastNewJot($iBroadcastLot, $iId);
             $this->onSendJot($iId);
         } else
             return _t('_bx_messenger_send_message_save_error');
@@ -4532,6 +4546,40 @@ class BxMessengerModule extends BxBaseModGeneralModule
         return echoJson(array('code' => 0, 'html' => $sContent));
     }
 
+    public function broadcastNewJot($iLotId, $iJotId)
+    {
+        $iLotId = (int)$iLotId;
+        $iJotId = (int)$iJotId;
+        if (!$iLotId || !$iJotId)
+            return false;
+
+        $CNF = &$this->_oConfig->CNF;
+        $aLotInfo = $this->_oDb->getLotInfoById($iLotId);
+        if (empty($aLotInfo) || empty($aLotInfo[$CNF['FIELD_HASH']]))
+            return false;
+
+        $sHash = mb_strtolower($aLotInfo[$CNF['FIELD_HASH']]);
+        // NEO JotItem expects Services API shape (menu.items)
+        bx_import('Services', $this->_aModule);
+        $oServices = new BxMessengerServices();
+        $this->pusherData('convo_' . $sHash, [
+            'convo' => $iLotId,
+            'action' => 'added',
+            'data' => $oServices->serviceGetConvoMessages([
+                'load' => 'ids',
+                'lot' => $sHash,
+                'jot' => $iJotId,
+            ]),
+        ]);
+
+        $aParticipantsList = $this->_oDb->getParticipantsList($iLotId, true);
+        foreach ($aParticipantsList as $iProfile) {
+            $this->pusherData('profile_' . $iProfile, ['convo' => $iLotId]);
+        }
+
+        return true;
+    }
+
     /**
      * Moved to Services
      */
@@ -4542,7 +4590,7 @@ class BxMessengerModule extends BxBaseModGeneralModule
         if (isset($aData['convo']) && (int) $aData['convo']) {
             $CNF = &$this->_oConfig->CNF;
             $aLotInfo = $this->_oDb->getLotInfoById($aData['convo']);
-            $aData['id'] = $aLotInfo[$CNF['FIELD_HASH']];
+            $aData['id'] = mb_strtolower($aLotInfo[$CNF['FIELD_HASH']]);
         }
 
         $aData['user_id'] = $this->_iProfileId;

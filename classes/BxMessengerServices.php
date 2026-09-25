@@ -495,18 +495,7 @@ class BxMessengerServices extends BxDol
 
             $aResult = $this->_oModule->sendMessage($aData);
             $bResult = !empty($aResult) && is_array($aResult);
-
-            $this->_pusherData('convo_' . $sLotHash, ['convo' => $iLotId, 'action' => 'added', 'data' => ($bResult ? $this->serviceGetConvoMessages([
-                'load' => 'ids',
-                'lot' => $sLotHash,
-                'jot' => $aResult['jot_id']
-            ]) : ['msg' => $aResult])]);
-
-            $aParticipantsList = $this->_oModule->_oDb->getParticipantsList($iLotId, true);
-            foreach($aParticipantsList as $iProfile) {
-                $this->_pusherData('profile_' . $iProfile, ['convo' => $iLotId]);
-            }
-
+            // Socket broadcast lives in sendMessage()
             return $bResult ? array_merge($aResult, []) : ['msg' => $aResult];
         }
 

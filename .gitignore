@@ -16,3 +16,28 @@ js/emoji
 
 # Exclude IDE project folder
 .idea
+
+# compiles css
+template/css/attachment.css
+template/css/create-list.css
+template/css/emoji-component.css
+template/css/emoji.css
+template/css/giphy.css
+template/css/history-header.css
+template/css/history.css
+template/css/info-block.css
+template/css/lot-briefs.css
+template/css/main.css
+template/css/menu-column.css
+template/css/message-menu.css
+template/css/message.css
+template/css/scroll-elements.css
+template/css/tailwind-messenger.css
+template/css/talk-block.css
+template/css/talk-info.css
+template/css/talk.css
+template/css/talks-list.css
+template/css/text-area.css
+template/css/time-divider.css
+template/css/video-conference.css
+template/css/video-recorder.css

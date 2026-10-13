@@ -1,3 +1,7 @@
+# This repo is included in UNA main repo now - https://github.com/unacms/una
+# NO COMMITS HERE ANYMORE!
+----
+
 ![std-icon](https://github.com/unacms/jot-client-una/assets/22319431/8369cd4b-76e7-4bb4-b3cb-9e36a7f59d8f)
 
 # Messenger for UNA CMS Platform
